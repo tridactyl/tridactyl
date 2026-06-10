@@ -2,6 +2,7 @@
 
 import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
+import { getPrettyTriVersion } from "@src/lib/webext"
 
 // These functions work with the elements created by tridactyl/scripts/newtab.md.sh
 function getChangelogDiv() {
@@ -13,7 +14,10 @@ function getChangelogDiv() {
 function updateChangelogStatus() {
     const changelogDiv = getChangelogDiv()
     const changelogContent = changelogDiv.textContent
-    if (browser.extension.inIncognitoContext || (localStorage.changelogContent === changelogContent)) {
+    if (
+        browser.extension.inIncognitoContext ||
+        localStorage.changelogContent === changelogContent
+    ) {
         const changelogButton = document.querySelector('input[id^="spoiler"]')
         if (!changelogButton) {
             console.error("Couldn't find changelog button!")
@@ -37,16 +41,19 @@ window.addEventListener("load", _ => {
         return
     }
     spoilerbutton.addEventListener("click", readChangelog)
-    config.getAsync("newtabfocus").then(f => {
-        if (f === "page") {
-            window.focus()
-        }
-    })
 })
 
 // Periodically nag people about updates.
 window.addEventListener("load", _ => {
     if (config.get("update", "nag") === true) {
-        Messaging.message("controller_background", "acceptExCmd", "updatecheck auto_polite")
+        Messaging.message(
+            "controller_background",
+            "acceptExCmd",
+            "updatecheck auto_polite",
+        )
     }
 })
+
+document.getElementById(
+    "tridactyl-version-number",
+).textContent = getPrettyTriVersion()

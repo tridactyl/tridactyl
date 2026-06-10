@@ -1,33 +1,29 @@
 import * as config from "@src/lib/config"
 import { browserBg } from "@src/lib/webext"
+import Fuse from "fuse.js"
 
 export function newtaburl() {
     // In the nonewtab version, this will return `null` and upset getURL.
     // Ternary op below prevents the runtime error.
-    const newtab = (browser.runtime.getManifest()).chrome_url_overrides.newtab
+    const newtab = browser.runtime.getManifest().chrome_url_overrides.newtab
     return newtab !== null ? browser.runtime.getURL(newtab) : null
 }
 
-export async function getBookmarks(query: string) {
-    // Search bookmarks, dedupe and sort by most recent.
-    let bookmarks = await browserBg.bookmarks.search({ query })
+export type Bookmark = { path: string } & browser.bookmarks.BookmarkTreeNode
 
-    // Remove folder nodes and bad URLs
-    bookmarks = bookmarks.filter(b => {
-        try {
-            return new URL(b.url)
-        } catch (e) {
-            return false
-        }
-    })
-
-    bookmarks.sort((a, b) => b.dateAdded - a.dateAdded)
+/**
+ * Search bookmarks, deduplicate and sort by most recent.
+ */
+export async function getBookmarks(query: string): Promise<Bookmark[]> {
+    let bookmarks =
+        config.get("bmarkfoldersearch") == "true"
+            ? await fuseBookmarksSearch(query)
+            : await builtInBookmarksSearch(query)
 
     // Remove duplicate bookmarks
     const seen = new Map<string, string>()
     bookmarks = bookmarks.filter(b => {
-        if (seen.get(b.title) === b.url)
-            return false
+        if (seen.get(b.title) === b.url) return false
         else {
             seen.set(b.title, b.url)
             return true
@@ -37,12 +33,157 @@ export async function getBookmarks(query: string) {
     return bookmarks
 }
 
+/**
+ * Uses Browser API to search for bookmark by name and URL.
+ */
+async function builtInBookmarksSearch(query: string): Promise<Bookmark[]> {
+    const bookmarks = await browserBg.bookmarks.search({ query })
+    return bookmarks
+        .filter(isValidBookmark)
+        .map(b => ({ path: "", ...b }))
+        .sort((a, b) => b.dateAdded - a.dateAdded)
+}
+
+let allBookmarks: Bookmark[]
+let bookmarksFuse: Fuse<Bookmark>
+
+/**
+ * Caches all bookmarks to be able to search by any property.
+ * Searches by path, name and URL.
+ */
+async function fuseBookmarksSearch(query: string): Promise<Bookmark[]> {
+    allBookmarks = allBookmarks || (await collectBookmarks())
+    bookmarksFuse =
+        bookmarksFuse ||
+        new Fuse(allBookmarks, {
+            keys: ["path", "title", "url"],
+            findAllMatches: true,
+            ignoreLocation: true,
+            ignoreFieldNorm: true,
+            threshold: config.get("completionfuzziness"),
+        })
+    return query ? bookmarksFuse.search(query).map(r => r.item) : allBookmarks
+}
+
+async function collectBookmarks(): Promise<Bookmark[]> {
+    const bookmarks = await collectBookmarksAndFolders()
+    const bookmarksDictionary = groupBookmarksById(bookmarks)
+    return bookmarks
+        .filter(isValidBookmark)
+        .map(bookmark => ({
+            path: buildBookmarkPath("", bookmark, bookmarksDictionary),
+            ...bookmark,
+        }))
+        .sort((a, b) => b.dateAdded - a.dateAdded)
+}
+
+function flattenChildren(
+    node: browser.bookmarks.BookmarkTreeNode,
+): browser.bookmarks.BookmarkTreeNode[] {
+    if (!node.children) {
+        return [node]
+    }
+    return [node, ...node.children.flatMap(flattenChildren)]
+}
+
+function buildBookmarkPath(
+    path: string,
+    bookmark: browser.bookmarks.BookmarkTreeNode,
+    bookmarksDictionary: { string?: browser.bookmarks.BookmarkTreeNode },
+): string {
+    if (!bookmark.parentId) {
+        return path
+    }
+    const parent = bookmarksDictionary[bookmark.parentId]
+    return buildBookmarkPath(
+        `${parent.title}/${path}`,
+        parent,
+        bookmarksDictionary,
+    )
+}
+
+/**
+ * Bookmark is not a folder and has valid URL.
+ */
+function isValidBookmark(
+    bookmark: browser.bookmarks.BookmarkTreeNode,
+): boolean {
+    try {
+        return !!new URL(bookmark.url)
+    } catch (e) {
+        return false
+    }
+}
+
+let bookmarkPaths: string[]
+
+export async function getBookmarkFolders(query: string) {
+    bookmarkPaths = bookmarkPaths || [
+        ...new Set(
+            (await collectBookmarkFolders())
+                .filter(bookmark => bookmark.path && bookmark.path != "/")
+                .map(bookmark => bookmark.path),
+        ),
+    ]
+    const prefix = !query || query === "/" ? "/" : `.*${query}`
+    const regex = new RegExp(`^${prefix}[^/]*/$`)
+    return bookmarkPaths.filter(path => regex.test(path))
+}
+
+async function collectBookmarkFolders(): Promise<Bookmark[]> {
+    const bookmarks = await collectBookmarksAndFolders()
+    const bookmarksDictionary = groupBookmarksById(bookmarks)
+    return bookmarks
+        .filter(bookmark => bookmark.type === "folder")
+        .map(folder => ({
+            path: buildBookmarkPath(
+                `${folder.title}/`,
+                folder,
+                bookmarksDictionary,
+            ),
+            ...folder,
+        }))
+}
+
+async function collectBookmarksAndFolders(): Promise<
+    browser.bookmarks.BookmarkTreeNode[]
+> {
+    const root = await browserBg.bookmarks.getTree()
+    return root.flatMap(flattenChildren)
+}
+
+function groupBookmarksById(bookmarks: browser.bookmarks.BookmarkTreeNode[]): {
+    [id: string]: browser.bookmarks.BookmarkTreeNode
+} {
+    return bookmarks.reduce((dict, bookmark) => {
+        dict[bookmark.id] = bookmark
+        return dict
+    }, {})
+}
+
+export async function getSearchUrls(query: string) {
+    const suconf = config.get("searchurls")
+
+    const searchUrls = []
+    for (const prop in suconf) {
+        if (
+            Object.prototype.hasOwnProperty.call(suconf, prop) &&
+            prop.startsWith(query)
+        ) {
+            searchUrls.push({ title: prop, url: suconf[prop] })
+        }
+    }
+    return searchUrls
+}
+
 function frecency(item: browser.history.HistoryItem) {
     // Doesn't actually care about recency yet.
     return item.visitCount * -1
 }
 
-export async function getHistory(query: string): Promise<browser.history.HistoryItem[]> {
+export async function getHistory(
+    query: string,
+): Promise<browser.history.HistoryItem[]> {
     // Search history, dedupe and sort by frecency
     let history = await browserBg.history.search({
         text: query,
@@ -55,10 +196,7 @@ export async function getHistory(query: string): Promise<browser.history.History
     for (const page of history) {
         if (page.url !== newtaburl()) {
             if (dedupe.has(page.url)) {
-                if (
-                    dedupe.get(page.url).title.length <
-                    page.title.length
-                ) {
+                if (dedupe.get(page.url).title.length < page.title.length) {
                     dedupe.set(page.url, page)
                 }
             } else {
@@ -74,26 +212,48 @@ export async function getHistory(query: string): Promise<browser.history.History
 }
 
 export async function getTopSites() {
-    return (await browserBg.topSites.get())
-        .filter(page => page.url !== newtaburl())
+    return (await browserBg.topSites.get()).filter(
+        page => page.url !== newtaburl(),
+    )
 }
 
-export async function getCombinedHistoryBmarks(query: string): Promise<Array<{title: string, url: string}>> {
-    const [history, bookmarks] = await Promise.all([
+export async function getCombinedHistoryBmarks(
+    query: string,
+): Promise<Array<{ title: string; url: string }>> {
+    const [history, bookmarks, searchUrls] = await Promise.all([
         getHistory(query),
         getBookmarks(query),
+        getSearchUrls(query),
     ])
 
     // Join records by URL, using the title from bookmarks by preference.
-    const combinedMap = new Map<string, any>(bookmarks.map(bmark => [
-        bmark.url, {title: bmark.title, url: bmark.url, bmark}
-    ]))
+    const combinedMap = new Map<string, any>(
+        bookmarks.map(bmark => [
+            bmark.url,
+            { title: `${bmark.path}${bmark.title}`, url: bmark.url, bmark },
+        ]),
+    )
     history.forEach(page => {
         if (combinedMap.has(page.url)) combinedMap.get(page.url).history = page
-        else combinedMap.set(page.url, {title: page.title, url: page.url, history: page})
+        else
+            combinedMap.set(page.url, {
+                title: page.title,
+                url: page.url,
+                history: page,
+            })
+    })
+    searchUrls.forEach(su => {
+        combinedMap.set(su.url, {
+            title: su.title,
+            url: su.url,
+            search: true,
+        })
     })
 
-    const score = x => (x.history ? frecency(x.history) : 0) - (x.bmark ? config.get("bmarkweight") : 0)
+    const score = x =>
+        (x.history ? frecency(x.history) : 0) -
+        (x.bmark ? config.get("bmarkweight") : 0) -
+        (x.search ? config.get("searchurlweight") : 0)
 
     return Array.from(combinedMap.values()).sort((a, b) => score(a) - score(b))
 }

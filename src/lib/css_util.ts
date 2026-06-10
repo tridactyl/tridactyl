@@ -16,12 +16,13 @@ export function findCssRules(
         const rule = x[1]
         return (
             rule.type === "rule" &&
+            "selectors" in rule &&
             // Make sure that there are as many selectors in the current rule
             // as there are in the rule we're looking for
-            rule["selectors"].length === selectors.length &&
+            rule.selectors.length === selectors.length &&
             // Also make sure that each of the selectors of the current rule
             // are present in the rule we're looking for
-            !rule["selectors"].find(selector => !selectors.includes(selector))
+            !rule.selectors.find(selector => !selectors.includes(selector))
         )
     })
     return filtSheet.map(x => x[0])
@@ -129,6 +130,27 @@ export const potentialRules = {
             show: `max-height: 0; min-height: 0 !important;`,
         },
     },
+    // Hide urlbar after firefox breaking change caused it to show regardless of UI being hidden
+    urlbar: {
+        name: `:root:not([customizing]) #navigator-toolbox:not(:hover):not(:focus-within) #urlbar`,
+        options: {
+            hide: `min-height: 0 !important;
+                    height: 0 !important;
+                    overflow: hidden !important;`,
+            show: ``,
+        },
+    },
+    // Required for urlbar to keep working properly after being hidden by the above
+    // Otherwise, typing into the address field looks "invisible" due to low height
+    // being set directly on the element, and #urlbar having been forced (!important)
+    // to 0 height by us, meaning it can no longer compensate for this
+    urlbarcontainer: {
+        name: `:root:not([customizing]) #navigator-toolbox #urlbar-container`,
+        options: {
+            hide: `--urlbar-container-height: auto !important;`,
+            show: ``,
+        },
+    },
     // This inherits transparency if we aren't careful
     menubar: {
         name: `#navigator-toolbox:not(:hover):not(:focus-within) #toolbar-menubar > *`,
@@ -222,6 +244,8 @@ export const metaRules = {
             navbarafter: "hide",
             navbarnonaddonchildren: "show",
             navbarnoheight: "hide",
+            urlbar: "hide",
+            urlbarcontainer: "hide",
         },
         always: {
             navbarunfocused: "show",
@@ -229,6 +253,8 @@ export const metaRules = {
             navbarafter: "show",
             navbarnonaddonchildren: "show",
             navbarnoheight: "hide",
+            urlbar: "show",
+            urlbarcontainer: "show",
         },
         none: {
             navbarunfocused: "show",
@@ -236,6 +262,8 @@ export const metaRules = {
             navbarafter: "hide",
             navbarnonaddonchildren: "hide",
             navbarnoheight: "show",
+            urlbar: "hide",
+            urlbarcontainer: "hide",
         },
     },
 }
@@ -246,14 +274,17 @@ export function changeSingleCss(
     optionname: string,
     sheet: CSS.Stylesheet,
 ): CSS.Stylesheet {
-    const selector = potentialRules[rulename]["name"]
+    const selector = potentialRules[rulename].name
     const newRule = `${selector} {
-        ${potentialRules[rulename]["options"][optionname]}
+        ${potentialRules[rulename].options[optionname]}
     }`
     const miniSheet = CSS.parse(newRule).stylesheet.rules[0]
 
     // Find pre-existing rules
-    const oldRuleIndexes = findCssRules(miniSheet["selectors"], sheet)
+    const oldRuleIndexes = findCssRules(
+        "selectors" in miniSheet ? miniSheet.selectors : [],
+        sheet,
+    )
     if (oldRuleIndexes.length > 0) {
         sheet.stylesheet.rules[oldRuleIndexes[0]] = miniSheet
     } else {

@@ -2,7 +2,7 @@
  * Background functions for the native messenger interface
  */
 
-import * as semverCompare from "semver-compare"
+import semverCompare from "semver-compare"
 import * as config from "@src/lib/config"
 import { browserBg, getContext } from "@src/lib/webext"
 
@@ -13,6 +13,7 @@ const NATIVE_NAME = "tridactyl"
 type MessageCommand =
     | "version"
     | "run"
+    | "run_async"
     | "read"
     | "write"
     | "writerc"
@@ -20,11 +21,12 @@ type MessageCommand =
     | "list_dir"
     | "mkdir"
     | "move"
-    | "eval"
+    | "eval" // Only works in native < 0.2.0 (NB: use "run" for non-Python eval)
     | "getconfig"
     | "getconfigpath"
     | "env"
     | "win_firefox_restart"
+    | "ppid" // Removed from Windows since native >= 0.2.0
 interface MessageResp {
     cmd: string
     version: string | null
@@ -36,9 +38,9 @@ interface MessageResp {
 /**
  * Posts using the one-time message API; native is killed after message returns
  */
-async function sendNativeMsg(
+export async function sendNativeMsg(
     cmd: MessageCommand,
-    opts: object,
+    opts: Record<string, unknown>,
     quiet = false,
 ): Promise<MessageResp> {
     const send = Object.assign({ cmd }, opts)
@@ -58,12 +60,21 @@ async function sendNativeMsg(
     }
 }
 
-export async function getrcpath(): Promise<string> {
+export async function getrcpath(
+    separator: "unix" | "auto" = "auto",
+): Promise<string> {
     const res = await sendNativeMsg("getconfigpath", {})
 
     if (res.code !== 0) throw new Error("getrcpath error: " + res.code)
 
-    return res.content
+    if (
+        separator == "unix" &&
+        (await browserBg.runtime.getPlatformInfo()).os == "win"
+    ) {
+        return res.content.replace(/\\/g, "/")
+    } else {
+        return res.content
+    }
 }
 
 export async function getrc(): Promise<string> {
@@ -78,100 +89,142 @@ export async function getrc(): Promise<string> {
     }
 }
 
+let NATIVE_VERSION_CACHE: string
 export async function getNativeMessengerVersion(
     quiet = false,
 ): Promise<string> {
+    if (NATIVE_VERSION_CACHE !== undefined) {
+        return NATIVE_VERSION_CACHE
+    }
     const res = await sendNativeMsg("version", {}, quiet)
     if (res === undefined) {
         if (quiet) return undefined
-        throw `Error retrieving version: ${res.error}`
+        throw new Error(`Error retrieving version: ${res.error}`)
     }
     if (res.version && !res.error) {
         logger.info(`Native version: ${res.version}`)
-        return res.version.toString()
+        NATIVE_VERSION_CACHE = res.version.toString()
+        // Wipe cache after 500ms
+        setTimeout(() => (NATIVE_VERSION_CACHE = undefined), 500)
+        return NATIVE_VERSION_CACHE
     }
 }
 
 export async function getBestEditor(): Promise<string> {
-    let gui_candidates = []
-    let term_emulators = []
-    let tui_editors = []
-    let last_resorts = []
+    const gui_candidates: string[] = []
+    const term_emulators: string[] = []
+    const tui_editors: string[] = []
+    const last_resorts: string[] = []
     const os = (await browserBg.runtime.getPlatformInfo()).os
     const arg_quote = os === "win" ? '"' : "'"
     const vim_positioning_arg = ` ${arg_quote}+normal!%lGzv%c|${arg_quote}`
     if (os === "mac") {
-        gui_candidates = [
-            "/Applications/MacVim.app/Contents/bin/mvim -f" + vim_positioning_arg,
-            "/usr/local/bin/vimr --wait --nvim +only",
-        ]
+        gui_candidates.push(
+            ...[
+                "/Applications/MacVim.app/Contents/bin/mvim -f" +
+                    vim_positioning_arg,
+                "/usr/local/bin/vimr --wait --nvim +only",
+            ],
+        )
         // if anyone knows of any "sensible" terminals that let you send them commands to run,
         // please let us know in issue #451!
-        term_emulators = [
-            "/Applications/cool-retro-term.app/Contents/MacOS/cool-retro-term -e",
-        ]
-        last_resorts = ["open -nWt"]
+        term_emulators.push(
+            ...[
+                "/Applications/cool-retro-term.app/Contents/MacOS/cool-retro-term -e",
+            ],
+        )
+        last_resorts.push(...["open -nWt"])
     } else {
         // Tempted to put this behind another config setting: prefergui
-        gui_candidates = ["gvim -f" + vim_positioning_arg]
+        gui_candidates.push(...["gvim -f" + vim_positioning_arg])
 
-        // we generally try to give the terminal the class "tridactyl_editor" so that
-        // it can be made floating, e.g in i3:
-        // for_window [class="tridactyl_editor"] floating enable border pixel 1
-        term_emulators = [
-            "st -c tridactyl_editor",
-            "xterm -class tridactyl_editor -e",
-            "uxterm -class tridactyl_editor -e",
-            "urxvt -e",
-            "alacritty -e", // alacritty is nice but takes ages to start and doesn't support class
-            // Terminator and termite require  -e commands to be in quotes
-            'terminator -u -e "%c"',
-            'termite --class tridactyl_editor -e "%c"',
-            "sakura --class tridactyl_editor -e",
-            "lilyterm -e",
-            "mlterm -e",
-            "roxterm -e",
-            "cool-retro-term -e",
-            // Gnome-terminal doesn't work consistently, see issue #1035
-            // "dbus-launch gnome-terminal --",
+        // These terminal emulators can't normally be run on Windows, usually because they require X11.
+        if (os === "linux" || os === "openbsd") {
+            term_emulators.push(
+                ...[
+                    // we generally try to give the terminal the class "tridactyl_editor" so that
+                    // it can be made floating, e.g in i3:
+                    // for_window [class="tridactyl_editor"] floating enable border pixel 1
+                    "st -c tridactyl_editor",
+                    "xterm -class tridactyl_editor -e",
+                    "uxterm -class tridactyl_editor -e",
+                    "urxvt -e",
+                    'termite --class tridactyl_editor -e "%c"',
+                    "sakura --class tridactyl_editor -e",
+                    "lilyterm -e",
+                    "mlterm -N tridactyl_editor -e",
+                    "roxterm -e",
+                    "cool-retro-term -e",
+                    // Terminator doesn't appear to honour -c, but the option is
+                    // documented in its manpage and seems to cause no errors when supplied.
+                    'terminator -u -c tridactyl_editor -e "%c"',
+                    // Gnome-terminal doesn't work consistently, see issue #1035
+                    // "dbus-launch gnome-terminal --",
+                ],
+            )
+        }
+        if (os === "win") {
+            term_emulators.push(
+                ...["conemu -run", "mintty --class tridactyl_editor -e"],
+            )
+            if (await nativegate("0.2.1", false)) {
+                term_emulators.push("start /wait")
+            }
+        }
+        // These terminal emulators are cross-platform.
+        term_emulators.push(
+            ...[
+                "alacritty --class tridactyl_editor -e",
 
-            // I wanted to put hyper.js here as a joke but you can't start it running a command,
-            // which is a far better joke: a terminal emulator that you can't send commands to.
-            // You win this time, web artisans.
-        ]
-        last_resorts = [
-            "emacs",
-            "gedit",
-            "kate",
-            "abiword",
-            "sublime",
-            "atom -w",
-        ]
+                // I wanted to put hyper.js here as a joke but you can't start it running a command,
+                // which is a far better joke: a terminal emulator that you can't send commands to.
+                // You win this time, web artisans.
+                // Still true in 2021.
+            ],
+        )
+        last_resorts.push(
+            ...[
+                "emacs",
+                "gedit",
+                "kate",
+                "sublime",
+                "atom -w",
+                "code -nw",
+                "abiword",
+                "notepad",
+            ],
+        )
     }
 
-    tui_editors = ["vim" + vim_positioning_arg, "nvim" + vim_positioning_arg, "nano %f", "emacs -nw %f"]
+    tui_editors.push(
+        ...[
+            "vim" + vim_positioning_arg,
+            "nvim" + vim_positioning_arg,
+            "nano %f",
+            "emacs -nw %f",
+        ],
+    )
 
-    // Consider GUI editors
-    let cmd = await firstinpath(gui_candidates)
+    // Try GUI editors.
+    const guicmd: string = await firstinpath(gui_candidates)
+    if (guicmd) {
+        return guicmd
+    }
 
-    if (cmd === undefined) {
-        // Try to find a terminal emulator
-        cmd = await firstinpath(term_emulators)
-        if (cmd !== undefined) {
-            // and a text editor
-            const tuicmd = await firstinpath(tui_editors)
-            if (cmd.includes("%c")) {
-                cmd = cmd.replace("%c", tuicmd)
-            } else {
-                cmd = cmd + " " + tuicmd
-            }
+    // Try TUI editors.
+    const termcmd: string = await firstinpath(term_emulators)
+    const tuicmd: string = await firstinpath(tui_editors)
+    if (termcmd && tuicmd) {
+        if (termcmd.includes("%c")) {
+            return tuicmd.replace("%c", tuicmd)
         } else {
-            // or fall back to some really stupid stuff
-            cmd = await firstinpath(last_resorts)
+            return termcmd + " " + tuicmd
         }
     }
 
-    return cmd
+    // If all else fails, try some stupid stuff to scare users into setting
+    // their editorcmd.
+    return await firstinpath(last_resorts)
 }
 
 /**
@@ -246,12 +299,17 @@ export async function firstinpath(cmdarray) {
     return cmd
 }
 
-export async function editor(file: string, line: number, col: number, content?: string) {
+export async function editor(
+    file: string,
+    line: number,
+    col: number,
+    content?: string,
+) {
     if (content !== undefined) await write(file, content)
-    const editorcmd =
-        (config.get("editorcmd") === "auto"
-            ? await getBestEditor()
-            : config.get("editorcmd"))
+    const editorcmd = (config.get("editorcmd") === "auto"
+        ? await getBestEditor()
+        : config.get("editorcmd")
+    )
         .replace(/%l/, line)
         .replace(/%c/, col)
     let exec
@@ -260,50 +318,65 @@ export async function editor(file: string, line: number, col: number, content?: 
     } else {
         exec = await run(editorcmd + " " + file)
     }
-    if (exec.code != 0)
-        return exec
+    if (exec.code != 0) return exec
     return read(file)
 }
 
 export async function read(file: string) {
     return sendNativeMsg("read", { file }).catch(e => {
-        throw `Failed to read ${file}. ${e}`
+        throw new Error(`Failed to read ${file}. ${e}`)
     })
 }
 
 export async function write(file: string, content: string) {
     return sendNativeMsg("write", { file, content }).catch(e => {
-        throw `Failed to write '${content}' to '${file}'. ${e}`
+        throw new Error(`Failed to write '${content}' to '${file}'. ${e}`)
     })
 }
 
 export async function writerc(file: string, force: boolean, content: string) {
     return sendNativeMsg("writerc", { file, force, content }).catch(e => {
-        throw `Failed to write '${content}' to '${file}'. ${e}`
+        throw new Error(`Failed to write '${content}' to '${file}'. ${e}`)
     })
 }
 
 export async function mkdir(dir: string, exist_ok: boolean) {
     return sendNativeMsg("mkdir", { dir, exist_ok }).catch(e => {
-        throw `Failed to create directory '${dir}'. ${e}`
+        throw new Error(`Failed to create directory '${dir}'. ${e}`)
     })
 }
 
 export async function temp(content: string, prefix: string) {
     return sendNativeMsg("temp", { content, prefix }).catch(e => {
-        throw `Failed to write '${content}' to temp file '${prefix}'. ${e}`
+        throw new Error(
+            `Failed to write '${content}' to temp file '${prefix}'. ${e}`,
+        )
     })
 }
 
-export async function move(from: string, to: string) {
-    return sendNativeMsg("move", { from, to }).catch(e => {
-        throw `Failed to move '${from}' to '${to}'. ${e}.`
-    })
+export async function move(
+    from: string,
+    to: string,
+    overwrite: boolean,
+    cleanup: boolean,
+) {
+    const requiredNativeMessengerVersion = "0.3.0"
+    if ((await nativegate(requiredNativeMessengerVersion, false))) {
+        return sendNativeMsg("move", { from, to, overwrite, cleanup }).catch(e => {
+            throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
+        })
+    } else {
+        // older "saveas" scenario for native-messenger < 0.3.0
+        return sendNativeMsg("move", { from, to }).catch(e => {
+            throw new Error(`Failed to move '${from}' to '${to}'. ${e}.`)
+        })
+    }
+
 }
 
 export async function listDir(dir: string) {
     return sendNativeMsg("list_dir", { path: dir }).catch(e => {
-        throw `Failed to read directory '${dir}'. ${e}`
+        throw new Error(`Failed to read directory '${dir}'. ${e}`)
     })
 }
 
@@ -314,7 +387,9 @@ export async function winFirefoxRestart(
     const required_version = "0.1.6"
 
     if (!(await nativegate(required_version, false))) {
-        throw `'restart' on Windows needs native messenger version >= ${required_version}.`
+        throw new Error(
+            `'restart' on Windows needs native messenger version >= ${required_version}.`,
+        )
     }
 
     return sendNativeMsg("win_firefox_restart", { profiledir, browsercmd })
@@ -326,8 +401,20 @@ export async function run(command: string, content = "") {
     return msg
 }
 
+export async function runAsync(command: string) {
+    const required_version = "0.3.1"
+    if (!await nativegate(required_version, false)) {
+        throw new Error(
+            `runAsync needs native messenger version >= ${required_version}.`,
+        )
+    }
+    logger.info(await sendNativeMsg("run_async", { command }))
+}
+
 /** Evaluates a string in the native messenger. This has to be python code. If
  *  you want to run shell strings, use run() instead.
+ *
+ *  Only works for native messenger versions < 0.2.0.
  */
 export async function pyeval(command: string): Promise<MessageResp> {
     return sendNativeMsg("eval", { command })
@@ -337,7 +424,9 @@ export async function getenv(variable: string) {
     const required_version = "0.1.2"
 
     if (!(await nativegate(required_version, false))) {
-        throw `'getenv' needs native messenger version >= ${required_version}.`
+        throw new Error(
+            `'getenv' needs native messenger version >= ${required_version}.`,
+        )
     }
 
     return (await sendNativeMsg("env", { var: variable })).content
@@ -371,9 +460,7 @@ export async function clipboard(
             const result = await run(`${clipcmd} -i`, str)
             if (result.code !== 0)
                 throw new Error(
-                    `External command failed with code ${
-                        result.code
-                    }: ${clipcmd}`,
+                    `External command failed with code ${result.code}: ${clipcmd}`,
                 )
             return ""
         } else {
@@ -398,19 +485,54 @@ export async function clipboard(
     throw new Error("Unknown action!")
 }
 
-/** This returns the commandline that was used to start firefox.
- You'll get both firefox binary (not necessarily an absolute path) and flags */
+/**
+ * This returns the commandline that was used to start Firefox.
+ * You'll get both the binary (not necessarily an absolute path) and flags.
+ */
 export async function ff_cmdline(): Promise<string[]> {
-    // Using ' and + rather that ` because we don't want newlines
+    let output: MessageResp
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
-        throw `Error: "ff_cmdline() is currently broken on Windows and should be avoided."`
+        if (!(await nativegate("0.3.3", false))) {
+            const browser_name = await config.get("browser")
+            output = await run(
+                `powershell -NoProfile -Command "\
+$processes = Get-CimInstance -Property ProcessId,ParentProcessId,Name,CommandLine -ClassName Win32_Process;\
+if (-not ($processes | where { $_.Name -match '^${browser_name}' })) { exit 1; };\
+$ppid = ($processes | where { $_.ProcessId -EQ $PID }).ParentProcessId;\
+$pproc = $processes | where { $_.ProcessId -EQ $ppid };\
+while ($pproc.Name -notmatch '^${browser_name}') {\
+    $ppid = $pproc.ParentProcessId;\
+    $pproc = $processes | where { $_.ProcessId -EQ $ppid };\
+};\
+Write-Output $pproc.CommandLine;\
+"`,
+            )
+        } else {
+            output = await run(
+                `powershell -NoProfile -Command "\
+Get-CimInstance -Property CommandLine,ProcessId -ClassName Win32_Process \
+| where { $_.ProcessId -EQ ${(await sendNativeMsg("ppid", {})).content} } \
+| select -ExpandProperty CommandLine | Write-Output\
+"`
+            )
+        }
     } else {
-        const output = await pyeval(
-            'handleMessage({"cmd": "run", ' +
-                '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
-        )
-        return output.content.trim().split(" ")
+        const actualVersion = await getNativeMessengerVersion()
+
+        // Backwards-compat for Python native messenger
+        if (semverCompare("0.2.0", actualVersion) > 0) {
+            output = await pyeval(
+                // Using ' and + rather than ` because we don't want newlines
+                'handleMessage({"cmd": "run", ' +
+                    '"command": "ps -p " + str(os.getppid()) + " -oargs="})["content"]',
+            )
+        } else {
+            const ppid = (await sendNativeMsg("ppid", {})).content.trim()
+            output = await run("ps -p " + ppid + " -oargs=")
+        }
+        output.content = output.content.replace("\n", "")
     }
+    return output.content.trim().split(" ")
 }
 
 export async function parseProfilesIni(content: string, basePath: string) {
@@ -418,12 +540,12 @@ export async function parseProfilesIni(content: string, basePath: string) {
     let current = "General"
     const result = {}
     for (const line of lines) {
-        let match = line.match(/^\[([^\]]+)\]$/)
+        let match = /^\[([^\]]+)\]$/.exec(line)
         if (match !== null) {
             current = match[1]
             result[current] = {}
         } else {
-            match = line.match(/^([^=]+)=([^=]+)$/)
+            match = /^([^=]+)=([^=]+)$/.exec(line)
             if (match !== null) {
                 result[current][match[1]] = match[2]
             }
@@ -448,9 +570,7 @@ export async function parseProfilesIni(content: string, basePath: string) {
         } else if (profile.IsRelative === "0") {
             if (profile.Path.substring(0, basePath.length) !== basePath) {
                 throw new Error(
-                    `Error parsing profiles ini: basePath "${basePath}" doesn't match profile path ${
-                        profile.Path
-                    }`,
+                    `Error parsing profiles ini: basePath "${basePath}" doesn't match profile path ${profile.Path}`,
                 )
             }
             profile.relativePath = profile.Path.substring(basePath.length)
@@ -507,10 +627,9 @@ export async function getProfileUncached() {
     }
 
     // Then, try to find a profile path in the arguments given to Firefox
-    const cmdline = await ff_cmdline().catch(e => "")
+    const cmdline = await ff_cmdline().catch(() => "")
     let profile = cmdline.indexOf("--profile")
-    if (profile === -1)
-        profile = cmdline.indexOf("-profile")
+    if (profile === -1) profile = cmdline.indexOf("-profile")
     if (profile >= 0 && profile < cmdline.length - 1) {
         const profilePath = cmdline[profile + 1]
         if (iniSucceeded) {
@@ -545,9 +664,7 @@ export async function getProfileUncached() {
                 }
             }
             throw new Error(
-                `native.ts:getProfile() : '${
-                    cmdline[p]
-                }' found in command line arguments but no matching profile name found in "${iniPath}"`,
+                `native.ts:getProfile() : '${cmdline[p]}' found in command line arguments but no matching profile name found in "${iniPath}"`,
             )
         }
     }
@@ -562,10 +679,7 @@ export async function getProfileUncached() {
         profilecmd.content = profilecmd.content.trim()
         // If there's only one profile in use, use that to find the right profile
         if (profilecmd.content.split("\n").length === 1) {
-            const path = profilecmd.content
-                .split("/")
-                .slice(0, -1)
-                .join("/")
+            const path = profilecmd.content.split("/").slice(0, -1).join("/")
             if (iniSucceeded) {
                 for (const profileName of Object.keys(iniObject)) {
                     const profile = iniObject[profileName]
@@ -602,8 +716,7 @@ export async function getProfileUncached() {
 // Disk operations are extremely slow on windows, let's cache our profile info
 let cachedProfile
 export async function getProfile() {
-    if (cachedProfile === undefined)
-        cachedProfile = await getProfileUncached()
+    if (cachedProfile === undefined) cachedProfile = await getProfileUncached()
     return cachedProfile
 }
 // It makes sense to pre-fetch this value in the background script because it's
@@ -612,7 +725,7 @@ export async function getProfile() {
 if (getContext() === "background") {
     getProfile()
 }
-config.addChangeListener("profiledir", (prev, cur) => {
+config.addChangeListener("profiledir", () => {
     cachedProfile = undefined
     getProfile()
 })
@@ -627,7 +740,7 @@ export async function getProfileDir() {
     return getProfile().then(p => p.absolutePath)
 }
 
-export async function parsePrefs(prefFileContent: string) {
+export function parsePrefs(prefFileContent: string) {
     //  This RegExp currently only deals with " but for correctness it should
     //  also deal with ' and `
     //  We could also just give up on parsing and eval() the whole thing
@@ -636,7 +749,7 @@ export async function parsePrefs(prefFileContent: string) {
     )
     // Fragile parsing
     return prefFileContent.split("\n").reduce((prefs, line) => {
-        const matches = line.match(regex)
+        const matches = regex.exec(line)
         if (!matches) {
             return prefs
         }
@@ -790,17 +903,23 @@ export async function unfixamo() {
         const tridactylPref2 = "tridactyl.unfixedamo_removed"
         const restricted = "extensions.webextensions.restrictedDomains"
         const amoblocker = "privacy.resistFingerprinting.block_mozAddonManager"
-        const restrictedDomains = '"accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,install.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com"'
+        const restrictedDomains =
+            '"accounts-static.cdn.mozilla.net,accounts.firefox.com,addons.cdn.mozilla.net,addons.mozilla.org,api.accounts.firefox.com,content.cdn.mozilla.net,discovery.addons.mozilla.org,install.mozilla.org,oauth.accounts.firefox.com,profile.accounts.firefox.com,support.mozilla.org,sync.services.mozilla.com"'
 
         // Exit if we've already run this once
         if (userjs[tridactylPref2] === "true") return
 
-        if (userjs[restricted] === "" || userjs[restricted] === restrictedDomains) {
+        if (
+            userjs[restricted] === "" ||
+            userjs[restricted] === restrictedDomains
+        ) {
             await removePref(tridactylPref) // Clean up after first attempt if it exists
             await removePref(restricted)
             await removePref(amoblocker)
             await writePref(tridactylPref2, "true")
-            browserBg.tabs.create({url: browserBg.runtime.getURL("static/unfixamo.html")})
+            browserBg.tabs.create({
+                url: browserBg.runtime.getURL("static/unfixamo.html"),
+            })
         }
 
         return

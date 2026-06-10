@@ -1,35 +1,55 @@
 import * as Perf from "@src/perf"
-import { browserBg } from "@src/lib/webext.ts"
+import { browserBg, getSortedTabs, prevActiveTab } from "@src/lib/webext"
 import { enumerate } from "@src/lib/itertools"
 import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
+import * as Messaging from "@src/lib/messaging"
 
-class BufferCompletionOption extends Completions.CompletionOptionHTML
+class BufferCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
-    public tabIndex: number
+    public tabId: number
 
     constructor(
         public value: string,
         tab: browser.tabs.Tab,
         public isAlternative = false,
         container: browser.contextualIdentities.ContextualIdentity,
+        public tabIndex: number,
     ) {
         super()
-        this.tabIndex = tab.index
 
-        // Two character tab properties prefix
-        let pre = ""
-        if (tab.active) pre += "%"
+        this.tabId = tab.id
+
+        // pre contains max four uppercase characters for tab status.
+        // If statusstylepretty is set to true replace use unicode characters,
+        // but keep plain letters in hidden column for completion.
+        let preplain = ""
+        if (tab.active) preplain += "%"
         else if (isAlternative) {
-            pre += "#"
+            preplain += "#"
             this.value = "#"
         }
-        if (tab.pinned) pre += "@"
+        let pre = preplain
+        if (tab.pinned) preplain += "P"
+        if (tab.audible) preplain += "A"
+        if (tab.mutedInfo.muted) preplain += "M"
+        if (tab.discarded) preplain += "D"
+
+        if (config.get("completions", "Tab", "statusstylepretty") === "true") {
+            if (tab.pinned) pre += "\uD83D\uDCCC"
+            if (tab.audible) pre += "\uD83D\uDD0A"
+            if (tab.mutedInfo.muted) pre += "\uD83D\uDD07"
+            if (tab.discarded) pre += "\u2296"
+        } else {
+            pre = preplain
+        }
 
         // Push prefix before padding so we don't match on whitespace
         this.fuseKeys.push(pre)
+        this.fuseKeys.push(preplain)
 
         // Push properties we want to fuzmatch on
         this.fuseKeys.push(String(tab.index + 1), tab.title, tab.url)
@@ -38,18 +58,21 @@ class BufferCompletionOption extends Completions.CompletionOptionHTML
         const favIconUrl = tab.favIconUrl
             ? tab.favIconUrl
             : Completions.DEFAULT_FAVICON
-        this.html = html`<tr class="BufferCompletionOption option container_${container.color} container_${container.icon} container_${container.name}"
-            >
-                <td class="prefix">${pre.padEnd(2)}</td>
-                <td class="container"></td>
-                <td class="icon"><img src="${favIconUrl}" /></td>
-                <td class="title">${tab.index + 1}: ${tab.title}</td>
-                <td class="content">
-                    <a class="url" target="_blank" href=${tab.url}
-                        >${tab.url}</a
-                    >
-                </td>
-            </tr>`
+        const indicator = tab.audible ? String.fromCodePoint(0x1f50a) : ""
+        this.html = html`<tr
+            class="BufferCompletionOption option container_${container.color} container_${container.icon} container_${container.name}"
+        >
+            <td class="prefix">${pre}</td>
+            <td class="prefixplain" hidden>${preplain}</td>
+            <td class="container"></td>
+            <td class="icon"><img loading="lazy" src="${favIconUrl}" /></td>
+            <td class="title">
+                ${this.tabIndex + 1}: ${indicator} ${tab.title}
+            </td>
+            <td class="content">
+                <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
+            </td>
+        </tr>`
     }
 }
 
@@ -64,14 +87,29 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["tab", "tabclose", "tabdetach", "tabduplicate", "tabmove"],
+            [
+                "tab",
+                "tabclose",
+                "tabdetach",
+                "tabduplicate",
+                "tabmove",
+                "tabrename",
+                "tabdiscard",
+                "pin",
+                "tstmove",
+                "tstmoveafter",
+                "tstattach",
+            ],
             "BufferCompletionSource",
             "Tabs",
         )
-
         this.sortScoredOptions = true
+        this.shouldSetStateFromScore =
+            config.get("completions", "Tab", "autoselect") === "true"
         this.updateOptions()
         this._parent.appendChild(this.node)
+
+        Messaging.addListener("tab_changes", () => this.reactToTabChanges())
     }
 
     async onInput(exstr) {
@@ -82,6 +120,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     async filter(exstr) {
         this.lastExstr = exstr
+        const prefix = this.splitOnPrefix(exstr).shift()
+        if (prefix === "tabrename") this.shouldSetStateFromScore = false
         return this.onInput(exstr)
     }
 
@@ -96,20 +136,19 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     ): Completions.ScoredOption[] {
         const args = query.trim().split(/\s+/gu)
         if (args.length === 1) {
-            // if query is an integer n and |n| < options.length
-            if (Number.isInteger(Number(args[0]))) {
-                let index = Number(args[0]) - 1
-                if (Math.abs(index) < options.length) {
-                    index = index.mod(options.length)
-                    // options order might change by scored sorting
-                    return this.TabscoredOptionsStartsWithN(index, options)
+            const num = Number(args[0])
+            if (Number.isInteger(num)) {
+                const targetIndex = num - 1
+                const match = options.find(o => o.tabIndex === targetIndex)
+                if (match) {
+                    return [{ option: match, score: 0 }]
                 }
+                return this.TabscoredOptionsStartsWithN(targetIndex, options)
             } else if (args[0] === "#") {
-                for (const [index, option] of enumerate(options)) {
+                for (const [_index, option] of enumerate(options)) {
                     if (option.isAlternative) {
                         return [
                             {
-                                index,
                                 option,
                                 score: 0,
                             },
@@ -120,78 +159,58 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         // If not yet returned...
-        return super.scoredOptions(query, options)
-    }
-
-    /** Return the scoredOption[] result for the nth tab */
-    private nthTabscoredOptions(
-        n: number,
-        options: BufferCompletionOption[]
-    ): Completions.ScoredOption[] {
-        for (const [index, option] of enumerate(options)) {
-            if (option.tabIndex === n) {
-                return [{
-                    index,
-                    option,
-                    score: 0,
-                }, ]
-            }
-        }
+        return super.scoredOptions(query)
     }
 
     /** Return the scoredOption[] result for the tab index startswith n */
     private TabscoredOptionsStartsWithN(
         n: number,
-        options: BufferCompletionOption[]
+        options: BufferCompletionOption[],
     ): Completions.ScoredOption[] {
         const nstr = (n + 1).toString()
-        const res = [];
-        for (const [index, option] of enumerate(options)) {
+        const res = []
+        for (const option of options) {
             if ((option.tabIndex + 1).toString().startsWith(nstr)) {
                 res.push({
-                    index, // index is not tabIndex, changed by score
                     option,
                     score: 0,
                 })
             }
         }
-
-        // old input will change order: 12 => 123 => 12
         res.sort((a, b) => a.option.tabIndex - b.option.tabIndex)
-        return res;
+        return res
     }
 
-    private async fillOptions() {
-        const tabs: browser.tabs.Tab[] = await browserBg.tabs.query({
-            currentWindow: true,
-        })
-        const options = []
-        // Get alternative tab, defined as last accessed tab.
-        tabs.sort((a, b) => (b.lastAccessed - a.lastAccessed))
-        const alt = tabs[1]
+    private async fillOptions(prefix: string) {
+        // Get alternative tab, defined as last accessed tab in any group in
+        // this window.
 
-        const useMruTabOrder = (config.get("tabsort") === "mru")
-        if (!useMruTabOrder) {
-            tabs.sort((a, b) => (a.index - b.index))
-        }
+        const altTab = await prevActiveTab()
+        // Since tabmove always uses absolute tab indices, we need
+        // to override possible MRU setting to match tabmove behavior
+        const forceSort = prefix === "tabmove" ? "default" : undefined
+        const tabs = await getSortedTabs(forceSort)
+        const options = []
 
         const container_all = await browserBg.contextualIdentities.query({})
         const container_map = new Map()
-        container_all.forEach(elem => container_map.set(elem.cookieStoreId, elem))
+        container_all.forEach(elem =>
+            container_map.set(elem.cookieStoreId, elem),
+        )
         // firefox-default is not in contextualIdenetities
         container_map.set("firefox-default", Containers.DefaultContainer)
-
-        for (const tab of tabs) {
+        for (const [index, tab] of tabs.entries()) {
             let tab_container = container_map.get(tab.cookieStoreId)
             if (!tab_container) {
                 tab_container = Containers.DefaultContainer
             }
             options.push(
                 new BufferCompletionOption(
-                    (tab.index + 1).toString(),
+                    (index + 1).toString(),
                     tab,
-                    tab === alt,
-                    tab_container
+                    tab.index === altTab.index,
+                    tab_container,
+                    index,
                 ),
             )
         }
@@ -199,6 +218,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this.options = options
     }
 
+    // Eslint doesn't like this decorator but there's nothing we can do about it
+    // eslint-disable-next-line @typescript-eslint/member-ordering
     @Perf.measuredAsync
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
@@ -216,13 +237,10 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
-        this.shouldSetStateFromScore = !(
-            prefix === "tabmove " && query.match("^[+-][0-9]+$")
-        )
+        if (prefix === "tabmove")
+            this.shouldSetStateFromScore = !/^[+-][0-9]+$/.exec(query)
 
-        if (!this.options) {
-            await this.fillOptions()
-        }
+        await this.fillOptions(prefix)
         this.completion = undefined
 
         /* console.log('updateOptions', this.optionContainer) */
@@ -232,5 +250,32 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             this.options.forEach(option => (option.state = "normal"))
         }
         return this.updateDisplay()
+    }
+
+    /**
+     * Update the list of possible tab options and select (focus on)
+     * the appropriate option.
+     */
+    private async reactToTabChanges(): Promise<void> {
+        const lastFocusedTabId = (this.lastFocused as BufferCompletionOption)?.tabId
+        const oldIndex = (this.lastFocused as BufferCompletionOption)?.tabIndex
+        await this.updateOptions(this.lastExstr)
+        if (!this.options || this.options.length === 0) return
+            const stillExists = this.options.find(o => o.tabId === lastFocusedTabId)
+            if (stillExists) {
+                this.select(stillExists)
+            } else if (lastFocusedTabId !== undefined) {
+                this.select(this.getTheNextTabOption({ tabIndex: oldIndex } as any))
+            }
+    }
+
+    /**
+     * Gets the next option in this BufferCompletionSource assuming
+     * that this BufferCompletionSource length has been reduced by 1
+     */
+    private getTheNextTabOption(option: BufferCompletionOption) {
+        const physicallySorted = [...this.options].sort((a, b) => a.tabIndex - b.tabIndex)
+        const nextTab = physicallySorted.find(o => o.tabIndex >= option.tabIndex)
+        return nextTab || physicallySorted[physicallySorted.length - 1]
     }
 }

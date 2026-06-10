@@ -11,9 +11,9 @@ Concrete completion classes have been moved to src/completions/.
 */
 
 import Fuse from "fuse.js"
-import { enumerate } from "@src/lib/itertools"
-import { toNumber } from "@src/lib/convert"
 import * as aliases from "@src/lib/aliases"
+import { backoff } from "@src/lib/patience"
+import * as config from "@src/lib/config"
 
 export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",
@@ -27,19 +27,21 @@ export abstract class CompletionOption {
     /** What to fill into cmdline */
     value: string
     /** Control presentation of the option */
-    state: OptionState
+    abstract state: OptionState
 }
 
 export abstract class CompletionSource {
     readonly options: CompletionOption[]
     node: HTMLElement
     public completion: string
+    public args: string
+    public trailingSpace: boolean
     protected prefixes: string[] = []
     protected lastFocused: CompletionOption
     private _state: OptionState
     private _prevState: OptionState
 
-    constructor(prefixes) {
+    constructor(prefixes, options = { trailingSpace: true }) {
         const commands = aliases.getCmdAliasMapping()
 
         // Now, for each prefix given as argument, add it to the completionsource's prefix list and also add any alias it has
@@ -53,10 +55,8 @@ export abstract class CompletionSource {
 
         // Not sure this is necessary but every completion source has it
         this.prefixes = this.prefixes.map(p => p + " ")
+        this.trailingSpace = options.trailingSpace
     }
-
-    /** Update [[node]] to display completions relevant to exstr */
-    public abstract filter(exstr: string): Promise<void>
 
     /** Control presentation of Source */
     set state(newstate: OptionState) {
@@ -82,9 +82,7 @@ export abstract class CompletionSource {
         return this._state !== "hidden" || this.state !== this._prevState
     }
 
-    abstract next(inc?: number): boolean
-
-    prev(inc = 1): boolean {
+    prev(inc = 1): Promise<boolean> {
         return this.next(-1 * inc)
     }
 
@@ -92,6 +90,11 @@ export abstract class CompletionSource {
         this.completion = undefined
         if (this.lastFocused !== undefined) this.lastFocused.state = "normal"
     }
+
+    /** Update [[node]] to display completions relevant to exstr */
+    public abstract filter(exstr: string): Promise<void>
+
+    abstract next(inc?: number): Promise<boolean>
 }
 
 // Default classes
@@ -142,19 +145,22 @@ export interface CompletionOptionFuse extends CompletionOptionHTML {
 }
 
 export interface ScoredOption {
-    index: number
     option: CompletionOptionFuse
     score: number
 }
 
 export abstract class CompletionSourceFuse extends CompletionSource {
     public node
-    public options: CompletionOptionFuse[]
 
     fuseOptions = {
         keys: ["fuseKeys"],
         shouldSort: true,
         includeScore: true,
+        findAllMatches: true,
+        ignoreLocation: true,
+        ignoreFieldNorm: true,
+        threshold: config.get("completionfuzziness"),
+        minMatchCharLength: 1,
     }
 
     // PERF: Could be expensive not to cache Fuse()
@@ -166,17 +172,29 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     protected optionContainer = html`<table class="optionContainer"></table>`
 
-    constructor(prefixes, className: string, title?: string) {
-        super(prefixes)
+    // invalidate cache on option change
+    private _options: CompletionOptionFuse[]
+    public get options(): CompletionOptionFuse[] {
+        return this._options
+    }
+    public set options(val: CompletionOptionFuse[]) {
+        this._options = val
+        this.fuse = undefined
+    }
+
+    constructor(
+        prefixes,
+        className: string,
+        title?: string,
+        options = { trailingSpace: true },
+    ) {
+        super(prefixes, options)
         this.node = html`<div class="${className} hidden">
-                <div class="sectionHeader">${title || className}</div>
-            </div>`
+            <div class="sectionHeader">${title || className}</div>
+        </div>`
         this.node.appendChild(this.optionContainer)
         this.state = "hidden"
     }
-
-    /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
-    abstract onInput(exstr: string)
 
     // Helpful default implementations
 
@@ -222,7 +240,8 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     select(option: CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
             const [prefix] = this.splitOnPrefix(this.lastExstr)
-            this.completion = prefix + option.value
+            this.completion = [prefix, option.value].join(" ")
+            this.args = option.value
             option.state = "focused"
             this.lastFocused = option
         } else {
@@ -234,27 +253,22 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         for (const prefix of this.prefixes) {
             if (exstr.startsWith(prefix)) {
                 const query = exstr.replace(prefix, "")
-                return [prefix, query]
+                return [prefix.trim(), query]
             }
         }
         return [undefined, undefined]
     }
 
     /** Rtn sorted array of {option, score} */
-    scoredOptions(query: string, options = this.options): ScoredOption[] {
-        const searchThis = this.options.map((elem, index) => {
-            return { index, fuseKeys: elem.fuseKeys }
-        })
-        this.fuse = new Fuse(searchThis, this.fuseOptions)
-        return this.fuse.search(query).map(result => {
-            // console.log(result, result.item, query)
-            const index = toNumber(result.item.index)
-            return {
-                index,
-                option: this.options[index],
-                score: result.score as number,
-            }
-        })
+    scoredOptions(query: string): ScoredOption[] {
+        if (this.fuse === undefined) {
+            this.fuse = new Fuse(this.options, this.fuseOptions)
+        }
+
+        return this.fuse.search(query).map(result => ({
+            option: result.item,
+            score: result.score,
+        }))
     }
 
     /** Set option state by score
@@ -263,68 +277,60 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         focus the best match.
     */
     setStateFromScore(scoredOpts: ScoredOption[], autoselect = false) {
-        const matches = scoredOpts.map(res => res.index)
+        const matches = new Set(scoredOpts.map(res => res.option))
 
         const hidden_options = []
-        for (const [index, option] of enumerate(this.options)) {
-            if (matches.includes(index)) option.state = "normal"
-            else {
+        for (const option of this.options) {
+            if (matches.has(option)) {
+                option.state = "normal"
+            } else {
                 option.state = "hidden"
                 hidden_options.push(option)
             }
         }
 
-        // ideally, this would not deselect anything unless it fell off the list of matches
-        if (matches.length && autoselect) {
-            this.select(this.options[matches[0]])
+        if (scoredOpts.length && autoselect) {
+            this.select(scoredOpts[0].option)
         } else {
             this.deselect()
         }
 
-        // sort this.options by score
         if (this.sortScoredOptions) {
-            const sorted_options = matches.map(index => this.options[index])
-            this.options = sorted_options.concat(hidden_options)
+            const sorted_options = scoredOpts.map(res => res.option)
+            this._options = sorted_options.concat(hidden_options)
         }
     }
 
     /** Call to replace the current display */
-    // TODO: optionContainer.replaceWith and optionContainer.remove don't work.
-    // I don't know why, but it means we can't replace the div in one go. Maybe
-    // an iframe thing.
     updateDisplay() {
-        /* const newContainer = html`<div>` */
-
-        while (this.optionContainer.hasChildNodes()) {
-            this.optionContainer.removeChild(this.optionContainer.lastChild)
-        }
-
-        for (const option of this.options) {
-            /* newContainer.appendChild(option.html) */
-            if (option.state !== "hidden")
-                this.optionContainer.appendChild(option.html)
-        }
+        const visibleOptions = this.options.filter(o => o.state !== "hidden").map(o => o.html)
+        this.optionContainer.replaceChildren(...visibleOptions)
         this.next(0)
-
-        /* console.log('updateDisplay', this.optionContainer, newContainer) */
-
-        /* let result1 = this.optionContainer.remove() */
-        /* let res2 = this.node.appendChild(newContainer) */
-        /* console.log('results', result1, res2) */
     }
 
-    next(inc = 1) {
+    async next(inc = 1) {
         if (this.state !== "hidden") {
-            const visopts = this.options.filter(o => o.state !== "hidden")
-            const currind = visopts.findIndex(o => o.state === "focused")
-            this.deselect()
-            // visopts.length + 1 because we want an empty completion at the end
-            const max = visopts.length + 1
-            const opt = visopts[(currind + inc + max) % max]
-            if (opt) this.select(opt)
-            return true
+            // We're abusing `async` here to help us to catch errors in backoff
+            // and to make it easier to return consistent types
+            /* eslint-disable-next-line @typescript-eslint/require-await */
+            return backoff(async () => {
+                const visopts = this.options.filter(o => o.state !== "hidden")
+                const currind = visopts.findIndex(o => o.state === "focused")
+                this.deselect()
+                // visopts.length + 1 because we want an empty completion at the end
+                const max = visopts.length + 1
+                const opt = visopts[(currind + inc + max) % max]
+                if (opt) this.select(opt)
+                return true
+            })
         } else return false
     }
+
+    /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
+
+    // Lots of methods don't need this but some do
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars-experimental
+    async onInput(exstr: string) {}
 }
 
 // }}}

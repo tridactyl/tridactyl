@@ -1,0 +1,111 @@
+{
+  "$schema": "https://fundingjson.org/schema/v1.1.0.json",
+  "version": "v1.1.0",
+
+  "entity": {
+    "type": "individual",
+    "role": "owner",
+    "name": "Oliver Blanthorn",
+    "email": "freedom4cows@gmail.com",
+    "description": "Creator and maintainer of Tridactyl, a popular vim-like web extension for Firefox, and various open-data/geospatial projects.",
+    "webpageUrl": {
+      "url": "https://github.com/bovine3dom"
+    }
+  },
+
+  "projects": [
+    {
+      "guid": "tridactyl",
+      "name": "Tridactyl",
+      "description": "A popular vim-like web extension for Firefox, spiritual successor to Vimperator/Pentadactyl",
+      "webpageUrl": {
+        "url": "https://github.com/tridactyl/tridactyl"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/tridactyl/tridactyl"
+      },
+      "licenses": ["spdx:Apache-2.0"],
+      "tags": ["browser-extensions", "developer-tools"]
+    }
+  ],
+
+  "funding": {
+    "channels": [
+      {
+        "guid": "github",
+        "type": "payment-provider",
+        "address": "https://github.com/bovine3dom/sponsors",
+        "description": "For most people, the most efficient way of funding me - Microsoft covers all card/exchange fees"
+      },
+      {
+        "guid": "liberapay",
+        "type": "payment-provider",
+        "address": "https://liberapay.com/bovine3dom"
+      },
+      {
+        "guid": "bank",
+        "type": "cash",
+        "address": "freedom4cows@gmail.com",
+        "description": "Contact me directly for my IBAN/BIC"
+      },
+      {
+        "guid": "revolut",
+        "type": "payment-provider",
+        "address": "https://revolut.me/oab"
+      },
+      {
+        "guid": "crypto",
+        "type": "other",
+        "address": "freedom4cows@gmail.com",
+        "description": "Contact me directly for crypto donations because there are too many different coins to list :)"
+      },
+      {
+        "guid": "paypal",
+        "type": "payment-provider",
+        "address": "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY",
+        "description": "NB: I only receive ~80% of the income after fees"
+      },
+      {
+        "guid": "patreon",
+        "type": "payment-provider",
+        "address": "https://patreon.com/tridactyl",
+        "description": "NB: I only receive ~60% of the income after fees and forced VAT"
+      }
+    ],
+
+    "plans": [{
+      "guid": "feedme",
+      "status": "active",
+      "name": "Monthly donations",
+      "description": "Most of my living costs are monthly and so monthly donations massively help me to plan",
+      "amount": 0,
+      "currency": "EUR",
+      "frequency": "monthly",
+      "channels": ["github", "liberapay", "bank", "crypto", "revolut", "paypal", "patreon"]
+    }],
+
+    "history": [
+      {
+        "year": 2023,
+        "income": 4200,
+        "taxes": 1000,
+        "currency": "EUR",
+        "description": "Approximate"
+      },
+      {
+        "year": 2024,
+        "income": 6500,
+        "taxes": 1500,
+        "currency": "EUR",
+        "description": "Approximate"
+      },
+      {
+        "year": 2025,
+        "income": 5800,
+        "taxes": 1400,
+        "currency": "EUR",
+        "description": "Approximate"
+      }
+    ]
+  }
+}

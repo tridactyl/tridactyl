@@ -19,6 +19,13 @@ function prefixTheme(name) {
 // At the moment elements are only ever `:root` and so this array and stuff is all a bit overdesigned.
 const THEMED_ELEMENTS = []
 
+let insertedHintElemCSS = false
+const hintElemCss = {
+    allFrames: true,
+    matchAboutBlank: true,
+    code: "",
+}
+
 let insertedCSS = false
 const customCss = {
     allFrames: true,
@@ -28,9 +35,76 @@ const customCss = {
 
 export async function theme(element) {
     // Remove any old theme
+
+    /**
+     * DEPRECATED
+     *
+     * You don't need to add weird classnames to your themes any more, but you can if you want.
+     *
+     * Retained for backwards compatibility.
+     **/
     for (const theme of THEMES.map(prefixTheme)) {
         element.classList.remove(theme)
     }
+    // DEPRECATION ENDS
+
+    // Insert hint CSS rules according to config - copying how themes are inserted
+    if (insertedHintElemCSS) {
+        await browserBg.tabs.removeCSS(await ownTabId(), hintElemCss)
+        insertedHintElemCSS = false
+    }
+
+    const hintElemOptions = await config.getAsync("hintstyles")
+
+    // Allow for different hint text colours if using overlays (can help visibility issues)
+    const hintFgVar = hintElemOptions.overlay === "all" ? "--tridactyl-hint-highlight-fg" : "--tridactyl-hint-fg"
+    const activeFgVar = hintElemOptions.overlay === "all" ? "--tridactyl-hint-highlight-active-fg" : "--tridactyl-hint-active-fg"
+
+    const hintElemRules =
+        (hintElemOptions.fg === "all"
+            ? `    color: var(${hintFgVar}) !important;\n`
+            : "") +
+        (hintElemOptions.bg === "all"
+            ? "    background: var(--tridactyl-hint-bg) !important;\n"
+            : "") +
+        (hintElemOptions.outline === "all"
+            ? "    outline: var(--tridactyl-hint-outline) !important;\n"
+            : "")
+
+    const activeElemRules =
+        (hintElemOptions.fg !== "none"
+            ? `    color: var(${activeFgVar}) !important;\n`
+            : "") +
+        (hintElemOptions.bg !== "none"
+            ? "    background: var(--tridactyl-hint-active-bg) !important;\n"
+            : "") +
+        (hintElemOptions.outline !== "none"
+            ? "    outline: var(--tridactyl-hint-active-outline) !important;\n"
+            : "")
+
+    // If these are set to "none" they won't be added to the page at all so only need to handle active
+    const activeOverlayRules =
+        (hintElemOptions.overlay === "active"
+            ? ".TridactylHintHighlight { display:none; } .TridactylHintHighlightActive { display: block !important; }"
+            : "") +
+        (hintElemOptions.overlayoutline === "active"
+            ? ".TridactylHintOutline { display:none; } .TridactylHintOutlineActive { display: block !important; }"
+            : "")
+
+    hintElemCss.code =
+        (hintElemRules !== ""
+            ? ".TridactylHintElem {\n" + hintElemRules + "}\n"
+            : "") +
+        (activeElemRules !== ""
+            ? ".TridactylHintActive {\n" + activeElemRules + "}\n"
+            : "") +
+            activeOverlayRules
+
+    if (hintElemCss.code !== "") {
+        await browserBg.tabs.insertCSS(await ownTabId(), hintElemCss)
+        insertedHintElemCSS = true
+    }
+
     if (insertedCSS) {
         // Typescript doesn't seem to be aware than remove/insertCSS's tabid
         // argument is optional
@@ -40,14 +114,27 @@ export async function theme(element) {
 
     const newTheme = await config.getAsync("theme")
 
-    // Add a class corresponding to config.get('theme')
+    /**
+     * DEPRECATED
+     *
+     * You don't need to add weird classnames to your themes any more, but you can if you want.
+     *
+     * Retained for backwards compatibility.
+     **/
     if (newTheme !== "default") {
         element.classList.add(prefixTheme(newTheme))
     }
+    // DEPRECATION ENDS
 
     // Insert custom css if needed
-    if (newTheme !== "default" && !THEMES.includes(newTheme)) {
-        customCss.code = await config.getAsync("customthemes", newTheme)
+    if (newTheme !== "default") {
+        customCss.code = THEMES.includes(newTheme)
+            ? "@import url('" +
+              browser.runtime.getURL(
+                  "static/themes/" + newTheme + "/" + newTheme + ".css",
+              ) +
+              "');"
+            : await config.getAsync("customthemes", newTheme)
         if (customCss.code) {
             await browserBg.tabs.insertCSS(await ownTabId(), customCss)
             insertedCSS = true
@@ -79,7 +166,15 @@ function retheme() {
 }
 
 config.addChangeListener("theme", retheme)
+config.addChangeListener("hintstyles", retheme)
 
+/**
+ * DEPRECATED
+ *
+ * You don't need to add weird classnames to your themes any more, but you can if you want.
+ *
+ * Retained for backwards compatibility.
+ **/
 // Sometimes pages will overwrite class names of elements. We use a MutationObserver to make sure that the HTML element always has a TridactylTheme class
 // We can't just call theme() because it would first try to remove class names from the element, which would trigger the MutationObserver before we had a chance to add the theme class and thus cause infinite recursion
 const cb = async mutationList => {
@@ -97,3 +192,4 @@ new MutationObserver(cb).observe(document.documentElement, {
     attributeOldValue: false,
     attributeFilter: ["class"],
 })
+// DEPRECATION ENDS

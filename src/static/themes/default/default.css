@@ -3,10 +3,11 @@
     --tridactyl-font-family: monospace;
     --tridactyl-font-family-sans: sans-serif;
     --tridactyl-font-size: 12pt;
-    --tridactyl-small-font-size: 12px;
+    --tridactyl-small-font-size: calc(var(--tridactyl-font-size) * 0.75);
     --tridactyl-bg: white;
     --tridactyl-fg: black;
-    --tridactyl-logo: url('data:image/png;base64,REPLACE_ME_WITH_BASE64_TRIDACTYL_LOGO');
+    --tridactyl-logo: url("moz-extension://__MSG_@@extension_id__/static/logo/Tridactyl_64px.png");
+    --tridactyl-scrollbar-color: auto;
 
     /* Mode indicator */
     --tridactyl-status-font-family: var(--tridactyl-font-family);
@@ -26,18 +27,34 @@
     --tridactyl-hintspan-font-size: var(--tridactyl-small-font-size);
     --tridactyl-hintspan-font-weight: bold;
     --tridactyl-hintspan-fg: white;
+    --tridactyl-hintspan-pressed-fg: var(--tridactyl-hintspan-fg);
     --tridactyl-hintspan-bg: red;
     --tridactyl-hintspan-border-color: ButtonShadow;
     --tridactyl-hintspan-border-width: 0px;
     --tridactyl-hintspan-border-style: solid;
+    --tridactyl-hintspan-js-background: hsla(0, 0%, 65%);
+
+    --tridactyl-hintspan-active-fg: var(--tridactyl-hintspan-fg);
+    --tridactyl-hintspan-active-bg: var(--tridactyl-hintspan-bg);
+    --tridactyl-hintspan-active-border-color: var(--tridactyl-hintspan-border-color);
 
     /* Element highlights */
-    --tridactyl-hint-active-fg: var(--tridactyl-fg);
+    --tridactyl-hint-fg: var(--tridactyl-fg);
+    --tridactyl-hint-active-fg: var(--tridactyl-hint-fg);
     --tridactyl-hint-active-bg: #88ff00;
     --tridactyl-hint-active-outline: 1px solid #cc0000;
 
     --tridactyl-hint-bg: rgba(255, 255, 0, 0.25);
     --tridactyl-hint-outline: 1px solid #8f5902;
+
+    /* Element highlight overlays */
+    --tridactyl-hint-highlight-fg: var(--tridactyl-hint-fg);
+    --tridactyl-hint-highlight-active-fg: var(--tridactyl-hint-active-fg);
+    --tridactyl-hint-highlight-bg: var(--tridactyl-hint-bg);
+    --tridactyl-hint-highlight-active-bg: var(--tridactyl-hint-active-bg);
+    --tridactyl-hint-highlight-outline: var(--tridactyl-hint-outline);
+    --tridactyl-hint-highlight-active-outline: var(--tridactyl-hint-active-outline);
+    --tridactyl-hint-highlight-opacity: 0.25;
 
     /* :viewsource */
     --tridactyl-vs-bg: var(--tridactyl-bg);
@@ -50,14 +67,14 @@
     --tridactyl-cmdl-fg: var(--tridactyl-fg);
     --tridactyl-cmdl-line-height: 1.5;
     --tridactyl-cmdl-font-family: monospace;
-    --tridactyl-cmdl-font-size: 9pt;
+    --tridactyl-cmdl-font-size: calc(var(--tridactyl-font-size) * 0.75);
 
     /*completions*/
 
     --tridactyl-cmplt-option-height: 1.4em;
     --tridactyl-cmplt-fg: var(--tridactyl-fg);
     --tridactyl-cmplt-bg: var(--tridactyl-bg);
-    --tridactyl-cmplt-font-size: 10pt;
+    --tridactyl-cmplt-font-size: calc(var(--tridactyl-font-size) * 9/12);
     --tridactyl-cmplt-font-family: monospace;
     /* i don't think 0.5px is redered */
     --tridactyl-cmplt-border-top: 1px solid grey;
@@ -81,6 +98,7 @@
      * ????
      */
 
+    --tridactyl-header-font-size: inherit;
     --tridactyl-header-font-weight: bold;
     /* i don't think 0.5px is redered */
     --tridactyl-header-border-bottom: 1px solid bottom;
@@ -98,7 +116,7 @@
     --tridactyl-of-bg: #ffec8b;
 
     /*new tab spoiler box*/
-    --tridactyl-highlight-box-bg: #eee;
+    --tridactyl-highlight-box-bg: rgba(0, 0, 0, 0.07);
     --tridactyl-highlight-box-fg: var(--tridactyl-fg);
 
     --tridactyl-private-window-icon-url: url("chrome://browser/skin/privatebrowsing/private-browsing.svg");
@@ -126,5 +144,4 @@
     --tridactyl-container-color-purple: #af51f5;
 
     --tridactyl-externaledit-bg: var(--tridactyl-logo) no-repeat center;
-
 }

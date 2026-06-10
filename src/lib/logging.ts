@@ -43,7 +43,9 @@ export class Logger {
                         return browser.runtime.sendMessage({
                             type: "controller_background",
                             command: "acceptExCmd",
-                            args: ["fillcmdline_nofocus # " + message.join(" ")],
+                            args: [
+                                "fillcmdline_nofocus # " + message.join(" "),
+                            ],
                         })
                     }
                 case "warning":
@@ -56,7 +58,8 @@ export class Logger {
         }
 
         // do nothing with the message
-        return function(...args) {}
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        return function () {}
     }
 
     // These are all getters so that logger.debug = console.debug and

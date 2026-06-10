@@ -13,9 +13,13 @@
  *
  * We very strongly recommend that you pretty much ignore this page and instead follow the link below DEFAULTS that will take you to our own source code which is formatted in a marginally more sane fashion.
  *
+ * Intrepid Tridactyl users: this page is how Tridactyl arranges and manages its settings internally. To view your own settings, use `:viewconfig` and `:viewconfig --user`. To understand how to set settings, see `:help set`.
+ *
  */
 import * as R from "ramda"
 import * as binding from "@src/lib/binding"
+import * as platform from "@src/lib/platform"
+import { DeepPartial } from "tsdef"
 
 /* Remove all nulls from objects recursively
  * NB: also applies to arrays
@@ -23,9 +27,10 @@ import * as binding from "@src/lib/binding"
 const removeNull = R.when(
     R.is(Object),
     R.pipe(
-        R.reject(val => val === null),
-        R.map(a => removeNull(a))
-    )
+        // Ramda gives an error here without the any
+        R.reject(val => val === null) as any,
+        R.map(a => removeNull(a)),
+    ),
 )
 
 /** @hidden */
@@ -33,7 +38,7 @@ const CONFIGNAME = "userconfig"
 /** @hidden */
 const WAITERS = []
 /** @hidden */
-let INITIALISED = false
+export let INITIALISED = false
 
 /** @hidden */
 // make a naked object
@@ -59,6 +64,9 @@ export type LoggingLevel = "never" | "error" | "warning" | "info" | "debug"
  * This is the default configuration that Tridactyl comes with.
  *
  * You can change anything here using `set key1.key2.key3 value` or specific things any of the various helper commands such as `bind` or `command`. You can also jump to the help section of a setting using `:help $settingname`. Some of the settings have an input field containing their current value. You can modify these values and save them by pressing `<Enter>` but using `:set $setting $value` is a good habit to take as it doesn't force you to leave the page you're visiting to change your settings.
+ *
+ * If the setting you are changing has a dot or period character (.) in it, it cannot be set with `:set` directly. You must either use a helper command for that specific setting - e.g. `:seturl` or `:autocontain`, or you must use Tridactyl's JavaScript API with `:js tri.config.set("path", "to", "key", "value")` to set `{path: {to: {key: value}}}`.
+ *
  */
 export class default_config {
     /**
@@ -71,13 +79,45 @@ export class default_config {
     /**
      * Internal field to handle site-specific configs. Use :seturl/:unseturl to change these values.
      */
-    subconfigs: { [key: string]: default_config } = {
+    subconfigs: { [key: string]: DeepPartial<default_config> } = {
         "www.google.com": {
             followpagepatterns: {
                 next: "Next",
                 prev: "Previous",
             },
-        } as default_config,
+            nmaps: {
+                gi: "composite focusinput -l ; text.end_of_line", // Fix #4706
+            },
+        },
+        "^https://web.whatsapp.com": {
+            nmaps: {
+                f: "hint -c [tabindex]:not(.two)>div,a",
+                F: "hint -bc [tabindex]:not(.two)>div,a",
+            },
+        },
+        "^https://teams.microsoft.com": {
+            // #5054
+            modeindicator: "false",
+        },
+        "^https://teams.live.com": {
+            // #5054
+            modeindicator: "false",
+        },
+    }
+
+    /**
+     * Internal field to handle mode-specific configs. Use :setmode/:unsetmode to change these values.
+     *
+     * Changing this might do weird stuff.
+     */
+    modesubconfigs: { [key: string]: DeepPartial<default_config> } = {
+        normal: {},
+        insert: {},
+        input: {},
+        ignore: {},
+        ex: {},
+        hint: {},
+        visual: {},
     }
 
     /**
@@ -93,26 +133,32 @@ export class default_config {
      */
     exmaps = {
         "<Enter>": "ex.accept_line",
+        "<C-Enter>": "ex.execute_ex_on_completion",
         "<C-j>": "ex.accept_line",
         "<C-m>": "ex.accept_line",
         "<Escape>": "ex.hide_and_clear",
+        "<C-[>": "ex.hide_and_clear",
         "<ArrowUp>": "ex.prev_history",
         "<ArrowDown>": "ex.next_history",
+        "<S-Delete>": "ex.execute_ex_on_completion_args tabclose",
 
         "<A-b>": "text.backward_word",
         "<A-f>": "text.forward_word",
-        "<C-a>": "text.beginning_of_line",
         "<C-e>": "text.end_of_line",
         "<A-d>": "text.kill_word",
         "<S-Backspace>": "text.backward_kill_word",
         "<C-u>": "text.backward_kill_line",
         "<C-k>": "text.kill_line",
-        "<C-c>": "text.kill_whole_line",
 
         "<C-f>": "ex.complete",
         "<Tab>": "ex.next_completion",
         "<S-Tab>": "ex.prev_completion",
         "<Space>": "ex.insert_space_or_completion",
+        "<C-Space>": "ex.insert_space",
+
+        "<C-o>yy": "ex.execute_ex_on_completion_args clipboard yank",
+        "<C-o>t": "ex.execute_ex_on_completion_args tabopen -b",
+        "<C-o>w": "ex.execute_ex_on_completion_args winopen",
     }
 
     /**
@@ -125,8 +171,6 @@ export class default_config {
         "<AC-Escape>": "mode normal",
         "<AC-`>": "mode normal",
         "<S-Escape>": "mode normal",
-        "<C-^>": "tab #",
-        "<C-6>": "tab #",
         "<C-o>": "nmode normal 1 mode ignore",
     }
 
@@ -143,8 +187,6 @@ export class default_config {
         "<C-i>": "editor",
         "<AC-Escape>": "mode normal",
         "<AC-`>": "mode normal",
-        "<C-6>": "tab #",
-        "<C-^>": "tab #",
         "<S-Escape>": "mode ignore",
     }
 
@@ -169,6 +211,15 @@ export class default_config {
     }
 
     /**
+     * Disable Tridactyl almost completely within a page, e.g. `seturl ^https?://mail.google.com disable true`. Only takes affect on page reload.
+     *
+     * You are usually better off using `blacklistadd` and `seturl [url] noiframe true` as you can then still use some Tridactyl binds, e.g. `shift-insert` for exiting ignore mode.
+     *
+     * NB: you should only use this with `seturl`. If you get trapped with Tridactyl disabled everywhere just run `tri unset superignore` in the Firefox address bar. If that still doesn't fix things, you can totally reset Tridactyl by running `tri help superignore` in the Firefox address bar, scrolling to the bottom of that page and then clicking "Reset Tridactyl config".
+     */
+    superignore: "true" | "false" = "false"
+
+    /**
      * nmaps contain all of the bindings for "normal mode".
      *
      * They consist of key sequences mapped to ex commands.
@@ -191,8 +242,10 @@ export class default_config {
         T: "current_url tabopen",
         yy: "clipboard yank",
         ys: "clipboard yankshort",
+        yq: "text2qr --timeout 5",
         yc: "clipboard yankcanon",
         ym: "clipboard yankmd",
+        yo: "clipboard yankorg",
         yt: "clipboard yanktitle",
         gh: "home",
         gH: "home true",
@@ -214,14 +267,12 @@ export class default_config {
         $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
-        "<C-6>": "tab #",
-        "<C-^>": "tab #",
         H: "back",
         L: "forward",
         "<C-o>": "jumpprev",
         "<C-i>": "jumpnext",
         d: "tabclose",
-        D: "composite tabprev; tabclose #",
+        D: "js tri.excmds.composite('tabprev;', 'tabclose #')", // use JS to make counts error
         gx0: "tabclosealltoleft",
         gx$: "tabclosealltoright",
         "<<": "tabmove -1",
@@ -231,8 +282,9 @@ export class default_config {
         r: "reload",
         R: "reloadhard",
         x: "stop",
-        gi: "focusinput -l",
+        gi: "focusinput",
         "g?": "rot13",
+        "g!": "jumble",
         "g;": "changelistjump -1",
         J: "tabprev",
         K: "tabnext",
@@ -243,7 +295,8 @@ export class default_config {
         "g^": "tabfirst",
         g0: "tabfirst",
         g$: "tablast",
-        gr: "reader",
+        ga: "tabaudio",
+        gr: "reader --old",
         gu: "urlparent",
         gU: "urlroot",
         gf: "viewsource",
@@ -268,10 +321,12 @@ export class default_config {
         ";o": "hint",
         ";I": "hint -I",
         ";k": "hint -k",
+        ";K": "hint -K",
         ";y": "hint -y",
+        ";Y": "hint -cF img i => tri.excmds.yankimage(tri.urlutils.getAbsoluteURL(i.src))",
         ";p": "hint -p",
         ";h": "hint -h",
-        "v": "hint -h", // Easiest way of entering visual mode for now. Expect this bind to change
+        v: "hint -h", // Easiest way of entering visual mode for now. Expect this bind to change
         ";P": "hint -P",
         ";r": "hint -r",
         ";s": "hint -s",
@@ -281,16 +336,17 @@ export class default_config {
         ";;": "hint -; *",
         ";#": "hint -#",
         ";v": "hint -W mpvsafe",
+        ";V": "hint -V",
         ";w": "hint -w",
         ";t": "hint -W tabopen",
         ";O": "hint -W fillcmdline_notrail open ",
         ";W": "hint -W fillcmdline_notrail winopen ",
         ";T": "hint -W fillcmdline_notrail tabopen ",
+        ";d": "hint -W tabopen --discard",
+        ";gd": "hint -qW tabopen --discard",
         ";z": "hint -z",
-        ";m":
-            "composite hint -pipe img src | js -p tri.excmds.open('images.google.com/searchbyimage?image_url=' + JS_ARG)",
-        ";M":
-            "composite hint -pipe img src | jsb -p tri.excmds.tabopen('images.google.com/searchbyimage?image_url=' + JS_ARG)",
+        ";m": "hint -JFc img i => tri.excmds.open('https://lens.google.com/uploadbyurl?url='+i.src)",
+        ";M": "hint -JFc img i => tri.excmds.tabopen('https://lens.google.com/uploadbyurl?url='+i.src)",
         ";gi": "hint -qi",
         ";gI": "hint -qI",
         ";gk": "hint -qk",
@@ -331,32 +387,44 @@ export class default_config {
         ".": "repeat",
         "<AS-ArrowUp><AS-ArrowUp><AS-ArrowDown><AS-ArrowDown><AS-ArrowLeft><AS-ArrowRight><AS-ArrowLeft><AS-ArrowRight>ba":
             "open https://www.youtube.com/watch?v=M3iOROuTuMA",
+        m: "gobble 1 markadd",
+        "`": "gobble 1 markjump",
     }
 
     vmaps = {
-        "<Escape>": "composite js document.getSelection().empty(); mode normal; hidecmdline",
-        "<C-[>": "composite js document.getSelection().empty(); mode normal ; hidecmdline",
-        "y": "composite js document.getSelection().toString() | clipboard yank",
-        "s": "composite js document.getSelection().toString() | fillcmdline open search",
-        "S": "composite js document.getSelection().toString() | fillcmdline tabopen search",
-        "l": 'js document.getSelection().modify("extend","forward","character")',
-        "h": 'js document.getSelection().modify("extend","backward","character")',
-        "e": 'js document.getSelection().modify("extend","forward","word")',
-        "w": 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","character")',
-        "b": 'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
-        "j": 'js document.getSelection().modify("extend","forward","line")',
+        "<Escape>":
+            "composite js document.getSelection().empty(); mode normal; hidecmdline",
+        "<C-[>":
+            "composite js document.getSelection().empty(); mode normal ; hidecmdline",
+        y: "composite js document.getSelection().toString() | clipboard yank",
+        s: "composite js document.getSelection().toString() | fillcmdline open search",
+        S: "composite js document.getSelection().toString() | fillcmdline tabopen search",
+        l: `js
+            const sel = document.getSelection();
+            tri.visual.extendByCharacter(sel, "forward");
+        `,
+        h: `js
+            const sel = document.getSelection();
+            tri.visual.extendByCharacter(sel, "backward");
+        `,
+        e: 'js document.getSelection().modify("extend","forward","word")',
+        w: 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
+        b: 'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
+        j: 'js document.getSelection().modify("extend","forward","line")',
+        q: "composite js document.getSelection().toString() | text2qr --timeout 5",
         // "j": 'js document.getSelection().modify("extend","forward","paragraph")', // not implemented in Firefox
-        "k": 'js document.getSelection().modify("extend","backward","line")',
-        "$": 'js document.getSelection().modify("extend","forward","lineboundary")',
+        k: 'js document.getSelection().modify("extend","backward","line")',
+        $: 'js document.getSelection().modify("extend","forward","lineboundary")',
         "0": 'js document.getSelection().modify("extend","backward","lineboundary")',
         "=": "js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
-        "o": "js tri.visual.reverseSelection(document.getSelection())",
+        o: "js tri.visual.reverseSelection(document.getSelection())",
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 
     hintmaps = {
         "<Backspace>": "hint.popKey",
         "<Escape>": "hint.reset",
+        "<C-[>": "hint.reset",
         "<Tab>": "hint.focusNextHint",
         "<S-Tab>": "hint.focusPreviousHint",
         "<ArrowUp>": "hint.focusTopHint",
@@ -365,6 +433,16 @@ export class default_config {
         "<ArrowRight>": "hint.focusRightHint",
         "<Enter>": "hint.selectFocusedHint",
         "<Space>": "hint.selectFocusedHint",
+    }
+
+    /**
+     * Browser-wide binds accessible in all modes and on pages where Tridactyl "cannot run".
+     * <!-- Note to developers: binds here need to also be listed in manifest.json -->
+     */
+    browsermaps = {
+        "<C-,>": "escapehatch",
+        "<C-6>": "tab #",
+        // "<CS-6>": "tab #", // banned by e2e tests
     }
 
     /**
@@ -456,7 +534,18 @@ export class default_config {
     }
 
     /**
-     * Map for translating keys directly into other keys in normal-ish modes. For example, if you have an entry in this config option mapping `п` to `g`, then you could type `пп` instead of `gg` or `пi` instead of `gi` or `;п` instead of `;g`. This is primarily useful for international users who don't want to deal with rebuilding their bindings every time tridactyl ships a new default keybind. It's not as good as shipping properly internationalized sets of default bindings, but it's probably as close as we're going to get on a small open-source project like this.
+     * @deprecated Map for translating keys directly into other keys in normal-ish modes.
+     * For example, if you have an entry in this config option mapping `п` to `g`,
+     * then you could type `пп` instead of `gg` or `пi` instead of `gi` or `;п` instead
+     * of `;g`.
+     *
+     * This was primarily useful for international users, but now you can `set
+     * keyboardlayoutforce true`, which will make everything layout-independent(and work like qwerty by default),
+     * and use [[keyboardlayoutoverrides]] setting to change the desired layout.
+     *
+     *
+     * For example, you may want to map 'a' to 'q` on azerty
+     * or 'r' to 'p' if you use dvorak.
      *
      * Note that the current implementation does not allow you to "chain" keys, for example, "a"=>"b" and "b"=>"c" for "a"=>"c". You can, however, swap or rotate keys, so "a"=>"b" and "b"=>"a" will work the way you'd expect, as will "a"=>"b" and "b"=>"c" and "c"=>"a".
      */
@@ -470,16 +559,44 @@ export class default_config {
     }
 
     /**
-     * Whether to use the keytranslatemap in various maps.
+     * @deprecated Whether to use the keytranslatemap.
+     * Legacy option to map one keyboard character to another, was used to emulate
+     * layout-independence. Now deprecated since you can set your layout once with [[keyboardlayoutforce]]
+     * and [[keyboardlayoutoverrides]].
      */
-    keytranslatemodes: { [key: string]: "true" | "false" } = {
-        nmaps: "true",
-        imaps: "false",
-        inputmaps: "false",
-        ignoremaps: "false",
-        exmaps: "false",
-        hintmaps: "false",
-    }
+    usekeytranslatemap: "true" | "false" = "true"
+
+    /**
+     * Instead of fetching actual character which depends on selected layout,
+     * use machine code of a key and convert to character according to keyboardlayoutoverrides. The default layout mapping
+     * is US `qwerty`, but can be changed with [[keyboardlayoutbase]].
+     *
+     * There is a much more detailed help page towards the end of `:tutor` under the title "Non-QWERTY layouts".
+     *
+     * Recommended for everyone with multiple or/and non-latin keyboard layouts. Make sure [[usekeytranslatemap]] is false
+     * if you have previously used `keymap`.
+     */
+    keyboardlayoutforce: "true" | "false" = "false"
+
+    /**
+     * Base keyboard layout to use when [[keyboardlayoutforce]] is enabled. At the time of writing, the following layouts are supported: `qwerty, azerty, german, dvorak, uk, ca, bepo`. Requires page reload to take effect.
+     *
+     * If your layout is missing, you can contribute it with the help of https://gistpreview.github.io/?324119c773fac31651f6422087b36804 - please just open an `:issue` with your layout and we'll add it.
+     *
+     * You can manually override individual keys for a layout with [[keyboardlayoutoverrides]].
+     */
+    keyboardlayoutbase: keyof typeof keyboardlayouts = "qwerty"
+
+    /**
+     * Override individual keys for a layout when [[keyboardlayoutforce]] is enabled. Changes take effect only after a page reload.
+     *
+     * Key codes for printable keys for [[keyboardlayoutforce]], lower and upper register. See https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values for the names of each key.
+     *
+     * NB: due to a Tridactyl bug, you cannot set this using array notation as you can for, e.g. [[homepage]].
+     * You must instead set the lower and upper registers using a string with no spaces in it, for example
+     * `:set keyboardlayoutoverrides Digit2: 2"` for the British English layout.
+     */
+    keyboardlayoutoverrides = {}
 
     /**
      * Automatically place these sites in the named container.
@@ -490,6 +607,29 @@ export class default_config {
         // "github.com": "microsoft",
         // "youtube.com": "google",
     })
+
+    /**
+     * Default proxy to use for all URLs. Has to be the name of a proxy. To add a proxy, see `:help proxyadd`. NB: usage with `:seturl` is buggy, use `:autocontain -s [regex to match URL] none [proxy]` instead
+     */
+    proxy = ""
+
+    /**
+     * Definitions of proxies.
+     *
+     * You can add a new proxy with `proxyadd proxyname proxyurl`
+     */
+    proxies = o({
+        // "socksName": "socks://hostname:port",
+        // "socks4": "socks4://hostname:port",
+        // "https": "https://username:password@hostname:port"
+    })
+
+    /**
+     * Whether to use proxy settings.
+     *
+     * If set to `true`, all proxy settings will be ignored.
+     */
+    noproxy: "true" | "false" = "false"
 
     /**
      * Strict mode will always ensure a domain is open in the correct container, replacing the current tab if necessary.
@@ -509,6 +649,7 @@ export class default_config {
         aucon: "autocontain",
         audel: "autocmddelete",
         audelete: "autocmddelete",
+        blacklistremove: "autocmddelete DocStart",
         b: "tab",
         clsh: "clearsearchhighlight",
         nohlsearch: "clearsearchhighlight",
@@ -516,9 +657,16 @@ export class default_config {
         o: "open",
         w: "winopen",
         t: "tabopen",
+        tabgroupabort: "tgroupabort",
+        tabgroupclose: "tgroupclose",
+        tabgroupcreate: "tgroupcreate",
+        tabgrouplast: "tgrouplast",
+        tabgroupmove: "tgroupmove",
+        tabgrouprename: "tgrouprename",
+        tabgroupswitch: "tgroupswitch",
         tabnew: "tabopen",
         tabm: "tabmove",
-        tabo: "tabonly",
+        tabo: "fillcmdline_tmp 3000 The :tabo alias has been removed. You can add it back with :command tabo tabonly",
         tn: "tabnext_gt",
         bn: "tabnext_gt",
         tnext: "tabnext_gt",
@@ -543,6 +691,7 @@ export class default_config {
         q: "tabclose",
         qa: "qall",
         sanitize: "sanitise",
+        "saveas!": "saveas --cleanup --overwrite",
         tutorial: "tutor",
         h: "help",
         unmute: "mute unmute",
@@ -556,8 +705,7 @@ export class default_config {
         colors: "colourscheme",
         man: "help",
         "!js": "fillcmdline_tmp 3000 !js is deprecated. Please use js instead",
-        "!jsb":
-            "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
+        "!jsb": "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
         get_current_url: "js document.location.href",
         current_url: "composite get_current_url | fillcmdline_notrail ",
         stop: "js window.stop()",
@@ -567,14 +715,17 @@ export class default_config {
         mkt: "mktridactylrc",
         "mkt!": "mktridactylrc -f",
         "mktridactylrc!": "mktridactylrc -f",
-        mpvsafe: "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv ' + url))",
+        mpvsafe:
+            "js -p tri.excmds.shellescape(JS_ARG).then(url => tri.excmds.exclaim_quiet('mpv --no-terminal ' + url))",
+        drawingstop: "mouse_mode",
         exto: "extoptions",
         extpreferences: "extoptions",
         extp: "extpreferences",
         prefset: "setpref",
         prefremove: "removepref",
         tabclosealltoright: "tabcloseallto right",
-        tabclosealltoleft: "tabcloseallto left"
+        tabclosealltoleft: "tabcloseallto left",
+        reibadailty: "jumble",
     }
 
     /**
@@ -595,43 +746,54 @@ export class default_config {
     /**
      * Definitions of search engines for use via `open [keyword]`.
      *
-     * `%s` will be replaced with your whole query and `%s1`, `%s2`, ..., `%sn` will be replaced with the first, second and nth word of your query. If there are none of these patterns in your search urls, your query will simply be appended to the searchurl.
+     * `%s` will be replaced with your whole query and `%s1`, `%s2`, ..., `%sn` will be replaced with the first, second and nth word of your query. Also supports array slicing, e.g. `%s[2:4]`, `%s[5:]`. If there are none of these patterns in your search urls, your query will simply be appended to the searchurl.
+     *
+     * Aliases are supported - for example, if you have a `google` searchurl, you can run `:set searchurls.g google` in which case `g` will act as if it was the `google` searchurl.
      *
      * Examples:
      * - When running `open gi cute puppies`, with a `gi` searchurl defined with `set searchurls.gi https://www.google.com/search?q=%s&tbm=isch`, tridactyl will navigate to `https://www.google.com/search?q=cute puppies&tbm=isch`.
      * - When running `tabopen translate en ja Tridactyl`, with a `translate` searchurl defined with `set searchurls.translate https://translate.google.com/#view=home&op=translate&sl=%s1&tl=%s2&text=%s3`, tridactyl will navigate to `https://translate.google.com/#view=home&op=translate&sl=en&tl=ja&text=Tridactyl`.
+     *
+     * [[setnull]] can be used to "delete" the default search engines. E.g. `setnull searchurls.google`.
+     *
+     * NB: lots of searchurls were removed in May 2024. You can restore them with:
+     *
+     * ```
+     *     set searchurls.googleuk https//www.google.co.uk/search?q=
+     *     set searchurls.yahoo https//search.yahoo.com/search?p=
+     *     set searchurls.twitter https//twitter.com/search?q=
+     *     set searchurls.wikipedia https//en.wikipedia.org/wiki/SpecialSearch/
+     *     set searchurls.amazon https//www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=
+     *     set searchurls.amazonuk https//www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=
+     *     set searchurls.startpage https//startpage.com/do/search?language=english&cat=web&query=
+     *     set searchurls.github https//github.com/search?utf8=✓&q=
+     *     set searchurls.searx https//searx.me/?category_general=on&q=
+     *     set searchurls.cnrtl http//www.cnrtl.fr/lexicographie/
+     *     set searchurls.osm https//www.openstreetmap.org/search?query=
+     *     set searchurls.mdn https//developer.mozilla.org/en-US/search?q=
+     *     set searchurls.gentoo_wiki https//wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search=
+     *     set searchurls.qwant https//www.qwant.com/?q=
+     *  ```
      */
     searchurls = {
-        google: "https://www.google.com/search?q=",
-        googlelucky: "https://www.google.com/search?btnI=I'm+Feeling+Lucky&q=",
+        google: "https://www.google.com/search?udm=14&q=",
         scholar: "https://scholar.google.com/scholar?q=",
-        googleuk: "https://www.google.co.uk/search?q=",
         bing: "https://www.bing.com/search?q=",
         duckduckgo: "https://duckduckgo.com/?q=",
-        yahoo: "https://search.yahoo.com/search?p=",
-        twitter: "https://twitter.com/search?q=",
-        wikipedia: "https://en.wikipedia.org/wiki/Special:Search/",
         youtube: "https://www.youtube.com/results?search_query=",
-        amazon:
-            "https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
-        amazonuk:
-            "https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=",
-        startpage:
-            "https://startpage.com/do/search?language=english&cat=web&query=",
-        github: "https://github.com/search?utf8=✓&q=",
-        searx: "https://searx.me/?category_general=on&q=",
-        cnrtl: "http://www.cnrtl.fr/lexicographie/",
-        osm: "https://www.openstreetmap.org/search?query=",
-        mdn: "https://developer.mozilla.org/en-US/search?q=",
-        gentoo_wiki:
-            "https://wiki.gentoo.org/index.php?title=Special%3ASearch&profile=default&fulltext=Search&search=",
-        qwant: "https://www.qwant.com/?q=",
     }
+
+    /**
+     * Like [[searchurls]] but must be a Javascript function that takes one argument (a single string with the remainder of the command line including spaces) and maps it to a valid href (or a promise that resolves to a valid href) that will be followed, e.g. `set jsurls.googleloud query => "https://google.com/search?q=" + query.toUpperCase()`
+     *
+     * NB: the href must be valid, i.e. it must include the protocol (e.g. "http://") and not just be e.g. "www.".
+     */
+    jsurls = {}
 
     /**
      * URL the newtab will redirect to.
      *
-     * All usual rules about things you can open with `open` apply, with the caveat that you'll get interesting results if you try to use something that needs `nativeopen`: so don't try `about:newtab`.
+     * All usual rules about things you can open with `open` apply, with the caveat that you'll get interesting results if you try to use something that needs `nativeopen`: so don't try `about:newtab` or a `file:///` URI. You can instead host a local webserver (e.g. Caddy).
      */
     newtab = ""
 
@@ -639,11 +801,6 @@ export class default_config {
      * Whether `:viewsource` will use our own page that you can use Tridactyl binds on, or Firefox's default viewer, which you cannot use Tridactyl on.
      */
     viewsource: "tridactyl" | "default" = "tridactyl"
-
-    /**
-     * Which storage to use. Sync storage will synchronise your settings via your Firefox Account.
-     */
-    storageloc: "sync" | "local" = "sync"
 
     /**
      * Pages opened with `gH`. In order to set this value, use `:set homepages ["example.org", "example.net", "example.com"]` and so on.
@@ -694,6 +851,13 @@ export class default_config {
     hintshift: "true" | "false" = "false"
 
     /**
+     * Controls whether hints should be followed automatically.
+     *
+     * If set to `false`, hints will only be followed upon confirmation. This applies to cases when there is only a single match or only one link on the page.
+     */
+    hintautoselect: "true" | "false" = "true"
+
+    /**
      * Controls whether the page can focus elements for you via js
      *
      * NB: will break fancy editors such as CodeMirror on Jupyter. Simply use `seturl` to whitelist pages you need it on.
@@ -708,11 +872,11 @@ export class default_config {
     preventautofocusjackhammer: "true" | "false" = "false"
 
     /**
-     * Controls whether the newtab focuses on tridactyl's newtab page or the firefox urlbar.
+     * Run a loop forcing the commandline to be reinserted if it is deleted as is typically the case after server-side rendering of bloated web frameworks such as React. Uses some CPU, so enable only on specific websites with `:seturl https://badwebsite\.com commandlineterriblewebsitefix true`.
      *
-     * To get FF default behaviour, use "urlbar".
+     * A better workaround is to stop visiting websites that have so little respect for their users.
      */
-    newtabfocus: "page" | "urlbar" = "page"
+    commandlineterriblewebsitefix: "true" | "false" = "false"
 
     /**
      * Whether to use Tridactyl's (bad) smooth scrolling.
@@ -727,10 +891,17 @@ export class default_config {
     /**
      * Where to open tabs opened with `tabopen` - to the right of the current tab, or at the end of the tabs.
      */
-    tabopenpos: "next" | "last" = "next"
+    tabopenpos: "next" | "last" | "related" = "next"
 
     /**
-     * Controls which tab order to use when opening the tab/buffer list. Either mru = sort by most recent tab or default = by tab index
+     * When enabled (the default), running tabclose will close the tabs whether they are pinned or not. When disabled, tabclose will fail with an error if a tab is pinned.
+     */
+    tabclosepinned: "true" | "false" = "true"
+
+    /**
+     * Controls which tab order to use when numbering tabs. Either mru = sort by most recent tab or default = by tab index
+     *
+     * Applies to all places where Tridactyl numbers tabs including `:tab`, `:tabnext_gt` etc. (so, for example, with `:set tabsort mru` `2gt` would take you to the second most recently used tab, not the second tab in the tab bar).
      */
     tabsort: "mru" | "default" = "default"
 
@@ -756,9 +927,9 @@ export class default_config {
     ttspitch = 1
 
     /**
-     * If nextinput, <Tab> after gi brings selects the next input
+     * When set to "nextinput", pressing `<Tab>` after gi selects the next input.
      *
-     * If firefox, <Tab> selects the next selectable element, e.g. a link
+     * When set to "firefox", `<Tab>` behaves like normal, focusing the next tab-indexed element regardless of type.
      */
     gimode: "nextinput" | "firefox" = "nextinput"
 
@@ -787,9 +958,27 @@ export class default_config {
     modeindicator: "true" | "false" = "true"
 
     /**
+     * Whether to display the mode indicator in various modes. Ignored if modeindicator set to false.
+     */
+    modeindicatormodes: { [key: string]: "true" | "false" } = {
+        normal: "true",
+        insert: "true",
+        input: "true",
+        ignore: "true",
+        ex: "true",
+        hint: "true",
+        visual: "true",
+    }
+
+    /**
      * Milliseconds before registering a scroll in the jumplist
      */
     jumpdelay = 3000
+
+    /**
+     * Whether `markjump` should pop-up with a notification
+     */
+    markjumpnoisy: "true" | "false" = "true"
 
     /**
      * Logging levels. Unless you're debugging Tridactyl, it's unlikely you'll ever need to change these.
@@ -805,6 +994,8 @@ export class default_config {
         performance: "warning",
         state: "warning",
         styling: "warning",
+        autocmds: "warning",
+        profiles: "warning",
     }
 
     /**
@@ -831,6 +1022,13 @@ export class default_config {
      * Also see [:editor](/static/docs/modules/_src_excmds_.html#editor).
      */
     editorcmd = "auto"
+
+    /**
+     * Try to preserve HTML tags when using an external editor.
+     *
+     * Defaults to false. Some sites work better with it set to true, see https://github.com/tridactyl/tridactyl/issues/3900
+     */
+    editorusehtml = "false"
 
     /**
      * Command that should be run by the [[rssexec]] ex command. Has the
@@ -880,19 +1078,57 @@ export class default_config {
     externalclipboardcmd = "auto"
 
     /**
-     * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
+     * Whether downloads (e.g. via ;s hint modes) appear in your download history.
      *
-     * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds
+     * NB: will cause downloads to fail silently if Tridactyl is not allowed to run in private windows (regardless of whether you are trying to call it in a private window).
      */
-    nativeinstallcmd =
-        "curl -fsSl https://raw.githubusercontent.com/tridactyl/tridactyl/master/native/install.sh -o /tmp/trinativeinstall.sh && bash /tmp/trinativeinstall.sh %TAG"
+    downloadsskiphistory: "true" | "false" = "false"
+
+    /**
+     * Set of characters that are to be considered illegal as download filenames.
+     */
+    downloadforbiddenchars = "/\0"
+
+    /**
+     * Value that will be used to replace the illegal character(s), if found, in the download filename.
+     */
+    downloadforbiddenreplacement = "_"
+
+    /**
+     * Comma-separated list of whole filenames which, if match
+     * with the download filename, will be suffixed with the
+     * "downloadforbiddenreplacement" value.
+     */
+    downloadforbiddennames = ""
+
+    /**
+     * Placeholder string used in ":saveas" targets. If the save-as path
+     * contains this marker, it will be replaced with the filename
+     * derived from the URL.
+     *
+     * For example, using:
+     *
+     *   :saveas ~/Documents/ex-%
+     *
+     * with the URL:
+     *
+     *   https://example.com/log.txt
+     *
+     * will produce the file:
+     *
+     *   ~/Documents/ex-log.txt
+     */
+    downloadfilenamemarker = "%"
 
     /**
      * Set this to something weird if you want to have fun every time Tridactyl tries to update its native messenger.
      *
-     * Replaces %WINTAG with "-Tag $TRI_VERSION", similarly to [[nativeinstallcmd]].
+     * %TAG will be replaced with your version of Tridactyl for stable builds, or "master" for beta builds
+     *
+     * NB: Windows has its own platform-specific default.
      */
-     win_nativeinstallcmd = `powershell -NoProfile -InputFormat None -Command "Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cmcaine/tridactyl/master/native/win_install.ps1'))"`
+    nativeinstallcmd =
+        "curl -fsSl https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/install.sh -o /tmp/trinativeinstall.sh && sh /tmp/trinativeinstall.sh %TAG"
 
     /**
      * Used by :updatecheck and related built-in functionality to automatically check for updates and prompt users to upgrade.
@@ -937,7 +1173,7 @@ export class default_config {
     tabopencontaineraware: "true" | "false" = "false"
 
     /**
-     * If moodeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
+     * If modeindicator is enabled, containerindicator will color the border of the mode indicator with the container color.
      */
     containerindicator: "true" | "false" = "true"
 
@@ -945,6 +1181,16 @@ export class default_config {
      * Autocontain directives create a container if it doesn't exist already.
      */
     auconcreatecontainer: "true" | "false" = "true"
+
+    /**
+     * Initial urls to navigate to when creating a new tab for a new tab group.
+     */
+    tabgroupnewtaburls = {}
+
+    /**
+     * Whether :tab shows completions for hidden tabs (e.g. tabs in other tab groups).
+     */
+    tabshowhidden: "true" | "false" = "false"
 
     /**
      * Number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
@@ -955,6 +1201,52 @@ export class default_config {
      * When displaying bookmarks in history completions, how many page views to pretend they have.
      */
     bmarkweight = 100
+
+    /**
+     * Should folders be shown and filtered in bookmark searches.
+     */
+    bmarkfoldersearch: "true" | "false" = "false"
+
+    /**
+     * When displaying searchurls in history completions, how many page views to pretend they have.
+     */
+    searchurlweight = 150
+
+    /**
+     * Default selector for :goto command.
+     */
+    gotoselector = "h1, h2, h3, h4, h5, h6"
+
+    /**
+     * General completions options - NB: options are set according to our internal completion source name - see - `src/completions/[name].ts` in the Tridactyl source.
+     */
+    completions = {
+        Goto: {
+            autoselect: "true",
+        },
+        Tab: {
+            /**
+             * Whether to automatically select the closest matching completion
+             */
+            autoselect: "true",
+            /**
+             * Whether to use unicode symbols to display tab statuses
+             */
+            statusstylepretty: "false",
+        },
+        TabAll: {
+            autoselect: "true",
+        },
+        Rss: {
+            autoselect: "true",
+        },
+        Bmark: {
+            autoselect: "true",
+        },
+        Sessions: {
+            autoselect: "true",
+        },
+    }
 
     /**
      * Number of results that should be shown in completions. -1 for unlimited
@@ -970,6 +1262,11 @@ export class default_config {
      * Whether find should be case-sensitive
      */
     findcase: "smart" | "sensitive" | "insensitive" = "smart"
+
+    /**
+     * How long find highlights should persist in milliseconds. `<= 0` means they persist until cleared
+     */
+    findhighlighttimeout = 0
 
     /**
      * Whether Tridactyl should jump to the first match when using `:find`
@@ -1016,7 +1313,7 @@ export class default_config {
      * statistics, so somewhere around 10k samples.
      *
      */
-    perfsamples: string = "10000"
+    perfsamples = "10000"
 
     /**
      * Show (partial) command in the mode indicator.
@@ -1031,35 +1328,605 @@ export class default_config {
     urlparenttrailingslash: "true" | "false" = "true"
 
     /**
+     * Whether removal of the url fragment (the name after # in the url)
+     * is counted as a parent level.
+     */
+    urlparentignorefragment: "true" | "false" = "false"
+
+    /**
+     * Whether removal the url search parameter (the name after ? in the url)
+     * is counted as a parent level.
+     */
+    urlparentignoresearch: "true" | "false" = "false"
+
+    /**
+     * RegExp to remove from the url pathname before go to any parent path.
+     * To ignore "index.html" in "parent/index.html", set it to
+     * "//index\.html/". The regexp flag is supported, and the escape of
+     * the slashes inside the regexp is not required.
+     *
+     * An empty string will disable this feature.
+     *
+     * Suggested value: //index\.(html?|php|aspx?|jsp|cgi|pl|js)$/i
+     */
+    urlparentignorepathregexp = ""
+
+    /**
      * Whether to enter visual mode when text is selected. Visual mode can always be entered with `:mode visual`.
      */
     visualenterauto: "true" | "false" = "true"
 
     /**
-     * Whether to return to visual mode when text is deselected.
+     * Whether to return to normal mode when text is deselected.
      */
     visualexitauto: "true" | "false" = "true"
+
+    /**
+     * Whether to open and close the sidebar quickly to get focus back to the page when <C-,> is pressed.
+     *
+     * Disable if the fact that it closes TreeStyleTabs gets on your nerves too much : )
+     *
+     * NB: when disabled, <C-,> can't get focus back from the address bar, but it can still get it back from lots of other places (e.g. Flash-style video players)
+     */
+    escapehatchsidebarhack: "true" | "false" = "true"
+
+    /**
+     * Threshold for fuzzy matching on completions. Lower => stricter matching. Range between 0 and 1: 0 corresponds to perfect matches only. 1 will match anything.
+     *
+     * https://fusejs.io/api/options.html#threshold
+     */
+    completionfuzziness = 0.3
+
+    /**
+     * Whether to show article url in the document.title of Reader View.
+     */
+    readerurlintitle: "true" | "false" = "false"
+
+    /**
+     * Which css styles to add for hint elements.
+     * Optionally add extra elements to the page to highlight hints using overlay and overlay outline.
+     *
+     * Use `hintstyles.fg` for text color, `hintstyles.bg` for background color, `hintstyles.outline` for outlines.
+     * Values may be set to "all" to enable the style for all hints, "active" to enable the style only for the currently selected hint, or "none" to disable the style completely.
+     *
+     * For example, run
+     *`:set hintstyles.bg none` and reload the page to remove background colors from all hints.
+     */
+    hintstyles: { [key: string]: "all" | "active" | "none" } = {
+        fg: "all",
+        bg: "all",
+        outline: "all",
+        overlay: "none",
+        overlayoutline: "none",
+    }
+
+    /**
+     * Internal temporary storage for :reader, mapping UUIDs to base64 encoded html strings of articles
+     */
+    reader_articles: { [id: string]: string } = {}
 }
 
+const platform_defaults = {
+    win: {
+        browsermaps: {
+            "<C-6>": null,
+            "<A-6>": "buffer #",
+        } as unknown, // typescript doesn't like me adding new binds like this
+        nmaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+        imaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+        inputmaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+        ignoremaps: {
+            "<C-6>": "buffer #",
+        } as unknown,
+
+        nativeinstallcmd: `powershell -ExecutionPolicy Bypass -NoProfile -Command "\
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12;\
+(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/windows.ps1', '%TEMP%/tridactyl_installnative.ps1');\
+& '%TEMP%/tridactyl_installnative.ps1' -Tag %TAG;\
+Remove-Item '%TEMP%/tridactyl_installnative.ps1'"`,
+        downloadforbiddenchars: "#%&{}\\<>*?/$!'\":@+`|=",
+        downloadforbiddennames:
+            "CON, PRN, AUX, NUL, COM1, COM2," +
+            "COM3, COM4, COM5, COM6, COM7, COM8, COM9, LPT1," +
+            "LPT2, LPT3, LPT4, LPT5, LPT6, LPT7, LPT8, LPT9,",
+    },
+    linux: {
+        nmaps: {
+            ";x": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool click 1")}',
+            ";c": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool click 3")}',
+            ";:": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y)}',
+            ";X": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool keydown ctrl+shift; xdotool click 1; xdotool keyup ctrl+shift")}',
+        } as unknown,
+    },
+} as Record<browser.runtime.PlatformOs, default_config>
+
+/**
+ * Key codes for printable keys for [[keyboardlayoutforce]], lower and upper register.
+ * See https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_code_values
+ * These maps are assigned via `:set keyboardlayoutbase`
+ * but keyboardlayoutoverrides can also be changed manually with `:set`.
+ *
+ * If your layout is missing here, you can contribute it with the help of [this](https://gistpreview.github.io/?324119c773fac31651f6422087b36804)
+ * tool.
+ */
+export const keyboardlayouts = {
+    qwerty: {
+        KeyA: ["a", "A"],
+        KeyB: ["b", "B"],
+        KeyC: ["c", "C"],
+        KeyD: ["d", "D"],
+        KeyE: ["e", "E"],
+        KeyF: ["f", "F"],
+        KeyG: ["g", "G"],
+        KeyH: ["h", "H"],
+        KeyI: ["i", "I"],
+        KeyJ: ["j", "J"],
+        KeyK: ["k", "K"],
+        KeyL: ["l", "L"],
+        KeyM: ["m", "M"],
+        KeyN: ["n", "N"],
+        KeyO: ["o", "O"],
+        KeyP: ["p", "P"],
+        KeyQ: ["q", "Q"],
+        KeyR: ["r", "R"],
+        KeyS: ["s", "S"],
+        KeyT: ["t", "T"],
+        KeyU: ["u", "U"],
+        KeyV: ["v", "V"],
+        KeyW: ["w", "W"],
+        KeyX: ["x", "X"],
+        KeyY: ["y", "Y"],
+        KeyZ: ["z", "Z"],
+        Digit0: ["0", ")"],
+        Digit1: ["1", "!"],
+        Digit2: ["2", "@"],
+        Digit3: ["3", "#"],
+        Digit4: ["4", "$"],
+        Digit5: ["5", "%"],
+        Digit6: ["6", "^"],
+        Digit7: ["7", "&"],
+        Digit8: ["8", "*"],
+        Digit9: ["9", "("],
+        Equal: ["=", "+"],
+        Backquote: ["`", "~"],
+        Backslash: ["\\", "|"],
+        Period: [".", ">"],
+        Comma: [",", "<"],
+        Semicolon: [";", ":"],
+        Slash: ["/", "?"],
+        BracketLeft: ["[", "{"],
+        BracketRight: ["]", "}"],
+        Quote: ["'", '"'],
+        Minus: ["-", "_"],
+    },
+    colemak: {
+        KeyA: ["a", "A"],
+        KeyB: ["b", "B"],
+        KeyC: ["c", "C"],
+        KeyD: ["s", "S"],
+        KeyE: ["f", "F"],
+        KeyF: ["t", "T"],
+        KeyG: ["d", "D"],
+        KeyH: ["h", "H"],
+        KeyI: ["u", "U"],
+        KeyJ: ["n", "N"],
+        KeyK: ["e", "E"],
+        KeyL: ["i", "I"],
+        KeyM: ["m", "M"],
+        KeyN: ["k", "K"],
+        KeyO: ["y", "Y"],
+        KeyP: [";", ":"],
+        KeyQ: ["q", "Q"],
+        KeyR: ["p", "P"],
+        KeyS: ["r", "R"],
+        KeyT: ["g", "G"],
+        KeyU: ["l", "L"],
+        KeyV: ["v", "V"],
+        KeyW: ["w", "W"],
+        KeyX: ["x", "X"],
+        KeyY: ["j", "J"],
+        KeyZ: ["z", "Z"],
+        Digit0: ["0", ")"],
+        Digit1: ["1", "!"],
+        Digit2: ["2", "@"],
+        Digit3: ["3", "#"],
+        Digit4: ["4", "$"],
+        Digit5: ["5", "%"],
+        Digit6: ["6", "^"],
+        Digit7: ["7", "&"],
+        Digit8: ["8", "*"],
+        Digit9: ["9", "("],
+        Equal: ["=", "+"],
+        Backquote: ["`", "~"],
+        Backslash: ["\\", "|"],
+        Period: [".", ">"],
+        Comma: [",", "<"],
+        Semicolon: [";", ":"],
+        Slash: ["/", "?"],
+        BracketLeft: ["[", "{"],
+        BracketRight: ["]", "}"],
+        Quote: ["'", '"'],
+        Minus: ["-", "_"],
+    },
+    azerty: {
+        Backquote: ["²", "²"],
+        Digit1: ["&", "1"],
+        Digit2: ["é", "2"],
+        Digit3: ['"', "3"],
+        Digit4: ["'", "4"],
+        Digit5: ["(", "5"],
+        Digit6: ["-", "6"],
+        Digit7: ["è", "7"],
+        Digit8: ["_", "8"],
+        Digit9: ["ç", "9"],
+        Digit0: ["à", "0"],
+        Minus: [")", "°"],
+        Equal: ["=", "+"],
+        KeyQ: ["a", "A"],
+        KeyW: ["z", "Z"],
+        KeyE: ["e", "E"],
+        KeyR: ["r", "R"],
+        KeyT: ["t", "T"],
+        KeyY: ["y", "Y"],
+        KeyU: ["u", "U"],
+        KeyI: ["i", "I"],
+        KeyO: ["o", "O"],
+        KeyP: ["p", "P"],
+        BracketRight: ["$", "£"],
+        Backslash: ["*", "µ"],
+        KeyA: ["q", "Q"],
+        KeyS: ["s", "S"],
+        KeyD: ["d", "D"],
+        KeyF: ["f", "F"],
+        KeyG: ["g", "G"],
+        KeyH: ["h", "H"],
+        KeyJ: ["j", "J"],
+        KeyK: ["k", "K"],
+        KeyL: ["l", "L"],
+        Semicolon: ["m", "M"],
+        Quote: ["ù", "%"],
+        KeyZ: ["w", "W"],
+        KeyX: ["x", "X"],
+        KeyC: ["c", "C"],
+        KeyV: ["v", "V"],
+        KeyB: ["b", "B"],
+        KeyN: ["n", "N"],
+        KeyM: [",", "?"],
+        Comma: [";", "."],
+        Period: [":", "/"],
+        Slash: ["!", "§"],
+    },
+    german: {
+        Digit1: ["1", "!"],
+        Digit2: ["2", '"'],
+        Digit3: ["3", "§"],
+        Digit4: ["4", "$"],
+        Digit5: ["5", "%"],
+        Digit6: ["6", "&"],
+        Digit7: ["7", "/"],
+        Digit8: ["8", "("],
+        Digit9: ["9", ")"],
+        Digit0: ["0", "="],
+        Minus: ["ß", "?"],
+        KeyQ: ["q", "Q"],
+        KeyW: ["w", "W"],
+        KeyE: ["e", "E"],
+        KeyR: ["r", "R"],
+        KeyT: ["t", "T"],
+        KeyY: ["z", "Z"],
+        KeyU: ["u", "U"],
+        KeyI: ["i", "I"],
+        KeyO: ["o", "O"],
+        KeyP: ["p", "P"],
+        BracketLeft: ["ü", "Ü"],
+        BracketRight: ["+", "*"],
+        Backslash: ["#", "'"],
+        KeyA: ["a", "A"],
+        KeyS: ["s", "S"],
+        KeyD: ["d", "D"],
+        KeyF: ["f", "F"],
+        KeyG: ["g", "G"],
+        KeyH: ["h", "H"],
+        KeyJ: ["j", "J"],
+        KeyK: ["k", "K"],
+        KeyL: ["l", "L"],
+        Semicolon: ["ö", "Ö"],
+        Quote: ["ä", "Ä"],
+        KeyZ: ["y", "Y"],
+        KeyX: ["x", "X"],
+        KeyC: ["c", "C"],
+        KeyV: ["v", "V"],
+        KeyB: ["b", "B"],
+        KeyN: ["n", "N"],
+        KeyM: ["m", "M"],
+        Comma: [",", ";"],
+        Period: [".", ":"],
+        Slash: ["-", "_"],
+        Backquote: ["", "°"],
+    },
+    dvorak: {
+        Backquote: ["`", "~"],
+        Digit1: ["1", "!"],
+        Digit2: ["2", "@"],
+        Digit3: ["3", "#"],
+        Digit4: ["4", "$"],
+        Digit5: ["5", "%"],
+        Digit6: ["6", "^"],
+        Digit7: ["7", "&"],
+        Digit8: ["8", "*"],
+        Digit9: ["9", "("],
+        Digit0: ["0", ")"],
+        Minus: ["[", "{"],
+        Equal: ["]", "}"],
+        KeyQ: ["'", '"'],
+        KeyW: [",", "<"],
+        KeyE: [".", ">"],
+        KeyR: ["p", "P"],
+        KeyT: ["y", "Y"],
+        KeyY: ["f", "F"],
+        KeyU: ["g", "G"],
+        KeyI: ["c", "C"],
+        KeyO: ["r", "R"],
+        KeyP: ["l", "L"],
+        BracketLeft: ["/", "?"],
+        BracketRight: ["=", "+"],
+        Backslash: ["\\", "|"],
+        KeyA: ["a", "A"],
+        KeyS: ["o", "O"],
+        KeyD: ["e", "E"],
+        KeyF: ["u", "U"],
+        KeyG: ["i", "I"],
+        KeyH: ["d", "D"],
+        KeyJ: ["h", "H"],
+        KeyK: ["t", "T"],
+        KeyL: ["n", "N"],
+        Semicolon: ["s", "S"],
+        Quote: ["-", "_"],
+        KeyZ: [";", ":"],
+        KeyX: ["q", "Q"],
+        KeyC: ["j", "J"],
+        KeyV: ["k", "K"],
+        KeyB: ["x", "X"],
+        KeyN: ["b", "B"],
+        KeyM: ["m", "M"],
+        Comma: ["w", "W"],
+        Period: ["v", "V"],
+        Slash: ["z", "Z"],
+    },
+    uk: {
+        Digit1: ["1", "!"],
+        Digit2: ["2", '"'],
+        Digit3: ["3", "£"],
+        Digit4: ["4", "$"],
+        Digit5: ["5", "%"],
+        Digit6: ["6", "^"],
+        Digit7: ["7", "&"],
+        Digit8: ["8", "*"],
+        Digit9: ["9", "("],
+        Digit0: ["0", ")"],
+        Minus: ["-", "_"],
+        Equal: ["=", "+"],
+        KeyQ: ["q", "Q"],
+        KeyW: ["w", "W"],
+        KeyE: ["e", "E"],
+        KeyR: ["r", "R"],
+        KeyT: ["t", "T"],
+        KeyY: ["y", "Y"],
+        KeyU: ["u", "U"],
+        KeyI: ["i", "I"],
+        KeyO: ["o", "O"],
+        KeyP: ["p", "P"],
+        BracketLeft: ["[", "{"],
+        KeyK: ["k", "K"],
+        BracketRight: ["]", "}"],
+        KeyA: ["a", "A"],
+        KeyS: ["s", "S"],
+        KeyD: ["d", "D"],
+        KeyF: ["f", "F"],
+        KeyG: ["g", "G"],
+        KeyH: ["h", "H"],
+        KeyJ: ["j", "J"],
+        Semicolon: [";", ":"],
+        Quote: ["'", "@"],
+        Backslash: ["#", "~"],
+        IntlBackslash: ["\\", "|"],
+        KeyZ: ["z", "Z"],
+        KeyX: ["x", "X"],
+        KeyC: ["c", "C"],
+        KeyV: ["v", "V"],
+        KeyB: ["b", "B"],
+        KeyN: ["n", "N"],
+        KeyM: ["m", "M"],
+        Period: [".", ">"],
+        Slash: ["/", "?"],
+        Backquote: ["`", "¬"],
+        KeyL: ["l", "L"],
+        Comma: [",", "<"],
+    },
+    ca: {
+        Backquote: ["#", "|"],
+        Digit1: ["1", "!"],
+        Digit2: ["2", '"'],
+        Digit3: ["3", "/"],
+        Digit4: ["4", "$"],
+        Digit5: ["5", "%"],
+        Digit6: ["6", "?"],
+        Digit7: ["7", "&"],
+        Digit8: ["8", "*"],
+        Digit9: ["9", "("],
+        Digit0: ["0", ")"],
+        Minus: ["-", "_"],
+        Equal: ["=", "+"],
+        KeyQ: ["q", "Q"],
+        KeyW: ["w", "W"],
+        KeyE: ["e", "E"],
+        KeyR: ["r", "R"],
+        KeyT: ["t", "T"],
+        KeyY: ["y", "Y"],
+        KeyU: ["u", "U"],
+        KeyI: ["i", "I"],
+        KeyO: ["o", "O"],
+        KeyP: ["p", "P"],
+        KeyA: ["a", "A"],
+        KeyS: ["s", "S"],
+        KeyD: ["d", "D"],
+        KeyF: ["f", "F"],
+        KeyG: ["g", "G"],
+        KeyH: ["h", "H"],
+        KeyJ: ["j", "J"],
+        KeyK: ["k", "K"],
+        KeyL: ["l", "L"],
+        Semicolon: [";", ":"],
+        Backslash: ["<", ">"],
+        IntlBackslash: ["«", "»"],
+        KeyZ: ["z", "Z"],
+        KeyX: ["x", "X"],
+        KeyC: ["c", "C"],
+        KeyV: ["v", "V"],
+        KeyB: ["b", "B"],
+        KeyN: ["n", "N"],
+        KeyM: ["m", "M"],
+        Comma: [",", "'"],
+        Period: [".", "."],
+        Slash: ["é", "É"],
+    },
+    bepo: {
+        Backquote: ["$", "#"],
+        Digit1: ['"', "1"],
+        Digit2: ["«", "2"],
+        Digit3: ["»", "3"],
+        Digit4: ["(", "4"],
+        Digit5: [")", "5"],
+        Digit6: ["@", "6"],
+        Digit7: ["+", "7"],
+        Digit8: ["-", "8"],
+        Digit9: ["/", "9"],
+        Digit0: ["*", "0"],
+        Minus: ["=", "°"],
+        Equal: ["%", "`"],
+        KeyQ: ["b", "B"],
+        KeyW: ["é", "É"],
+        KeyE: ["p", "P"],
+        KeyR: ["o", "O"],
+        KeyT: ["è", "È"],
+        KeyU: ["v", "V"],
+        KeyI: ["d", "D"],
+        KeyO: ["l", "L"],
+        KeyP: ["j", "J"],
+        BracketLeft: ["z", "Z"],
+        BracketRight: ["w", "W"],
+        KeyA: ["a", "A"],
+        KeyS: ["u", "U"],
+        KeyD: ["i", "I"],
+        KeyF: ["e", "E"],
+        KeyG: [",", ";"],
+        KeyH: ["c", "C"],
+        KeyJ: ["t", "T"],
+        KeyK: ["s", "S"],
+        KeyL: ["r", "R"],
+        Semicolon: ["n", "N"],
+        Quote: ["m", "M"],
+        Backslash: ["ç", "Ç"],
+        IntlBackslash: ["ê", "Ê"],
+        KeyZ: ["à", "À"],
+        KeyX: ["y", "Y"],
+        KeyC: ["x", "X"],
+        KeyV: [".", ":"],
+        KeyB: ["k", "K"],
+        KeyN: ["'", "?"],
+        KeyM: ["q", "Q"],
+        Comma: ["g", "G"],
+        Period: ["h", "H"],
+        Slash: ["f", "F"],
+        KeyY: ["", "!"],
+    },
+    workman: {
+        Quote: ["'", '"'],
+        Digit8: ["8", "*"],
+        Digit1: ["1", "!"],
+        Digit2: ["2", "@"],
+        Digit3: ["3", "#"],
+        Digit4: ["4", "$"],
+        Digit5: ["5", "%"],
+        Digit6: ["6", "^"],
+        Digit7: ["7", "&"],
+        Backquote: ["`", "~"],
+        Digit9: ["9", "("],
+        Digit0: ["0", ")"],
+        Minus: ["-", "_"],
+        Equal: ["=", "+"],
+        KeyQ: ["q", "Q"],
+        KeyW: ["d", "D"],
+        KeyE: ["r", "R"],
+        KeyR: ["w", "W"],
+        KeyT: ["b", "B"],
+        KeyY: ["j", "J"],
+        KeyU: ["f", "F"],
+        KeyI: ["u", "U"],
+        KeyO: ["p", "P"],
+        KeyP: [";", ":"],
+        BracketLeft: ["[", "{"],
+        BracketRight: ["]", "}"],
+        Backslash: ["\\", "|"],
+        KeyA: ["a", "A"],
+        KeyS: ["s", "S"],
+        KeyD: ["h", "H"],
+        KeyF: ["t", "T"],
+        KeyG: ["g", "G"],
+        KeyH: ["y", "Y"],
+        KeyJ: ["n", "N"],
+        KeyK: ["e", "E"],
+        KeyL: ["o", "O"],
+        Semicolon: ["i", "I"],
+        KeyZ: ["z", "Z"],
+        KeyX: ["x", "X"],
+        KeyC: ["m", "M"],
+        KeyV: ["c", "C"],
+        KeyB: ["v", "V"],
+        KeyN: ["k", "K"],
+        KeyM: ["l", "L"],
+        Comma: [",", "<"],
+        Period: [".", ">"],
+        Slash: ["/", "?"],
+    },
+}
+
+/** @hidden
+ * Merges two objects and removes all keys with null values at all levels
+ */
+export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
+
 /** @hidden */
-export const DEFAULTS = o(new default_config())
+export const DEFAULTS = mergeDeepCull(
+    o(new default_config()),
+    platform_defaults[platform.getPlatformOs()],
+)
 
 /** Given an object and a target, extract the target if it exists, else return undefined
 
     @param target path of properties as an array
     @hidden
  */
-function getDeepProperty(obj, target: string[]) {
+export function getDeepProperty(obj, target: string[]) {
     if (obj !== undefined && obj !== null && target.length) {
-        if (obj["🕷🕷INHERITS🕷🕷"] === undefined)  {
+        if (obj["🕷🕷INHERITS🕷🕷"] === undefined) {
             return getDeepProperty(obj[target[0]], target.slice(1))
         } else {
-            return getDeepProperty(mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]], target.slice(1))
+            return getDeepProperty(
+                mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]],
+                target.slice(1),
+            )
         }
     } else {
         if (obj === undefined || obj === null) return obj
         if (obj["🕷🕷INHERITS🕷🕷"] !== undefined) {
-            return mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
+            return mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
         } else {
             return obj
         }
@@ -1089,22 +1956,19 @@ function setDeepProperty(obj, value, target) {
  * Merges two objects and any child objects they may have
  */
 export function mergeDeep(o1, o2) {
-    if (o1 === null) return Object.assign({}, o2)
-    const r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
+    if (o1 === null) return o(o2)
+    const r = Array.isArray(o1) ? o1.slice() : o({})
     Object.assign(r, o1, o2)
     if (o2 === undefined) return r
     Object.keys(o1)
         .filter(
             key => typeof o1[key] === "object" && typeof o2[key] === "object",
         )
-        .forEach(key => r[key] == null ? null : Object.assign(r[key], mergeDeep(o1[key], o2[key])))
+        .forEach(key =>
+            r[key] == null ? null : (r[key] = mergeDeep(o1[key], o2[key])),
+        )
     return r
 }
-
-/** @hidden
- * Merges two objects and removes all keys with null values at all levels
- */
-export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
 
 /** @hidden
  * Gets a site-specific setting.
@@ -1129,25 +1993,22 @@ export function getURL(url: string, target: string[]) {
                         (conf.subconfigs[k2].priority || 10),
                 )
                 // Merge their corresponding value if they're objects, otherwise return the last value
-                .reduce(
-                    (acc, curKey) => {
-                        const curVal = getDeepProperty(
-                            conf.subconfigs[curKey],
-                            target,
-                        )
-                        if (acc instanceof Object && curVal instanceof Object)
-                            return mergeDeep(acc, curVal)
-                        return curVal
-                    },
-                    undefined as any,
-                )
+                .reduce((acc, curKey) => {
+                    const curVal = getDeepProperty(
+                        conf.subconfigs[curKey],
+                        target,
+                    )
+                    if (acc instanceof Object && curVal instanceof Object)
+                        return mergeDeep(acc, curVal)
+                    return curVal
+                }, undefined as any)
         )
     }
     const user = _getURL(USERCONFIG, url, target)
     const deflt = _getURL(DEFAULTS, url, target)
     if (user === undefined || user === null) return deflt
     if (typeof user !== "object" || typeof deflt !== "object") return user
-    return mergeDeepCull(deflt, user)
+    return mergeDeep(deflt, user)
 }
 
 /** Get the value of the key target.
@@ -1173,14 +2034,16 @@ export function get(target_typed?: keyof default_config, ...target: string[]) {
 
     // Merge results if there's a default value and it's not an Array or primitive.
     if (typeof defult === "object") {
-        return mergeDeepCull(mergeDeepCull(defult, user), site)
+        return removeNull(mergeDeep(mergeDeep(defult, user), site))
+    } else if (defult === undefined && user && typeof user === "object") {
+        return removeNull(mergeDeep(user, site))
     } else {
         if (site !== undefined) {
-            return site
+            return removeNull(site)
         } else if (user !== undefined) {
-            return user
+            return removeNull(user)
         } else {
-            return defult
+            return removeNull(defult)
         }
     }
 }
@@ -1213,15 +2076,7 @@ export async function getAsync(
 ) {
     if (INITIALISED) {
         // TODO: consider storing keys directly
-        let browserconfig
-        switch (get("storageloc")) {
-            case "local":
-                browserconfig = await browser.storage.local.get(CONFIGNAME)
-                break
-            case "sync":
-                browserconfig = await browser.storage.sync.get(CONFIGNAME)
-                break
-        }
+        const browserconfig = await browser.storage.local.get(CONFIGNAME)
         USERCONFIG = browserconfig[CONFIGNAME] || o({})
 
         return get(target_typed, ...target)
@@ -1232,11 +2087,37 @@ export async function getAsync(
     }
 }
 
+/*
+ * Replaces the configuration in your sync storage with your current configuration. Does not merge: it overwrites.
+ *
+ * Does not synchronise custom themes due to storage constraints.
+ */
+export async function push() {
+    const local_conf = await browser.storage.local.get(CONFIGNAME)
+    // eslint-disable-next-line @typescript-eslint/dot-notation
+    delete local_conf[CONFIGNAME]["customthemes"]
+    return browser.storage.sync.set(local_conf)
+}
+
+/*
+ * Replaces the local configuration with the configuration from your sync storage. Does not merge: it overwrites.
+ */
+export async function pull() {
+    return browser.storage.local.set(await browser.storage.sync.get(CONFIGNAME))
+}
+
 /** @hidden
  * Like set(), but for a specific pattern.
  */
 export function setURL(pattern, ...args) {
-    return set("subconfigs", pattern, ...args)
+    try {
+        new RegExp(pattern)
+        return set("subconfigs", pattern, ...args)
+    } catch (err) {
+        if (err instanceof SyntaxError)
+            throw new SyntaxError(`invalid pattern: ${err.message}`)
+        throw err
+    }
 }
 /** Full target specification, then value
 
@@ -1249,7 +2130,7 @@ export function setURL(pattern, ...args) {
  */
 export async function set(...args) {
     if (args.length < 2) {
-        throw "You must provide at least two arguments!"
+        throw new Error("You must provide at least two arguments!")
     }
 
     const target = args.slice(0, args.length - 1)
@@ -1257,14 +2138,8 @@ export async function set(...args) {
 
     if (INITIALISED) {
         // wait for storage to settle, otherwise we could clobber a previous incomplete set()
-        const previousValue = await getAsyncDynamic(...target)
-
         setDeepProperty(USERCONFIG, value, target)
 
-        if (target.length === 1 && target[0] === "storageloc" && previousValue !== value) {
-          // ensure storageloc is saved locally before switching
-          await save(previousValue)
-        }
         return save()
     } else {
         setDeepProperty(USERCONFIG, value, target)
@@ -1293,14 +2168,10 @@ export function unset(...target) {
 
     @hidden
  */
-export async function save(storage: "local" | "sync" = get("storageloc")) {
-    // let storageobj = storage === "local" ? browser.storage.local : browser.storage.sync
-    // storageobj.set({CONFIGNAME: USERCONFIG})
+export async function save() {
     const settingsobj = o({})
     settingsobj[CONFIGNAME] = USERCONFIG
-    return storage === "local"
-        ? browser.storage.local.set(settingsobj)
-        : browser.storage.sync.set(settingsobj)
+    return browser.storage.local.set(settingsobj)
 }
 
 /** Updates the config to the latest version.
@@ -1315,7 +2186,7 @@ export async function save(storage: "local" | "sync" = get("storageloc")) {
  */
 export async function update() {
     // Updates a value both in the main config and in sub (=site specific) configs
-    const updateAll = (setting: any[], fn: (any) => any) => {
+    const updateAll = (setting: string[], fn: (any) => any) => {
         const val = getDeepProperty(USERCONFIG, setting)
         if (val) {
             set(...setting, fn(val))
@@ -1324,7 +2195,7 @@ export async function update() {
         if (subconfigs) {
             Object.keys(subconfigs)
                 .map(pattern => [pattern, getURL(pattern, setting)])
-                .filter(([pattern, value]) => value)
+                .filter(([_pattern, value]) => value)
                 .forEach(([pattern, value]) =>
                     setURL(pattern, ...setting, fn(value)),
                 )
@@ -1376,13 +2247,13 @@ export async function update() {
             set("configversion", "1.2")
         }
         case "1.2": {
-            ; ["ignoremaps", "inputmaps", "imaps", "nmaps"]
+            ;["ignoremaps", "inputmaps", "imaps", "nmaps"]
                 .map(mapname => [
                     mapname,
                     getDeepProperty(USERCONFIG, [mapname]),
                 ])
                 // mapobj is undefined if the user didn't define any bindings
-                .filter(([mapname, mapobj]) => mapobj)
+                .filter(([_mapname, mapobj]) => mapobj)
                 .forEach(([mapname, mapobj]) => {
                     // For each mapping
                     Object.keys(mapobj)
@@ -1408,7 +2279,7 @@ export async function update() {
             set("configversion", "1.3")
         }
         case "1.3": {
-            ; [
+            ;[
                 "priority",
                 "hintdelay",
                 "scrollduration",
@@ -1421,7 +2292,7 @@ export async function update() {
             set("configversion", "1.4")
         }
         case "1.4": {
-            ; (getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
+            ;(getDeepProperty(USERCONFIG, ["noiframeon"]) || []).forEach(
                 site => {
                     setURL(site, "noiframe", "true")
                 },
@@ -1439,7 +2310,7 @@ export async function update() {
                     mapObj["<Space>"] = mapObj[" "]
                     delete mapObj[" "]
                 }
-                ; [
+                ;[
                     "<A- >",
                     "<C- >",
                     "<M- >",
@@ -1459,7 +2330,7 @@ export async function update() {
                 })
                 return mapObj
             }
-            ; ["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
+            ;["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps"].forEach(
                 settingName => updateAll([settingName], updateSetting),
             )
             set("configversion", "1.7")
@@ -1468,9 +2339,13 @@ export async function update() {
             const autocontain = getDeepProperty(USERCONFIG, ["autocontain"])
             unset("autocontain")
             if (autocontain !== undefined) {
-              Object.entries(autocontain).forEach(([domain, container]) => {
-                set("autocontain", `^https?://[^/]*${domain}/`, container)
-              })
+                Object.entries(autocontain).forEach(([domain, container]) => {
+                    set(
+                        "autocontain",
+                        `^https?://([^/]*\\.|)*${domain}/`,
+                        container,
+                    )
+                })
             }
             set("configversion", "1.8")
         }
@@ -1482,10 +2357,47 @@ export async function update() {
                     return val
                 }, mapObj)
             }
-            ; ["nmaps", "exmaps", "imaps", "inputmaps", "ignoremaps", "hintmaps", "vmaps"].forEach(
-                settingName => updateAll([settingName], updateSetting),
-            )
+            ;[
+                "nmaps",
+                "exmaps",
+                "imaps",
+                "inputmaps",
+                "ignoremaps",
+                "hintmaps",
+                "vmaps",
+            ].forEach(settingName => updateAll([settingName], updateSetting))
             set("configversion", "1.9")
+        }
+        case "1.9": {
+            const local = (await browser.storage.local.get(CONFIGNAME))[
+                CONFIGNAME
+            ] as { storageloc?: "local" | "sync" }
+            const sync = (await browser.storage.sync.get(CONFIGNAME))[
+                CONFIGNAME
+            ] as { storageloc?: "local" | "sync" }
+            // Possible combinations:
+            // storage:storageloc_setting => winning storageloc setting
+            // l:l, s:* => l
+            // l:undefined, s:l =>  l
+            // l:undefined, s:s => s
+            // l: undefined, s:undefined => s
+            // l:s, s:* =>  s
+            const current_storageloc =
+                local?.storageloc !== undefined
+                    ? local.storageloc
+                    : sync?.storageloc !== undefined
+                      ? sync.storageloc
+                      : "sync"
+            if (current_storageloc == "sync") {
+                await pull()
+            } else if (current_storageloc != "local") {
+                throw new Error(
+                    "storageloc was set to something weird: " +
+                        current_storageloc +
+                        ", automatic migration of settings was not possible.",
+                )
+            }
+            set("configversion", "2.0")
             updated = true // NB: when adding a new updater, move this line to the end of it
         }
     }
@@ -1499,20 +2411,7 @@ export async function update() {
  */
 async function init() {
     const localConfig = await browser.storage.local.get(CONFIGNAME)
-
-    if (localConfig === undefined || localConfig.storageloc !== "local") {
-        const syncConfig = await browser.storage.sync.get(CONFIGNAME)
-        if (syncConfig !== undefined) {
-          schlepp(syncConfig[CONFIGNAME])
-        }
-    } else {
-        // These could be merged instead, but the current design does not allow for that
-        schlepp(localConfig[CONFIGNAME])
-    }
-
-    const configUpdated = await update()
-    if (configUpdated)
-        await save()
+    schlepp(localConfig[CONFIGNAME])
 
     INITIALISED = true
     for (const waiter of WAITERS) {
@@ -1601,21 +2500,22 @@ export function parseConfig(): string {
 
     const ftdetect = `" For syntax highlighting see https://github.com/tridactyl/vim-tridactyl\n" vim: set filetype=tridactyl`
 
-    return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${
-        s.aucons
-    }${s.logging}${s.nulls}${ftdetect}`
+    return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${s.aucons}${s.logging}${s.nulls}${ftdetect}`
 }
 
-const parseConfigHelper = (pconf, parseobj, prefix= []) => {
+const parseConfigHelper = (pconf, parseobj, prefix = []) => {
     for (const i of Object.keys(pconf)) {
         if (typeof pconf[i] !== "object") {
             if (prefix[0] === "subconfigs") {
-                prefix.shift()
-                const pattern = prefix.shift()
-                parseobj.subconfigs.push(`seturl ${pattern} ${[...prefix, i].join(".")} ${pconf[i]}`)
+                const pattern = prefix[1]
+                const subconf = [...prefix.slice(2), i].join(".")
+                parseobj.subconfigs.push(
+                    `seturl ${pattern} ${subconf} ${pconf[i]}`,
+                )
             } else {
                 parseobj.conf.push(
-                    `set ${[...prefix, i].join(".")} ${pconf[i]}`)
+                    `set ${[...prefix, i].join(".")} ${pconf[i]}`,
+                )
             }
         } else if (pconf[i] === null) {
             parseobj.nulls.push(`setnull ${[...prefix, i].join(".")}`)
@@ -1642,7 +2542,7 @@ const parseConfigHelper = (pconf, parseobj, prefix= []) => {
                         parseobj.binds.push(`un${cmd} ${e}`)
                     }
                 } else if (pconf[i][e] === null) {
-                        parseobj.nulls.push(`setnull ${i}.${e}`)
+                    parseobj.nulls.push(`setnull ${i}.${e}`)
                 } else if (i === "exaliases") {
                     // Only really useful if mapping the entire config and not just pconf.
                     if (e === "alias") {
@@ -1667,6 +2567,9 @@ const parseConfigHelper = (pconf, parseobj, prefix= []) => {
                     if (pconf[i][e] === 3) level = "info"
                     if (pconf[i][e] === 4) level = "debug"
                     parseobj.logging.push(`set logging.${e} ${level}`)
+                } else if (i === "customthemes") {
+                    // Skip custom themes for now because writing their CSS is hard
+                    // parseobj.themes.push(`colourscheme ${e}`) // TODO: check if userconfig.theme == e and write this, otherwise don't.
                 } else {
                     parseConfigHelper(pconf[i], parseobj, [...prefix, i])
                     break
@@ -1692,37 +2595,26 @@ browser.storage.onChanged.addListener((changes, areaname) => {
             }
         }
 
-        if (areaname === "sync" && areaname !== get("storageloc")) {
-            // storageloc=local means ignoring changes that aren't set by us
+        if (areaname === "sync") {
+            // Probably do something here with push/pull?
         } else if (newValue !== undefined) {
-            if (areaname === "sync") {
-              // prevent storageloc from being set remotely
-              delete old.storageloc
-              delete newValue.storageloc
-            }
-
             // A key has been :unset if it exists in USERCONFIG and doesn't in changes and if its value in USERCONFIG is different from the one it has in default_config
             const unsetKeys = Object.keys(old).filter(
                 k =>
                     newValue[k] === undefined &&
-                    JSON.stringify(old[k]) !==
-                        JSON.stringify(DEFAULTS[k]),
+                    JSON.stringify(old[k]) !== JSON.stringify(DEFAULTS[k]),
             )
 
             // A key has changed if it is defined in USERCONFIG and its value in USERCONFIG is different from the one in `changes` or if the value in defaultConf is different from the one in `changes`
-            const changedKeys = Object.keys(
-                newValue,
-            ).filter(
+            const changedKeys = Object.keys(newValue).filter(
                 k =>
                     JSON.stringify(
-                        old[k] !== undefined
-                            ? old[k]
-                            : DEFAULTS[k],
+                        old[k] !== undefined ? old[k] : DEFAULTS[k],
                     ) !== JSON.stringify(newValue[k]),
             )
 
             // TODO: this should be a deep comparison but this is better than nothing
-            changedKeys.forEach(key => USERCONFIG[key] = newValue[key])
+            changedKeys.forEach(key => (USERCONFIG[key] = newValue[key]))
             unsetKeys.forEach(key => delete USERCONFIG[key])
 
             // Trigger listeners

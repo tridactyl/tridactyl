@@ -1,4 +1,3 @@
-
 // We have a single dependency on config: getting the value of the WORDPATTERN setting
 // Perhaps we could find a way to get rid of it?
 import * as config from "@src/lib/config"
@@ -140,6 +139,7 @@ export function wrap_input(
 /**
  * Take an editor function as parameter and wrap it in a function that will handle error conditions
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
 export function needs_text(fn: editor_function, arg?: any): editor_function {
     return (
         text: string,
@@ -165,7 +165,10 @@ export function needs_text(fn: editor_function, arg?: any): editor_function {
 /**
  * Returns line and column number.
  */
-export function getLineAndColNumber(text: string, start: number, end: number): [string, number, number] {
+export function getLineAndColNumber(
+    text: string,
+    start: number,
+): [string, number, number] {
     const lines = text.split("\n")
     let totalChars = 0
     for (let i = 0; i < lines.length; ++i) {
@@ -188,17 +191,14 @@ export function getWordBoundaries(
 ): [number, number] {
     if (position < 0 || position > text.length)
         throw new Error(
-            `getWordBoundaries: position (${position}) should be within text ("${text}") boundaries (0, ${
-                text.length
-            })`,
+            `getWordBoundaries: position (${position}) should be within text ("${text}") boundaries (0, ${text.length})`,
         )
     const pattern = new RegExp(config.get("wordpattern"), "g")
-    let boundary1 = position < text.length ? position : text.length - 1
+    let boundary1 = position < text.length ? position : text.length
     const direction = before ? -1 : 1
     // if the caret is not in a word, try to find the word before or after it
     // For `before`, we should check the char before the caret
-    if (before && boundary1 > 0)
-        boundary1 -= 1
+    if (before && boundary1 > 0) boundary1 -= 1
     while (
         boundary1 >= 0 &&
         boundary1 < text.length &&
@@ -225,9 +225,7 @@ export function getWordBoundaries(
     if (!text[boundary1].match(pattern)) {
         // there is no word in text
         throw new Error(
-            `getWordBoundaries: no characters matching wordpattern (${
-                pattern.source
-            }) in text (${text})`,
+            `getWordBoundaries: no characters matching wordpattern (${pattern.source}) in text (${text})`,
         )
     }
 
@@ -280,17 +278,54 @@ export function wordAfterPos(text: string, position: number) {
 /** @hidden
  * Rots by 13.
  */
-export const rot13_helper = (s: string, n: number = 13): string => {
+export const rot13_helper = (s: string, n = 13): string => {
     let sa = s.split("")
     sa = sa.map(x => charesar(x, n))
     return sa.join("")
 }
 
-export const charesar = (c: string, n: number = 13): string => {
+export const charesar = (c: string, n = 13): string => {
     const cn = c.charCodeAt(0)
     if (cn >= 65 && cn <= 90)
-         return String.fromCharCode((((cn - 65) + n) % 26) + 65)
+        return String.fromCharCode(((cn - 65 + n) % 26) + 65)
     if (cn >= 97 && cn <= 122)
-        return String.fromCharCode((((cn - 97) + n) % 26) + 97)
+        return String.fromCharCode(((cn - 97 + n) % 26) + 97)
     return c
+}
+
+/** @hidden
+ * Shuffles only letters except for the first and last letter in a word, where "word"
+ * is a sequence of one of: only lowercase letters OR 5 or more uppercase letters OR an uppercase letter followed
+ * by only lowercase letters.
+ */
+export const jumble_helper = (text: string): string => {
+    const wordSplitRegex = new RegExp("([^a-zA-Z]|[A-Z][a-z]+)")
+    return text.split(wordSplitRegex).map(jumbleWord).join("")
+}
+
+function jumbleWord(word: string): string {
+    if (word.length < 4 || isAcronym()) {
+        return word
+    }
+    const innerText = word.slice(1, -1)
+    return word.charAt(0) + shuffle(innerText) + word.charAt(word.length - 1)
+
+    function isAcronym() {
+        return word.length < 5 && word.toUpperCase() === word
+    }
+}
+
+/**
+ * Shuffles input string
+ * @param text string to be shuffled
+ */
+export const shuffle = (text: string): string => {
+    const arr = text.split("")
+    for (let i = arr.length - 1; i >= 0; i--) {
+        const j = Math.floor(Math.random() * i + 1)
+        const t = arr[i]
+        arr[i] = arr[j]
+        arr[j] = t
+    }
+    return arr.join("")
 }

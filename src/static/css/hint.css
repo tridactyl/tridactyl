@@ -1,10 +1,12 @@
+@import url("../themes/auto/auto.css");
+
 span.TridactylHint {
     position: absolute !important;
     font-family: var(--tridactyl-hintspan-font-family) !important;
     font-size: var(--tridactyl-hintspan-font-size) !important;
     font-weight: var(--tridactyl-hintspan-font-weight) !important;
     color: var(--tridactyl-hintspan-fg) !important;
-    background-color: var(--tridactyl-hintspan-bg) !important;
+    background: var(--tridactyl-hintspan-bg) !important;
     border-color: var(--tridactyl-hintspan-border-color) !important;
     border-width: var(--tridactyl-hintspan-border-width) !important;
     min-width: 0.75em !important;
@@ -14,31 +16,89 @@ span.TridactylHint {
     z-index: 2147483646 !important;
 }
 
+span.TridactylHint.TridactylHintSpanActive {
+    color: var(--tridactyl-hintspan-active-fg) !important;
+    background: var(--tridactyl-hintspan-active-bg) !important;
+    border-color: var(--tridactyl-hintspan-active-border-color) !important;
+}
+
+span.TridactylHintCharPressed {
+    color: var(--tridactyl-hintspan-pressed-fg) !important;
+}
+
 span.TridactylHintA {
     z-index: 2147483647 !important;
 }
 
-span.TridactylHintUppercase {
+span.TridactylHintUppercase, span.TridactylHintUppercase>span {
     text-transform: uppercase !important;
 }
 
 .TridactylHintElem,
 .TridactylHintActive {
-    color: var(--tridactyl-hint-active-fg) !important !important;
     animation: none !important;
     transition: unset !important;
-}
-
-.TridactylHintElem {
-    background-color: var(--tridactyl-hint-bg) !important;
-    outline: var(--tridactyl-hint-outline) !important;
-}
-
-.TridactylHintActive {
-    background-color: var(--tridactyl-hint-active-bg) !important;
-    outline: var(--tridactyl-hint-active-outline) !important;
 }
 
 div.TridactylHintHost {
     position: static !important !important;
 }
+
+span.TridactylJSHint {
+    background-color: var(--tridactyl-hintspan-js-background) !important;
+}
+.TridactylKilledElem {
+    display: none !important;
+}
+
+div.TridactylHud {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 2147483647 !important;
+    overflow: clip !important;
+    pointer-events: none !important;
+}
+
+div.TridactylHud > * {
+    pointer-events: all;
+}
+
+div.TridactylHudTranslation {
+    position: absolute !important;
+}
+
+div.TridactylHintHighlight,
+div.TridactylHintOutline,
+div.TridactylHintHighlightActive,
+div.TridactylHintOutlineActive {
+    position: absolute !important;
+}
+
+div.TridactylHintHighlight {
+    background: var(--tridactyl-hint-highlight-bg) !important;
+}
+
+div.TridactylHintHighlightActive {
+    background: var(--tridactyl-hint-highlight-active-bg) !important;
+}
+
+div.TridactylHintOutline {
+    outline: var(--tridactyl-hint-highlight-outline) !important;
+}
+
+div.TridactylHintOutlineActive {
+    outline: var(--tridactyl-hint-highlight-active-outline) !important;
+}
+
+div.TridactylHintHighlight *, div.TridactylHintOutline * {
+    position: absolute !important;
+    background: inherit !important;
+    outline: inherit !important;
+}
+
+div.TridactylHintHighlightHost {
+    opacity: var(--tridactyl-hint-highlight-opacity) !important;
+}
+

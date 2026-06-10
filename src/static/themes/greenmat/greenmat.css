@@ -1,9 +1,11 @@
-:root.TridactylThemeGreenmat {
+:root {
     --tridactyl-fg: #00eb00;
     --tridactyl-bg: #001500;
     --tridactyl-cmdl-fg: #00eb00;
     --tridactyl-cmdl-bg: #001500;
     --tridactyl-font-family: "Aldrich";
+
+    --tridactyl-scrollbar-color: var(--tridactyl-bg) var(--tridactyl-fg);
 
     --tridactyl-header-first-bg: black;
     --tridactyl-header-second-bg: #003500;
@@ -39,11 +41,11 @@
     --tridactyl-hint-outline: 2px solid var(--tridactyl-hintspan-bg);
 }
 
-:root.TridactylThemeGreenmat #completions .focused {
+:root #completions .focused {
     border-bottom: 1px solid green;
 }
 
-:root.TridactylThemeGreenmat #completions .focused .prefix {
+:root #completions .focused .prefix {
     color: var(--focused-prefix-color);
     background: linear-gradient(
         var(--focused-prefix-color),
@@ -52,22 +54,27 @@
     );
 }
 
-:root.TridactylThemeGreenmat.TridactylOwnNamespace table {
+:root.TridactylOwnNamespace {
+    scrollbar-color: var(--tridactyl-scrollbar-color);
+    scrollbar-width: thin;
+}
+
+:root.TridactylOwnNamespace table {
     border-collapse: collapse;
 }
 
-:root.TridactylThemeGreenmat.TridactylOwnNamespace #completions table tr td {
+:root.TridactylOwnNamespace #completions table tr td {
     color: var(--tridactyl-cmplt-fg);
 }
 
 /* ### newtab ### */
 
-:root.TridactylThemeGreenmat.TridactylOwnNamespace code {
+:root.TridactylOwnNamespace code {
     background-color: rgba(255, 255, 255, 0.1);
     border-top: 1px solid var(--tridactyl-fg);
 }
 
-:root.TridactylThemeGreenmat.TridactylOwnNamespace ul {
+:root.TridactylOwnNamespace ul {
     background-color: rgba(0, 0, 0, 0.55);
     border-radius: 10px;
     border-top: 1px solid var(--tridactyl-fg);
@@ -75,7 +82,7 @@
     padding-bottom: 5px;
 }
 
-:root.TridactylThemeGreenmat.TridactylOwnNamespace .spoiler > h2 + ul {
+:root.TridactylOwnNamespace .spoiler > h2 + ul {
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
     border-left: 1px solid var(--tridactyl-fg);
@@ -84,7 +91,7 @@
     border-bottom: unset;
 }
 
-:root.TridactylThemeGreenmat.TridactylOwnNamespace a {
+:root.TridactylOwnNamespace a {
     color: var(--tridactyl-fg);
     font-weight: bold;
 }

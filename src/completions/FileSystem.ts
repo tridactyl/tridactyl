@@ -1,7 +1,8 @@
 import * as Completions from "@src/completions"
 import * as Native from "@src/lib/native"
 
-class FileSystemCompletionOption extends Completions.CompletionOptionHTML
+class FileSystemCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -9,8 +10,8 @@ class FileSystemCompletionOption extends Completions.CompletionOptionHTML
         super()
         this.fuseKeys = [value]
         this.html = html`<tr class="FileSystemCompletionOption option">
-                <td class="value">${value}</td>
-            </tr>`
+            <td class="value">${value}</td>
+        </tr>`
     }
 }
 
@@ -18,7 +19,11 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
     public options: FileSystemCompletionOption[]
 
     constructor(private _parent) {
-        super(["saveas", "source", "js -s", "jsb -s"], "FileSystemCompletionSource", "FileSystem")
+        super(
+            ["saveas", "source", "js -s", "jsb -s"],
+            "FileSystemCompletionSource",
+            "FileSystem",
+        )
 
         this._parent.appendChild(this.node)
     }
@@ -48,7 +53,7 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
         }
 
         // Update lastExstr because we modified the path and scoreOptions uses that in order to assign scores
-        this.lastExstr = cmd + path
+        this.lastExstr = [cmd, path].join(" ")
 
         let req
         try {

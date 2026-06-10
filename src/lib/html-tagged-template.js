@@ -1,13 +1,15 @@
-;(function(window) {
+(function(window) {
     "use strict"
 
     // test for es6 support of needed functionality
     try {
         // spread operator and template strings support
-        ;(function testSpreadOpAndTemplate() {
-            const tag = function tag(strings, ...values) {
+        (function testSpreadOpAndTemplate() {
+            const tag = function tag() {
                 return
             }
+            // We don't need this value - we're just checking if its attempted creation causes any errors
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             tag`test`
         })()
 
@@ -272,19 +274,19 @@
 
             // template tags allow any HTML (even <tr> elements out of context)
             // @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template
-            let template = document.createElement("template")
+            const template = document.createElement("template")
             template.innerHTML = str
 
             // find all substitution values and safely encode them using DOM APIs and
             // contextual auto-escaping
-            let walker = document.createNodeIterator(
+            const walker = document.createNodeIterator(
                 template.content,
                 NodeFilter.SHOW_ALL,
             )
             let node
             while ((node = walker.nextNode())) {
                 let tag = null
-                let attributesToRemove = []
+                const attributesToRemove = []
 
                 // --------------------------------------------------
                 // node name substitution
@@ -311,15 +313,14 @@
                     // use insertBefore() instead of replaceChild() so that the node Iterator
                     // doesn't think the new tag should be the next node
                     node.parentNode.insertBefore(tag, node)
-                }
 
                 // special case for script tags:
                 // using innerHTML with a string that contains a script tag causes the script
                 // tag to not be executed when added to the DOM. We'll need to create a script
                 // tag and append its contents which will make it execute correctly.
                 // @see http://stackoverflow.com/questions/1197575/can-scripts-be-inserted-with-innerhtml
-                else if (node.nodeName === "SCRIPT") {
-                    let script = document.createElement("script")
+                } else if (node.nodeName === "SCRIPT") {
+                    const script = document.createElement("script")
                     tag = script
 
                     node._replacedWith = script
@@ -338,20 +339,20 @@
                     // object so the loop will still work as expected.
                     if (!(node.attributes instanceof NamedNodeMap)) {
                         // first clone the node so we can isolate it from any children
-                        let temp = node.cloneNode()
+                        const temp = node.cloneNode()
 
                         // parse the node string for all attributes
-                        let attributeMatches = temp.outerHTML.match(
+                        const attributeMatches = temp.outerHTML.match(
                             ATTRIBUTE_PARSER_REGEX,
                         )
 
                         // get all attribute names and their value
                         attributes = []
-                        for (let i = 0; i < attributeMatches.length; i++) {
-                            let attributeName = attributeMatches[i]
+                        for (const attribute of attributeMatches.length) {
+                            const attributeName = attribute
                                 .trim()
                                 .split("=")[0]
-                            let attributeValue = node.getAttribute(
+                            const attributeValue = node.getAttribute(
                                 attributeName,
                             )
 
@@ -367,8 +368,7 @@
                         attributes = Array.from(node.attributes)
                     }
 
-                    for (let i = 0; i < attributes.length; i++) {
-                        let attribute = attributes[i]
+                    for (const attribute of attributes) {
                         let name = attribute.name
                         let value = attribute.value
                         let hasSubstitution = false
@@ -421,17 +421,16 @@
                                 ) {
                                     substitutionValue =
                                         '"' + substitutionValue + '"'
-                                }
 
                                 // contextual auto-escaping:
                                 // if the attribute is a uri attribute then we need to uri encode it and
                                 // remove bad protocols
-                                else if (
+                                } else if (
                                     URI_ATTRIBUTES.indexOf(name) !== -1 ||
                                     CUSTOM_URI_ATTRIBUTES_REGEX.test(name)
                                 ) {
                                     // percent encode if the value is inside of a query parameter
-                                    let queryParamIndex = value.indexOf("=")
+                                    const queryParamIndex = value.indexOf("=")
                                     if (
                                         queryParamIndex !== -1 &&
                                         offset > queryParamIndex
@@ -439,10 +438,9 @@
                                         substitutionValue = encodeURIComponent(
                                             substitutionValue,
                                         )
-                                    }
 
                                     // entity encode if value is part of the URL
-                                    else {
+                                    } else {
                                         substitutionValue = encodeURI(
                                             encodeURIEntities(
                                                 substitutionValue,
@@ -480,12 +478,11 @@
                                             }
                                         }
                                     }
-                                }
 
                                 // contextual auto-escaping:
                                 // HTML encode attribute value if it is not a URL or URI to prevent
                                 // DOM Level 0 event handlers from executing xss code
-                                else if (
+                                } else if (
                                     typeof substitutionValue === "string"
                                 ) {
                                     substitutionValue = encodeAttributeHTMLEntities(
@@ -506,7 +503,7 @@
                         // all of that for us
                         // @see https://www.mediawiki.org/wiki/DOM-based_XSS
                         if (tag || hasSubstitution) {
-                            let el = tag || node
+                            const el = tag || node
 
                             // optional attribute
                             if (name.substr(-1) === "?") {
@@ -542,7 +539,7 @@
                     (node._replacedWith && node.childNodes.length === 0) ||
                     (parentNode && parentNode.childNodes.length === 0)
                 ) {
-                    ;(parentNode || node).remove()
+                    (parentNode || node).remove()
                 }
 
                 // --------------------------------------------------
@@ -553,13 +550,13 @@
                     node.nodeType === 3 &&
                     node.nodeValue.indexOf(SUBSTITUTION_INDEX) !== -1
                 ) {
-                    let nodeValue = node.nodeValue.replace(
+                    const nodeValue = node.nodeValue.replace(
                         SUBSTITUTION_REGEX,
                         replaceSubstitution,
                     )
 
                     // createTextNode() should not need to be escaped to prevent XSS?
-                    let text = document.createTextNode(nodeValue)
+                    const text = document.createTextNode(nodeValue)
 
                     // since the parent node has already gone through the iterator, we can use
                     // replaceChild() here

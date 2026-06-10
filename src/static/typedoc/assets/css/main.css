@@ -2326,6 +2326,11 @@ footer .tsd-legend {
     border-bottom: none;
 }
 
+.scroller{
+  scrollbar-color: var(--tridactyl-scrollbar-color);
+  scrollbar-width: thin;
+}
+
 .tsd-navigation {
     padding: 0 0 0 40px;
 }
@@ -2334,7 +2339,7 @@ footer .tsd-legend {
     padding-top: 2px;
     padding-bottom: 2px;
     border-left: 2px solid transparent;
-    color: #222;
+    color: var(--tridactyl-fg);
     text-decoration: none;
     transition: border-left-color 0.1s;
 }
@@ -2914,25 +2919,27 @@ img {
 }
 .tsd-navigation {
     margin-top: 0px;
+    background: var(--tridactyl-bg);
 }
-
 /* Unhide return values as they can be used in composite now*/
 .tsd-returns-title {
     /* display: none; */
 }
 
 body {
-    font-family: sans-serif;
-    font-size: 1rem;
+    font-family: var(--tridactyl-font-family-sans);
+    font-size: var(--tridactyl-font-size);
     text-align: justify;
     -moz-hyphens: auto;
-    background: #fff;
+    color: var(--tridactyl-fg);
+    background: var(--tridactyl-bg);
 }
 
 .tsd-panel {
     box-shadow: unset;
     /* border: solid rgba(220,220,220) 1px; */
     border-top: solid lightgrey 1.5px;
+    background: var(--tridactyl-bg);
 }
 
 a {

@@ -5,22 +5,29 @@
 
  */
 
+import Logger from "./logging"
+
 /** Friendly-names of extensions that are used in different places so
     that we can refer to them with more readable and less magic ids.
  */
 export const KNOWN_EXTENSIONS: { [name: string]: string } = {
     temp_containers: "{c607c8df-14a7-4f28-894f-29e8722976af}",
     multi_account_containers: "@testpilot-containers",
+    tree_style_tab: "treestyletab@piro.sakura.ne.jp",
 }
+
+type KnownExtensionId = keyof typeof KNOWN_EXTENSIONS
+
+const logger = new Logger("extensions")
 
 /** List of currently installed extensions.
  */
 const installedExtensions: {
-    [id: string]: browser.management.IExtensionInfo
+    [id: string]: browser.management.ExtensionInfo
 } = {}
 
 function updateExtensionInfo(
-    extension: browser.management.IExtensionInfo,
+    extension: browser.management.ExtensionInfo,
 ): void {
     installedExtensions[extension.id] = extension
 }
@@ -39,7 +46,7 @@ export function getExtensionInstalled(id: string): boolean {
 
 async function hasManagementPermission() {
     return browser.permissions.contains({
-        "permissions": ["management"],
+        permissions: ["management"],
     })
 }
 
@@ -83,4 +90,12 @@ export async function listExtensions() {
     return Object.keys(installedExtensions)
         .map(key => installedExtensions[key])
         .filter(obj => obj.optionsUrl.length > 0)
+}
+
+export async function messageExtension(id: KnownExtensionId, message: any) {
+    try {
+        return await browser.runtime.sendMessage(KNOWN_EXTENSIONS[id], message)
+    } catch (e) {
+        logger.error("Failed to communicate with extension ", id, e)
+    }
 }

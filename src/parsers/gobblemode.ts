@@ -1,23 +1,33 @@
 import { contentState } from "@src/content/state_content"
-import { isSimpleKey } from "@src/lib/keyseq"
+import { MinimalKey, canonicaliseMapstr } from "@src/lib/keyseq"
 
 /** Simple container for the gobble state. */
 class GobbleState {
-    public numChars = 0
-    public chars = ""
+    public numKeysOrTerminator: number | string = 0
+    public keyCombination = ""
     public endCommand = ""
+    public args
 }
 
 let modeState: GobbleState
 
-/** Init gobble mode. After parsing the defined number of input keys, execute
-`endCmd` with attached parsed input. `Escape` cancels the mode and returns to
-normal mode. */
-export function init(numChars: number, endCommand: string) {
+/** Init gobble mode. After parsing the defined number of input keys,
+ * or until provided terminator key, execute `endCmd` with attached parsed input.
+ * `Escape` cancels the mode and returns to normal mode. */
+export function init(
+    numKeysOrTerminator: string,
+    endCommand: string,
+    ...args: string[]
+) {
     contentState.mode = "gobble"
     modeState = new GobbleState()
-    modeState.numChars = numChars
+    const number = Number(numKeysOrTerminator)
+    if (!isNaN(number)) {
+        modeState.numKeysOrTerminator = number
+    } else
+        modeState.numKeysOrTerminator = canonicaliseMapstr(numKeysOrTerminator)
     modeState.endCommand = endCommand
+    modeState.args = args.join(" ")
 }
 
 /** Reset state. */
@@ -27,18 +37,33 @@ function reset() {
 }
 
 /** Receive keypress. If applicable, execute a command. */
-export function parser(keys: KeyboardEvent[]) {
+export function parser(keys: MinimalKey[]) {
+    function exec() {
+        const exstr = [
+            modeState.endCommand,
+            modeState.keyCombination,
+            modeState.args,
+        ].join(" ")
+        reset()
+        return { keys: [], exstr, isMatch: true }
+    }
+
     const key = keys[0].key
 
     if (key === "Escape") {
         reset()
-    } else if (isSimpleKey(keys[0])) {
-        modeState.chars += key
-        if (modeState.chars.length >= modeState.numChars) {
-            const exstr = modeState.endCommand + " " + modeState.chars
-            reset()
-            return { keys: [], exstr }
-        }
+    } else if (
+        typeof modeState.numKeysOrTerminator === "string" &&
+        modeState.numKeysOrTerminator === keys[0].toMapstr()
+    ) {
+        return exec()
+    } else if (keys[0].isPrintable()) {
+        modeState.keyCombination += keys[0].toMapstr()
+        if (
+            typeof modeState.numKeysOrTerminator === "number" &&
+            --modeState.numKeysOrTerminator <= 0
+        )
+            return exec()
     }
     return { keys: [], exstr: "", isMatch: true }
 }

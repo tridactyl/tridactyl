@@ -1,0 +1,38 @@
+div.container {
+    display: flex;
+    flex-direction: column;
+}
+
+#qr-canvas img {
+    max-height: 100vh;
+    max-width: 100vw;
+}
+
+div#qr-canvas {
+    text-align: center;
+}
+
+div.container div.buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+button#download {
+    background: #2183ec;
+    color: white;
+    font-size: 20px;
+    border-radius: 10px;
+    padding: 12px;
+}
+
+div.hide {
+    display: none;
+}
+
+div.error {
+    color: red;
+    font-size: 20px;
+    text-align: center;
+    padding: 20px;
+}

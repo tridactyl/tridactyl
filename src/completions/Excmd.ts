@@ -12,9 +12,9 @@ export class ExcmdCompletionOption extends Completions.CompletionOptionHTML
 
         // Create HTMLElement
         this.html = html`<tr class="ExcmdCompletionOption option">
-                <td class="excmd">${value}</td>
-                <td class="documentation">${documentation}</td>
-            </tr>`
+            <td class="excmd">${value}</td>
+            <td class="documentation">${documentation}</td>
+        </tr>`
     }
 }
 
@@ -37,6 +37,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateOptions(exstr)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
     updateChain(exstr = this.lastExstr, options = this.options) {
         if (this.options.length > 0) this.state = "normal"
         else this.state = "hidden"
@@ -68,13 +69,19 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
                 .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
         )
 
-        // Also add aliases to possible completions
-        const exaliases = Object.keys(config.get("exaliases")).filter(a =>
-            a.startsWith(exstr),
-        )
-        for (const alias of exaliases) {
+        // Also narrow down aliases map to possible completions
+        const exaliasesConfig = config.get("exaliases")
+        const exaliases = Object.keys(exaliasesConfig)
+            .filter(a => a.startsWith(exstr))
+            .reduce((obj, key) => {
+                obj[key] = exaliasesConfig[key]
+                return obj
+            }, {})
+
+        for (const alias of Object.keys(exaliases)) {
             const cmd = aliases.expandExstr(alias, exaliases)
             const fn = excmds.getFunction(cmd)
+
             if (fn) {
                 this.options.push(
                     new ExcmdCompletionOption(
@@ -94,7 +101,10 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         const seen = new Set(this.options.map(o => o.value))
         const partial_options = this.scoreOptions(
             fns
-                .filter(([name, fn]) => !fn.hidden && name.includes(exstr) && !seen.has(name))
+                .filter(
+                    ([name, fn]) =>
+                        !fn.hidden && name.includes(exstr) && !seen.has(name),
+                )
                 .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
         )
         this.options = this.options.concat(partial_options)

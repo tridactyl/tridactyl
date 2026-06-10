@@ -48,7 +48,7 @@ export function measured(
     if (!performanceApiAvailable()) return
 
     const originalMethod = descriptor.value
-    descriptor.value = function(this, ...args) {
+    descriptor.value = function (this, ...args) {
         const marker = new Marker(cls.constructor.name, propertyKey).start()
         const result = originalMethod.apply(this, args)
         marker.end()
@@ -70,7 +70,7 @@ export function measuredAsync(
     if (!performanceApiAvailable()) return
 
     const originalMethod = descriptor.value
-    descriptor.value = async function(this, ...args) {
+    descriptor.value = async function (this, ...args) {
         const marker = new Marker(cls.constructor.name, propertyKey).start()
         const result = await originalMethod.apply(this, args)
         marker.end()
@@ -154,11 +154,11 @@ export function listenForCounters(
         observer: PerformanceObserver,
     ) => void
     if (statsLogger === undefined) {
-        callback = (list, observer) => {
+        callback = (list) => {
             sendStats(list.getEntries())
         }
     } else {
-        callback = (list, observer) => {
+        callback = (list) => {
             statsLogger.pushList(list.getEntries())
         }
     }
@@ -192,9 +192,9 @@ export class StatsLogger {
     // mapped symbol instead of the name so we're storing more like 50
     // bytes per sample instead of 130 @_@
     public buffer: PerformanceEntry[] = []
-    private idx: number = 0
-    private buffersize: number = 10000
-    private lastError: number = 0
+    private idx = 0
+    private buffersize = 10000
+    private lastError = 0
 
     /**
      * Target for receiving stats entries from other threads - there
@@ -233,7 +233,7 @@ export class StatsLogger {
         return this.buffer.filter(filterFun)
     }
 
-    private updateBuffersize() {
+    public updateBuffersize() {
         // Changing the buffer length while this is running will
         // probably result in weirdness, but that shouldn't be a major
         // issue - it's not like we need these to be in order or
@@ -278,7 +278,6 @@ export class StatsLogger {
     private incrementIdx() {
         this.idx = (this.idx + 1) % this.buffersize
     }
-
 }
 
 /**
@@ -302,8 +301,8 @@ export class StatsLogger {
  */
 export function renderStatsHistogram(
     samples: PerformanceEntry[],
-    buckets: number = 15,
-    width: number = 80,
+    buckets = 15,
+    width = 80,
 ): string {
     const durs: number[] = samples.map(sample => sample.duration)
 
@@ -341,29 +340,15 @@ export class StatsFilter {
 
     matches(entry: PerformanceEntry): boolean {
         const metricNameInfo = extractMetricName(entry.name)
-        if (
-            this.config.kind === "functionName" &&
-            this.config.functionName !== metricNameInfo.functionName
-        ) {
-            return false
-        }
-        if (
-            this.config.kind === "ownerName" &&
-            this.config.ownerName !== metricNameInfo.ownerName
-        ) {
-            return false
-        }
-        if (
-            this.config.kind === "eventType" &&
-            this.config.eventType !== entry.entryType
-        ) {
-            return false
-        }
-        return true
+        return !(
+            (this.config.kind === "functionName" && this.config.functionName !== metricNameInfo.functionName) ||
+            (this.config.kind === "ownerName" && this.config.ownerName !== metricNameInfo.ownerName) ||
+            (this.config.kind === "eventType" && this.config.eventType !== entry.entryType)
+        )
     }
 }
 
-const TRI_PERFORMANCE_NAME_PREFIX: string = "tri"
+const TRI_PERFORMANCE_NAME_PREFIX = "tri"
 
 function performanceApiAvailable(): boolean {
     return performance.mark !== undefined
@@ -388,7 +373,7 @@ const extractRegExp = new RegExp(
     // sample itself.
 )
 function extractMetricName(counterName: string): MetricNameInfo {
-    const matchresult = counterName.match(extractRegExp)
+    const matchresult = extractRegExp.exec(counterName)
     if (!matchresult) return
     const [ownerName, functionName, uniqueSuffix] = matchresult.slice(1)
 
@@ -416,5 +401,9 @@ class MetricName {
 }
 
 function sendStats(list: PerformanceEntryList) {
-    messaging.message("performance_background", "receiveStatsJson", JSON.stringify(list))
+    messaging.message(
+        "performance_background",
+        "receiveStatsJson",
+        JSON.stringify(list),
+    )
 }

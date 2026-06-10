@@ -80,15 +80,15 @@ export async function remove(name: string) {
     @param color the new color of the container
     @param icon the new icon of the container
  */
-export async function update(
+export function update(
     containerId: string,
     updateObj: {
         name: string
-        color: browser.contextualIdentities.IdentityColor
-        icon: browser.contextualIdentities.IdentityIcon
+        color: string
+        icon: string
     },
 ) {
-    const {name, color, icon} = updateObj
+    const { name, color, icon } = updateObj
     if (!isValidColor(color)) {
         logger.debug(updateObj)
         throw new Error("[Container.update] invalid container color: " + color)
@@ -97,7 +97,7 @@ export async function update(
         logger.debug(updateObj)
         throw new Error("[Container.update] invalid container icon: " + icon)
     }
-    browser.contextualIdentities.update(containerId, {name, color, icon})
+    browser.contextualIdentities.update(containerId, { name, color, icon })
 }
 
 /** Gets a container object from a supplied container id string. If no container corresponds to containerId, returns a default empty container.
@@ -122,9 +122,9 @@ export async function exists(cname: string): Promise<boolean> {
     let exists = false
     try {
         const containers = await getAll()
-        const res = containers.filter(c => {
-            return c.name.toLowerCase() === cname.toLowerCase()
-        })
+        const res = containers.filter(
+            c => c.name.toLowerCase() === cname.toLowerCase(),
+        )
         if (res.length > 0) {
             exists = true
         }
@@ -144,16 +144,11 @@ export async function exists(cname: string): Promise<boolean> {
     @param color
     @param icon
  */
-export function fromString(
-    name: string,
-    color: string,
-    icon: string,
-    id: string = "",
-) {
+export function fromString(name: string, color: string, icon: string, id = "") {
     return {
         name,
-        color: color as browser.contextualIdentities.IdentityColor,
-        icon: icon as browser.contextualIdentities.IdentityIcon,
+        color,
+        icon,
         cookieStoreId: id,
     } as browser.contextualIdentities.ContextualIdentity // rules are made to be broken
 }
@@ -173,20 +168,14 @@ export async function getAll(): Promise<any[]> {
  @returns The cookieStoreId of the first match of the query.
  */
 export async function getId(name: string): Promise<string> {
-    try {
-        const containers = await getAll()
-        const res = containers.filter(
-            c => c.name.toLowerCase() === name.toLowerCase(),
-        )
-        if (res.length !== 1) {
-            throw new Error("")
-        } else {
-            return res[0].cookieStoreId
-        }
-    } catch (e) {
-        logger.error(
-            "[Container.getId] could not find a container with that name.",
-        )
+    const containers = await getAll()
+    const res = containers.filter(
+        c => c.name.toLowerCase() === name.toLowerCase(),
+    )
+    if (res.length !== 1) {
+        throw new Error(`Container '${name}' does not exist.`)
+    } else {
+        return res[0].cookieStoreId
     }
 }
 

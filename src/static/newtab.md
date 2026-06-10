@@ -1,20 +1,16 @@
-![Tridactyl logo](logo/Tridactyl_100px.png)
-
-# Tridactyl REPLACE_ME_WITH_THE_VERSION_USING_SED
-
 Tridactyl has to override your new tab page due to WebExtension limitations. You can learn how to change it at the bottom of the page, otherwise please read on for some tips and tricks.
-
--   _Breaking change_: when you select text in normal mode, you will now enter our experimental visual mode. Press `<Esc>` to leave it. `:set visualenterauto false` to disable it.
 
 -   You can view the main help page by typing [`:help`][help], and access the tutorial with [`:tutor`][tutor]. There's a [wiki](https://github.com/tridactyl/tridactyl/wiki) too - feel free to add to it. You may find `:apropos` useful for finding relevant settings and commands.
 
 -   You can view your current configuration with `:viewconfig`.
 
--   Tridactyl retreat 👀: 4 of the core Tridactyl developers met up in the real world to work on Tridactyl from 24th May - 1st June 2019 in the Peak District, UK. We've now raised back all the costs we incurred for that week, so thanks to all of you who have donated. If you'd like to chip in towards the next one, [donate using via GitHub sponsors](https://github.com/users/glacambre/sponsorship) who will double your donation and take zero fees, or via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY).
+-   Tridactyl funding 👀: [donate via GitHub sponsors here](https://github.com/users/bovine3dom/sponsorship). Please consider starting a recurring donation to bovine3dom (me) if you find Tridactyl useful. In July 2025, I got the lowest amount since 2023, so I guess I need to gently push this again :)
+
+-   All GitHub and Patreon donors get a nice little newsletter every now and then; for people who donate at least 10USD a month I briefly did a "tips & tricks" newsletter roughly once a month ([see an example here](https://github.com/tridactyl/tridactyl/blob/master/doc/newsletters/tips-and-tricks/1-hint-css-selectors.md)) but now I'm open to other ideas for saying thanks. You can also donate via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY), but they charge fairly high fees and you won't get any newsletters. Donations currently aim to ensure that bovine3dom can work one day a week on Tridactyl at minimum wage. Previously the donations have funded an in-person developer retreat.
 
 *   If Tridactyl breaks a website or is broken by a website, trying the steps in the [troubleshooting guide](https://github.com/tridactyl/tridactyl/blob/master/doc/troubleshooting.md) might help.
 
-*   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], or [IRC][freenode-link].
+*   You can contact the developers, other users and contributors for support or whatever on [Matrix][matrix-link], [Gitter][gitter-link], [Discord][discord-link] or [IRC][libera-link]. Follow bovine3dom on [Mastodon](https://masto.ai/@bovine3dom) or [Bluesky](https://bsky.app/profile/bovine3dom.bsky.social)
 
 *   If you're enjoying Tridactyl (or not), please leave a review on [addons.mozilla.org][amo].
 
@@ -23,14 +19,14 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 ## Highlighted features:
 
 -   `f`/`F` — enter the "hint mode" to select a link to follow. `F` to open it in a background tab. (Note: hint characters should be typed in lowercase.)
--   `Shift` + `Insert` — enter "ignore mode" to send all key presses to the web page you are on. Press `Shift` + `Insert` again to return to the highly productive "normal mode".
+-   `Shift` + `Insert` or `Ctrl-Alt-Escape` — enter "ignore mode" to send all key presses to the web page you are on. Press `Shift` + `Insert` or `Ctrl-Alt-Escape` again to return to the highly productive "normal mode".
 -   `H`/`L` — go back/forward in the history.
 -   `o`/`O` — open a URL in this tab (`O` to pre-load current URL).
 -   `t`/`T` — open a URL in a new tab (`T` to pre-load current URL).
 -   `gt`/`gT` — go to the next/previous tab.
 -   `d` — close the current tab.
+-   `<C-,>` — "escape hatch": get to a place where you can use Tridactyl. Works anywhere in the browser.
 -   `/` — open the find search box. Use <kbd>ctrl</kbd> + g/G to cycle through search results.
--   `A` — bookmark the current page
 -   `b` — bring up a list of open tabs in the current window.
 -   `s` — if you want to search for something that looks like a domain name or URL.
 -   `gi` — scroll to and focus the last-used input on the page.
@@ -39,15 +35,17 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 -   `yy` — copy the current page URL to your clipboard.
 -   `[[`/`]]` — navigate forward/backward though paginated pages.
 -   `ZZ` — close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time".
--   `<C-v>` – send a single keystroke to the current website, bypassing bindings
+-   `<C-v>` – send a single keystroke to the current website, bypassing bindings by entering ignore mode temporarily
 -   `<C-o>` – run a single normal mode binding when in ignore mode
 -   [`:help hint`][help-hint] to see all the other useful hint modes (this is the `f` magic. :) ).
 -   `:help <keybinding>` to learn more about what a specific key binding does.
+-   `:colours [dark|quake|...]` to change Tridactyl's theme (and the colour of this page)
+-   `:set keyboardlayoutforce true` to pretend that your keyboard layout is always QWERTY - very useful for, e.g., Cyrillic keyboards
 
 ## Important limitations due to WebExtensions
 
 -   You can only navigate to most about: and file: pages if you have Tridactyl's native executable installed.
--   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages Ctrl-L (or F6), Ctrl-Tab and Ctrl-W are your escape hatches.
+-   Firefox will not load Tridactyl on about:\*, some file:\* URIs, view-source:\*, or data:\*. On these pages `Ctrl-Comma` (that's `<C-,>` in Tridactyl-speak) is your escape hatch.
 -   You can change the Firefox GUI with `guiset` (e.g. `guiset gui none` and then `restart`) if you have the native messenger installed, or you can do it yourself by changing your userChrome.
 -   Tridactyl cannot capture key presses until web pages are loaded. You can use `:reloadall` to reload all tabs to make life more bearable, or flip `browser.sessionstore.restore_tabs_lazily` to false in `about:config`.
 
@@ -69,16 +67,14 @@ Alternatively, if you don't need Tridactyl to work on the new tab page, you can 
 You have more questions? Have a look at our [FAQ][faq-link] or search our [issues][issues].
 
 [issues]: https://github.com/tridactyl/tridactyl/issues
-[faq-link]: https://github.com/tridactyl/tridactyl#frequently-asked-questions
+[faq-link]: https://github.com/tridactyl/tridactyl#frequently-asked-questions-faq
 [help]: /static/docs/modules/_src_excmds_.html
 [tutor]: /static/clippy/1-tutor.html
 [help-hint]: /static/docs/modules/_src_excmds_.html#hint
-[gitter-badge]: /static/badges/gitter-badge.svg
 [gitter-link]: https://gitter.im/tridactyl/Lobby
-[freenode-badge]: /static/badges/freenode-badge.svg
-[freenode-link]: ircs://chat.freenode.net/tridactyl
-[matrix-badge]: https://matrix.to/img/matrix-badge.svg
-[matrix-link]: https://riot.im/app/#/room/#tridactyl:matrix.org
+[discord-link]: https://discord.gg/DWbNGTAvmh
+[libera-link]: ircs://irc.libera.chat:6697/tridactyl
+[matrix-link]: https://matrix.to/#/#tridactyl:matrix.org
 [amo]: https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/
 [nonewtablink]: https://tridactyl.cmcaine.co.uk/betas/nonewtab/tridactyl_no_new_tab_beta-latest.xpi
 [migratelink]: https://github.com/tridactyl/tridactyl/issues/79#issuecomment-351132451

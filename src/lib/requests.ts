@@ -1,4 +1,3 @@
-
 import * as csp from "csp-serdes"
 import Logger from "@src/lib/logging"
 
@@ -6,8 +5,7 @@ const logger = new Logger("requests")
 
 class DefaultMap<K, V> extends Map<K, V> {
     constructor(private defaultFactory, ...args) {
-        // super(...args)
-        super()
+        super(...args)
     }
 
     get(key) {
@@ -55,10 +53,7 @@ export function clobberCSP(response) {
             policy.set("style-src", policy.get("default-src"))
         }
         if (policy.has("style-src")) {
-            policy
-                .get("style-src")
-                .add("'unsafe-inline'")
-                .add("'self'")
+            policy.get("style-src").add("'unsafe-inline'").add("'self'")
         }
 
         // Replace old CSP

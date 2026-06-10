@@ -1,4 +1,4 @@
-## Control your browser with your keyboard _only_.
+**Control your browser with your keyboard _only_.**
 
 Replace Firefox's control mechanism with one modelled on VIM. This is a "Firefox Quantum" replacement for VimFX, Vimperator and Pentadactyl. Most common tasks you want your browser to perform are bound to a single key press:
 
@@ -7,22 +7,23 @@ Replace Firefox's control mechanism with one modelled on VIM. This is a "Firefox
 -   You want to go to the bottom of the page? Hit `G`. Or the top? `gg`.
 -   You want to focus the text field on Wikipedia to search for another term? `gi`.
 -   Switch to the next tab? `gt`.
+-   Got trapped in a place where Tridactyl can't run? `Ctrl-,`
 -   Go back in time? `H`.
 -   Notice that this tab is rubbish and you want to close it? `d`.
 -   Regret that decision? `u` restores it.
 -   Want to write something in Vim? `Ctrl-i` in a text box opens it in Vim, if you have `:native` working.
--   Temporarily disable all that magic because you can't stand it? `Shift-Insert`.
--   But how do you use your browser now? `Shift-Insert` again and we're back on.
+-   Temporarily disable all that magic because you can't stand it? `Shift-Insert` or `Ctrl-Alt-Escape`.
+-   But how do you use your browser now? `Shift-Insert` or `Ctrl-Alt-Escape` again and we're back on.
 
 The list could go on a bit here, but I guess you'll get the point. If you feel lost sometimes `:help` might help you a lot, and there's always `:tutor`.
 
 **Highlighted features:**
 
--   follow any link on the site with just 2-3 key presses.
--   switch to any open tab by searching for its URL or title or entering its ID.
--   easy customizable search settings
--   bind any supported command or commands to the key (sequence) of your liking
--   great default bindings (if you're used to Pentadactyl or Vimperator)
+-   Follow any link on the site with just 2-3 key presses.
+-   Switch to any open tab by searching for its URL or title or entering its ID.
+-   Easy customizable search settings.
+-   Bind any supported command or commands to the key (sequence) of your liking.
+-   Great default bindings (if you're used to Pentadactyl or Vimperator).
 
 This add-on is very usable, but is in an early stage of development. We intend to implement the majority of Vimperator's features.
 
@@ -34,7 +35,7 @@ Since Tridactyl aims to provide all the features Vimperator and Pentadactyl had,
 
 -   Access your data for all websites:
     -   This is Mozilla's way of saying that Tridactyl can read the content of web pages. This is necessary in order to e.g. find the links you can follow with the `:hint` command (bound to `f` by default).
--   Exchange messages with programs other than Firefox
+-   Exchange messages with programs other than Firefox:
     -   This permission is required for Tridactyl to interact with your operating system (opening your editor to edit text areas, sending links to your video player, reading a configuration file from your disk...). This is possible thanks to an external executable we provide. If you feel this gives Tridactyl too much power you can chose not to install the external executable: Tridactyl will still work but won't be able to start external programs.
 -   Read and modify bookmarks:
     -   Tridactyl's command line has a powerful autocompletion mechanism. In order to be able to autocomplete your bookmarks, Tridactyl needs to read them.
@@ -54,9 +55,13 @@ Since Tridactyl aims to provide all the features Vimperator and Pentadactyl had,
     -   Tridactyl provides a quick tab-switching menu/command with the `:buffer` command (bound to `b`). This permission is also required to close, move, and pin tabs, amongst other things.
 -   Access browser activity during navigation:
     -   This is needed for Tridactyl to be able to go back to normal mode every time you open a new page. In the future we may use it for autocommands.
--   Read the text of all open tabs
+-   Read the text of all open tabs:
     -   This allows us to use Firefox's built-in find-in-page API, for, for example, allowing you to bind find-next and find-previous to `n` and `N`.
 -   Monitor extension usage and manage themes:
     -   Tridactyl needs this to integrate with and avoid conflicts with other extensions. For example, Tridactyl's contextual identity features use this to cooperate with the Multi-Account Containers extension.
+-   Hide and show browser tabs:
+    -   Tridactyl needs this for tab group commands, which allow associating names with different groups of tabs and showing the tabs from only of those groups at a time.
+-   Control browser proxy settings:
+    -   This allows you to set proxies for accessing different websites with :autocontain.
 
 [betas]: https://tridactyl.cmcaine.co.uk/betas/?sort=time&order=desc

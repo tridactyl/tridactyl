@@ -12,7 +12,8 @@
 
 import Logger from "@src/lib/logging"
 import * as messaging from "@src/lib/messaging"
-import {notBackground} from "@src/lib/webext"
+import { notBackground } from "@src/lib/webext"
+import * as R from "ramda"
 
 const logger = new Logger("state")
 
@@ -26,8 +27,36 @@ class State {
             jumppos: undefined,
         },
     ]
-    last_ex_str: string = "echo"
+    last_ex_str = "echo"
+    globalMarks: Map<
+        string,
+        {
+            url: string
+            scrollX: number
+            scrollY: number
+            tabId: number
+        }
+    > = new Map()
+    localMarks: Map<
+        string,
+        Map<
+            string,
+            {
+                scrollX: number
+                scrollY: number
+            }
+        >
+    > = new Map()
+    beforeJumpMark: {
+        url: string
+        scrollX: number
+        scrollY: number
+        tabId: number
+    } = undefined
 }
+
+// Store these keys in the local browser storage to persist between restarts
+const PERSISTENT_KEYS: Array<keyof State> = ["cmdHistory", "globalMarks"]
 
 // Don't change these from const or you risk breaking the Proxy below.
 const defaults = Object.freeze(new State())
@@ -43,10 +72,13 @@ browser.storage.local
     })
     .catch((...args) => logger.error(...args))
 
-const state = (new Proxy(overlay, {
+const state = new Proxy(overlay, {
     /** Give defaults if overlay doesn't have the key */
     get(target, property) {
-        if (notBackground()) throw "State object must be accessed with getAsync in content"
+        if (notBackground())
+            throw new Error(
+                "State object must be accessed with getAsync in content",
+            )
         if (property in target) {
             return target[property]
         } else {
@@ -54,38 +86,73 @@ const state = (new Proxy(overlay, {
         }
     },
 
-    /** Persist sets to storage "immediately" */
-    set(target, property, value) {
-        // Ensure we don't accidentally store anything sensitive
-        if (browser.extension.inIncognitoContext) return false
-
+    set(target, property: keyof State, value) {
         logger.debug("State changed!", property, value)
         if (notBackground()) {
-            browser.runtime.sendMessage({type: "state", command: "stateUpdate", args: {property, value}})
+            const inIncognitoContext = browser.extension.inIncognitoContext
+            browser.runtime.sendMessage({
+                type: "state",
+                command: "stateUpdate",
+                args: { property, value, inIncognitoContext },
+            })
             return true
         }
         // Do we need a global storage lock?
         target[property] = value
-        browser.storage.local.set({ state: target } as any)
+
+        // Persist "sets" to storage in the background for some keys
+        if (PERSISTENT_KEYS.includes(property)) {
+            // Ensure we don't accidentally store anything sensitive
+            if (browser.extension.inIncognitoContext) {
+                console.error(
+                    "Attempted to write to storage in private window.",
+                )
+                return false
+            }
+            browser.storage.local.set({
+                state: R.pick(PERSISTENT_KEYS, target),
+            } as any)
+        }
         return true
     },
-}))
+})
 
-export async function getAsync(property) {
-    if (notBackground()) return browser.runtime.sendMessage({type: "state", command: "stateGet", args: [{prop: property}]})
+export async function getAsync<K extends keyof State>(
+    property: K,
+): Promise<State[K]> {
+    if (notBackground())
+        return browser.runtime.sendMessage({
+            type: "state",
+            command: "stateGet",
+            args: [{ prop: property }],
+        })
     else return state[property]
 }
 
+// Skip this in mock testing - the mock doesn't like notBackground
 // Keep instances of state.ts synchronised with each other
-messaging.addListener("state", (message, sender, sendResponse) => {
-    if (message.command == "stateUpdate") {
-        const property = message.args.property
-        const value = message.args.value
-        logger.debug("State changed!", property, value)
-        overlay[property] = value
-    } else if (message.command == "stateGet") {
-        sendResponse(state[message.args[0].prop])
-    } else throw("Unsupported message to state, type " + message.command)
-})
+notBackground &&
+    !notBackground() &&
+    messaging.addListener("state", (message, sender, sendResponse) => {
+        if (message.command == "stateUpdate") {
+            const property = message.args.property
+            const value = message.args.value
+            // Ensure we don't accidentally store anything sensitive
+            const inIncognitoContext = message.args.inIncognitoContext
+            if (inIncognitoContext) {
+                console.error(
+                    "Attempted to write to storage in private window.",
+                )
+                return
+            }
+            logger.debug("State changed!", property, value)
+            state[property] = value
+        } else if (message.command == "stateGet") {
+            sendResponse(state[message.args[0].prop])
+        } else
+            throw new Error(
+                "Unsupported message to state, type " + message.command,
+            )
+    })
 
 export { state as default }

@@ -9,10 +9,15 @@ export type TabMessageType =
     | "controller_content"
     | "commandline_content"
     | "finding_content"
+    | "omniscient_content"
     | "commandline_cmd"
     | "commandline_frame"
     | "state"
     | "lock"
+    | "alive"
+    | "tab_changes"
+    | "stop_buffering_page_keys"
+    | "commandline_frame_ready_to_receive_messages"
 
 export type NonTabMessageType =
     | "owntab_background"
@@ -24,9 +29,9 @@ export type NonTabMessageType =
 export type MessageType = TabMessageType | NonTabMessageType
 
 export interface Message {
+    [key: string]: any
     type: MessageType
     // and other unknown attributes...
-    [key: string]: any
 }
 
 export type listener = (
@@ -69,7 +74,11 @@ export function attributeCaller(obj) {
     return handler
 }
 
-interface TypedMessage<Root, Type extends keyof Root, Command extends keyof Root[Type]> {
+interface TypedMessage<
+    Root,
+    Type extends keyof Root,
+    Command extends keyof Root[Type]
+> {
     type: Type
     command: Command
     args: Parameters<Root[Type][Command]>
@@ -79,52 +88,65 @@ function backgroundHandler<
     Root,
     Type extends keyof Root,
     Command extends keyof Root[Type]
-    >(root: Root,
-      message: TypedMessage<Root, Type, Command>,
-      sender: browser.runtime.MessageSender,
-    ): ReturnType<Root[Type][Command]> {
+>(
+    root: Root,
+    message: TypedMessage<Root, Type, Command>,
+): ReturnType<Root[Type][Command]> {
     return root[message.type][message.command](...message.args)
 }
 
 export function setupListener<Root>(root: Root) {
-    browser.runtime.onMessage.addListener((message: any, sender: browser.runtime.MessageSender) => {
-        if (message.type in root) {
-            if (!(message.command in root[message.type]))
-                throw new Error(`missing handler in protocol ${message.type} ${message.command}`)
-            if (!Array.isArray(message.args))
-                throw new Error(`wrong arguments in protocol ${message.type} ${message.command}`)
-            return backgroundHandler(root, message, sender)
-        }
-    });
+    browser.runtime.onMessage.addListener(
+        (message: any) => {
+            if (message.type in root) {
+                if (!(message.command in root[message.type]))
+                    throw new Error(
+                        `missing handler in protocol ${message.type} ${message.command}`,
+                    )
+                if (!Array.isArray(message.args))
+                    throw new Error(
+                        `wrong arguments in protocol ${message.type} ${message.command}`,
+                    )
+                return Promise.resolve(backgroundHandler(root, message))
+            }
+        },
+    )
 }
 
-type StripPromise<T> = T extends Promise<infer U> ? U : T
+// type StripPromise<T> = T extends Promise<infer U> ? U : T
 
 /** Send a message to non-content scripts */
 export async function message<
     Type extends keyof Messages.Background,
     Command extends keyof Messages.Background[Type],
-    F extends ((...args: any) => any) & Messages.Background[Type][Command]
-  >(type: Type, command: Command, ...args: Parameters<F>) {
+    F extends ((...args: any[]) => any) & Messages.Background[Type][Command]
+>(type: Type, command: Command, ...args: Parameters<F>) {
     const message: TypedMessage<Messages.Background, Type, Command> = {
         type,
         command,
-        args
+        args,
     }
 
-    return browser.runtime.sendMessage<typeof message, StripPromise<ReturnType<F>>>(message)
+    // Typescript didn't like this
+    // return browser.runtime.sendMessage<typeof message, StripPromise<ReturnType<F>>>(message)
+    return browser.runtime.sendMessage(message)
 }
 
 /** Message the active tab of the currentWindow */
 export async function messageActiveTab(
     type: TabMessageType,
-    command: string,
+    command?: string,
     args?: any[],
 ) {
     return messageTab(await activeTabId(), type, command, args)
 }
 
-export async function messageTab(tabId, type: TabMessageType, command, args?): Promise<any> {
+export async function messageTab(
+    tabId,
+    type: TabMessageType,
+    command?,
+    args?,
+): Promise<any> {
     const message: Message = {
         type,
         command,
@@ -134,7 +156,7 @@ export async function messageTab(tabId, type: TabMessageType, command, args?): P
 }
 
 let _ownTabId
-export async function messageOwnTab(type: TabMessageType, command, args?) {
+export async function messageOwnTab(type: TabMessageType, command?, args?) {
     if (_ownTabId === undefined) {
         _ownTabId = await ownTabId()
     }
@@ -145,7 +167,7 @@ export async function messageOwnTab(type: TabMessageType, command, args?) {
 
 export async function messageAllTabs(
     type: TabMessageType,
-    command: string,
+    command?: string,
     args?: any[],
 ) {
     const responses = []
@@ -154,7 +176,10 @@ export async function messageAllTabs(
             responses.push(await messageTab(tab.id, type, command, args))
         } catch (e) {
             // Skip errors caused by tabs we aren't running on
-            if (e.message != "Could not establish connection. Receiving end does not exist.") {
+            if (
+                e.message !=
+                "Could not establish connection. Receiving end does not exist."
+            ) {
                 logger.error(e)
             }
         }

@@ -13,7 +13,10 @@ export async function source(filename = "auto") {
     return true
 }
 
-async function fetchConfig(url: string) {
+/*
+ * This should be moved out to a library but I am lazy
+ */
+export async function fetchText(url: string) {
     const response = await fetch(url)
     const reader = response.body.getReader()
     let rctext = ""
@@ -24,6 +27,7 @@ async function fetchConfig(url: string) {
         rctext += decoder.decode(chunk)
     }
 }
+const fetchConfig = fetchText
 
 export async function sourceFromUrl(url: string) {
     const rctext = await fetchConfig(url)
@@ -55,12 +59,20 @@ export async function runRc(rc: string) {
 }
 
 export function rcFileToExCmds(rcText: string): string[] {
-    // string-join lines that end with /
-    const joined = rcText.replace(/\\\n/g, "")
-
     // Split into individual excmds
-    const excmds = joined.split("\n")
+    const excmds = rcText.split("\n")
 
     // Remove empty and comment lines
-    return excmds.filter(x => /\S/.test(x) && !x.trim().startsWith('"'))
+    const ex = excmds.filter(
+        x =>
+            /\S/.test(x) &&
+            !x.trim().startsWith('"') &&
+            !x.trim().startsWith("#"),
+    )
+    const res = ex.join("\n")
+
+    // string-join lines that end with /
+    const joined = res.replace(/\\\n/g, "")
+
+    return joined.split("\n")
 }

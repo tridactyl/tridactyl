@@ -3,7 +3,8 @@ import * as Messaging from "@src/lib/messaging"
 import * as Completions from "../completions"
 import * as config from "@src/lib/config"
 
-class FindCompletionOption extends Completions.CompletionOptionHTML
+class FindCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
     constructor(m, reverse = false) {
@@ -14,9 +15,10 @@ class FindCompletionOption extends Completions.CompletionOptionHTML
 
         // Create HTMLElement
         this.html = html`<tr class="FindCompletionOption option">
-            <td class="content">${m.precontext}<span class="match">${
-            m.rangeData.text
-        }</span>${m.postcontext}</td>
+            <td class="content">
+                ${m.precontext}<span class="match">${m.rangeData.text}</span
+                >${m.postcontext}
+            </td>
         </tr>`
     }
 }
@@ -25,12 +27,10 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
     public options: FindCompletionOption[]
     public prevCompletion = null
     public completionCount = 0
-    private startingPosition = 0
 
     constructor(private _parent) {
         super(["find "], "FindCompletionSource", "Matches")
 
-        this.startingPosition = window.pageYOffset
         this._parent.appendChild(this.node)
     }
 
@@ -47,7 +47,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     //  Overriding this function is important, the default one has a tendency to hide options when you don't expect it
-    setStateFromScore(scoredOpts, autoselect) {
+    setStateFromScore() {
         this.options.forEach(o => (o.state = "normal"))
     }
 

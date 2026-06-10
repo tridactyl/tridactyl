@@ -36,6 +36,7 @@ import {
 import { contentState } from "@src/content/state_content"
 import * as config from "@src/lib/config"
 import Logger from "@src/lib/logging"
+import * as R from "ramda"
 
 /** @hidden */
 const logger = new Logger("hinting")
@@ -57,7 +58,11 @@ function distance(l1: number, r1: number, l2: number, r2: number): number {
  * */
 class HintState {
     public focusedHint: Hint
+    readonly hud = document.createElement("div")
+    readonly hudTranslate = document.createElement("div")
     readonly hintHost = document.createElement("div")
+    readonly highlightHost: Element | null = null
+    readonly outlineHost: Element | null = null
     readonly hints: Hint[] = []
     public selectedHints: Hint[] = []
     public filter = ""
@@ -69,7 +74,21 @@ class HintState {
         public reject: (x) => void,
         public rapid: boolean,
     ) {
-        this.hintHost.classList.add("TridactylHintHost", "cleanslate")
+        this.hud.classList.add("TridactylHud", "cleanslate")
+        this.hudTranslate.classList.add("TridactylHudTranslation")
+        this.hintHost.classList.add("TridactylHintHost")
+
+        const { overlay, overlayoutline } = config.get("hintstyles")
+        if (overlay !== "none") {
+            this.highlightHost = document.createElement("div")
+            this.highlightHost.classList.add("TridactylHintHighlightHost")
+        }
+        if (overlayoutline !== "none") {
+            this.outlineHost = document.createElement("div")
+            this.outlineHost.classList.add("TridactylHintOutlineHost")
+        }
+
+        this.hudTranslate.style.translate = `${-window.scrollX}px ${-window.scrollY}px`
     }
 
     get activeHints() {
@@ -86,7 +105,7 @@ class HintState {
         }
 
         // Remove all hints from the DOM.
-        this.hintHost.remove()
+        this.hud.remove()
     }
 
     resolveHinting() {
@@ -97,6 +116,21 @@ class HintState {
             this.resolve(
                 this.selectedHints[0] ? this.selectedHints[0].result : "",
             )
+    }
+
+    // move overlapping hints around
+    deOverlap() {
+        this.hints.sort((a, b) => a.y - b.y)
+        const visited: Hint[] = []
+        for (const h of this.hints) {
+            for (const vh of visited) {
+                if (h.overlapsWith(vh)) {
+                    if (vh.x + vh.width < h.rect.right) h.x = vh.x + vh.width
+                    else h.y = vh.y + vh.height
+                }
+            }
+            visited.push(h)
+        }
     }
 
     changeFocusedHintIndex(offset) {
@@ -122,15 +156,29 @@ class HintState {
         const focusedRect = this.focusedHint.rect
 
         // Get all hints from the top area
-        const topHints = this.activeHints.filter(h => h.rect.top < focusedRect.top && h.rect.bottom < focusedRect.bottom)
+        const topHints = this.activeHints.filter(
+            h =>
+                h.rect.top < focusedRect.top &&
+                h.rect.bottom < focusedRect.bottom,
+        )
         if (!topHints.length) {
             return
         }
 
         // Find the next top hint
         const nextFocusedHint = topHints.reduce((a, b) => {
-            const aDistance = distance(a.rect.left, a.rect.right, focusedRect.left, focusedRect.right)
-            const bDistance = distance(b.rect.left, b.rect.right, focusedRect.left, focusedRect.right)
+            const aDistance = distance(
+                a.rect.left,
+                a.rect.right,
+                focusedRect.left,
+                focusedRect.right,
+            )
+            const bDistance = distance(
+                b.rect.left,
+                b.rect.right,
+                focusedRect.left,
+                focusedRect.right,
+            )
             if (aDistance < bDistance) {
                 return a
             } else if (aDistance > bDistance) {
@@ -156,15 +204,29 @@ class HintState {
         const focusedRect = this.focusedHint.rect
 
         // Get all hints from the bottom area
-        const bottomHints = this.activeHints.filter(h => h.rect.top > focusedRect.top && h.rect.bottom > focusedRect.bottom)
+        const bottomHints = this.activeHints.filter(
+            h =>
+                h.rect.top > focusedRect.top &&
+                h.rect.bottom > focusedRect.bottom,
+        )
         if (!bottomHints.length) {
             return
         }
 
         // Find the next bottom hint
         const nextFocusedHint = bottomHints.reduce((a, b) => {
-            const aDistance = distance(a.rect.left, a.rect.right, focusedRect.left, focusedRect.right)
-            const bDistance = distance(b.rect.left, b.rect.right, focusedRect.left, focusedRect.right)
+            const aDistance = distance(
+                a.rect.left,
+                a.rect.right,
+                focusedRect.left,
+                focusedRect.right,
+            )
+            const bDistance = distance(
+                b.rect.left,
+                b.rect.right,
+                focusedRect.left,
+                focusedRect.right,
+            )
             if (aDistance < bDistance) {
                 return a
             } else if (aDistance > bDistance) {
@@ -190,15 +252,29 @@ class HintState {
         const focusedRect = this.focusedHint.rect
 
         // Get all hints from the left area
-        const leftHints = this.activeHints.filter(h => h.rect.left < focusedRect.left && h.rect.right < focusedRect.right)
+        const leftHints = this.activeHints.filter(
+            h =>
+                h.rect.left < focusedRect.left &&
+                h.rect.right < focusedRect.right,
+        )
         if (!leftHints.length) {
             return
         }
 
         // Find the next left hint
         const nextFocusedHint = leftHints.reduce((a, b) => {
-            const aDistance = distance(a.rect.top, a.rect.bottom, focusedRect.top, focusedRect.bottom)
-            const bDistance = distance(b.rect.top, b.rect.bottom, focusedRect.top, focusedRect.bottom)
+            const aDistance = distance(
+                a.rect.top,
+                a.rect.bottom,
+                focusedRect.top,
+                focusedRect.bottom,
+            )
+            const bDistance = distance(
+                b.rect.top,
+                b.rect.bottom,
+                focusedRect.top,
+                focusedRect.bottom,
+            )
             if (aDistance < bDistance) {
                 return a
             } else if (aDistance > bDistance) {
@@ -224,15 +300,29 @@ class HintState {
         const focusedRect = this.focusedHint.rect
 
         // Get all hints from the right area
-        const rightHints = this.activeHints.filter(h => h.rect.left > focusedRect.left && h.rect.right > focusedRect.right)
+        const rightHints = this.activeHints.filter(
+            h =>
+                h.rect.left > focusedRect.left &&
+                h.rect.right > focusedRect.right,
+        )
         if (!rightHints.length) {
             return
         }
 
         // Find the next right hint
         const nextFocusedHint = rightHints.reduce((a, b) => {
-            const aDistance = distance(a.rect.top, a.rect.bottom, focusedRect.top, focusedRect.bottom)
-            const bDistance = distance(b.rect.top, b.rect.bottom, focusedRect.top, focusedRect.bottom)
+            const aDistance = distance(
+                a.rect.top,
+                a.rect.bottom,
+                focusedRect.top,
+                focusedRect.bottom,
+            )
+            const bDistance = distance(
+                b.rect.top,
+                b.rect.bottom,
+                focusedRect.top,
+                focusedRect.bottom,
+            )
             if (aDistance < bDistance) {
                 return a
             } else if (aDistance > bDistance) {
@@ -264,8 +354,12 @@ class HintState {
 
         // To do this, compute the number of hints between the last selected
         // hint and the hint selected before it
-        const lastIndex = this.hints.indexOf(this.selectedHints[this.selectedHints.length - 1])
-        const prevIndex = this.hints.indexOf(this.selectedHints[this.selectedHints.length - 2])
+        const lastIndex = this.hints.indexOf(
+            this.selectedHints[this.selectedHints.length - 1],
+        )
+        const prevIndex = this.hints.indexOf(
+            this.selectedHints[this.selectedHints.length - 2],
+        )
         const distance = lastIndex - prevIndex
 
         if (distance > 0) {
@@ -302,7 +396,9 @@ class HintState {
 
             // Set the names that should go at the end
             for (let i = 0; i < savedNames.length; ++i) {
-                this.hints[this.hints.length + distance + i].setName(savedNames[i])
+                this.hints[this.hints.length + distance + i].setName(
+                    savedNames[i],
+                )
             }
         }
 
@@ -311,18 +407,89 @@ class HintState {
 }
 
 /** @hidden*/
-let modeState: HintState
+export let modeState: HintState
+
+interface Hintables {
+    elements: Element[]
+    hintclasses?: string[]
+}
+
+/**
+  A convenient javascript interface to hint on specified html elements.
+  The return value is a promise resolving to the selected element,
+  or an AsyncIterator resolving to the selected elements in rapid mode.
+
+  Example usage:
+
+  `tri.hinting_content.hintElements(...).then(element => {tri.dom.simulateClick(element))`
+
+  `for (await e of tri.hinting_content.hintElements(..., {rapid: true}){tri.dom.simulateClick(e)})`
+
+  @param elements a iterator yield html elements
+  @param option a option object. The `option.rapid` specify whether hint in rapid mode. Default value is false. The `option.callback` is executed when a hint is selected if specified. The default callback is a no-op.
+
+  @returns promise resolve to the selected element, or a async iterator in rapid mode.
+ */
+export function hintElements(elements: Element[], option = {}) {
+    const hintable = toHintablesArray(Array.from(elements))
+    const rapid = option["rapid"] ?? false
+    const callback = typeof option["callback"] === "function" ?
+        option["callback"] : x => x
+    if (!rapid) {
+        return new Promise((resolve, reject) => {
+            hintPage(hintable, x => x, resolve, reject, rapid)
+        }).then(x => {
+            callback(x)
+            return x
+        })
+    } else {
+        const endDefer = deferCreate()
+        const endPromise = endDefer.promise.catch(error => error)
+        let onSelect = deferCreate()
+        const key = Symbol("select-result")
+        const hintCallback = element => {
+            callback(element)
+            onSelect.resolve({[key]: element})
+            onSelect = deferCreate()
+        }
+        const wrap = async function* () {
+            while (true) {
+                const first = await Promise.race([onSelect.promise, endPromise])
+                if (first && typeof first === "object" && key in first) {
+                    yield first[key]
+                } else return await endPromise
+            }
+        }
+        const result = wrap()
+        hintPage(hintable, hintCallback,
+            endDefer.resolve, endDefer.reject, rapid)
+        return result
+    }
+    function deferCreate() {
+        const defer = {
+            resolve: null,
+            reject: null,
+            promise: null,
+        }
+        defer.promise = new Promise((ok, no) => {
+            defer.resolve = ok
+            defer.reject = no
+        })
+        return defer
+    }
+}
 
 /** For each hintable element, add a hint
  * @hidden
  * */
 export function hintPage(
-    hintableElements: Element[],
+    hintableElements: Hintables[],
     onSelect: HintSelectedCallback,
-    resolve = () => {},
-    reject = () => {},
+    resolve: (x?) => void = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    reject: (x?) => void = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     rapid = false,
 ) {
+    reset() // Tidy up in case any previous hinting wasn't exited cleanly
     const buildHints: HintBuilder = defaultHintBuilder()
     const filterHints: HintFilter = defaultHintFilter()
     contentState.mode = "hint"
@@ -339,17 +506,22 @@ export function hintPage(
         buildHints(hintableElements, hint => {
             hint.result = onSelect(hint.target)
             modeState.selectedHints.push(hint)
-            if (modeState.selectedHints.length > 1 && (config.get("hintshift") === "true")) {
-                modeState.shiftHints();
+            if (
+                modeState.selectedHints.length > 1 &&
+                config.get("hintshift") === "true"
+            ) {
+                modeState.shiftHints()
             }
+            removeFilteredCharClass()
         })
     }
 
-    if (! modeState.hints.length) {
+    if (!modeState.hints.length) {
         // No more hints to display
         reset()
         return
     }
+    modeState.hints.forEach(hint => hint.hidden = false)
 
     // There are multiple hints. Normally we would just show all of them, but
     // we try to be clever here. Automatically select the first one if all the
@@ -363,25 +535,26 @@ export function hintPage(
 
     const firstTarget = modeState.hints[0].target
 
-    const firstTargetIsSelectable = (): boolean => {
-        return firstTarget instanceof HTMLAnchorElement &&
-            firstTarget.href !== "" &&
-            !firstTarget.href.startsWith("javascript:")
-    }
+    const firstTargetIsSelectable = (): boolean =>
+        firstTarget instanceof HTMLAnchorElement &&
+        firstTarget.href !== "" &&
+        !firstTarget.href.startsWith("javascript:")
 
-    const allTargetsAreEqual = (): boolean => {
-        return undefined === modeState.hints.find(h => {
-            return (
+    const allTargetsAreEqual = (): boolean =>
+        undefined ===
+        modeState.hints.find(
+            h =>
                 !(h.target instanceof HTMLAnchorElement) ||
-                h.target.href !== (firstTarget as HTMLAnchorElement).href
-            )
-        })
-    }
+                h.target.href !== (firstTarget as HTMLAnchorElement).href,
+        )
 
-    if (modeState.hints.length == 1 ||
-        (firstTargetIsSelectable() && allTargetsAreEqual())) {
+    if (
+        (modeState.hints.length == 1 ||
+            (firstTargetIsSelectable() && allTargetsAreEqual())) &&
+        config.get("hintautoselect") === "true"
+    ) {
         // There is just a single link or all the links point to the same
-        // place. Select it.
+        // place. Select it unless `hintautoselect` is set to `false`.
         modeState.cleanUpHints()
         modeState.hints[0].select()
         reset()
@@ -391,7 +564,17 @@ export function hintPage(
     // Just focus first link
     modeState.focusedHint = modeState.hints[0]
     modeState.focusedHint.focused = true
-    document.documentElement.appendChild(modeState.hintHost)
+
+    if (modeState.highlightHost)
+        modeState.hudTranslate.appendChild(modeState.highlightHost)
+    if (modeState.outlineHost)
+        modeState.hudTranslate.appendChild(modeState.outlineHost)
+    modeState.hudTranslate.appendChild(modeState.hintHost)
+    modeState.hud.appendChild(modeState.hudTranslate)
+    document.documentElement.appendChild(modeState.hud)
+    modeState.deOverlap()
+    window.removeEventListener("scroll", updateHudOffset)
+    window.addEventListener("scroll", updateHudOffset)
 }
 
 /** @hidden */
@@ -443,16 +626,24 @@ function* hintnames_simple(
 
 /** Shorter hints
 
-    Hints that are prefixes of other hints are a bit annoying because you have to select them with Enter or Space.
+    Hints that are prefixes of other hints are a bit annoying because you have
+    to select them with Enter or Space. This function returns a stream of hint
+    names without any prefixing while keeping the lengths as short as possible,
+    by skipping a certain number of the shortest hints from a full stream with
+    prefixing.
 
-    This function removes hints that prefix other hints by observing that:
-        let h = hintchars.length
-        if n < h ** 2
-        then n / h = number of single character hintnames that would prefix later hints
+    Let h be hintchars.length and n be the total number of hints. If n <= h,
+    then no hint names need to be skipped. Beyond that, each skipped hint name
+    increases the total number of accessible prefix-free hint names by h - 1:
+    that hint is lost, but h more are opened up (that hint with each individual
+    hint character appended to it in turn).
 
-    So it removes them. This function is not yet clever enough to realise that if n > h ** 2 it should remove
-        h + (n - h**2 - h) / h ** 2
-    and so on, but we hardly ever see that many hints, so whatever.
+    The order in which the hints are generated guarantees that when a hint is
+    skipped, the ones that are opened up are next in line in the sequence.
+
+    Therefore, the necessary number of skips is the ceiling of the number of
+    extra hint names we need, n - h, divided by the number that each skip gives
+    us, h - 1.
 
     @hidden
 */
@@ -461,7 +652,7 @@ function* hintnames_short(
     hintchars = defaultHintChars(),
 ): IterableIterator<string> {
     const source = hintnames_simple(hintchars)
-    const num2skip = Math.floor(n / hintchars.length)
+    const num2skip = Math.max(0, Math.ceil((n - hintchars.length) / (hintchars.length - 1)));
     yield* islice(source, num2skip, n + num2skip)
 }
 
@@ -479,9 +670,7 @@ function* hintnames_uniform(
         // And return first n permutations
         yield* map(
             islice(permutationsWithReplacement(hintchars, taglen), n),
-            perm => {
-                return perm.join("")
-            },
+            perm => perm.join(""),
         )
     }
 }
@@ -514,14 +703,22 @@ type HintSelectedCallback = (x: any) => any
 @hidden */
 class Hint {
     public readonly flag = document.createElement("span")
+    public readonly highlight: HTMLElement | null = null
+    public readonly outline: HTMLElement | null = null
     public readonly rect: ClientRect = null
     public result: any = null
+
+    public width = 0
+    public height = 0
+    private _x = 0
+    private _y = 0
 
     constructor(
         public readonly target: Element,
         public name: string,
         public readonly filterData: any,
         private readonly onSelect: HintSelectedCallback,
+        classes?: string[],
     ) {
         // We need to compute the offset for elements that are in an iframe
         let offsetTop = 0
@@ -552,29 +749,79 @@ class Hint {
             left: rect.left + offsetLeft,
             right: rect.right + offsetLeft,
             width: rect.width,
-            height: rect.height
+            height: rect.height,
         }
 
-        this.flag.textContent = name
+        // A span for each char so typed chars can be styled differently
+        for (const ch of name) {
+            const charspan = document.createElement("span")
+            charspan.textContent = ch
+            this.flag.appendChild(charspan)
+        }
         this.flag.className = "TridactylHint"
         if (config.get("hintuppercase") === "true") {
             this.flag.classList.add("TridactylHintUppercase")
         }
         this.flag.classList.add("TridactylHint" + target.tagName)
+        classes?.forEach(f => this.flag.classList.add(f))
+
+        // Add optional overlays
+        if (modeState.highlightHost  || modeState.outlineHost) {
+            const mainRect = document.createElement("div")
+            // Add all rectangles for highlights / outlines
+            for (const recti of clientRects) {
+                let rectElem
+                let inset
+                if (recti === rect) {
+                    rectElem = mainRect
+                    inset = `${rect.top + window.scrollY}px ${rect.left + window.scrollX}px`
+                } else {
+                    // Position extra rects relative to the main rect
+                    rectElem = document.createElement("div")
+                    mainRect.appendChild(rectElem)
+                    inset = `${recti.top - rect.top}px ${recti.left - rect.left}px`
+                }
+
+                rectElem.style.cssText = `
+                    inset: ${inset} !important;
+                    width: ${recti.width}px !important;
+                    height: ${recti.height}px !important;
+                `
+            }
+
+            if (modeState.highlightHost) {
+                this.highlight = mainRect
+                this.highlight.className = "TridactylHintHighlight"
+                modeState.highlightHost.appendChild(this.highlight)
+            }
+
+            if (modeState.outlineHost) {
+                this.outline = this.highlight ? (this.highlight as any).cloneNode(true) : mainRect
+                this.outline.className = "TridactylHintOutline"
+                modeState.outlineHost.appendChild(this.outline)
+            }
+        }
 
         const top = rect.top > 0 ? this.rect.top : offsetTop + pad
         const left = rect.left > 0 ? this.rect.left : offsetLeft + pad
-        this.flag.style.cssText = `
-            top: ${window.scrollY + top}px !important;
-            left: ${window.scrollX + left}px !important;
-        `
+        this.x = window.scrollX + left
+        this.y = window.scrollY + top
+
         modeState.hintHost.appendChild(this.flag)
-        this.hidden = false
+    }
+
+    public static isHintable(target: Element): boolean {
+        return target.getClientRects().length > 0
     }
 
     setName(n: string) {
         this.name = n
-        this.flag.textContent = this.name
+        this.flag.textContent = ""
+        for (const ch of n) {
+            const charspan = document.createElement("span")
+            charspan.textContent = ch
+            this.flag.appendChild(charspan)
+        }
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
@@ -584,8 +831,12 @@ class Hint {
         if (hide) {
             this.focused = false
             this.target.classList.remove("TridactylHintElem")
+            this.highlight?.setAttribute("hidden", "")
+            this.outline?.setAttribute("hidden", "")
         } else {
             this.target.classList.add("TridactylHintElem")
+            this.highlight?.removeAttribute("hidden")
+            this.outline?.removeAttribute("hidden")
         }
     }
 
@@ -593,27 +844,104 @@ class Hint {
         if (focus) {
             this.target.classList.add("TridactylHintActive")
             this.target.classList.remove("TridactylHintElem")
+
+            if (this.highlight)
+                this.highlight.classList.add("TridactylHintHighlightActive")
+
+            if (this.outline)
+                this.outline.classList.add("TridactylHintOutlineActive")
+
+            this.flag.classList.add("TridactylHintSpanActive")
         } else {
             this.target.classList.add("TridactylHintElem")
             this.target.classList.remove("TridactylHintActive")
+
+            if (this.highlight)
+                this.highlight.classList.remove("TridactylHintHighlightActive")
+
+            if (this.outline)
+                this.outline.classList.remove("TridactylHintOutlineActive")
+
+            this.flag.classList.remove("TridactylHintSpanActive")
         }
     }
 
     select() {
         this.onSelect(this)
     }
+
+    set x(X: number) {
+        this._x = X
+        this.updatePosition()
+    }
+
+    get x() {
+        return this._x
+    }
+
+    set y(Y: number) {
+        this._y = Y
+        this.updatePosition()
+    }
+
+    get y() {
+        return this._y
+    }
+
+    public overlapsWith(h: Hint) {
+        if (h.width == 0) h.width = h.flag.getClientRects()[0].width
+        if (h.height == 0) h.height = h.flag.getClientRects()[0].height
+        if (this.width == 0) this.width = this.flag.getClientRects()[0].width
+        if (this.height == 0) this.height = this.flag.getClientRects()[0].height
+        return (
+            this.x < h.x + h.width &&
+            this.x + this.width > h.x &&
+            this.y < h.y + h.height &&
+            this.y + this.height > h.y
+        )
+    }
+
+    private updatePosition() {
+        this.flag.style.cssText = `
+        top: ${this._y}px !important;
+        left: ${this._x}px !important;
+        `
+    }
+}
+
+function updateHudOffset() {
+    window.requestAnimationFrame(() => {
+        modeState.hudTranslate.style.translate = `${-window.scrollX}px ${-window.scrollY}px`
+    })
 }
 
 /** @hidden */
-type HintBuilder = (els: Element[], onSelect: HintSelectedCallback) => void
+type HintBuilder = (
+    hintables: Hintables[],
+    onSelect: HintSelectedCallback,
+) => void
 
 /** @hidden */
-function buildHintsSimple(els: Element[], onSelect: HintSelectedCallback) {
-    const names = hintnames(els.length)
-    for (const [el, name] of izip(els, names)) {
-        logger.debug({ el, name })
-        modeState.hintchars += name
-        modeState.hints.push(new Hint(el, name, null, onSelect))
+function buildHintsSimple(
+    hintablesArray: Hintables[],
+    onSelect: HintSelectedCallback,
+) {
+    const hintablesfiltered = hintablesArray.map(h => ({ elements: h.elements.filter(el => Hint.isHintable(el)), hintclasses: h.hintclasses }))
+    const totalhints = hintablesfiltered.reduce((n, h) => n + h.elements.length, 0)
+
+    const allnames = Array.from(
+        hintnames(totalhints + modeState.hints.length),
+    ).slice(modeState.hints.length)
+
+    for (const hintables of hintablesfiltered) {
+        const names = allnames.slice(modeState.hints.length)
+        for (const [el, name] of izip(hintables.elements, names)) {
+            logger.debug({ el, name })
+            modeState.hintchars += name
+            modeState.hints.push(
+                new Hint(el, name, null, onSelect, hintables.hintclasses),
+            )
+        }
     }
 }
 
@@ -631,9 +959,13 @@ export const vimpHelper = {
             // escape the hintchars string so that strange things don't happen
             // when special characters are used as hintchars (for example, ']')
             const escapedHintChars = defaultHintChars().replace(
-                /^\^|[-\\\]]/g, "\\$&")
+                /^\^|[-\\\]]/g,
+                "\\$&",
+            )
             const filterableTextFilter = new RegExp(
-                "[" + escapedHintChars + "]", "g")
+                "[" + escapedHintChars + "]",
+                "g",
+            )
             vimpHelper.filterableTextFilter = filterableTextFilter
         }
         return str.replace(vimpHelper.filterableTextFilter, "")
@@ -647,14 +979,27 @@ export const vimpHelper = {
 }
 
 /** @hidden */
-function buildHintsVimperator(els: Element[], onSelect: HintSelectedCallback) {
-    const names = hintnames(els.length)
-    for (const [el, name] of izip(els, names)) {
-        let ft = elementFilterableText(el)
-        ft = vimpHelper.sanitiseHintText(ft)
-        logger.debug({ el, name, ft })
-        modeState.hintchars += name + ft
-        modeState.hints.push(new Hint(el, name, ft, onSelect))
+function buildHintsVimperator(
+    hintablesArray: Hintables[],
+    onSelect: HintSelectedCallback,
+) {
+    const hintablesfiltered = hintablesArray.map(h => ({ elements: h.elements.filter(el => Hint.isHintable(el)), hintclasses: h.hintclasses }))
+    const totalhints = hintablesfiltered.reduce((n, h) => n + h.elements.length, 0)
+    const allnames = Array.from(
+        hintnames(totalhints + modeState.hints.length),
+    ).slice(modeState.hints.length)
+
+    for (const hintables of hintablesfiltered) {
+        const names = allnames.slice(modeState.hints.length)
+        for (const [el, name] of izip(hintables.elements, names)) {
+            let ft = elementFilterableText(el)
+            ft = vimpHelper.sanitiseHintText(ft)
+            logger.debug({ el, name, ft })
+            modeState.hintchars += name + ft
+            modeState.hints.push(
+                new Hint(el, name, ft, onSelect, hintables.hintclasses),
+            )
+        }
     }
 }
 
@@ -675,6 +1020,26 @@ function elementFilterableText(el: Element): string {
     return text.slice(0, 2048).toLowerCase() || ""
 }
 
+/** Apply a class to hint tag chars that have been typed so they can be styled.
+@hidden */
+function addFilteredCharClass(hint: Hint, fstr: string) {
+    for (let i = 0; i < fstr.length; ++i) {
+        hint.flag.children[i].className = "TridactylHintCharPressed"
+    }
+    for (let i = fstr.length; i < hint.flag.children.length; ++i) {
+        hint.flag.children[i].className = ""
+    }
+}
+
+/** Remove the filtered char class from all hints - for resetting the style when rapid hinting
+@hidden */
+function removeFilteredCharClass() {
+    const pressed = modeState.hintHost.querySelectorAll(".TridactylHintCharPressed");
+    for (const el of pressed) {
+        el.classList.remove("TridactylHintCharPressed");
+    }
+}
+
 /** @hidden */
 type HintFilter = (s: string) => void
 
@@ -683,7 +1048,15 @@ type HintFilter = (s: string) => void
 function filterHintsSimple(fstr) {
     const active: Hint[] = []
     let foundMatch
-    for (const h of modeState.hints) {
+
+    // Fix bug where sometimes a bigger number would be selected (e.g. 10 rather than 1)
+    // such that smaller numbers couldn't be selected
+    const hints =
+        config.get("hintnames") == "numeric"
+            ? R.sortBy(R.pipe(R.prop("name"), parseInt), modeState.hints)
+            : modeState.hints
+
+    for (const h of hints) {
         if (!h.name.startsWith(fstr)) h.hidden = true
         else {
             if (!foundMatch) {
@@ -692,10 +1065,11 @@ function filterHintsSimple(fstr) {
                 foundMatch = true
             }
             h.hidden = false
+            addFilteredCharClass(h, fstr)
             active.push(h)
         }
     }
-    if (active.length === 1) {
+    if (active.length === 1 && config.get("hintautoselect") === "true") {
         selectFocusedHint()
     }
 }
@@ -711,16 +1085,18 @@ function filterHintsSimple(fstr) {
 
     @hidden
 */
-function filterHintsVimperator(fstr, reflow = false) {
-    /** Partition a fstr into a tagged array of substrings */
-    function partitionFstr(fstr): Array<{ str: string; isHintChar: boolean }> {
+function filterHintsVimperator(query: string, reflow = false) {
+    /** Partition a query into a tagged array of substrings */
+    function partitionquery(
+        query,
+    ): Array<{ str: string; isHintChar: boolean }> {
         const peek = a => a[a.length - 1]
         const hintChars = defaultHintChars()
 
         // For each char, either add it to the existing run if there is one and
         // it's a matching type or start a new run
         const runs = []
-        for (const char of fstr) {
+        for (const char of query) {
             const isHintChar = hintChars.includes(char)
             if (!peek(runs) || peek(runs).isHintChar !== isHintChar) {
                 runs.push({ str: char, isHintChar })
@@ -735,23 +1111,29 @@ function filterHintsVimperator(fstr, reflow = false) {
         const names = hintnames(hints.length)
         for (const [hint, name] of izip(hints, names)) {
             hint.name = name
+            hint.flag.textContent = ""
+            for (const ch of hint.name) {
+                const charspan = document.createElement("span")
+                charspan.textContent = ch
+                hint.flag.appendChild(charspan)
+            }
         }
     }
 
     // Start with all hints
     let active = modeState.hints
 
-    // If we're reflowing, the names may be wrong at this point, so apply the original names.
-    if (reflow) rename(active)
-
     // Filter down (renaming as required)
-    for (const run of partitionFstr(fstr)) {
+    for (const run of partitionquery(query)) {
         if (run.isHintChar) {
             // Filter by label
             active = active.filter(hint => hint.name.startsWith(run.str))
+            active.forEach(hint => addFilteredCharClass(hint, run.str))
         } else {
             // By text
-            active = active.filter(hint => vimpHelper.matchHint(hint.filterData, run.str))
+            active = active.filter(hint =>
+                vimpHelper.matchHint(hint.filterData, run.str),
+            )
 
             if (reflow) rename(active)
         }
@@ -768,7 +1150,6 @@ function filterHintsVimperator(fstr, reflow = false) {
     for (const hint of modeState.hints) {
         if (active.includes(hint)) {
             hint.hidden = false
-            hint.flag.textContent = hint.name
         } else {
             hint.hidden = true
         }
@@ -780,8 +1161,8 @@ function filterHintsVimperator(fstr, reflow = false) {
         modeState.focusedHint.focused = true
     }
 
-    // Select focused hint if it's the only match
-    if (active.length === 1) {
+    // Select focused hint if it's the only match unless turned off in config
+    if (active.length === 1 && config.get("hintautoselect") === "true") {
         selectFocusedHint(true)
     }
 }
@@ -796,6 +1177,7 @@ function reset() {
     }
     modeState = undefined
     contentState.mode = "normal"
+    window.removeEventListener("scroll", updateHudOffset)
 }
 
 function popKey() {
@@ -819,6 +1201,9 @@ function pushKey(key) {
 
 /** Covert to char and pushKey(). This is needed because ex commands ignore whitespace. */
 function pushKeyCodePoint(codepoint) {
+    // Codepoints can be hex or base-10
+    // We know we're not running in old browsers so this is safe
+    // eslint-disable-next-line radix
     const key = String.fromCodePoint(parseInt(codepoint, 0))
     return pushKey(key)
 }
@@ -832,20 +1217,33 @@ function pushSpace() {
 
     Elements are hintable if
         1. they can be meaningfully selected, clicked, etc
-        2. they're visible
+        2. they're visible (unless includeInvisible is true)
             1. Within viewport
             2. Not hidden by another element
 
     @hidden
 */
-export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
-    let elems = DOM.getElemsBySelector(selectors, [])
+export function hintables(
+    selectors = DOM.HINTTAGS_selectors,
+    withjs = false,
+    includeInvisible = false,
+) {
+    const visibleFilter = DOM.isVisibleFilter(includeInvisible)
+    const elems = changeHintablesToLargestChild(
+        DOM.getElemsBySelector(selectors, []).filter(visibleFilter),
+    )
+    const hintables: Hintables[] = [{ elements: elems }]
     if (withjs) {
-        const elemSet = new Set([...elems, ...DOM.hintworthy_js_elems])
-        elems = [...elemSet]
+        hintables.push({
+            elements: changeHintablesToLargestChild(
+                Array.from(DOM.hintworthy_js_elems).filter(
+                    el => visibleFilter(el) && !elems.includes(el),
+                ),
+            ),
+            hintclasses: ["TridactylJSHint"],
+        })
     }
-    elems = elems.filter(DOM.isVisible)
-    return changeHintablesToLargestChild(elems);
+    return hintables
 }
 
 /**
@@ -855,21 +1253,24 @@ export function hintables(selectors = DOM.HINTTAGS_selectors, withjs = false) {
  */
 function changeHintablesToLargestChild(elements: Element[]): Element[] {
     elements.forEach((element, index) => {
-        if (element.childNodes.length === 0) return;
-        let largestChild: Element;
+        if (element.childNodes.length === 0) return
+        let largestChild: Element
         // Find largest child.
-        element.childNodes.forEach((c) => {
-            const currentChild = (c as Element);
-            if (!largestChild || isElementLargerThan(currentChild, largestChild)) {
-                largestChild = currentChild;
+        element.childNodes.forEach(c => {
+            const currentChild = c as Element
+            if (
+                !largestChild ||
+                isElementLargerThan(currentChild, largestChild)
+            ) {
+                largestChild = currentChild
             }
         })
         // Change element if child is larger
         if (isElementLargerThan(largestChild, element)) {
-            elements[index] = largestChild;
+            elements[index] = largestChild
         }
     })
-    return elements;
+    return elements
 }
 
 /**
@@ -878,87 +1279,85 @@ function changeHintablesToLargestChild(elements: Element[]): Element[] {
  */
 function isElementLargerThan(e1: Element, e2: Element): boolean {
     if (typeof e1.getBoundingClientRect !== "function") {
-        return false;
+        return false
     } else if (typeof e2.getBoundingClientRect !== "function") {
-        return true;
+        return true
     }
-    const e1BR = e1.getBoundingClientRect();
-    const e2BR = e2.getBoundingClientRect();
-    return e1BR.height > e2BR.height && e1BR.width > e2BR.width;
+    const e1BR = e1.getBoundingClientRect()
+    const e2BR = e2.getBoundingClientRect()
+    return e1BR.height > e2BR.height && e1BR.width > e2BR.width
 }
 
 /** Returns elements that point to a saveable resource
  * @hidden
  */
-export function saveableElements() {
-    return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [DOM.isVisible])
+export function saveableElements(includeInvisible = false) {
+    return DOM.getElemsBySelector(DOM.HINTTAGS_saveable, [
+        DOM.isVisibleFilter(includeInvisible),
+    ])
 }
 
-/** Get array of images in the viewport
+/** Get array of images in the viewport, or all images if includeInvisible is true
  * @hidden
  */
-export function hintableImages() {
-    return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [DOM.isVisible])
+export function hintableImages(includeInvisible = false) {
+    return DOM.getElemsBySelector(DOM.HINTTAGS_img_selectors, [
+        DOM.isVisibleFilter(includeInvisible),
+    ])
 }
 
 /** Get array of selectable elements that display a text matching either plain
  * text or RegExp rule
  * @hidden
  */
-export function hintByText(match: string|RegExp) {
+export function hintByText(match: string | RegExp) {
     return DOM.getElemsBySelector(DOM.HINTTAGS_filter_by_text_selectors, [
         DOM.isVisible,
-        hint => {
-            let text
-            if (hint instanceof HTMLInputElement) {
-                // tslint:disable-next-line:no-useless-cast
-                text = (hint as HTMLInputElement).value
-            } else {
-                text = hint.textContent
-            }
-            if (match instanceof RegExp) {
-                return text.match(match) !== null
-            } else {
-                return text.toUpperCase().includes(match.toUpperCase())
-            }
-        }
+        hintByTextFilter(match),
     ])
+}
+
+/** Return a predicate that checks whether an element matches a given text hinting filter
+ * @hidden
+ */
+export function hintByTextFilter(match: string | RegExp): HintSelectedCallback {
+    return hint => {
+        let text
+        if (hint instanceof HTMLInputElement) {
+            text = hint.value
+        } else {
+            text = hint.textContent
+        }
+        if (match instanceof RegExp) {
+            return text.match(match) !== null
+        } else {
+            return text.toUpperCase().includes(match.toUpperCase())
+        }
+    }
 }
 
 /** Array of items that can be killed with hint kill
 @hidden
  */
-export function killables() {
+export function killables(includeInvisible = false) {
     return DOM.getElemsBySelector(DOM.HINTTAGS_killable_selectors, [
-        DOM.isVisible,
+        DOM.isVisibleFilter(includeInvisible),
     ])
 }
 
-/** HintPage wrapper, accepts CSS selectors to build a list of elements
+// Multiple dispatch? who needs it
+/** Returns an array of hintable objects from an array of elements
  * @hidden
  * */
-export function pipe(
-    selectors = DOM.HINTTAGS_selectors,
-    action: HintSelectedCallback = _ => _,
-    rapid = false,
-    jshints = true,
-): Promise<[Element, number]> {
-    return new Promise((resolve, reject) => {
-        hintPage(hintables(selectors, jshints), action, resolve, reject, rapid)
-    })
-}
-
-/** HintPage wrapper, accepts array of elements to hint
- * @hidden
- * */
-export function pipe_elements(
-    elements: any = DOM.elementsWithText,
-    action: HintSelectedCallback = _ => _,
-    rapid = false,
-): Promise<[Element, number]> {
-    return new Promise((resolve, reject) => {
-        hintPage(elements, action, resolve, reject, rapid)
-    })
+export function toHintablesArray(
+    hintablesOrElements: Element[] | Hintables[],
+): Hintables[] {
+    if (!hintablesOrElements.length) return []
+    if ("className" in hintablesOrElements[0])
+        return [{ elements: hintablesOrElements } as Hintables]
+    if ("elements" in hintablesOrElements[0])
+        return hintablesOrElements as Hintables[]
+    return []
 }
 
 function selectFocusedHint(delay = false) {
@@ -1004,10 +1403,17 @@ function focusRightHint() {
 }
 
 /** @hidden */
-export function parser(keys: KeyboardEvent[]) {
-    const parsed = keyseq.parse(keys,
-        keyseq.mapstrMapToKeyMap(new Map((Object.entries(config.get("hintmaps")) as any)
-            .filter(([key, value]) => value != ""))))
+export function parser(keys: keyseq.MinimalKey[]) {
+    const parsed = keyseq.parse(
+        keys,
+        keyseq.mapstrMapToKeyMap(
+            new Map(
+                (Object.entries(config.get("hintmaps")) as any).filter(
+                    ([_key, value]) => value != "",
+                ),
+            ),
+        ),
+    )
     if (parsed.isMatch === true) {
         return parsed
     }
@@ -1015,7 +1421,10 @@ export function parser(keys: KeyboardEvent[]) {
     const simplekeys = keys.filter(key => !keyseq.hasModifiers(key))
     let exstr
     if (simplekeys.length > 1) {
-        exstr = simplekeys.reduce((acc, key) => `hint.pushKey ${key.key};`, "composite ")
+        exstr = simplekeys.reduce(
+            (acc, key) => `hint.pushKey ${key.key};`,
+            "composite ",
+        )
     } else if (simplekeys.length === 1) {
         exstr = `hint.pushKeyCodePoint ${simplekeys[0].key.codePointAt(0)}`
     } else {
@@ -1039,5 +1448,5 @@ export function getHintCommands() {
         pushSpace,
         pushKeyCodePoint,
         popKey,
-    };
-};
+    }
+}

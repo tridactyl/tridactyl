@@ -9,9 +9,9 @@ class PreferenceCompletionOption extends Completions.CompletionOptionHTML
         super()
         this.fuseKeys.push(value)
         this.html = html`<tr class="PreferenceCompletionOption option">
-                <td class="name">${value}</td>
-                <td class="value">${prefvalue}</td>
-            </tr>`
+            <td class="name">${value}</td>
+            <td class="value">${prefvalue}</td>
+        </tr>`
     }
 }
 

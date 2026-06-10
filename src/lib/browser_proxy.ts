@@ -7,7 +7,9 @@ const browserProxy = new Proxy(Object.create(null), {
             {
                 get(_, func) {
                     return (...args) =>
-                        message("browser_proxy_background", "shim",
+                        message(
+                            "browser_proxy_background",
+                            "shim",
                             api,
                             func,
                             args,

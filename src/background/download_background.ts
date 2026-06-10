@@ -3,6 +3,8 @@
  */
 
 import * as Native from "@src/lib/native"
+import * as config from "@src/lib/config"
+import * as R from "ramda"
 import { getDownloadFilenameForUrl } from "@src/lib/url_util"
 
 /** Construct an object URL string from a given data URL
@@ -60,6 +62,7 @@ export async function downloadUrl(url: string, saveAs: boolean) {
     const downloadPromise = browser.downloads.download({
         url: urlToDownload,
         filename: fileName,
+        incognito: config.get("downloadsskiphistory") === "true",
         saveAs,
     })
 
@@ -76,11 +79,17 @@ export async function downloadUrl(url: string, saveAs: boolean) {
  *
  * Note: this requires a native messenger >=0.1.9. Make sure to nativegate for this.
  *
- * @param url the URL to download
+ * @param URL the URL to download
  * @param saveAs If beginning with a slash, this is the absolute path the document should be moved to. If the first character of the string is a tilda, it will be expanded to an absolute path to the user's home directory. If saveAs begins with any other character, it will be considered a path relative to where the native messenger binary is located (e.g. "$HOME/.local/share/tridactyl" on linux).
- * If saveAs points to a directory, the name of the document will be inferred from the URL and the document will be placed inside the directory. If saveAs points to an already existing file, the document will be saved in the downloads directory but wont be moved to where it should be ; an error will be thrown. If any of the directories referred to in saveAs do not exist, the file will be kept in the downloads directory but won't be moved to where it should be.
+ * @param If true, overwrite the destination file, returns error code 1 otherwise if file exists
+ * @param If true, cleans up temporary downloaded source file e.g. in $HOME/Downlods/downloaded.doc when the move operation fails e.g. due to target destination exists, OS error etc.
  */
-export async function downloadUrlAs(url: string, saveAs: string) {
+export async function downloadUrlAs(
+    url: string,
+    saveAs: string,
+    overwrite: boolean,
+    cleanup: boolean,
+) {
     if (!(await Native.nativegate("0.1.9", true))) return
     const urlToSave = new URL(url)
 
@@ -92,12 +101,21 @@ export async function downloadUrlAs(url: string, saveAs: string) {
         urlToDownload = urlToSave.href
     }
 
-    const fileName = getDownloadFilenameForUrl(urlToSave)
+    let fileName = getDownloadFilenameForUrl(urlToSave)
+    const regex_matcher = new RegExp("[" + config.get("downloadforbiddenchars") + "]", "g")
+    fileName = fileName.replace(regex_matcher, config.get("downloadforbiddenreplacement"))
+
+    config.get("downloadforbiddennames").split(",").forEach((item) => {
+        if (item.trim() === fileName) {
+            fileName = fileName + config.get("downloadforbiddenreplacement")
+        }
+    })
 
     const downloadId = await browser.downloads.download({
         conflictAction: "uniquify",
         url: urlToDownload,
         filename: fileName,
+        incognito: config.get("downloadsskiphistory") === "true",
     })
 
     // We want to return a promise that will resolve once the file has been moved somewhere else
@@ -113,31 +131,48 @@ export async function downloadUrlAs(url: string, saveAs: string) {
                 downloadDelta.state.current !== "in_progress"
             ) {
                 browser.downloads.onChanged.removeListener(onDownloadComplete)
-                const downloadItem = (await browser.downloads.search({
-                    id: downloadId,
-                }))[0]
+                const downloadItem = (
+                    await browser.downloads.search({
+                        id: downloadId,
+                    })
+                )[0]
                 if (downloadDelta.state.current === "complete") {
-                    const operation = await Native.move(
+                     const placeholder = config.get("downloadfilenamemarker")
+                     let finalSaveAs = saveAs
+                     if (placeholder.length > 0 && finalSaveAs.includes(placeholder)) {
+                        finalSaveAs = finalSaveAs.split(placeholder).join(fileName)
+                     }
+                     const operation = await Native.move(
                         downloadItem.filename,
-                        saveAs,
-                    )
-                    if (operation.code !== 0) {
+                        finalSaveAs,
+                        overwrite,
+                        cleanup,
+                     )
+
+                    const code2human = n =>
+                        R.defaultTo(
+                            "Unknown error",
+                            { 1: "File already exists", 2: "Other OS error" }[
+                                n
+                            ],
+                        )
+                    if (operation.code != 0) {
                         reject(
                             new Error(
-                                `'${
+                                `${code2human(operation.code)}. '${
                                     downloadItem.filename
-                                }' could not be moved to '${saveAs}'. Make sure it doesn't already exist and that all directories of the path exist.`,
+                                }' could not be moved to '${saveAs}'. Error code: ${
+                                    operation.code
+                                }`,
                             ),
                         )
                     } else {
-                        resolve(operation)
+                        resolve({filename: downloadItem.filename, finalSaveAs})
                     }
                 } else {
                     reject(
                         new Error(
-                            `'${
-                                downloadItem.filename
-                            }' state not in_progress anymore but not complete either (would have been moved to '${saveAs}')`,
+                            `'${downloadItem.filename}' state not in_progress anymore but not complete either (would have been moved to '${saveAs}')`,
                         ),
                     )
                 }

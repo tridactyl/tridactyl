@@ -63,27 +63,34 @@ class ScrollingData {
      *  It might be useful to make this function more configurable by making it
      *  accept an argument instead of using performance.now()
      */
-   private getStep(): number {
+    private getStep(): number {
         if (this.startTime === undefined) {
             this.startTime = performance.now()
         }
         const elapsed: number = performance.now() - this.startTime
 
         // If the animation should be done, return the position the element should have
-        if (elapsed >= this.duration || this.elem[this.scrollDirection] === this.endPos)
+        if (
+            elapsed >= this.duration ||
+            this.elem[this.scrollDirection] === this.endPos
+        )
             return this.endPos
 
-        let pixelToScrollTo: number = this.startPos + (((this.endPos - this.startPos) * elapsed) / this.duration)
+        let pixelToScrollTo: number =
+            this.startPos +
+            ((this.endPos - this.startPos) * elapsed) / this.duration
         if (this.startPos < this.endPos) {
+            const curPosRounded = Math.ceil(this.elem[this.scrollDirection])
             // We need to ceil() because only highdpi screens have a decimal this.elem[this.pos]
             pixelToScrollTo = Math.ceil(pixelToScrollTo)
             // We *have* to make progress, otherwise we'll think the element can't be scrolled
-            if (pixelToScrollTo == this.elem[this.scrollDirection])
-                pixelToScrollTo += 1
+            if (pixelToScrollTo <= curPosRounded)
+                pixelToScrollTo = curPosRounded + 1
         } else {
+            const curPosRounded = Math.floor(this.elem[this.scrollDirection])
             pixelToScrollTo = Math.floor(pixelToScrollTo)
-            if (pixelToScrollTo == this.elem[this.scrollDirection])
-                pixelToScrollTo -= 1
+            if (pixelToScrollTo >= curPosRounded)
+                pixelToScrollTo = curPosRounded - 1
         }
         return pixelToScrollTo
     }
@@ -91,7 +98,11 @@ class ScrollingData {
     /** Updates the position of this.elem, returns true if the element has been scrolled, false otherwise. */
     private scrollStep(): boolean {
         const prevScrollPos: number = this.elem[this.scrollDirection]
-        this.elem[this.scrollDirection] = this.getStep()
+        const target = this.getStep()
+        this.elem[this.scrollDirection] = target
+        // Ensure endPos value is possible for display dpi
+        if (target === this.endPos)
+            this.endPos = this.elem[this.scrollDirection]
         return prevScrollPos !== this.elem[this.scrollDirection]
     }
 
@@ -104,7 +115,6 @@ class ScrollingData {
             this.scrollStep() ? this.scheduleStep() : (this.scrolling = false),
         )
     }
-
 }
 
 // Stores elements that are currently being horizontally scrolled
@@ -116,8 +126,8 @@ const verticallyScrolling = new Map<Node, ScrollingData>()
  *  last duration milliseconds
  */
 export async function scroll(
-    xDistance: number = 0,
-    yDistance: number = 0,
+    xDistance = 0,
+    yDistance = 0,
     e: Node,
     duration?: number,
 ): Promise<boolean> {
@@ -176,7 +186,6 @@ export async function recursiveScroll(
     xDistance: number,
     yDistance: number,
     node?: Element,
-    stopAt?: Element,
 ) {
     let startingFromCached = false
     if (!node) {
@@ -189,15 +198,15 @@ export async function recursiveScroll(
             startingFromCached = true
             node = lastRecursiveScrolled
         } else {
-
             // Try scrolling the active node or one of its parent elements
 
             // If nothing has been given focus explicitly use the activeElement
-            if (!currentFocused || currentFocused.nodeName == "#document") currentFocused = document.activeElement
+            if (!currentFocused || currentFocused.nodeName == "#document")
+                currentFocused = document.activeElement
 
             node = currentFocused
             while (true) {
-                if ((await scroll(xDistance, yDistance, node))) return true
+                if (await scroll(xDistance, yDistance, node)) return true
                 node = node.parentElement
                 if (!node) break
             }
@@ -215,7 +224,9 @@ export async function recursiveScroll(
         if (
             (await scroll(xDistance, yDistance, treeWalker.currentNode)) ||
             ((treeWalker.currentNode as any).contentDocument &&
-                !(treeWalker.currentNode as any).src.startsWith("moz-extension://") &&
+                !(treeWalker.currentNode as any).src?.startsWith(
+                    "moz-extension://",
+                ) &&
                 (await recursiveScroll(
                     xDistance,
                     yDistance,

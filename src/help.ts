@@ -27,7 +27,7 @@ function initTridactylSettingElem(
 function getCommandElements() {
     return Array.from(
         document.querySelectorAll(
-            ".tsd-panel.tsd-member.tsd-kind-function.tsd-parent-kind-external-module",
+            ".tsd-panel.tsd-member.tsd-kind-function.tsd-parent-kind-module",
         ),
     ).reduce((all, elem) => {
         const fnName = Array.from(elem.children).find(e => e.tagName === "H3")
@@ -43,16 +43,15 @@ async function addSetting(settingName: string) {
     delete (commandElems as any).composite
 
     // Initialize or reset the <p> element that will contain settings in each commandElem
-    const settingElems: {[key: string]: HTMLElement} = Object.keys(commandElems).reduce(
-        (settingElems, cmdName) => {
-            settingElems[cmdName] = initTridactylSettingElem(
-                commandElems[cmdName],
-                settingName,
-            )
-            return settingElems
-        },
-        {},
-    )
+    const settingElems: { [key: string]: HTMLElement } = Object.keys(
+        commandElems,
+    ).reduce((settingElems, cmdName) => {
+        settingElems[cmdName] = initTridactylSettingElem(
+            commandElems[cmdName],
+            settingName,
+        )
+        return settingElems
+    }, {})
 
     const settings = await config.getAsyncDynamic(settingName)
     // For each setting
@@ -91,18 +90,16 @@ async function addSetting(settingName: string) {
 }
 
 async function onExcmdPageLoad() {
-    browser.storage.onChanged.addListener((changes, areaname) => {
+    browser.storage.onChanged.addListener((changes) => {
         if ("userconfig" in changes) {
             // JSON.stringify for comparisons like it's 2012
-            [...modeMaps, "exaliases"].forEach(
-                kind => {
-                    if (
-                        JSON.stringify(changes.userconfig.newValue[kind]) !==
-                        JSON.stringify(changes.userconfig.oldValue[kind])
-                    )
-                        addSetting(kind)
-                },
-            )
+            ;[...modeMaps, "exaliases"].forEach(kind => {
+                if (
+                    JSON.stringify(changes.userconfig.newValue[kind]) !==
+                    JSON.stringify(changes.userconfig.oldValue[kind])
+                )
+                    addSetting(kind)
+            })
         }
     })
 
@@ -122,13 +119,15 @@ function addSettingInputs() {
     const onKeyUp = async ev => {
         const input = ev.target
         if (ev.key === "Enter") {
-            (window as any).tri.messaging.message(
+            ;(window as any).tri.messaging.message(
                 "controller_background",
                 "acceptExCmd",
                 ["set " + input.name + " " + input.value],
             )
         } else {
-            if (input.value === (await config.getAsync(input.name.split(".")))) {
+            if (
+                input.value === (await config.getAsync(input.name.split(".")))
+            ) {
                 input.className = inputClassName
             } else {
                 input.className = inputClassNameModified
@@ -137,7 +136,9 @@ function addSettingInputs() {
     }
 
     return Promise.all(
-        Array.from(document.querySelectorAll<HTMLAnchorElement>("a.tsd-anchor")).map(
+        Array.from(
+            document.querySelectorAll<HTMLAnchorElement>("a.tsd-anchor"),
+        ).map(
             async (a: HTMLAnchorElement) => {
                 const section = a.parentNode
 
@@ -186,13 +187,14 @@ function addResetConfigButton() {
     button.style.margin = "auto 50%"
     button.style.minWidth = "200pt"
     button.addEventListener("click", () => {
-        const sentence = "sanitise tridactylsync tridactyllocal tridactylhistory"
+        const sentence =
+            "sanitise tridactylsync tridactyllocal tridactylhistory"
         const p = prompt(
             `Please write '${sentence}' without quotes in the following input field if you really want to reset your Tridactyl config.`,
         )
         if (p === sentence) {
-            (window as any).tri.messaging
-                .message("controller_background", "acceptExCmd", [sentence])
+            ;(window as any).tri.messaging
+                .message("controller_background", "acceptExCmd", sentence)
                 .then(_ => alert("Config reset!"))
         } else {
             alert(`Config not reset because '${p}' !== '${sentence}'`)
@@ -215,6 +217,9 @@ addEventListener(
             case "/static/docs/classes/_src_lib_config_.default_config.html":
                 return onSettingsPageLoad
         }
+
+        // If we're on a different help page we don't need any side-effects
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         return () => {}
     })(),
 )

@@ -2,9 +2,46 @@ import * as convert from "@src/lib/convert"
 import browserProxy from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
+import { sleep } from "@src/lib/patience"
+import * as R from "ramda"
+
+export async function getSortedTabs(
+    forceSort?: "mru" | "default",
+): Promise<browser.tabs.Tab[]> {
+    const sortAlg = forceSort ?? config.get("tabsort")
+    const comp =
+        sortAlg === "mru"
+            ? (a, b) =>
+                  +a.active || -b.active || b.lastAccessed - a.lastAccessed
+            : (a, b) => a.index - b.index
+    const hiddenVal = config.get("tabshowhidden") === "true" ? undefined : false
+    return browserBg.tabs
+        .query({
+            currentWindow: true,
+            hidden: hiddenVal,
+        })
+        .then(tabs => tabs.sort(comp))
+}
 
 export function inContentScript() {
     return getContext() === "content"
+}
+
+export function getTriVersion() {
+    const manifest = browser.runtime.getManifest()
+
+    // version_name only really exists in Chrome
+    // but we're using it anyway for our own purposes
+    return (
+        manifest as browser._manifest.WebExtensionManifest & {
+            version_name: string
+        }
+    ).version_name
+}
+
+export function getPrettyTriVersion() {
+    const manifest = browser.runtime.getManifest()
+    return manifest.name + " " + getTriVersion()
 }
 
 export function notBackground() {
@@ -39,14 +76,48 @@ export const browserBg = inContentScript() ? browserProxy : browser
  *
  */
 export async function activeTab() {
-    return (await browserBg.tabs.query({
-        active: true,
-        currentWindow: true,
-    }))[0]
+    return (
+        await browserBg.tabs.query({
+            active: true,
+            currentWindow: true,
+        })
+    )[0]
+}
+
+export async function activeTabOnWindow(windowId?: number) {
+    return (
+        await browser.tabs.query({
+            windowId,
+            active: true,
+        })
+    )[0]
 }
 
 export async function activeTabId() {
     return (await activeTab()).id
+}
+
+export async function prevActiveTab() {
+    const tabs = (
+        await browserBg.tabs.query({
+            currentWindow: true,
+        })
+    ).sort((a, b) => b.lastAccessed - a.lastAccessed)
+
+    if (tabs.length > 1) return tabs[1]
+    return tabs[0]
+}
+
+/**
+ * Return the active window's id.
+ *
+ */
+export async function activeWindowId() {
+    return (await browserBg.windows.getCurrent()).id
+}
+
+export async function removeActiveWindowValue(value) {
+    browserBg.sessions.removeWindowValue(await activeWindowId(), value)
 }
 
 export async function activeTabContainerId() {
@@ -60,6 +131,22 @@ export async function ownTab() {
 
 export async function ownTabId() {
     return (await ownTab()).id
+}
+
+async function windows() {
+    return (await browserBg.windows.getAll())
+        .map(w => w.id)
+        .sort((a, b) => a - b)
+}
+
+/* Returns Tridactyl's window index. */
+export async function ownWinTriIndex() {
+    return (await windows()).indexOf((await ownTab()).windowId)
+}
+
+/* Returns mozilla's internal window id from Tridactyl's index. */
+export async function getWinIdFromIndex(index: string) {
+    return (await windows())[index]
 }
 
 export async function ownTabContainer() {
@@ -97,17 +184,43 @@ export async function firefoxVersionAtLeast(desiredmajor: number) {
 */
 export async function openInNewTab(
     url: string,
-    kwargs: { active?; related?; cookieStoreId? } = {
+
+    // NB: defaults are actually enforced just below
+    kwargs: {
+        active?
+        related?
+        cookieStoreId?
+        bypassFocusHack?
+        discarded?
+        pinned?
+    } = {
         active: true,
         related: false,
         cookieStoreId: undefined,
+        bypassFocusHack: false,
+        discarded: false,
+        pinned: false,
     },
+
+    waitForDOM = false,
 ) {
+    // Ensure sensible defaults are used
+    kwargs = R.mergeLeft(kwargs, {
+        active: true,
+        related: false,
+        cookieStoreId: undefined,
+        bypassFocusHack: false,
+        discarded: false,
+        pinned: false,
+    })
+
     const thisTab = await activeTab()
-    const options: any = {
-        active: kwargs.active,
+    const options: Parameters<typeof browser.tabs.create>[0] = {
+        active: kwargs.bypassFocusHack,
         url,
         cookieStoreId: kwargs.cookieStoreId,
+        discarded: kwargs.discarded,
+        pinned: kwargs.pinned,
     }
 
     // Be nice to behrmann, #342
@@ -122,9 +235,11 @@ export async function openInNewTab(
             break
         case "last":
             // Infinity can't be serialised, apparently.
-            options.index = (await browserBg.tabs.query({
-                currentWindow: true,
-            })).length
+            options.index = (
+                await browserBg.tabs.query({
+                    currentWindow: true,
+                })
+            ).length
             break
         case "related":
             if (await firefoxVersionAtLeast(57)) {
@@ -135,20 +250,65 @@ export async function openInNewTab(
             break
     }
 
-    return browserBg.tabs.create(options)
+    const tabCreateWrapper = async options => {
+        const tab = await browserBg.tabs.create(options)
+        const answer: Promise<browser.tabs.Tab> = new Promise(resolve => {
+            // This can't run in content scripts, obviously
+            // surely we never call this from a content script?
+            if (waitForDOM) {
+                const listener = (message, sender) => {
+                    if (
+                        message === "dom_loaded_background" &&
+                        sender?.tab?.id === tab.id
+                    ) {
+                        browserBg.runtime.onMessage.removeListener(listener)
+                        resolve(tab)
+                    }
+                }
+                browserBg.runtime.onMessage.addListener(listener)
+            } else {
+                resolve(tab)
+            }
+        })
+        // Return on slow- / extremely quick- loading pages anyway
+        return Promise.race([
+            answer,
+            (async () => {
+                await sleep(750)
+                return tab
+            })(),
+        ])
+    }
+    if (kwargs.active === false) {
+        // load in background
+        return tabCreateWrapper(options)
+    } else {
+        // load in background and then activate, per issue #1993
+        return tabCreateWrapper(options).then(newtab =>
+            browserBg.tabs.update(newtab.id, { active: true }),
+        )
+    }
 }
 
 // lazily copied from excmds.ts' winopen - forceURI really ought to be moved to lib/webext
 // Should consider changing interface of this to match openInNewTab or vice versa
-export async function openInNewWindow(createData = {}) {
+export function openInNewWindow(createData = {}) {
     browserBg.windows.create(createData)
 }
 
-export async function openInTab(tab, opts = {}, strarr: string[]) {
-    let address = strarr.join(" ")
+// Returns object if we should use the search engine instead
+export async function queryAndURLwrangler(
+    query: string[],
+): Promise<string | { engine?: string; query: string }> {
+    let address = query.join(" ")
 
     if (address === "") {
         address = config.get("newtab")
+    }
+
+    // Special ritual for about:newtab: we can access it but only if we don't ask for it
+    if (address === "about:newtab") {
+        return undefined
     }
 
     const index = address.indexOf(" ")
@@ -156,20 +316,14 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
     if (index > -1) firstWord = address.substr(0, index)
 
     if (firstWord === "") {
-        // No query, no newtab set, the user is asking for Tridactyl's newtab page
-        return browserBg.tabs.update(
-            tab.id,
-            Object.assign({ url: "/static/newtab.html" }, opts),
-        )
+        // No query, no newtab set, the user is asking for Tridactyl's newtab page, which we deal with in :tabopen / :open directly
+        return undefined
     }
 
     // Perhaps the user typed a URL?
     if (/^[a-zA-Z0-9+.-]+:[^\s:]/.test(address)) {
         try {
-            return browserBg.tabs.update(
-                tab.id,
-                Object.assign({ url: new URL(address).href }, opts),
-            )
+            return new URL(address).href
         } catch (e) {
             // Not a problem, we'll treat address as a regular search query
         }
@@ -177,42 +331,64 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
 
     // `+ 1` because we want to get rid of the space
     const rest = address.substr(firstWord.length + 1)
+
+    const expandRecursively = (name, dict, prevExpansions = []) => {
+        if (name in dict) {
+            if (prevExpansions.includes(name)) {
+                throw new Error(
+                    `Infinite loop detected while expanding ${name}. Stack: ${prevExpansions}.`,
+                )
+            }
+            prevExpansions.push(name)
+            return expandRecursively(dict[name], dict, prevExpansions)
+        }
+        return name
+    }
+
     const searchurls = config.get("searchurls")
-    if (searchurls[firstWord]) {
-        const url = UrlUtil.interpolateSearchItem(
-            new URL(searchurls[firstWord]),
-            rest,
-        )
+    const template = expandRecursively(firstWord, searchurls)
+    if (template != firstWord) {
+        const url = UrlUtil.interpolateSearchItem(new URL(template), rest)
         // firstWord is a searchurl, so let's use that
-        return browserBg.tabs.update(
-            tab.id,
-            Object.assign({ url: url.href }, opts),
-        )
+        return url.href
+    }
+
+    const jsurls = config.get("jsurls")
+    const js = expandRecursively(firstWord, jsurls)
+    if (js != firstWord) {
+        return eval(js)(rest)
     }
 
     const searchEngines = await browserBg.search.get()
     let engine = searchEngines.find(engine => engine.alias === firstWord)
     // Maybe firstWord is the name of a firefox search engine?
     if (engine !== undefined) {
-        browserBg.search.search({
-            tabId: tab.id,
-            engine: engine.name,
-            query: rest,
-        })
-        return tab
+        return { engine: engine.name, query: rest }
     }
 
-    // Maybe it's a domain without protocol
-    try {
-        const url = new URL("http://" + address)
-        // Ignore unlikely domains
-        if (url.hostname.includes(".") || url.port || url.password) {
-            return browserBg.tabs.update(
-                tab.id,
-                Object.assign({ url: url.href }, opts),
-            )
-        }
-    } catch (e) {}
+    // Maybe it's a host (ip, domain) without a protocol
+    //
+    // if the address looks like a number (e.g. 538, 3.14), then do *not* consider it as a potential
+    // host (see #5081)
+    // uses +str to first attempt parsing the address into a number, and then check whether the
+    // result is NaN; this is required as Typescript, unlike JavaScript, only allows numbers as
+    // arguments to NaN (see https://stackoverflow.com/q/42120046)
+    if (isNaN(+address)) {
+        try {
+            const url = new URL("http://" + address)
+            // Ignore unlikely domains
+            if (
+                // the endsWith check must be on address, because URL adds a
+                // trailing slash which would always match
+                address.endsWith("/") ||
+                url.hostname.indexOf(".") > 0 ||
+                url.port ||
+                url.password
+            ) {
+                return url.href
+            }
+        } catch (e) {}
+    }
 
     // Let's default to the user's search engine then
 
@@ -231,24 +407,44 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
                 new URL(searchurls[enginename]),
                 queryString,
             )
-            return browserBg.tabs.update(
-                tab.id,
-                Object.assign({ url: url.href }, opts),
-            )
+            return url.href
         }
 
         engine = searchEngines.find(engine => engine.alias === enginename)
         if (engine !== undefined) {
-            browserBg.search.search({
-                tabId: tab.id,
-                engine: engine.name,
-                query: queryString,
-            })
-            return tab
+            return { engine: engine.name, query: queryString }
         }
     }
 
     // No search engine has been defined in Tridactyl, let's use firefox's default search engine
-    browserBg.search.search({ tabId: tab.id, query: queryString })
-    return tab;
+    return { query: queryString }
+}
+
+export async function openInTab(tab, opts = {}, strarr: string[]) {
+    const maybeURL = await queryAndURLwrangler(strarr)
+    if (typeof maybeURL === "string") {
+        return browserBg.tabs.update(
+            tab.id,
+            Object.assign({ url: maybeURL }, opts),
+        )
+    }
+    if (typeof maybeURL === "object") {
+        return browserBg.search.search({ tabId: tab.id, ...maybeURL })
+    }
+
+    // Fall back to our new tab page
+    return browserBg.tabs.update(
+        tab.id,
+        Object.assign({ url: "/static/newtab.html" }, opts),
+    )
+}
+
+/**
+ * Set active the tab with tabId and focus the window it is located in.
+ * @param tabId tab identifier
+ */
+export async function goToTab(tabId: number) {
+    const tab = await browserBg.tabs.update(tabId, { active: true })
+    await browserBg.windows.update(tab.windowId, { focused: true })
+    return tab
 }

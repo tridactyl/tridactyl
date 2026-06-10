@@ -1,23 +1,29 @@
-:root.TridactylThemeQuake {
+:root {
     --tridactyl-bg: black;
     --tridactyl-fg: lightgreen;
+    --tridactyl-scrollbar-color: #131 var(--tridactyl-fg);
 }
 
-:root.TridactylThemeQuake #completions .sectionHeader {
+:root.TridactylOwnNamespace {
+    scrollbar-color: var(--tridactyl-scrollbar-color);
+    scrollbar-width: thin;
+}
+
+:root #completions .sectionHeader {
     display: none;
 }
 
-:root.TridactylThemeQuake #tridactyl-colon::before {
+:root #tridactyl-colon::before {
     content: "] ";
 }
 
-:root.TridactylThemeQuake #completions .focused,
-:root.TridactylThemeQuake #completions .focused .url {
+:root #completions .focused,
+:root #completions .focused .url {
     background: var(--tridactyl-bg);
     text-decoration: underline;
 }
 
-:root.TridactylThemeQuake #cmdline_iframe {
+:root #cmdline_iframe {
     position: fixed !important;
     bottom: unset;
     top: 0% !important;

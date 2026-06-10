@@ -1,3 +1,5 @@
+@import url("../themes/auto/auto.css");
+
 body {
     overflow: hidden;
     margin: 0;
@@ -32,6 +34,10 @@ input {
     /* border-top: solid 1px lightgray; */
 }
 
+input:focus {
+    outline: none;
+}
+
 #tridactyl-colon::before {
     content: ":";
 }
@@ -58,13 +64,12 @@ input {
 
 #completions > div > table {
     width: 100%;
-    font-size: 9pt;
     border-spacing: 0;
     table-layout: fixed;
 }
 
 #completions table tr td.prefix {
-    width: 1em;
+    width: 3.2em;
     padding-left: 0.5em;
     text-align: center;
 }
@@ -73,9 +78,28 @@ input {
 #completions table tr td.privatewindow {
     width: 1.5em;
 }
+#completions table tr td.tabcount {
+    width: 6em;
+}
+#completions table tr td.tgroup {
+    width: 10em;
+    padding-left: 0.5em;
+    text-align: right;
+}
+#completions table tr td.tgroup:empty {
+    display: none;
+}
 /* #completions table tr td:nth-of-type(3) { width: 5em; } */
 #completions table tr td.content {
     width: 50%;
+}
+
+/* Accroding to src/completions/TabHistory.ts formatTimeSpan,
+ * max-width should be 14 characters (14ex), 20ex for more tolorance. */
+#completions table tr td.time {
+    width: 20ex;
+    text-align: right;
+    padding-right: 2ex;
 }
 
 #completions table tr {
@@ -100,6 +124,7 @@ input {
         var(--tridactyl-header-second-bg),
         var(--tridactyl-header-third-bg)
     );
+    font-size: var(--tridactyl-header-font-size);
     font-weight: var(--tridactyl-header-font-weight);
     border-bottom: var(--tridactyl-header-border-bottom);
     padding-left: 0.5ex;
@@ -113,7 +138,6 @@ input {
 
 .url {
     text-decoration: var(--tridactyl-url-text-decoration);
-    padding-left: 7px;
 }
 
 .option:not(.focused) .url {
@@ -153,72 +177,75 @@ a.url:hover {
 }
 
 /* Still completions, but container-related stuff */
-.option .container,
+.option .container {
+    mask-size: 1em;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
 .option .privatewindow {
     background-size: 1em;
     background-repeat: no-repeat;
     background-position: center;
-    -moz-context-properties: fill;
 }
 .option.container_blue .container {
-    fill: var(--tridactyl-container-color-blue);
+    background-color: var(--tridactyl-container-color-blue);
 }
 .option.container_turquoise .container {
-    fill: var(--tridactyl-container-color-turquoise);
+    background-color: var(--tridactyl-container-color-turquoise);
 }
 .option.container_green .container {
-    fill: var(--tridactyl-container-color-green);
+    background-color: var(--tridactyl-container-color-green);
 }
 .option.container_yellow .container {
-    fill: var(--tridactyl-container-color-yellow);
+    background-color: var(--tridactyl-container-color-yellow);
 }
 .option.container_orange .container {
-    fill: var(--tridactyl-container-color-orange);
+    background-color: var(--tridactyl-container-color-orange);
 }
 .option.container_red .container {
-    fill: var(--tridactyl-container-color-red);
+    background-color: var(--tridactyl-container-color-red);
 }
 .option.container_pink .container {
-    fill: var(--tridactyl-container-color-pink);
+    background-color: var(--tridactyl-container-color-pink);
 }
 .option.container_purple .container {
-    fill: var(--tridactyl-container-color-purple);
+    background-color: var(--tridactyl-container-color-purple);
 }
 .option.container_fingerprint .container {
-    background-image: var(--tridactyl-container-fingerprint-url);
+    mask-image: var(--tridactyl-container-fingerprint-url);
 }
 .option.container_briefcase .container {
-    background-image: var(--tridactyl-container-briefcase-url);
+    mask-image: var(--tridactyl-container-briefcase-url);
 }
 .option.container_dollar .container {
-    background-image: var(--tridactyl-container-dollar-url);
+    mask-image: var(--tridactyl-container-dollar-url);
 }
 .option.container_cart .container {
-    background-image: var(--tridactyl-container-cart-url);
+    mask-image: var(--tridactyl-container-cart-url);
 }
 .option.container_circle .container {
-    background-image: var(--tridactyl-container-circle-url);
+    mask-image: var(--tridactyl-container-circle-url);
 }
 .option.container_gift .container {
-    background-image: var(--tridactyl-container-gift-url);
+    mask-image: var(--tridactyl-container-gift-url);
 }
 .option.container_vacation .container {
-    background-image: var(--tridactyl-container-vacation-url);
+    mask-image: var(--tridactyl-container-vacation-url);
 }
 .option.container_food .container {
-    background-image: var(--tridactyl-container-food-url);
+    mask-image: var(--tridactyl-container-food-url);
 }
 .option.container_fruit .container {
-    background-image: var(--tridactyl-container-fruit-url);
+    mask-image: var(--tridactyl-container-fruit-url);
 }
 .option.container_pet .container {
-    background-image: var(--tridactyl-container-pet-url);
+    mask-image: var(--tridactyl-container-pet-url);
 }
 .option.container_tree .container {
-    background-image: var(--tridactyl-container-tree-url);
+    mask-image: var(--tridactyl-container-tree-url);
 }
 .option.container_chill .container {
-    background-image: var(--tridactyl-container-chill-url);
+    mask-image: var(--tridactyl-container-chill-url);
 }
 
 .ExcmdCompletionOption td.excmd {
@@ -241,6 +268,14 @@ a.url:hover {
     text-overflow: ellipsis;
 }
 
+#completions .TabGroupCompletionOption td.title {
+    width: 15%;
+}
+
+#completions .TabGroupCompletionOption td.content {
+    width: auto;
+}
+
 .HelpCompletionOption td.name {
     width: 25%;
 }
@@ -257,7 +292,7 @@ a.url:hover {
 }
 
 #completions .WindowCompletionOption td.id {
-    width: 4ch !important;
+    width: 6ch !important;
     text-align: right;
-    padding: 0px 3pt;
+    padding: 0px 8pt;
 }

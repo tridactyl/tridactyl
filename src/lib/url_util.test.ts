@@ -74,7 +74,7 @@ function test_parent() {
     ]
 
     for (let [url, exp_parent] of cases) {
-        let parent = UrlUtil.getUrlParent(new URL(url), true)
+        let parent = UrlUtil.getUrlParent(new URL(url), {trailingSlash: true})
 
         test(`parent of ${url} --> ${exp_parent}`, () =>
             expect(parent ? parent.href : parent).toEqual(exp_parent))
@@ -113,13 +113,15 @@ function test_parent_with_slash_strip() {
     ]
 
     for (const [url, exp_parent] of cases) {
-        const parent = UrlUtil.getUrlParent(new URL(url), false)
+        const parent = UrlUtil.getUrlParent(
+            new URL(url),
+            {trailingSlash: false}
+        )
 
         test(`parent of ${url} --> ${exp_parent}`, () =>
             expect(parent ? parent.href : parent).toEqual(exp_parent))
     }
 }
-
 
 function test_download_filename() {
     let cases = [
@@ -348,6 +350,16 @@ function test_url_query_interpolation() {
             "a/query",
             "http://example.com/?query=a%2Fquery&q2=v2",
         ],
+        [   // array indexing
+            "http://example.com/?q1=%s1&q2=%s2",
+            "a query",
+            "http://example.com/?q1=a&q2=query"
+        ],
+        [   // array slicing
+            "http://example.com/?q1=%s1&q2=%s[2:]",
+            "a query with several words",
+            "http://example.com/?q1=a&q2=query%20with%20several%20words"
+        ]
     ]
 
     for (let [url, qy, exp_res] of cases) {

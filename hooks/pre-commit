@@ -1,16 +1,28 @@
 #!/usr/bin/env bash
 
+case $(uname) in
+    *CYGWIN*|*MINGW*|*MSYS*)
+        echo "Cygwin/MinGW/MSYS detected, skipping pre-commit hook"
+        exit 0
+        ;;
+esac
+
+echo "Running pre-commit hook..."
+
 source ./scripts/common.sh
 
 jsfiles=$(cachedTSLintFiles)
 otherfiles=$(cachedPrettierFiles)
 
+# Exit early if no relevant files are staged
+if [ -z "$jsfiles" ] && [ -z "$otherfiles" ]; then
+    exit 0
+fi
+
+echo "Running pre-commit hook..."
+
 # Check if any of the files are ugly or contain a console.log call
 consoleFiles=$(noisy $jsfiles)
-uglyFiles="$(tslintUgly $jsfiles)"
-if [ ! -n "$uglyFiles" ]; then
-    uglyFiles="$(prettierUgly $otherfiles)"
-fi
 
 if [ -n "$consoleFiles" ]; then
     echo "Warning: adding console.log calls in ${consoleFiles[@]}"
@@ -18,10 +30,26 @@ if [ -n "$consoleFiles" ]; then
     echo
 fi
 
-if [ -n "$uglyFiles" ]; then
-    echo "Prettify your files first:"
-    echo 'yarn run pretty'
-    echo ''
-    echo 'If you see this message repeatedly, skip the check with git commit -n'
-    exit 1
+# # disabled because it was too noisy
+#
+# if [ -n "$jsfiles" ]; then
+#     yarn git-format-staged \
+#       --formatter "yarn --silent prettier --stdin-filepath \"{}\"" \
+#       "*.ts" "*.tsx"
+# fi
+
+# if [ -n "$otherfiles" ]; then
+#     yarn git-format-staged \
+#       --formatter "yarn --silent prettier --stdin-filepath \"{}\"" \
+#       "*.md" "*.css"
+# fi
+
+if [ -n "$jsfiles" ]; then
+    echo "Linting staged files..."
+    if ! yarn eslint --rulesdir custom-eslint-rules --quiet $jsfiles; then
+        echo ""
+        echo -e "eslint failed. Please fix the errors above."
+        echo 'If you see this message repeatedly, skip the check with git commit -n'
+        exit 1
+    fi
 fi

@@ -3,8 +3,8 @@
 /* tslint:disable:import-spacing */
 
 import * as proxy_background from "@src/lib/browser_proxy_background"
-
 import * as controller from "@src/lib/controller"
+import { omniscient_controller } from "@src/lib/omniscient_controller"
 import * as perf from "@src/perf"
 import { listenForCounters } from "@src/perf"
 import * as messaging from "@src/lib/messaging"
@@ -25,9 +25,15 @@ import { AutoContain } from "@src/lib/autocontainers"
 import * as extension_info from "@src/lib/extension_info"
 import * as omnibox from "@src/background/omnibox"
 import * as R from "ramda"
+import * as webrequests from "@src/background/webrequests"
+import * as commands from "@src/background/commands"
+import * as meta from "@src/background/meta"
+import * as Logging from "@src/lib/logging"
+import * as Proxy from "@src/lib/proxy"
+import { tabsProxy } from "@src/lib/tabs"
 
 // Add various useful modules to the window for debugging
-; (window as any).tri = Object.assign(Object.create(null), {
+;(window as any).tri = Object.assign(Object.create(null), {
     messaging,
     excmds: excmds_background,
     convert,
@@ -41,10 +47,13 @@ import * as R from "ramda"
     request,
     state,
     webext,
-    l: prom => prom.then(console.log).catch(console.error),
+    webrequests,
+    l: (prom: Promise<any>) => prom.then(console.log).catch(console.error),
     contentLocation: window.location,
     R,
     perf,
+    meta,
+    tabs: tabsProxy,
 })
 
 import { HintingCmds } from "@src/background/hinting"
@@ -54,15 +63,15 @@ import { HintingCmds } from "@src/background/hinting"
 // here.
 controller.setExCmds({
     "": excmds_background,
-    "ex": CmdlineCmds,
-    "text": EditorCmds,
-    "hint": HintingCmds
+    ex: CmdlineCmds,
+    text: EditorCmds,
+    hint: HintingCmds,
 })
 
 // {{{ tri.contentLocation
 // When loading the background, use the active tab to know what the current content url is
 browser.tabs.query({ currentWindow: true, active: true }).then(t => {
-    (window as any).tri.contentLocation = new URL(t[0].url)
+    ;(window as any).tri.contentLocation = new URL(t[0].url)
 })
 // After that, on every tab change, update the current url
 let contentLocationCount = 0
@@ -73,32 +82,65 @@ browser.tabs.onActivated.addListener(ev => {
         // Note: we're using contentLocationCount and myId in order to make sure that only the last onActivated event is used in order to set contentLocation
         // This is needed because otherWise the following chain of execution might happen: onActivated1 => onActivated2 => tabs.get2 => tabs.get1
         if (contentLocationCount === myId) {
-            (window as any).tri.contentLocation = new URL(t.url)
+            ;(window as any).tri.contentLocation = new URL(t.url)
         }
     })
 })
+
+browser.proxy.onRequest.addListener(Proxy.onRequestListener, {
+    urls: ["<all_urls>"],
+})
+
+/**
+ * Declare Tab Event Listeners
+ */
+browser.tabs.onRemoved.addListener(tabId => {
+    messaging.messageAllTabs("tab_changes", "tab_close", [tabId])
+})
+// Fired when a tab is attached to a window, for example because it was moved between windows.
+browser.tabs.onAttached.addListener(tabId => {
+    messaging.messageAllTabs("tab_changes", "tab_attached", [tabId])
+})
+// Fired when a tab is created. Note that the tab's URL may not be set at the time this event fired.
+browser.tabs.onCreated.addListener(tabId => {
+    messaging.messageAllTabs("tab_changes", "tab_created", [tabId])
+})
+// Fired when a tab is detached from a window, for example because it is being moved between windows.
+browser.tabs.onDetached.addListener(tabId => {
+    messaging.messageAllTabs("tab_changes", "tab_detached", [tabId])
+})
+// Fired when a tab is moved within a window.
+browser.tabs.onMoved.addListener(tabId => {
+    messaging.messageAllTabs("tab_changes", "tab_moved", [tabId])
+})
+
 // Update on navigation too (but remember that sometimes people open tabs in the background :) )
-browser.webNavigation.onDOMContentLoaded.addListener(
-    () => {
-        browser.tabs.query({ currentWindow: true, active: true }).then(t => {
-                (window as any).tri.contentLocation = new URL(t[0].url)
-        })
-    },
-)
+browser.webNavigation.onDOMContentLoaded.addListener(() => {
+    browser.tabs.query({ currentWindow: true, active: true }).then(t => {
+        ;(window as any).tri.contentLocation = new URL(t[0].url)
+    })
+})
 
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => undefined)
 
-browser.runtime.onStartup.addListener(_ => {
+const autocmd_logger = new Logging.Logger("autocmds")
+browser.runtime.onStartup.addListener(() => {
     config.getAsync("autocmds", "TriStart").then(aucmds => {
         const hosts = Object.keys(aucmds)
         // If there's only one rule and it's "all", no need to check the hostname
         if (hosts.length === 1 && hosts[0] === ".*") {
+            autocmd_logger.debug(
+                `TriStart matched ${hosts[0]}: ${aucmds[hosts[0]]}`,
+            )
             controller.acceptExCmd(aucmds[hosts[0]])
         } else {
             native.run("hostname").then(hostname => {
                 for (const host of hosts) {
-                    if (hostname.content.match(host)) {
+                    if (new RegExp(host).exec(hostname.content)) {
+                        autocmd_logger.debug(
+                            `TriStart matched ${host}: ${aucmds[host]}`,
+                        )
                         controller.acceptExCmd(aucmds[host])
                     }
                 }
@@ -138,6 +180,22 @@ browser.tabs.onActivated.addListener(ev => {
         .catch(ignore)
 })
 
+// Valid events listed here: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events
+for (const requestEvent of webrequests.requestEvents) {
+    config.getAsync("autocmds", requestEvent).then(aucmds => {
+        if (!aucmds) return
+        const patterns = Object.keys(aucmds)
+        patterns.forEach(pattern =>
+            webrequests.registerWebRequestAutocmd(
+                requestEvent,
+                pattern,
+                aucmds[pattern],
+            ),
+        )
+    })
+}
+
+
 // }}}
 
 // {{{ AUTOCONTAINERS
@@ -164,9 +222,7 @@ browser.webRequest.onBeforeRequest.addListener(
     ["blocking"],
 )
 
-browser.tabs.onCreated.addListener(
-    aucon.tabCreatedListener,
-)
+browser.tabs.onCreated.addListener(aucon.tabCreatedListener)
 
 // }}}
 
@@ -182,7 +238,8 @@ const messages = {
         downloadUrl: download_background.downloadUrl,
         downloadUrlAs: download_background.downloadUrlAs,
     },
-    browser_proxy_background: {shim: proxy_background.shim}
+    browser_proxy_background: { shim: proxy_background.shim },
+    omniscient_background: omniscient_controller,
 }
 export type Messages = typeof messages
 
@@ -209,8 +266,12 @@ omnibox.init()
 
 // }}}
 
+setTimeout(config.update, 5000)
+
+commands.updateListener()
+
 // {{{ Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800
 
-native.unfixamo();
+native.unfixamo()
 
 /// }}}

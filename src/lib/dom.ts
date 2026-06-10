@@ -2,6 +2,7 @@ import * as config from "@src/lib/config"
 import state from "@src/state"
 import * as State from "@src/state"
 import * as Logging from "@src/lib/logging"
+import { contentState } from "@src/content/state_content"
 import {
     activeTabId,
     openInNewTab,
@@ -43,7 +44,7 @@ export function isTextEditable(element: Element) {
                 // This happens on e.g. svgs.
                 return false
             }
-            if (element.contentEditable.toUpperCase() === "TRUE") {
+            if (element.isContentEditable) {
                 return true
             }
         }
@@ -119,12 +120,10 @@ export function mouseEvent(
     })
 }
 
-export function elementsWithText() {
+export function elementsWithText(includeInvisible = false) {
     return getElemsBySelector("*", [
-        isVisible,
-        hint => {
-            return hint.textContent !== ""
-        },
+        isVisibleFilter(includeInvisible),
+        hint => hint.textContent !== "",
     ])
 }
 
@@ -207,6 +206,12 @@ export function widthMatters(style: CSSStyleDeclaration) {
     return true
 }
 
+export function isVisibleFilter(
+    includeInvisible: boolean,
+): (_: Element | Range) => boolean {
+    return (elem: Element | Range) => includeInvisible || isVisible(elem)
+}
+
 // Saka-key caches getComputedStyle. Maybe it's a good idea!
 /* let cgetComputedStyle = cacheDecorator(getComputedStyle) */
 
@@ -216,11 +221,14 @@ export function widthMatters(style: CSSStyleDeclaration) {
     Based on https://github.com/guyht/vimari/blob/master/vimari.safariextension/linkHints.js
 
  */
-export function isVisible(element: Element) {
-    while (!(element.getBoundingClientRect instanceof Function)) {
-        element = element.parentElement
+export function isVisible(thing: Element | Range) {
+    if (thing instanceof Element) {
+        while (typeof thing.getBoundingClientRect !== "function") {
+            thing = thing.parentElement
+        }
     }
-    const clientRect = element.getBoundingClientRect()
+    if (thing.getClientRects().length === 0) return false
+    const clientRect = thing.getBoundingClientRect()
     switch (true) {
         case !clientRect:
         case clientRect.bottom < 4:
@@ -230,6 +238,9 @@ export function isVisible(element: Element) {
             return false
     }
 
+    if (thing instanceof Range) return true
+
+    const element = thing
     // remove elements that are barely within the viewport, tiny, or invisible
     // Only call getComputedStyle when necessary
     const computedStyle = getComputedStyle(element)
@@ -284,9 +295,10 @@ export function isVisible(element: Element) {
  */
 export function getAllDocumentFrames(doc = document) {
     if (!(doc instanceof HTMLDocument)) return []
-    const frames = (Array.from(
-        doc.getElementsByTagName("iframe"),
-    ) as HTMLIFrameElement[] & HTMLFrameElement[])
+    const frames = (
+        Array.from(doc.getElementsByTagName("iframe")) as HTMLIFrameElement[] &
+            HTMLFrameElement[]
+    )
         .concat(Array.from(doc.getElementsByTagName("frame")))
         .filter(frame => !frame.src.startsWith("moz-extension://"))
     return frames.concat(
@@ -306,7 +318,7 @@ export function getAllDocumentFrames(doc = document) {
 export function getSelector(e: HTMLElement) {
     function uniqueSelector(e: HTMLElement) {
         // Only matching alphanumeric selectors because others chars might have special meaning in CSS
-        if (e.id && e.id.match("^[a-zA-Z0-9]+$")) return "#" + e.id
+        if (e.id && /^[a-zA-Z0-9]+$/.exec(e.id)) return "#" + e.id
         // If we reached the top of the document
         if (!e.parentElement) return "HTML"
         // Compute the position of the element
@@ -325,11 +337,19 @@ export function getSelector(e: HTMLElement) {
 /* Get all the elements that match the given selector inside shadow DOM */
 function getShadowElementsBySelector(selector: string) {
     let elems = []
-    document.querySelectorAll("*").forEach(elem => {
-        if (elem.shadowRoot) {
-            elems = elems.concat(...elem.shadowRoot.querySelectorAll(selector))
-        }
-    })
+    const roots: (Document | ShadowRoot)[] = [document]
+
+    while (roots.length) {
+        const root = roots.pop()
+        root.querySelectorAll("*").forEach(elem => {
+            if ((elem as any).openOrClosedShadowRoot) {
+                roots.push((elem as any).openOrClosedShadowRoot)
+                elems = elems.concat(
+                    ...roots[roots.length - 1].querySelectorAll(selector),
+                )
+            }
+        })
+    }
     return elems
 }
 
@@ -424,7 +444,7 @@ export function registerEvListenerAction(
     event: string,
 ) {
     // We're only interested in the subset of EventTargets that are Elements.
-    if (!(elem instanceof Element)) {
+    if (!(elem instanceof window.Element)) {
         return
     }
 
@@ -529,17 +549,26 @@ export function getLastUsedInput(): HTMLElement {
  *  https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements
  *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
  * */
-function onPageFocus(elem: HTMLElement, args: any[]): boolean {
+function onPageFocus(elem: HTMLElement): boolean {
+    elem = elem.shadowRoot
+        ? (elem.shadowRoot.activeElement as HTMLElement)
+        : elem
     if (isTextEditable(elem)) {
         LAST_USED_INPUT = elem
     }
-    return config.get("allowautofocus") === "true"
+    const setting =
+        config.get("modesubconfigs", contentState.mode, "allowautofocus") ||
+        config.get("allowautofocus")
+    return setting === "true"
 }
 
 async function setInput(el) {
     const tab = await activeTabId()
     // store maximum of 10 elements to stop this getting bonkers huge
-    const arr = (await State.getAsync("prevInputs")).concat({ tab, inputId: el.id })
+    const arr = (await State.getAsync("prevInputs")).concat({
+        tab,
+        inputId: el.id,
+    })
     state.prevInputs = arr.slice(Math.max(arr.length - 10, 0))
 }
 
@@ -560,12 +589,36 @@ function hijackPageFocusFunction(): void {
 
 export function setupFocusHandler(): void {
     // Handles when a user selects an input
-    document.addEventListener("focusin", e => {
-        if (isTextEditable(e.target as HTMLElement)) {
-            LAST_USED_INPUT = e.target as HTMLElement
-            setInput(e.target as HTMLInputElement)
+    const setFocus = elem => {
+        if (isTextEditable(elem)) {
+            LAST_USED_INPUT = elem
+            setInput(elem)
         }
-    })
+    }
+    const knownRoot = new WeakSet()
+    const listen = root => {
+        root.addEventListener("focusin", handler)
+        knownRoot.add(root)
+    }
+    const handler = e => {
+        let elem = e.target as HTMLElement
+        const r = elem.shadowRoot
+        if (!r) {
+            setFocus(elem)
+            return
+        }
+        if (knownRoot.has(r)) {
+            // r[handler] will handle it
+            return
+        }
+        while (elem.shadowRoot) {
+            listen(elem.shadowRoot)
+            elem = elem.shadowRoot.activeElement as HTMLElement
+            if (!elem) return
+        }
+        setFocus(elem)
+    }
+    listen(document)
     // Handles when the page tries to select an input
     if (inContentScript()) {
         hijackPageFocusFunction()
@@ -577,11 +630,13 @@ export const HINTTAGS_selectors = `
 input:not([type=hidden]):not([disabled]),
 a,
 area,
-iframe,
-textarea,
 button,
+details,
+iframe,
+label,
 select,
 summary,
+textarea,
 [onclick],
 [onmouseover],
 [onmousedown],
@@ -651,36 +706,93 @@ export const HINTTAGS_saveable = `
 /** Get array of "anchors": elements which have id or name and can be addressed
  * with the hash/fragment in the URL
  */
-export function anchors() {
-    return getElemsBySelector(HINTTAGS_anchor_selectors, [isVisible])
+export function anchors(includeInvisible = false) {
+    return getElemsBySelector(HINTTAGS_anchor_selectors, [
+        isVisibleFilter(includeInvisible),
+    ])
+}
+
+export const enum TabTarget {
+    CurrentTab,
+    NewTab,
+    NewBackgroundTab,
+    NewWindow,
+}
+
+const tabTargetToModifierKey = {
+    [TabTarget.CurrentTab]: {},
+    [TabTarget.NewTab]: { ctrlKey: true, shiftKey: true },
+    [TabTarget.NewBackgroundTab]: { ctrlKey: true },
+    [TabTarget.NewWindow]: { shiftKey: true },
 }
 
 /** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
-export function simulateClick(target: HTMLElement) {
+export function simulateClick(
+    target: HTMLElement,
+    tabTarget: TabTarget = TabTarget.CurrentTab,
+) {
     // target can be set to other stuff, and we'll fail in annoying ways.
     // There's no easy way around that while this code executes outside of the
     // magic 'short lived event handler' context.
     //
     // OTOH, hardly anyone uses that functionality any more.
-    if (
+    let usePopupBlockerWorkaround =
         (target as HTMLAnchorElement).target === "_blank" ||
         (target as HTMLAnchorElement).target === "_new"
-    ) {
+    const href = (target instanceof SVGAElement)
+        ? target.href.animVal
+        : (target as HTMLAnchorElement).href;
+    if (href?.startsWith("file:")) {
+        // file URLS cannot be opend with browser.tabs.create
+        // see https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/create#url
+        // still create a new tab
+        if (tabTarget === TabTarget.CurrentTab && usePopupBlockerWorkaround) {
+            tabTarget = TabTarget.NewTab
+        }
+        usePopupBlockerWorkaround = false
+    }
+    if (usePopupBlockerWorkaround) {
         // Try to open the new tab in the same container as the current one.
         activeTabContainerId().then(containerId => {
             if (containerId)
-                openInNewTab((target as HTMLAnchorElement).href, {
+                openInNewTab(href, {
                     related: true,
                     cookieStoreId: containerId,
                 })
             else
-                openInNewTab((target as HTMLAnchorElement).href, {
+                openInNewTab(href, {
                     related: true,
                 })
         })
     } else {
-        mouseEvent(target, "click")
+        if (target instanceof HTMLDetailsElement) {
+            target.open = !target.open
+        }
+        mouseEvent(target, "click", tabTargetToModifierKey[tabTarget])
         // DOM.focus has additional logic for focusing inputs
         focus(target)
+    }
+}
+
+/** Recursively resolves an active shadow DOM element. */
+export function deepestShadowRoot(sr: ShadowRoot | null): ShadowRoot | null {
+    if (sr === null) return sr
+    let shadowRoot = sr
+    while (shadowRoot.activeElement?.shadowRoot != null) {
+        shadowRoot = shadowRoot.activeElement.shadowRoot
+    }
+    return shadowRoot
+}
+
+export function getElementCentre(el) {
+    const pos = el.getBoundingClientRect()
+    return { x: 0.5 * (pos.left + pos.right), y: 0.5 * (pos.top + pos.bottom) }
+}
+
+export function getAbsoluteCentre(el) {
+    const pos = getElementCentre(el)
+    return {
+        x: pos.x + (window as any).mozInnerScreenX,
+        y: pos.y + (window as any).mozInnerScreenY,
     }
 }

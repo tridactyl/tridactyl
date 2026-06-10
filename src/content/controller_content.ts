@@ -2,12 +2,20 @@ import { isTextEditable } from "@src/lib/dom"
 import { contentState, ModeName } from "@src/content/state_content"
 import Logger from "@src/lib/logging"
 import * as controller from "@src/lib/controller"
-import { KeyEventLike } from "@src/lib/keyseq"
+import {
+    KeyEventLike,
+    ParserResponse,
+    minimalKeyFromKeyboardEvent,
+    MinimalKey,
+} from "@src/lib/keyseq"
+import { deepestShadowRoot } from "@src/lib/dom"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
 import * as generic from "@src/parsers/genericmode"
 import * as nmode from "@src/parsers/nmode"
+import * as Messaging from "@src/lib/messaging";
+import * as config from "@src/lib/config"
 
 const logger = new Logger("controller")
 
@@ -58,16 +66,18 @@ class KeyCanceller {
     }
 
     push(ke: KeyboardEvent) {
+        ke.preventDefault()
+        ke.stopImmediatePropagation()
         this.keyPress.push(ke)
         this.keyUp.push(ke)
     }
 
-    cancelKeyPress(ke: KeyboardEvent) {
+    public cancelKeyPress = (ke: KeyboardEvent) => {
         if (!ke.isTrusted) return
         this.cancelKey(ke, this.keyPress)
     }
 
-    cancelKeyUp(ke: KeyboardEvent) {
+    public cancelKeyUp = (ke: KeyboardEvent) => {
         if (!ke.isTrusted) return
         this.cancelKey(ke, this.keyUp)
     }
@@ -83,7 +93,7 @@ class KeyCanceller {
                 ke.shiftKey === ke2.shiftKey &&
                 ke.target === ke2.target,
         )
-        if ((index >= 0) && (ke instanceof KeyboardEvent)) {
+        if (index >= 0 && ke instanceof KeyboardEvent) {
             ke.preventDefault()
             ke.stopImmediatePropagation()
             kes.splice(index, 1)
@@ -93,9 +103,37 @@ class KeyCanceller {
 
 export const canceller = new KeyCanceller()
 
+let commandlineFrameReadyToReceiveMessages = false
+config.getAsync("noiframe").then(noiframe => {
+    if(noiframe === "true") {
+        commandlineFrameReadyToReceiveMessages = true
+    } else {
+        Messaging.addListener("commandline_frame_ready_to_receive_messages", () => {
+            logger.debug("Received commandline_frame_ready_to_receive_messages")
+            commandlineFrameReadyToReceiveMessages = true
+        })
+    }
+})
+
+let mustBufferPageKeysForClInput = false
+let bufferedPageKeys: string[] = []
+let bufferingPageKeysBeginTime: number
+Messaging.addListener("stop_buffering_page_keys", (message, sender, sendResponse) => {
+    const bufferingDuration = performance.now() - bufferingPageKeysBeginTime;
+    logger.debug("stop_buffering_page_keys request received, responding with bufferedPageKeys = ", bufferedPageKeys
+        + " bufferingDuration = " + bufferingDuration + "ms")
+    sendResponse(Promise.resolve(bufferedPageKeys))
+    // At this point, clInput is focused and the page cannot get any more keyboard events
+    // until it is refocused.
+    mustBufferPageKeysForClInput = false
+    bufferedPageKeys = []
+})
+
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
-    const parsers: { [mode_name in ModeName]: any } = {
+    const parsers: {
+        [mode_name in ModeName]: (keys: MinimalKey[]) => ParserResponse
+    } = {
         normal: keys => generic.parser("nmaps", keys),
         insert: keys => generic.parser("imaps", keys),
         input: keys => generic.parser("inputmaps", keys),
@@ -109,25 +147,35 @@ function* ParserController() {
     while (true) {
         let exstr = ""
         let previousSuffix = null
-        let keyEvents: KeyEventLike[] = []
+        let keyEvents: MinimalKey[] = []
         try {
             while (true) {
                 const keyevent: KeyEventLike = yield
+                let shadowRoot = null
+                let textEditable = false
 
-                const shadowRoot =
-                    keyevent instanceof KeyboardEvent
-                        ? (keyevent.target as Element).shadowRoot
-                        : null
+                if (keyevent instanceof KeyboardEvent) {
+                    shadowRoot = deepestShadowRoot(
+                        (keyevent.target as Element).shadowRoot,
+                    )
+
+                    textEditable =
+                        shadowRoot === null
+                            ? isTextEditable(keyevent.target as Element)
+                            : isTextEditable(shadowRoot.activeElement)
+                    // Accumulate key events. The parser will cut this
+                    // down whenever it's not a valid prefix of a known
+                    // binding, so it can't grow indefinitely unless you
+                    // have a combination of maps that permits bindings of
+                    // unbounded length.
+                    keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
+                } else {
+                    keyEvents.push(keyevent)
+                }
 
                 // _just to be safe_, cache this to make the following
                 // code more thread-safe.
                 const currentMode = contentState.mode
-                const textEditable =
-                    keyevent instanceof KeyboardEvent
-                        ? shadowRoot === null
-                            ? isTextEditable(keyevent.target as Element)
-                            : isTextEditable(shadowRoot.activeElement)
-                        : false
 
                 // Don't break old modes with keyup events
                 // TODO: fix this in these parsers directly
@@ -154,16 +202,9 @@ function* ParserController() {
 
                 const newMode = contentState.mode
                 if (newMode !== currentMode) {
-                    keyEvents = []
+                    keyEvents = keyEvents.slice(-1)
                     previousSuffix = null
                 }
-
-                // Accumulate key events. The parser will cut this
-                // down whenever it's not a valid prefix of a known
-                // binding, so it can't grow indefinitely unless you
-                // have a combination of maps that permits bindings of
-                // unbounded length.
-                keyEvents.push(keyevent)
 
                 const response = (
                     parsers[contentState.mode] ||
@@ -176,21 +217,27 @@ function* ParserController() {
                     response,
                 )
 
-                if ((response.isMatch) && (keyevent instanceof KeyboardEvent)) {
-                    keyevent.preventDefault()
-                    keyevent.stopImmediatePropagation()
+                if (response.isMatch && keyevent instanceof KeyboardEvent) {
                     canceller.push(keyevent)
                 }
 
                 if (response.exstr) {
                     exstr = response.exstr
+                    if (
+                        exstr.startsWith("fillcmdline") &&
+                        !exstr.startsWith("fillcmdline_tmp") &&
+                        !exstr.startsWith("fillcmdline_nofocus")
+                    ) {
+                        logger.debug("Starting buffering of page keys")
+                        bufferingPageKeysBeginTime = performance.now()
+                        mustBufferPageKeysForClInput = true
+                        bufferedPageKeys = []
+                    }
                     break
                 } else {
                     keyEvents = response.keys
                     // show current keyEvents as a suffix of the contentState
-                    const suffix = keyEvents
-                        .map(x => PrintableKey(x))
-                        .join("")
+                    const suffix = keyEvents.map(x => PrintableKey(x)).join("")
                     if (previousSuffix !== suffix) {
                         contentState.suffix = suffix
                         previousSuffix = suffix
@@ -210,7 +257,32 @@ function* ParserController() {
 export const generator = ParserController() // var rather than let stops weirdness in repl.
 generator.next()
 
-/** Feed keys to the ParserController */
+/** Feed keys to the ParserController, unless they should be buffered to be later fed to clInput */
 export function acceptKey(keyevent: KeyboardEvent) {
-    return generator.next(keyevent)
+    function tryBufferingPageKeyForClInput(keyevent: KeyboardEvent) {
+        if (!mustBufferPageKeysForClInput)
+            return false;
+        const bufferingDuration = performance.now() - bufferingPageKeysBeginTime;
+        logger.debug("controller_content mustBufferPageKeysForClInput = " + mustBufferPageKeysForClInput
+            + " bufferingDuration = " + bufferingDuration + "ms");
+        const isCharacterKey = keyevent.key.length == 1
+            && !keyevent.metaKey && !keyevent.ctrlKey && !keyevent.altKey && !keyevent.metaKey;
+        if (isCharacterKey) {
+            bufferedPageKeys.push(keyevent.key);
+            logger.debug("Buffering page keys", bufferedPageKeys)
+        }
+        canceller.push(keyevent)
+        return true
+    }
+    if (!commandlineFrameReadyToReceiveMessages) {
+        // If the commandline frame cannot receive messages, the fillcmdline message sent by excmds.fillcmdline() to the
+        // commandline frame will never be received. As a result, commandline_frame.focus() will not be called, which
+        // in turn means that the stop_buffering_page_keys message will never be sent to the content/page process.
+        // If the content/page process starts buffering keys for clInput, but the stop_buffering_page_keys message is never received,
+        // it will keep buffering (and eating events) forever.
+        logger.debug("controller_content Ignoring key event ", keyevent, " since commandline frame is not yet ready to receive messages", keyevent)
+        return
+    }
+    if (!tryBufferingPageKeyForClInput(keyevent))
+        return generator.next(keyevent)
 }

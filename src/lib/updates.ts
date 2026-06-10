@@ -6,55 +6,53 @@
 
  */
 
-import * as RssParser from "rss-parser"
-import * as SemverCompare from "semver-compare"
+import SemverCompare from "semver-compare"
 import * as Config from "@src/lib/config"
 import * as Logging from "@src/lib/logging"
+import { getTriVersion } from "@src/lib/webext"
 
 const logger = new Logging.Logger("updates")
 
-const TRI_VERSION = "REPLACE_ME_WITH_THE_VERSION_USING_SED"
+const TRI_VERSION = getTriVersion()
 
 interface TriVersionFeedItem {
     releaseDate: Date
     version: string
 }
 
-// initialize to beginning of time to cause a check on startup
-let highestKnownVersion: TriVersionFeedItem
-
-function secondsSinceLastCheck() {
+export function secondsSinceLastCheck() {
     const lastCheck = Config.get("update", "lastchecktime")
     return (Date.now() - lastCheck) / 1000
 }
 
-// Get the latest version, with a bit of a cache. This will return
-// immediately if we've already recently checked for an update, so it
-// should be safe to invoke it relatively frequently.
-export async function getLatestVersion(force_check = false) {
-    const pastUpdateInterval = secondsSinceLastCheck() > Config.get("update", "checkintervalsecs")
-    if (force_check || pastUpdateInterval) {
-        await updateVersion()
-    }
-
-    return highestKnownVersion
-}
-
-async function updateVersion() {
+// Ask GitHub what the latest version is
+// Uncached so don't run this often
+export async function getLatestVersion() {
     try {
         // If any monster any makes a novelty tag this will break.
         // So let's just ignore any errors.
-        const parser = new RssParser()
-        const feed = await parser.parseURL("https://github.com/tridactyl/tridactyl/tags.atom")
-        const mostRecent = feed.items[0]
+        const feed = new DOMParser().parseFromString(
+            await (
+                await fetch("https://github.com/tridactyl/tridactyl/tags.atom")
+            ).text(),
+            "application/xml",
+        )
+        const mostRecent = feed.querySelectorAll("entry")[0]
 
         // Update our last update check timestamp and the version itself.
         Config.set("update", "lastchecktime", Date.now())
-        highestKnownVersion = {
-            version: mostRecent.title,
-            releaseDate: new Date(mostRecent.pubDate), // e.g. 2018-12-04T15:24:43.000Z
+        const highestKnownVersion = {
+            version: mostRecent.querySelector("title").textContent,
+            releaseDate: new Date(
+                mostRecent.querySelector("updated").textContent,
+            ), // e.g. 2018-12-04T15:24:43.000Z
         }
-        logger.debug("Checked for new version of Tridactyl, found ", highestKnownVersion)
+        logger.debug(
+            "Checked for new version of Tridactyl, found ",
+            highestKnownVersion,
+        )
+
+        return highestKnownVersion
     } catch (e) {
         logger.error("Error while checking for updates: ", e)
     }
@@ -63,7 +61,8 @@ async function updateVersion() {
 export function shouldNagForVersion(version: TriVersionFeedItem) {
     const timeSinceRelease = (Date.now() - version.releaseDate.getTime()) / 1000
     const updateNagWaitSeconds = Config.get("update", "nagwait") * 24 * 60 * 60
-    const newerThanInstalled = SemverCompare(version.version, getInstalledPatchVersion()) > 0
+    const newerThanInstalled =
+        SemverCompare(version.version, getInstalledPatchVersion()) > 0
 
     return newerThanInstalled && timeSinceRelease > updateNagWaitSeconds
 }

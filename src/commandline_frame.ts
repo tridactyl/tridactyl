@@ -17,48 +17,64 @@
 
 /** Script used in the commandline iframe. Communicates with background. */
 
-import * as perf from "@src/perf"
-import "@src/lib/number.clamp"
-import "@src/lib/html-tagged-template"
-import { TabAllCompletionSource } from "@src/completions/TabAll"
+import * as SELF from "@src/commandline_frame"
+import { CompletionSourceFuse } from "@src/completions"
+import { AproposCompletionSource } from "@src/completions/Apropos"
+import { AutocmdCompletionSource } from "@src/completions/Autocmd"
 import { BindingsCompletionSource } from "@src/completions/Bindings"
-import { BufferCompletionSource } from "@src/completions/Tab"
-import { BmarkCompletionSource } from "@src/completions/Bmark"
-import { ExcmdCompletionSource } from "@src/completions/Excmd"
+import {
+    BmarkCompletionSource,
+    BookmarkFolderCompletionSource,
+} from "@src/completions/Bmark"
 import { CompositeCompletionSource } from "@src/completions/Composite"
+import { ExcmdCompletionSource } from "@src/completions/Excmd"
+import { ExtensionsCompletionSource } from "@src/completions/Extensions"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
+import { GotoCompletionSource } from "@src/completions/Goto"
 import { GuisetCompletionSource } from "@src/completions/Guiset"
 import { HelpCompletionSource } from "@src/completions/Help"
-import { AproposCompletionSource } from "@src/completions/Apropos"
 import { HistoryCompletionSource } from "@src/completions/History"
 import { PreferenceCompletionSource } from "@src/completions/Preferences"
 import { RssCompletionSource } from "@src/completions/Rss"
 import { SessionsCompletionSource } from "@src/completions/Sessions"
 import { SettingsCompletionSource } from "@src/completions/Settings"
+import { BufferCompletionSource } from "@src/completions/Tab"
+import { TabAllCompletionSource } from "@src/completions/TabAll"
+import { ThemeCompletionSource } from "@src/completions/Theme"
+import { TabHistoryCompletionSource } from "@src/completions/TabHistory"
 import { WindowCompletionSource } from "@src/completions/Window"
-import { ExtensionsCompletionSource } from "@src/completions/Extensions"
+import { ProxyCompletionSource } from "@src/completions/Proxy"
+import { contentState } from "@src/content/state_content"
+import { theme } from "@src/content/styling"
+import { getCommandlineFns } from "@src/lib/commandline_cmds"
+import * as tri_editor from "@src/lib/editor"
+import "@src/lib/DANGEROUS-html-tagged-template"
+import Logger from "@src/lib/logging"
 import * as Messaging from "@src/lib/messaging"
 import "@src/lib/number.clamp"
-import state from "@src/state"
-import * as State from "@src/state"
-import Logger from "@src/lib/logging"
-import { theme } from "@src/content/styling"
-
 import * as genericParser from "@src/parsers/genericmode"
-import * as tri_editor from "@src/lib/editor"
+import * as perf from "@src/perf"
+import state, * as State from "@src/state"
+import * as R from "ramda"
+import { MinimalKey, minimalKeyFromKeyboardEvent } from "@src/lib/keyseq"
+import { TabGroupCompletionSource } from "@src/completions/TabGroup"
+import { ProfileCompletionSource } from "@src/completions/Profile"
 
 /** @hidden **/
 const logger = new Logger("cmdline")
 
 /** @hidden **/
 const commandline_state = {
-    activeCompletions: undefined,
-    clInput: (window.document.getElementById("tridactyl-input") as HTMLInputElement),
+    activeCompletions: undefined as CompletionSourceFuse[],
+    clInput: window.document.getElementById(
+        "tridactyl-input",
+    ) as HTMLInputElement,
     clear,
     cmdline_history_position: 0,
     completionsDiv: window.document.getElementById("completions"),
-    fns: undefined,
+    fns: undefined as ReturnType<typeof getCommandlineFns>,
     getCompletion,
+    getActiveCompletionSource,
     history,
     /** @hidden
      * This is to handle Escape key which, while the cmdline is focused,
@@ -68,7 +84,8 @@ const commandline_state = {
      * tl;dr TODO: delete this and better resolve race condition
      */
     isVisible: false,
-    keyEvents: new Array<KeyEventLike>(),
+    keyEvents: new Array<MinimalKey>(),
+    initialClInputValue: "",
     refresh_completions,
     state,
 }
@@ -80,7 +97,6 @@ theme(document.querySelector(":root"))
 function resizeArea() {
     if (commandline_state.isVisible) {
         Messaging.messageOwnTab("commandline_content", "show")
-        Messaging.messageOwnTab("commandline_content", "focus")
         focus()
     }
 }
@@ -89,29 +105,39 @@ function resizeArea() {
  * This is a bit loosely defined at the moment.
  * Should work so long as there's only one completion source per prefix.
  */
-function getCompletion() {
+function getActiveCompletionSource(): CompletionSourceFuse | undefined {
     if (!commandline_state.activeCompletions) return undefined
 
-    for (const comp of commandline_state.activeCompletions) {
-        if (comp.state === "normal" && comp.completion !== undefined) {
-            return comp.completion
-        }
-    }
+    return commandline_state.activeCompletions.filter(
+        ({ state, completion }) =>
+            state === "normal" && completion !== undefined,
+    )[0]
 }
-commandline_state.getCompletion = getCompletion
+
+/** @hidden **/
+function getCompletion(args_only = false): string | undefined {
+    const activeSource = getActiveCompletionSource()
+    if (!activeSource) return undefined
+    return args_only ? activeSource.args : activeSource.completion
+}
 
 /** @hidden **/
 export function enableCompletions() {
     if (!commandline_state.activeCompletions) {
         commandline_state.activeCompletions = [
+            AutocmdCompletionSource,
             // FindCompletionSource,
             BindingsCompletionSource,
             BmarkCompletionSource,
+            BookmarkFolderCompletionSource,
             TabAllCompletionSource,
             BufferCompletionSource,
             ExcmdCompletionSource,
+            ThemeCompletionSource,
+            TabHistoryCompletionSource,
             CompositeCompletionSource,
             FileSystemCompletionSource,
+            GotoCompletionSource,
             GuisetCompletionSource,
             HelpCompletionSource,
             AproposCompletionSource,
@@ -120,8 +146,11 @@ export function enableCompletions() {
             RssCompletionSource,
             SessionsCompletionSource,
             SettingsCompletionSource,
+            TabGroupCompletionSource,
+            ProfileCompletionSource,
             WindowCompletionSource,
             ExtensionsCompletionSource,
+            ProxyCompletionSource,
         ]
             .map(constructorr => {
                 try {
@@ -131,7 +160,9 @@ export function enableCompletions() {
             .filter(c => c)
 
         const fragment = document.createDocumentFragment()
-        commandline_state.activeCompletions.forEach(comp => fragment.appendChild(comp.node))
+        commandline_state.activeCompletions.forEach(comp =>
+            fragment.appendChild(comp.node),
+        )
         commandline_state.completionsDiv.appendChild(fragment)
         logger.debug(commandline_state.activeCompletions)
     }
@@ -139,13 +170,47 @@ export function enableCompletions() {
 /* document.addEventListener("DOMContentLoaded", enableCompletions) */
 
 /** @hidden **/
-const noblur = e => setTimeout(() => commandline_state.clInput.focus(), 0)
+const noblur = () => setTimeout(() => commandline_state.clInput.focus(), 0)
 
 /** @hidden **/
 export function focus() {
+    function consumeBufferedPageKeys(bufferedPageKeys: string[]) {
+        const clInputStillFocused =
+            window.document.activeElement === commandline_state.clInput
+        logger.debug(
+            "stop_buffering_page_keys response received, bufferedPageKeys = ",
+            bufferedPageKeys,
+            "clInputStillFocused = " + clInputStillFocused,
+        )
+        if (bufferedPageKeys.length !== 0) {
+            const currentClInputValue = commandline_state.clInput.value
+            const initialClInputValue = commandline_state.initialClInputValue
+            logger.debug(
+                "Consuming buffered page keys",
+                bufferedPageKeys,
+                "initialClInputValue = " + initialClInputValue,
+                "currentClInputValue = " + currentClInputValue,
+            )
+            // Native events are assumed to be character keydown events,
+            // i.e. characters appended at the end of clInput.
+            commandline_state.clInput.value =
+                initialClInputValue +
+                bufferedPageKeys.join("") +
+                currentClInputValue.substring(initialClInputValue.length)
+            // Update completion.
+            clInputValueChanged()
+        }
+    }
     commandline_state.clInput.focus()
     commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.addEventListener("blur", noblur)
+    logger.debug(
+        "commandline_frame clInput focus(), activeElement is clInput: " +
+            (window.document.activeElement === commandline_state.clInput),
+    )
+    Messaging.messageOwnTab("stop_buffering_page_keys").then(
+        consumeBufferedPageKeys,
+    )
 }
 
 /** @hidden **/
@@ -159,13 +224,21 @@ const keyParser = keys => genericParser.parser("exmaps", keys)
 let history_called = false
 /** @hidden **/
 let prev_cmd_called_history = false
+
+// Save programmer time by generating an immediately resolved promise
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const QUEUE: Promise<any>[] = [(async () => {})()]
+
 /** @hidden **/
 commandline_state.clInput.addEventListener(
     "keydown",
-    function(keyevent: KeyboardEvent) {
+    function (keyevent: KeyboardEvent) {
         if (!keyevent.isTrusted) return
-        (keyevent as any).keyup = false
-        commandline_state.keyEvents.push(keyevent)
+        logger.debug(
+            "commandline_frame clInput keydown event listener",
+            keyevent,
+        )
+        commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
         if (response.isMatch) {
             keyevent.preventDefault()
@@ -186,9 +259,21 @@ commandline_state.clInput.addEventListener(
             // This is definitely a hack. Should expand aliases with exmode, etc.
             // but this whole thing should be scrapped soon, so whatever.
             if (response.value.startsWith("ex.")) {
-                const funcname = response.value.slice(3)
-                commandline_state.fns[funcname]()
-                prev_cmd_called_history = history_called
+                const [funcname, ...args] = response.value.slice(3).split(/\s+/)
+
+                QUEUE[QUEUE.length - 1].then(() => {
+                    QUEUE.push(
+                        // Abuse async to wrap non-promises in a promise
+                        // eslint-disable-next-line @typescript-eslint/require-await
+                        (async () =>
+                            commandline_state.fns[
+                                funcname as keyof typeof commandline_state.fns
+                            ](
+                                args.length === 0 ? undefined : args.join(" "),
+                            ))(),
+                    )
+                    prev_cmd_called_history = history_called
+                })
             } else {
                 // Send excmds directly to our own tab, which fixes the
                 // old bug where a command would be issued in one tab but
@@ -229,17 +314,31 @@ export function refresh_completions(exstr) {
 let onInputPromise: Promise<any> = Promise.resolve()
 /** @hidden **/
 commandline_state.clInput.addEventListener("input", () => {
+    logger.debug("commandline_frame clInput input event listener")
+    clInputValueChanged()
+})
+
+/** @hidden **/
+function clInputValueChanged() {
     const exstr = commandline_state.clInput.value
+    contentState.current_cmdline = exstr
+    contentState.cmdline_filter = ""
     // Schedule completion computation. We do not start computing immediately because this would incur a slow down on quickly repeated input events (e.g. maintaining <Backspace> pressed)
     setTimeout(async () => {
         // Make sure the previous computation has ended
         await onInputPromise
         // If we're not the current completion computation anymore, stop
-        if (exstr !== commandline_state.clInput.value) return
+        if (exstr !== commandline_state.clInput.value) {
+            contentState.cmdline_filter = exstr
+            return
+        }
 
         onInputPromise = refresh_completions(exstr)
+        onInputPromise.then(() => {
+            contentState.cmdline_filter = exstr
+        })
     }, 100)
-})
+}
 
 /** @hidden **/
 let cmdline_history_current = ""
@@ -250,7 +349,8 @@ let cmdline_history_current = ""
  *  Otherwise, no need to pass an argument.
  */
 export function clear(evlistener = false) {
-    if (evlistener) commandline_state.clInput.removeEventListener("blur", noblur)
+    if (evlistener)
+        commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.value = ""
     commandline_state.cmdline_history_position = 0
     cmdline_history_current = ""
@@ -265,13 +365,15 @@ async function history(n) {
         HISTORY_SEARCH_STRING = commandline_state.clInput.value
     }
 
-    const matches = (await State.getAsync("cmdHistory")).filter(key =>
-        key.startsWith(HISTORY_SEARCH_STRING),
-    )
+    // Check for matches in history, removing duplicates
+    const matches = R.reverse(
+        R.uniq(R.reverse(await State.getAsync("cmdHistory"))),
+    ).filter(key => key.startsWith(HISTORY_SEARCH_STRING))
     if (commandline_state.cmdline_history_position === 0) {
         cmdline_history_current = commandline_state.clInput.value
     }
-    let clamped_ind = matches.length + n - commandline_state.cmdline_history_position
+    let clamped_ind =
+        matches.length + n - commandline_state.cmdline_history_position
     clamped_ind = clamped_ind.clamp(0, matches.length)
 
     const pot_history = matches[clamped_ind]
@@ -280,8 +382,12 @@ async function history(n) {
 
     // if there was no clampage, update history position
     // there's a more sensible way of doing this but that would require more programmer time
-    if (clamped_ind === matches.length + n - commandline_state.cmdline_history_position)
-        commandline_state.cmdline_history_position = commandline_state.cmdline_history_position - n
+    if (
+        clamped_ind ===
+        matches.length + n - commandline_state.cmdline_history_position
+    )
+        commandline_state.cmdline_history_position =
+            commandline_state.cmdline_history_position - n
 }
 commandline_state.history = history
 
@@ -291,8 +397,18 @@ export function fillcmdline(
     trailspace = true,
     ffocus = true,
 ) {
+    logger.debug(
+        "commandline_frame fillcmdline(newcommand = " +
+            newcommand +
+            " trailspace = " +
+            trailspace +
+            " ffocus = " +
+            ffocus +
+            ")",
+    )
     if (trailspace) commandline_state.clInput.value = newcommand + " "
     else commandline_state.clInput.value = newcommand
+    commandline_state.initialClInputValue = commandline_state.clInput.value
     commandline_state.isVisible = true
     let result = Promise.resolve([])
     // Focus is lost for some reason.
@@ -303,64 +419,13 @@ export function fillcmdline(
     return result
 }
 
-/** @hidden
- * Create a temporary textarea and give it to fn. Remove the textarea afterwards
- *
- * Useful for document.execCommand
- **/
-function applyWithTmpTextArea(fn) {
-    let textarea
-    try {
-        textarea = document.createElement("textarea")
-        // Scratchpad must be `display`ed, but can be tiny and invisible.
-        // Being tiny and invisible means it won't make the parent page move.
-        textarea.style.cssText =
-            "visible: invisible; width: 0; height: 0; position: fixed"
-        textarea.contentEditable = "true"
-        document.documentElement.appendChild(textarea)
-        return fn(textarea)
-    } finally {
-        document.documentElement.removeChild(textarea)
-    }
-}
-
-/** @hidden **/
-export async function setClipboard(content: string) {
-    await Messaging.messageOwnTab("commandline_content", "focus")
-    applyWithTmpTextArea(scratchpad => {
-        scratchpad.value = content
-        scratchpad.select()
-        if (document.execCommand("Copy")) {
-            // // todo: Maybe we can consider to using some logger and show it with status bar in the future
-            logger.info("set clipboard:", scratchpad.value)
-        } else throw "Failed to copy!"
-    })
-    // Return focus to the document
-    await Messaging.messageOwnTab("commandline_content", "hide")
-    return Messaging.messageOwnTab("commandline_content", "blur")
-}
-
-/** @hidden **/
-export async function getClipboard() {
-    await Messaging.messageOwnTab("commandline_content", "focus")
-    const result = applyWithTmpTextArea(scratchpad => {
-        scratchpad.focus()
-        document.execCommand("Paste")
-        return scratchpad.textContent
-    })
-    // Return focus to the document
-    await Messaging.messageOwnTab("commandline_content", "hide")
-    await Messaging.messageOwnTab("commandline_content", "blur")
-    return result
-}
-
 /** @hidden **/
 export function getContent() {
     return commandline_state.clInput.value
 }
 
 /** @hidden **/
-export function editor_function(fn_name, ...args) {
+export function editor_function(fn_name: keyof typeof tri_editor, ...args) {
     let result = Promise.resolve([])
     if (tri_editor[fn_name]) {
         tri_editor[fn_name](commandline_state.clInput, ...args)
@@ -373,19 +438,22 @@ export function editor_function(fn_name, ...args) {
     return result
 }
 
-import * as SELF from "@src/commandline_frame"
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
+logger.debug("Added commandline_frame message listener")
 
-import { getCommandlineFns } from "@src/lib/commandline_cmds"
-import { KeyEventLike } from "./lib/keyseq"
 commandline_state.fns = getCommandlineFns(commandline_state)
-Messaging.addListener("commandline_cmd", Messaging.attributeCaller(commandline_state.fns))
+Messaging.addListener(
+    "commandline_cmd",
+    Messaging.attributeCaller(commandline_state.fns),
+)
 
 // Listen for statistics from the commandline iframe and send them to
 // the background for collection. Attach the observer to the window
 // object since there's apparently a bug that causes performance
 // observers to be GC'd even if they're still the target of a
 // callback.
-; (window as any).tri = Object.assign(window.tri || {}, {
+;(window as any).tri = Object.assign(window.tri || {}, {
     perfObserver: perf.listenForCounters(),
 })
+
+Messaging.messageOwnTab("commandline_frame_ready_to_receive_messages")
