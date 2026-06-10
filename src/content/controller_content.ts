@@ -151,6 +151,15 @@ function* ParserController() {
         try {
             while (true) {
                 const keyevent: KeyEventLike = yield
+
+                // Don't break old modes with keyup events
+                // TODO: fix this in these parsers directly
+                if (
+                    ["hint", "gobble"].includes(contentState.mode) &&
+                    (keyevent as any).keyup
+                )
+                    continue
+
                 let shadowRoot = null
                 let textEditable = false
 
@@ -176,10 +185,6 @@ function* ParserController() {
                 // _just to be safe_, cache this to make the following
                 // code more thread-safe.
                 const currentMode = contentState.mode
-
-                // Don't break old modes with keyup events
-                // TODO: fix this in these parsers directly
-                if (["hint", "gobble"].includes(currentMode) && (keyevent as any).keyup) continue
 
                 // This code was sort of the cause of the most serious bug in Tridactyl
                 // to date (March 2018).
