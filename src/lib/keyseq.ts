@@ -114,7 +114,6 @@ export class MinimalKey {
         if (this.keydown && keyevent.repeat) return false
         return true
     }
-
     public translate(keytranslatemap: { [inkey: string]: string }): MinimalKey {
         let newkey = keytranslatemap[this.key]
         if (newkey === undefined || this.translated) newkey = this.key
@@ -140,6 +139,7 @@ export class MinimalKey {
             ["C", "ctrlKey"],
             ["M", "metaKey"],
             ["S", "shiftKey"],
+            ["D", "keydown"],
             ["U", "keyup"],
             ["?", "optional"],
         ])

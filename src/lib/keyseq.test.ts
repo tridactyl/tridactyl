@@ -800,4 +800,15 @@ testAllObject(mks, [
     ["<ACM-lt>", mks("<CAM-<>")],
 ])
 
+// {{{ canonicaliseMapstr
+
+testAll(ks.canonicaliseMapstr, [
+    // Explicit direction modifiers must be preserved
+    ["<D-j>", "<D-j>"],
+    ["<U-j>", "<U-j>"],
+    // Regular keys stay the same
+    ["j", "j"],
+    ["<C-a>", "<C-a>"],
+])
+
 // }}}
