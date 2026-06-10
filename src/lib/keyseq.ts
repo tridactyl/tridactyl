@@ -189,8 +189,7 @@ export interface ParserResponse {
     numericPrefix?: number
 }
 
-const isDigit = (d: string) =>
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(d))
+const isDigit = (d: string) => d.length === 1 && d >= "0" && d <= "9"
 
 const isKeyup = (k: MinimalKey) => k.keyup
 

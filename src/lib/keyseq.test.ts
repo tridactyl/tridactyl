@@ -136,6 +136,12 @@ function mk(k, mod?: ks.KeyModifiers) {
         [[[mk("o")], keymap2], { value: "bar", isMatch: true }],
         [[mks("goff"), keymap2], { keys: [], isMatch: false }],
         [[mks("xxxxx"), keymap2], { keys: [], isMatch: false }],
+
+        // Space key should be bindable via <Space>
+        [
+            [[mk(" ")], new Map([[mks("<Space>"), "spacetest"]])],
+            { value: "spacetest", isMatch: true },
+        ],
     ])
 
     testAllObject(ks.completions, [
@@ -144,6 +150,11 @@ function mk(k, mod?: ks.KeyModifiers) {
         // -ve tests
         [[mks("x"), keymap], new Map()],
         [[mks("ggg"), keymap], new Map()],
+        // Space key completions
+        [
+            [[mk(" ")], new Map([[mks("<Space>"), "spacetest"]])],
+            new Map([[mks("<Space>"), "spacetest"]]),
+        ],
     ])
 } // }}}
 
@@ -156,6 +167,7 @@ testAll(ks.bracketexprToKey, [
     ["<M-a>b", [mk("a", { metaKey: true }), "b"]],
     ["<S-Escape>b", [mk("Escape", { shiftKey: true }), "b"]],
     ["<Tab>b", [mk("Tab"), "b"]],
+    ["<Space>b", [mk(" "), "b"]],
     ["<>b", [mk("<"), ">b"]],
     ["<tag >", [mk("<"), "tag >"]],
 ])
@@ -790,6 +802,9 @@ testAllObject(ks.mapstrToKeyseq, [
         ],
     ],
     ["wat's up <s-Escape>", mks("wat's up <s-Escape>")],
+
+    // <Space> should produce a minimal key with key=" "
+    ["<Space>", [mk(" ", { keydown: true })]],
 ])
 
 // Check order of modifiers doesn't matter
