@@ -5191,9 +5191,8 @@ export function viewconfig(...key: string[]) {
  */
 //#background
 export async function jsonview(...json: string[]) {
-    const tab = await tabopen("-w", browser.runtime.getURL("static/newtab.html"))
-    const url = "data:application/json," + encodeURIComponent(json.join(" "))
-    return browser.tabs.executeScript(tab.id, { code: `window.location.href = "${url}";` })
+    const blob = new Blob([json.join(" ")], { type: "application/json" })
+    return tabopen("-w", URL.createObjectURL(blob))
 }
 
 /**
