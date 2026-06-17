@@ -38,27 +38,27 @@ export function getCommandlineFns(cmdline_state: {
         /**
          * Selects the next completion.
          */
-        next_completion: async () => {
+        next_completion: async (n = 1) => {
             await awaitProxyEq(
                 contentState,
                 "current_cmdline",
                 "cmdline_filter",
             )
             if (cmdline_state.activeCompletions)
-                cmdline_state.activeCompletions.forEach(comp => comp.next())
+                cmdline_state.activeCompletions.forEach(comp => comp.next(n))
         },
 
         /**
          * Selects the previous completion.
          */
-        prev_completion: async () => {
+        prev_completion: async (n = 1) => {
             await awaitProxyEq(
                 contentState,
                 "current_cmdline",
                 "cmdline_filter",
             )
             if (cmdline_state.activeCompletions)
-                cmdline_state.activeCompletions.forEach(comp => comp.prev())
+                cmdline_state.activeCompletions.forEach(comp => comp.prev(n))
         },
 
         /**
