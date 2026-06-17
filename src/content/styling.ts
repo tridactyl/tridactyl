@@ -23,14 +23,14 @@ const THEMED_ELEMENTS = []
 
 let insertedHintElemCSS = false
 const hintElemCss = {
-    allFrames: true,
+    frameId: 0,
     matchAboutBlank: true,
     code: "",
 }
 
 let insertedCSS = false
 const customCss = {
-    allFrames: true,
+    frameId: 0,
     matchAboutBlank: true,
     code: "",
 }
