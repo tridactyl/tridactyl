@@ -1919,14 +1919,14 @@ export function getDeepProperty(obj, target: string[]) {
             return getDeepProperty(obj[target[0]], target.slice(1))
         } else {
             return getDeepProperty(
-                mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]],
+                mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]],
                 target.slice(1),
             )
         }
     } else {
         if (obj === undefined || obj === null) return obj
         if (obj["🕷🕷INHERITS🕷🕷"] !== undefined) {
-            return mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
+            return mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
         } else {
             return obj
         }
@@ -1956,8 +1956,8 @@ function setDeepProperty(obj, value, target) {
  * Merges two objects and any child objects they may have
  */
 export function mergeDeep(o1, o2) {
-    if (o1 === null) return o(o2)
-    const r = Array.isArray(o1) ? o1.slice() : o({})
+    if (o1 === null) return Object.assign({}, o2)
+    const r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
     Object.assign(r, o1, o2)
     if (o2 === undefined) return r
     Object.keys(o1)
@@ -1965,7 +1965,9 @@ export function mergeDeep(o1, o2) {
             key => typeof o1[key] === "object" && typeof o2[key] === "object",
         )
         .forEach(key =>
-            r[key] == null ? null : (r[key] = mergeDeep(o1[key], o2[key])),
+            r[key] == null
+                ? null
+                : Object.assign(r[key], mergeDeep(o1[key], o2[key])),
         )
     return r
 }
@@ -2008,7 +2010,7 @@ export function getURL(url: string, target: string[]) {
     const deflt = _getURL(DEFAULTS, url, target)
     if (user === undefined || user === null) return deflt
     if (typeof user !== "object" || typeof deflt !== "object") return user
-    return mergeDeep(deflt, user)
+    return mergeDeepCull(deflt, user)
 }
 
 /** Get the value of the key target.
@@ -2034,16 +2036,14 @@ export function get(target_typed?: keyof default_config, ...target: string[]) {
 
     // Merge results if there's a default value and it's not an Array or primitive.
     if (typeof defult === "object") {
-        return removeNull(mergeDeep(mergeDeep(defult, user), site))
-    } else if (defult === undefined && user && typeof user === "object") {
-        return removeNull(mergeDeep(user, site))
+        return mergeDeepCull(mergeDeepCull(defult, user), site)
     } else {
         if (site !== undefined) {
-            return removeNull(site)
+            return site
         } else if (user !== undefined) {
-            return removeNull(user)
+            return user
         } else {
-            return removeNull(defult)
+            return defult
         }
     }
 }
