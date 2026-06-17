@@ -1,5 +1,39 @@
 # Tridactyl changelog
 
+# Release 1.24.6 / 2026-05-17
+
+Emergency release to work around broken themes in FF152+ (we did get a couple of months of prior warning, but I forgot :( )
+
+- New features
+
+    - `:keyfeed --page` for sending fake keypresses to pages (which they may decide to ignore)
+
+- Bug fixes
+
+    - `:colours` works again in FF152+ ([#5368](https://github.com/tridactyl/tridactyl/issues/5368))
+    - `blacklistkeys` now works more reliably (for e.g. using `/` on GitHub) ([#906](https://github.com/tridactyl/tridactyl/issues/906))
+    - scrolling jitter on HiDPI screens ([#5392](https://github.com/tridactyl/tridactyl/issues/5392))
+    - extending `visual` selection now works more reliably across DOM nodes ([#5366](https://github.com/tridactyl/tridactyl/issues/5366))
+    - selection should no longer collapse when changing direction with `{l,h}` in visual mode ([#5362](https://github.com/tridactyl/tridactyl/issues/5362))
+    - `:find` should no longer hang on certain pages ([#5394](https://github.com/tridactyl/tridactyl/issues/5394))
+    - mode indicator flicker ([#5265](https://github.com/tridactyl/tridactyl/issues/5265))
+    - `:set visualenterauto true` now works on more text ([#5306](https://github.com/tridactyl/tridactyl/issues/5306))
+    - `:js -d[delim]` now only consumes the last delimiter ([#5385](https://github.com/tridactyl/tridactyl/issues/5385))
+    - `text.transpose_chars` no longer crosses newlines ([#5385](https://github.com/tridactyl/tridactyl/issues/5385))
+    - `:gobble` no longer sends its last keypress to the page ([#5385](https://github.com/tridactyl/tridactyl/issues/5385))
+    - hints should display more reliably ([#5323](https://github.com/tridactyl/tridactyl/issues/5323))
+
+- Miscellaneous
+
+    - `fuse` is now cached in completions which could improve performance ([#5374](https://github.com/tridactyl/tridactyl/issues/5374))
+    - minor `:hint` optimisations to reduce DOM thrashing ([#5340](https://github.com/tridactyl/tridactyl/issues/5340))
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, gholk, repparw, Arjan, Chic-Tweetz and Matei Stroia.
+
+Extra special thanks go to Arjan and Matei Stroia who both contributed for the first time.
+
+Last, but not least - thank you to everyone who reported issues.
+
 # Release 1.24.5 / 2026-02-24
 
 - New features

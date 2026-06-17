@@ -80,15 +80,17 @@ class ScrollingData {
             this.startPos +
             ((this.endPos - this.startPos) * elapsed) / this.duration
         if (this.startPos < this.endPos) {
+            const curPosRounded = Math.ceil(this.elem[this.scrollDirection])
             // We need to ceil() because only highdpi screens have a decimal this.elem[this.pos]
             pixelToScrollTo = Math.ceil(pixelToScrollTo)
             // We *have* to make progress, otherwise we'll think the element can't be scrolled
-            if (pixelToScrollTo == Math.ceil(this.elem[this.scrollDirection]))
-                pixelToScrollTo += 1
+            if (pixelToScrollTo <= curPosRounded)
+                pixelToScrollTo = curPosRounded + 1
         } else {
+            const curPosRounded = Math.floor(this.elem[this.scrollDirection])
             pixelToScrollTo = Math.floor(pixelToScrollTo)
-            if (pixelToScrollTo == Math.floor(this.elem[this.scrollDirection]))
-                pixelToScrollTo -= 1
+            if (pixelToScrollTo >= curPosRounded)
+                pixelToScrollTo = curPosRounded - 1
         }
         return pixelToScrollTo
     }
@@ -96,7 +98,11 @@ class ScrollingData {
     /** Updates the position of this.elem, returns true if the element has been scrolled, false otherwise. */
     private scrollStep(): boolean {
         const prevScrollPos: number = this.elem[this.scrollDirection]
-        this.elem[this.scrollDirection] = this.getStep()
+        const target = this.getStep()
+        this.elem[this.scrollDirection] = target
+        // Ensure endPos value is possible for display dpi
+        if (target === this.endPos)
+            this.endPos = this.elem[this.scrollDirection]
         return prevScrollPos !== this.elem[this.scrollDirection]
     }
 

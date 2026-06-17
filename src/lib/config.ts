@@ -399,8 +399,14 @@ export class default_config {
         y: "composite js document.getSelection().toString() | clipboard yank",
         s: "composite js document.getSelection().toString() | fillcmdline open search",
         S: "composite js document.getSelection().toString() | fillcmdline tabopen search",
-        l: 'js document.getSelection().modify("extend","forward","character")',
-        h: 'js document.getSelection().modify("extend","backward","character")',
+        l: `js
+            const sel = document.getSelection();
+            tri.visual.extendByCharacter(sel, "forward");
+        `,
+        h: `js
+            const sel = document.getSelection();
+            tri.visual.extendByCharacter(sel, "backward");
+        `,
         e: 'js document.getSelection().modify("extend","forward","word")',
         w: 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
         b: 'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
@@ -1913,14 +1919,14 @@ export function getDeepProperty(obj, target: string[]) {
             return getDeepProperty(obj[target[0]], target.slice(1))
         } else {
             return getDeepProperty(
-                mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]],
+                mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)[target[0]],
                 target.slice(1),
             )
         }
     } else {
         if (obj === undefined || obj === null) return obj
         if (obj["🕷🕷INHERITS🕷🕷"] !== undefined) {
-            return mergeDeepCull(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
+            return mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
         } else {
             return obj
         }
@@ -1950,8 +1956,8 @@ function setDeepProperty(obj, value, target) {
  * Merges two objects and any child objects they may have
  */
 export function mergeDeep(o1, o2) {
-    if (o1 === null) return Object.assign({}, o2)
-    const r = Array.isArray(o1) ? o1.slice() : Object.create(o1)
+    if (o1 === null) return o(o2)
+    const r = Array.isArray(o1) ? o1.slice() : o({})
     Object.assign(r, o1, o2)
     if (o2 === undefined) return r
     Object.keys(o1)
@@ -1959,9 +1965,7 @@ export function mergeDeep(o1, o2) {
             key => typeof o1[key] === "object" && typeof o2[key] === "object",
         )
         .forEach(key =>
-            r[key] == null
-                ? null
-                : Object.assign(r[key], mergeDeep(o1[key], o2[key])),
+            r[key] == null ? null : (r[key] = mergeDeep(o1[key], o2[key])),
         )
     return r
 }
@@ -2004,7 +2008,7 @@ export function getURL(url: string, target: string[]) {
     const deflt = _getURL(DEFAULTS, url, target)
     if (user === undefined || user === null) return deflt
     if (typeof user !== "object" || typeof deflt !== "object") return user
-    return mergeDeepCull(deflt, user)
+    return mergeDeep(deflt, user)
 }
 
 /** Get the value of the key target.
@@ -2030,14 +2034,16 @@ export function get(target_typed?: keyof default_config, ...target: string[]) {
 
     // Merge results if there's a default value and it's not an Array or primitive.
     if (typeof defult === "object") {
-        return mergeDeepCull(mergeDeepCull(defult, user), site)
+        return removeNull(mergeDeep(mergeDeep(defult, user), site))
+    } else if (defult === undefined && user && typeof user === "object") {
+        return removeNull(mergeDeep(user, site))
     } else {
         if (site !== undefined) {
-            return site
+            return removeNull(site)
         } else if (user !== undefined) {
-            return user
+            return removeNull(user)
         } else {
-            return defult
+            return removeNull(defult)
         }
     }
 }

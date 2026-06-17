@@ -153,7 +153,7 @@ ALL_EXCMDS = {
 }
 // }
 
-import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap } from "@src/lib/keyseq"
+import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap, MinimalKey } from "@src/lib/keyseq"
 
 //#background_helper
 // {
@@ -5305,9 +5305,8 @@ export function viewconfig(...key: string[]) {
  */
 //#background
 export async function jsonview(...json: string[]) {
-    const tab = await tabopen("-w", browser.runtime.getURL("static/newtab.html"))
-    const url = "data:application/json," + encodeURIComponent(json.join(" "))
-    return browser.tabs.executeScript(tab.id, { code: `window.location.href = "${url}";` })
+    const blob = new Blob([json.join(" ")], { type: "application/json" })
+    return tabopen("-w", URL.createObjectURL(blob))
 }
 
 /**
@@ -6069,13 +6068,15 @@ async function js_helper(str: string[]) {
         break
     }
 
+    const strJoin = str.join(" ")
     if (separator !== null) {
+        const pos = strJoin.indexOf(separator)
         // user may or may not use JS_ARGS
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        JS_ARGS = str.join(" ").split(separator)[1].split(" ")
-        jsContent = str.join(" ").split(separator)[0]
+        JS_ARGS = strJoin.slice(pos + 1).split(" ")
+        jsContent = strJoin.slice(0, pos)
     } else {
-        jsContent = str.join(" ")
+        jsContent = strJoin
     }
 
     if (doSource) {
@@ -6343,19 +6344,47 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
 }
 
 /**
- * Feed some keys to Tridactyl's parser. E.g. `keyfeed jkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjjkj`.
+ * Feed some keys to Tridactyl's parser, or the page. E.g. `keyfeed jkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjkjjkj`.
+ *
+ * Or `keyfeed --page --type=keydown <ArrowDown>`
+ *
+ * People commonly want to use this to navigate dropdown menus with ctrl+n/p. You can do that but the process is slightly involved:
+ *
+ * 1. Go to `about:keyboard` and clear or rebind Ctrl+n from "New Window"
+ * 2. `:bind <C-n> keyfeed --page <ArrowDown>`
+ * 3. `:bind <C-n> --mode=insert keyfeed --page <ArrowDown>`
+ * 4. `:bind <C-p> keyfeed --page <ArrowUp>`
+ * 5. `:bind <C-p> --mode=insert keyfeed --page <ArrowUp>`
  *
  * NB:
  *
  * - Does _not_ function like Vim's noremap - `bind j keyfeed j` will cause an infinite loop.
  * - Doesn't work in exmode - i.e. `keyfeed t<CR>` won't work.
+ * - Some pages may check for spoofed keys like these and block them.
  *
  */
 //#content
-export async function keyfeed(mapstr: string) {
+export async function keyfeed(...args: string[]) {
+    const option = arg.lib({ "--page": Boolean, "--type": String }, { argv: args })
+    const usePage = option["--page"]
+    const eventType = option["--type"] || "keydown"
+    const mapstr = option._.join(" ")
     const keyseq = mapstrToKeyseq(mapstr)
+
+    const spoofKey = (k: MinimalKey) => {
+        const event = new KeyboardEvent(eventType, {
+            ...k,
+            bubbles: true,
+            cancelable: true,
+        })
+        const focus = document.activeElement
+        if (focus) {
+            focus.dispatchEvent(event)
+        }
+    }
+
     for (const k of keyseq) {
-        KEY_MUNCHER.next(k)
+        usePage ? spoofKey(k) : KEY_MUNCHER.next(k)
         await sleep(10)
     }
 }

@@ -30,17 +30,19 @@ if [ -n "$consoleFiles" ]; then
     echo
 fi
 
-if [ -n "$jsfiles" ]; then
-    yarn git-format-staged \
-      --formatter "yarn --silent prettier --stdin-filepath \"{}\"" \
-      "*.ts" "*.tsx"
-fi
+# # disabled because it was too noisy
+#
+# if [ -n "$jsfiles" ]; then
+#     yarn git-format-staged \
+#       --formatter "yarn --silent prettier --stdin-filepath \"{}\"" \
+#       "*.ts" "*.tsx"
+# fi
 
-if [ -n "$otherfiles" ]; then
-    yarn git-format-staged \
-      --formatter "yarn --silent prettier --stdin-filepath \"{}\"" \
-      "*.md" "*.css"
-fi
+# if [ -n "$otherfiles" ]; then
+#     yarn git-format-staged \
+#       --formatter "yarn --silent prettier --stdin-filepath \"{}\"" \
+#       "*.md" "*.css"
+# fi
 
 if [ -n "$jsfiles" ]; then
     echo "Linting staged files..."

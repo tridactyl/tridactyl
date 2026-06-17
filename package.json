@@ -76,6 +76,8 @@
     "update-buildsystem": "rm -rf src/node_modules; yarn run clean",
     "watch": "echo 'watch is broken, use build instead'; exit 0;",
     "install": "git config core.hookspath hooks/",
+    "_dev": "yarn run rebuild && yarn run run",
+    "dev": "ls **/*.ts | entr -r yarn run _dev",
     "githublint": "yamllint .github/workflows/**.yml"
   },
   "author": "Colin Caine",

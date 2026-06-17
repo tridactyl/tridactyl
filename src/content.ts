@@ -361,11 +361,6 @@ config.getAsync("modeindicator").then(mode => {
             }
         }
 
-        const privateMode = browser.extension.inIncognitoContext
-            ? "TridactylPrivate"
-            : ""
-        statusIndicator.className =
-            "cleanslate TridactylStatusIndicator " + privateMode
         if (
             dom.isTextEditable(document.activeElement) &&
             !["input", "ignore"].includes(mode)
@@ -401,45 +396,40 @@ config.getAsync("modeindicator").then(mode => {
             modeindicatorshowkeys,
         )
         statusIndicator.textContent = result
-        statusIndicator.className +=
-            " TridactylMode" + statusIndicator.textContent
 
-        if (
+        const baseCls = "cleanslate TridactylStatusIndicator"
+        const privateCls = browser.extension.inIncognitoContext
+            ? "TridactylPrivate"
+            : ""
+        const modeCls = `TridactylMode${result}`
+        const invisibleCls =
             config.get("modeindicator") !== "true" ||
             config.get("modeindicatormodes", mode) === "false"
-        ) {
-            statusIndicator.classList.add("TridactylInvisible")
-        } else {
-            statusIndicator.classList.remove("TridactylInvisble")
-        }
+                ? "TridactylInvisible"
+                : ""
+
+        statusIndicator.className =
+            `${baseCls} ${privateCls} ${modeCls} ${invisibleCls}`
     })
 })
+
+let leaveGithubAlone = false // don't wait for the config before adding the listener
+config.getAsync("leavegithubalone").then(v => {
+    leaveGithubAlone = v === "true"
+});
+// attach to window instead of document as it's available earlier
+// capture: true prevents bubbling before we have had a chance to cancel it
+window.addEventListener("keydown", protectSlash, {capture: true})
 
 function protectSlash(e) {
-    if (!e.isTrusted) return
-    config.get("blacklistkeys").map(protkey => {
-        if (protkey.indexOf(e.key) !== -1 && contentState.mode === "normal") {
-            e.cancelBubble = true
-            e.stopImmediatePropagation()
-        }
-    })
-}
-
-// Some sites like to prevent firefox's `/` from working so we need to protect
-// ourselves against that
-// This was originally a github-specific fix
-config.getAsync("leavegithubalone").then(v => {
-    if (v === "true") return
-    try {
-        // On quick loading pages, the document is already loaded
-        document.body.addEventListener("keydown", protectSlash)
-    } catch (e) {
-        // But on slower pages we wait for the document to load
-        window.addEventListener("DOMContentLoaded", () => {
-            document.body.addEventListener("keydown", protectSlash)
-        })
+    if (!e.isTrusted || leaveGithubAlone ) return
+    const blacklistKeys = config.get("blacklistkeys") || [];
+    if (blacklistKeys.includes(e.key) && contentState.mode === "normal") {
+        e.cancelBubble = true
+        e.stopImmediatePropagation()
+        e.stopPropagation()
     }
-})
+}
 
 // I still don't get lib/messaging.ts
 const phoneHome = () => browser.runtime.sendMessage("dom_loaded_background")
@@ -459,13 +449,26 @@ document.addEventListener("selectionchange", () => {
         contentState.mode = "normal"
         return
     }
-    if (
-        contentState.mode !== "normal" ||
-        config.get("visualenterauto") == "false"
-    )
+    // TODO: make use of submodeconfigs (excmds.setmode)
+    if (["ex", "ignore", "hint", "visual"].includes(contentState.mode)) {
         return
-    if (!selection.isCollapsed) {
-        contentState.mode = "visual"
+    }
+    if (config.get("visualenterauto") == "false") return
+
+    if (!selection.isCollapsed) b: {
+        const text = selection.focusNode // text node or null
+        if (!text) break b
+
+        let element
+        if (text instanceof Element) element = text
+        else element = text.parentElement
+
+        if (
+            !element.isContentEditable ||
+            element.contentEditable === undefined // svg
+        ) {
+            contentState.mode = "visual"
+        }
     }
 })
 

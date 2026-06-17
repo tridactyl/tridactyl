@@ -47,6 +47,8 @@ class FindHighlight extends HTMLSpanElement {
         const range = document.createRange()
         range.setStart(allTextNode[found.startTextNodePos], found.startOffset)
         range.setEnd(allTextNode[found.endTextNodePos], found.endOffset)
+        if (range.getClientRects().length < 1)
+            throw new Error("Range has no rects")
         return new this(range)
     }
 
@@ -188,7 +190,6 @@ export async function jumpToMatch(searchQuery, option) {
         caseSensitive: sensitive,
         entireWord: false,
         includeRangeData: true,
-        includeRectData: true,
     })
     state.lastSearchQuery = searchQuery
     lastHighlights = []
@@ -212,15 +213,12 @@ export async function jumpToMatch(searchQuery, option) {
 
     const host = getFindHost()
     for (let i = 0; i < results.count; ++i) {
-        const data = results.rectData[i]
-        if (data.rectsAndTexts.rectList.length < 1) {
-            // When a result does not have any rectangles, it's not visible
-            continue
-        }
         const range = results.rangeData[i]
-        const high = FindHighlight.fromFindApi(range, nodes)
-        host.appendChild(high)
-        lastHighlights.push(high)
+        try {
+            const high = FindHighlight.fromFindApi(range, nodes)
+            host.appendChild(high)
+            lastHighlights.push(high)
+        } catch (_) {} // Inaccessible range, eg cross-origin iframe - ignore
     }
     if (lastHighlights.length < 1) {
         throw new Error("Pattern not found: " + searchQuery)

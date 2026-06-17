@@ -45,7 +45,7 @@ export function parser(keys: MinimalKey[]) {
             modeState.args,
         ].join(" ")
         reset()
-        return { keys: [], exstr }
+        return { keys: [], exstr, isMatch: true }
     }
 
     const key = keys[0].key
