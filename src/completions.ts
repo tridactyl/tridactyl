@@ -88,7 +88,10 @@ export abstract class CompletionSource {
 
     deselect() {
         this.completion = undefined
-        if (this.lastFocused !== undefined) this.lastFocused.state = "normal"
+        if (this.lastFocused !== undefined &&
+            this.lastFocused.state == "focused") {
+            this.lastFocused.state = "normal"
+        }
     }
 
     /** Update [[node]] to display completions relevant to exstr */
