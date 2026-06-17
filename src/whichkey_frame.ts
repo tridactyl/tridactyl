@@ -2,6 +2,7 @@ import * as SELF from "@src/whichkey_frame"
 import Logger from "@src/lib/logging"
 import * as Messaging from "@src/lib/messaging"
 import * as Metadata from "@src/.metadata.generated"
+import { theme } from "@src/content/styling"
 
 const logger = new Logger("whichkey_frame")
 
@@ -168,3 +169,5 @@ export function update(
 }
 
 Messaging.addListener("whichkey_frame", Messaging.attributeCaller(SELF))
+
+theme(document.querySelector(":root"))
