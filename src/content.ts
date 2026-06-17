@@ -411,6 +411,14 @@ config.getAsync("modeindicator").then(mode => {
         statusIndicator.className =
             `${baseCls} ${privateCls} ${modeCls} ${invisibleCls}`
     })
+
+    config.addChangeListener("modeindicator", (_, newVal) => {
+        if (newVal !== "true") {
+            statusIndicator.classList.add("TridactylInvisible")
+        } else {
+            statusIndicator.classList.remove("TridactylInvisble")
+        }
+    })
 })
 
 let leaveGithubAlone = false // don't wait for the config before adding the listener
