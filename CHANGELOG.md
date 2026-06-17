@@ -1,6 +1,6 @@
 # Tridactyl changelog
 
-# Release 1.25.6 / 2026-05-17
+# Release 1.24.6 / 2026-05-17
 
 Emergency release to work around broken themes in FF152+ (we did get a couple of months of prior warning, but I forgot :( )
 
