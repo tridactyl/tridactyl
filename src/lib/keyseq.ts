@@ -102,7 +102,7 @@ export class MinimalKey {
         }
         for (const [_, attr] of modifiers.entries()) {
             if (attr === "shiftKey" && this.key.length === 1) continue
-            if (this[attr] !== keyevent[attr]) {
+            if (this[attr] && !keyevent[attr]) {
                 if (this.optional) return "skip"
                 return false
             }
