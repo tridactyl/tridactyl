@@ -129,6 +129,9 @@ Messaging.addListener("stop_buffering_page_keys", (message, sender, sendResponse
     bufferedPageKeys = []
 })
 
+let keysToFeed: KeyEventLike[] = []
+let generatorIsWaiting = true
+
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers: {
@@ -150,7 +153,9 @@ function* ParserController() {
         let keyEvents: MinimalKey[] = []
         try {
             while (true) {
-                const keyevent: KeyEventLike = yield
+                generatorIsWaiting = true
+                const keyevent: KeyEventLike = keysToFeed.length ? keysToFeed.shift() : yield
+                generatorIsWaiting = false
                 let shadowRoot = null
                 let textEditable = false
 
@@ -252,6 +257,16 @@ function* ParserController() {
 
 export const generator = ParserController() // var rather than let stops weirdness in repl.
 generator.next()
+
+export function keyMuncher(...keys: KeyEventLike[]) {
+    if (keys.length === 0) return
+    if (generatorIsWaiting) {
+        keysToFeed = keysToFeed.concat(keys)
+        generator.next(keysToFeed.shift())
+    } else {
+        keysToFeed = keysToFeed.concat(keys)
+    }
+}
 
 /** Feed keys to the ParserController, unless they should be buffered to be later fed to clInput */
 export function acceptKey(keyevent: KeyboardEvent) {
