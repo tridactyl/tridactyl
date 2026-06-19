@@ -111,8 +111,7 @@ export class MinimalKey {
             if (this.optional) return "skip"
             return false
         }
-        if (this.keydown && keyevent.repeat) return false
-        return true
+        return !(this.keydown && keyevent.repeat)
     }
     public translate(keytranslatemap: { [inkey: string]: string }): MinimalKey {
         let newkey = keytranslatemap[this.key]
