@@ -192,7 +192,14 @@ testAllObject(ks.mapstrMapToKeyMap, [
             ["gg", "scrolltop"],
         ]),
         new Map([
-            [[mk("u", { ctrlKey: true }), mk("j")], "scrollline 10"],
+            [
+                [
+                    mk("u", { ctrlKey: true }),
+                    mk("u", { ctrlKey: true, keyup: true, optional: true }),
+                    mk("j"),
+                ],
+                "scrollline 10",
+            ],
             [
                 [mk("g"), mk("g", { keyup: true, optional: true }), mk("g")],
                 "scrolltop",
