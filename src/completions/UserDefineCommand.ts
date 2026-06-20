@@ -1,3 +1,4 @@
+import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 
@@ -9,7 +10,6 @@ export class UserCompletionOption extends Completions.CompletionOptionHTML
         this.value = value
         this.display = display
         this.fuseKeys.push(...fuseKeys)
-        // Create HTMLElement
         this.html = html`<tr class="UserCompletionOption option">
             <td class="value">${value}</td>
             <td class="display">${display}</td>
@@ -23,6 +23,9 @@ export class UserCompletionSource extends Completions.CompletionSourceFuse {
     public compFn: (argv: string[], ctx: object) => any
     public context: object
     public lastCmd: string
+    private userOption: object = {
+        autoselect: false,
+    }
 
     constructor(private _parent) {
         super([], "UserCompletionSource", "user completions")
@@ -33,6 +36,7 @@ export class UserCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     async onInput(exstr) {
+        // TODO: do some debounce
         return this.updateOptions(exstr)
     }
 
@@ -43,7 +47,7 @@ export class UserCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
-        super.setStateFromScore(scoredOpts, false)
+        super.setStateFromScore(scoredOpts, this.userOption.autoselect)
     }
     private clearCompletion() {
         this.options = []
@@ -59,20 +63,28 @@ export class UserCompletionSource extends Completions.CompletionSourceFuse {
         if (this.lastCmd != cmd) {
             const code = config.get('usercompletions', cmd)
             if (!code) return this.clearCompletion()
-            this.compFn = eval(code)
             this.lastCmd = cmd
             this.prefixes = [cmd + ' ']
-            this.context = {}
         }
-        this.context.exstr = exstr
-        let r = this.compFn(argv, this.context)
-        if (r && r.then) r = await r
+        const [r, opt] = await Messaging.messageOwnTab(
+            "excmd_content",
+            "getUserCompletions",
+            [argv, {cmd, exstr}, {
+                ...this.userOption, fuseOptions: this.fuseOptions
+            }],
+        )
+        if (opt) {
+            this.userOption = opt
+            if (opt.fuseOptions) {
+                Object.assign(this.fuseOptions, opt.fuseOptions)
+            }
+            if (opt.prefixes) this.prefixes = opt.prefixes
+        }
         if (r == undefined) return
         if (!Array.isArray(r)) {
-            throw new Error('unknown user completion function')
+            throw new Error('unknown user completion format')
         }
         this.options = r.map(x => {
-            const exstr = `${cmd} ${x}`
             let o
             if (!Array.isArray(x)) o = {
                 value: `${cmd} ${x}`,

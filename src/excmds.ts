@@ -5631,6 +5631,30 @@ export async function gobble(numKeysOrTerminator: string, endCmd: string, ...arg
 
 // }}}
 
+const cacheUserCompletions = {fn: null, context: null, cmd: null}
+config.addChangeListener('usercompletions', () => {
+    const c = cacheUserCompletions
+    c.fn = c.context = c.cmd = null
+})
+
+/** @hidden
+ * This function is used by usercompletions.* config
+ */
+//#content
+export async function getUserCompletions(argv: string, detail: object, option: object): Promise<Array<Array>> {
+    const {cmd} = detail
+    const c = cacheUserCompletions
+    if (c.cmd != cmd) {
+        const jsCode = config.get('usercompletions', cmd)
+        c.cmd = cmd
+        c.fn = eval(jsCode)
+        c.context = {}
+    }
+    const {fn, context} = c
+    Object.assign(context, detail)
+    return fn(argv, context, option)
+}
+
 /** @hidden
  * This function is used by goto completions.
  */
