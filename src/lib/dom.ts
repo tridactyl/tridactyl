@@ -343,7 +343,7 @@ function getShadowElementsBySelector(selector: string) {
         const root = roots.pop() as ShadowRoot
         root.querySelectorAll("*").forEach(elem => {
             if ((elem as HTMLElement).openOrClosedShadowRoot) {
-                roots.push(elem.openOrClosedShadowRoot)
+                roots.push((elem as HTMLElement).openOrClosedShadowRoot)
                 try {
                     elems = elems.concat(
                         ...roots[roots.length - 1].querySelectorAll(selector),
