@@ -62,6 +62,10 @@ interface HTMLElement {
 
     // https://developer.mozilla.org/en-US/docs/Web/API/Element/replaceChildren
     replaceChildren(...nodes: Node[]): void
+
+    // Firefox-only (?) Element attribute
+    // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/dom/openOrClosedShadowRoot
+    openOrClosedShadowRoot: ShadowRoot | null
 }
 
 /* eslint-disable @typescript-eslint/ban-types */

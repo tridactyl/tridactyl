@@ -340,13 +340,15 @@ function getShadowElementsBySelector(selector: string) {
     const roots: (Document | ShadowRoot)[] = [document]
 
     while (roots.length) {
-        const root = roots.pop()
+        const root = roots.pop() as ShadowRoot
         root.querySelectorAll("*").forEach(elem => {
-            if ((elem as any).openOrClosedShadowRoot) {
-                roots.push((elem as any).openOrClosedShadowRoot)
-                elems = elems.concat(
-                    ...roots[roots.length - 1].querySelectorAll(selector),
-                )
+            if ((elem as HTMLElement).openOrClosedShadowRoot) {
+                roots.push(elem.openOrClosedShadowRoot)
+                try {
+                    elems = elems.concat(
+                        ...roots[roots.length - 1].querySelectorAll(selector),
+                    )
+                } catch {}
             }
         })
     }
@@ -550,9 +552,11 @@ export function getLastUsedInput(): HTMLElement {
  *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
  * */
 function onPageFocus(elem: HTMLElement): boolean {
-    elem = elem.shadowRoot
-        ? (elem.shadowRoot.activeElement as HTMLElement)
-        : elem
+    try {
+        elem = elem.openOrClosedShadowRoot
+            ? elem.openOrClosedShadowRoot.activeElement as HTMLElement
+            : elem
+    } catch {}
     if (isTextEditable(elem) && isSubstantial(elem)) {
         LAST_USED_INPUT = elem
     }
@@ -602,7 +606,7 @@ export function setupFocusHandler(): void {
     }
     const handler = e => {
         let elem = e.target as HTMLElement
-        const r = elem.shadowRoot
+        const r = elem.openOrClosedShadowRoot
         if (!r) {
             setFocus(elem)
             return
@@ -611,9 +615,15 @@ export function setupFocusHandler(): void {
             // r[handler] will handle it
             return
         }
-        while (elem.shadowRoot) {
-            listen(elem.shadowRoot)
-            elem = elem.shadowRoot.activeElement as HTMLElement
+        while (elem.openOrClosedShadowRoot) {
+            try {
+                listen(elem.openOrClosedShadowRoot)
+                elem = elem.openOrClosedShadowRoot.activeElement as HTMLElement
+            } catch {
+                // Inaccessible closed shadow
+                knownRoot.add(r)
+                break
+            }
             if (!elem) return
         }
         setFocus(elem)
@@ -778,10 +788,39 @@ export function simulateClick(
 export function deepestShadowRoot(sr: ShadowRoot | null): ShadowRoot | null {
     if (sr === null) return sr
     let shadowRoot = sr
-    while (shadowRoot.activeElement?.shadowRoot != null) {
-        shadowRoot = shadowRoot.activeElement.shadowRoot
+    while ((shadowRoot.activeElement as HTMLElement)?.openOrClosedShadowRoot != null) {
+        try {
+            shadowRoot = (shadowRoot.activeElement as HTMLElement).openOrClosedShadowRoot
+        } catch {
+            // Restricted shadow, may not be able to access its properties
+            break
+        }
     }
     return shadowRoot
+}
+
+/** Return the active element, within shadow DOMs or iframes if necessary. */
+export function activeElement(elem = document.activeElement) {
+    while (elem !== null) {
+        while ((elem as HTMLElement).openOrClosedShadowRoot !== null) {
+            try {
+                elem = (elem as HTMLElement).openOrClosedShadowRoot.activeElement
+            } catch {
+                // Restricted shadow root, can't access activeElement property
+                return elem
+            }
+            if (!elem) return null
+        }
+        if (elem.tagName !== "IFRAME") return elem
+        // Search within iframes if they're accessible
+        try {
+            const iframeActiveElem = (elem as HTMLIFrameElement).contentDocument.activeElement
+            if (!iframeActiveElem) return elem
+            elem = iframeActiveElem
+        } catch (e) {
+            return elem
+        }
+    }
 }
 
 export function getElementCentre(el) {
