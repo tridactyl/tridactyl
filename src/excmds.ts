@@ -5631,28 +5631,108 @@ export async function gobble(numKeysOrTerminator: string, endCmd: string, ...arg
 
 // }}}
 
-const cacheUserCompletions = {fn: null, context: null, cmd: null}
-config.addChangeListener('usercompletions', () => {
-    const c = cacheUserCompletions
+const cacheCompletionsCustom = {
+  fn: null,
+  context: null,
+  cmd: null,
+  callback: null,
+  clear() {
+    const c = this
+    c.fn = c.context = c.cmd = c.callback = null
+  }
+}
+config.addChangeListener('completionscustom', () => {
+    const c = cacheCompletionsCustom
     c.fn = c.context = c.cmd = null
 })
 
-/** @hidden
- * This function is used by usercompletions.* config
- */
-//#content
-export async function getUserCompletions(argv: string, detail: object, option: object): Promise<Array<Array>> {
+export function completionsetup(...args) {
+    let o
+    if (args[0] && typeof args[0] == 'object') o = args[0]
+    else {
+        o = {fillcmdline: true}
+        const opt = arg.lib({
+            "-x": String,
+            "-n": Boolean,
+            "-F": String,
+            "-j": String, // generate completion
+            "--data": [String],
+            "-d": "--data",
+            "--preview": [String],
+            "-p": "--preview",
+            "--no-fillcmdline": Boolean,
+        }, {argv: args})
+        o.value = opt["--data"].map(s => tryDecodeUrl(s))
+        if (opt["--preview"]) {
+            o.preview = opt["--preview"].map(s => tryDecodeUrl(s))
+        }
+        if (opt["-x"]) o.excmd = tryDecodeUrl(opt["-x"])
+        if (opt["-F"]) o.callback = eval("(" + tryDecodeUrl(opt["-F"]) + ")")
+        o.nofillcmdline = opt["--no-fillcmdline"]
+    }
+    const enc = s => encodeURIComponent(s).replace(/^-/, '%2D')
+    let prefix = 'comp '
+    if (o.excmd) prefix += `-x ${enc(o.excmd)} `
+    else prefix += '-n '
+    // TODO: remove slice 5
+    const compFull = o.value.map(d => prefix.slice(5) + enc(d))
+    const c = cacheCompletionsCustom
+    c.clear()
+    c.cmd = "comp"
+    c.context = {}
+    c.fn = (argv, ctx, option) => {
+        if (ctx.a) return
+        option.prefixes = [prefix]
+        if (o.preview) ctx.a = compFull.map((d, i) => [d, o.preview[i]])
+        else ctx.a = compFull.map((d,i) => [d, o.value[i]])
+        return ctx.a
+    }
+    const p = new Promise(ok => {
+        if (o.callback) c.callback = v => ok(o.callback(v))
+        else c.callback = v => ok(v)
+    })
+    const ret = {promise: p}
+    if (o.nofillcmdline) return ret
+    return fillcmdline_notrail(prefix).then(() => ret)
+}
+
+export function comp(...args) {
+    const option = arg.lib({
+        "-x": String,
+        "-n": Boolean,
+    }, {argv: args})
+    const compValue = tryDecodeUrl(option._.join(" "))
+    const c = cacheCompletionsCustom
+    const {callback} = c
+    c.clear()
+    if (option["-n"]) return callback(compValue)
+    const exstr = tryDecodeUrl(option["-x"]) + " " + compValue
+    const [excmdfn, arg2] = excmd_parser.parser(exstr, ALL_EXCMDS)
+    return excmdfn.call({}, ...arg2)
+}
+
+function tryDecodeUrl(s: string) {
+    try {
+        return decodeURIComponent(s)
+    }
+    catch (err) { return s }
+}
+
+export async function getCompletionsCustom(argv: string[], detail: object, option: object): Promise<Array<any>> {
     const {cmd} = detail
-    const c = cacheUserCompletions
+    const c = cacheCompletionsCustom
     if (c.cmd != cmd) {
-        const jsCode = config.get('usercompletions', cmd)
+        c.clear()
+        const jsCode = config.get('completionscustom', cmd)
         c.cmd = cmd
         c.fn = eval(jsCode)
         c.context = {}
     }
     const {fn, context} = c
     Object.assign(context, detail)
-    return fn(argv, context, option)
+    let ret = fn(argv, context, option)
+    if (ret && ret.then) ret = await ret
+    return [ret, option]
 }
 
 /** @hidden

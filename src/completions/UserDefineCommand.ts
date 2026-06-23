@@ -61,14 +61,14 @@ export class UserCompletionSource extends Completions.CompletionSourceFuse {
         const cmd = argv[0]
         if (!cmd) return this.clearCompletion()
         if (this.lastCmd != cmd) {
-            const code = config.get('usercompletions', cmd)
+            const code = config.get('completionscustom', cmd)
             if (!code) return this.clearCompletion()
             this.lastCmd = cmd
             this.prefixes = [cmd + ' ']
         }
         const [r, opt] = await Messaging.messageOwnTab(
             "excmd_content",
-            "getUserCompletions",
+            "getCompletionsCustom",
             [argv, {cmd, exstr}, {
                 ...this.userOption, fuseOptions: this.fuseOptions
             }],
@@ -94,7 +94,7 @@ export class UserCompletionSource extends Completions.CompletionSourceFuse {
             else o = {
                 value: `${cmd} ${x[0]}`,
                 display: x[1],
-                fuseKeys: x
+                fuseKeys: [x[1]]
             }
             return new UserCompletionOption(o)
         })
