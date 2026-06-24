@@ -20,7 +20,6 @@ export class CompletionsCustomOption extends Completions.CompletionOptionHTML
 
 export class CompletionsCustomSource extends Completions.CompletionSourceFuse {
     public options: UserCompletionOption[]
-    public compFn: (argv: string[], ctx: object) => any
     public context: object
     public lastCmd: string
     private userOption: object = {
@@ -30,7 +29,7 @@ export class CompletionsCustomSource extends Completions.CompletionSourceFuse {
     constructor(private _parent) {
         super([], "CompletionsCustomSource", "completions custom")
 
-        this.compFn = this.context = this.lastCmd = null
+        this.context = this.lastCmd = null
         this.updateOptions()
         this._parent.appendChild(this.node)
     }
@@ -54,7 +53,7 @@ export class CompletionsCustomSource extends Completions.CompletionSourceFuse {
         Messaging.messageOwnTab(
             "excmd_content",
             "getCompletionsCustom",
-            [[''], {cmd: null}, {}],
+            [[''], {}, {}],
         )
         this.options = []
         this.prefixes = []
@@ -75,7 +74,7 @@ export class CompletionsCustomSource extends Completions.CompletionSourceFuse {
         const [r, opt] = await Messaging.messageOwnTab(
             "excmd_content",
             "getCompletionsCustom",
-            [argv, {cmd, exstr}, {
+            [argv, {exstr}, {
                 ...this.userOption, fuseOptions: this.fuseOptions
             }],
         )

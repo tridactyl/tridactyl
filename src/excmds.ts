@@ -5661,12 +5661,13 @@ export function completionsetup(...args) {
             "-p": "--preview",
             "--no-fillcmdline": Boolean,
         }, {argv: args})
-        o.value = opt["--data"].map(s => tryDecodeUrl(s))
+        o.value = (opt["--data"] || []).map(s => tryDecodeUrl(s))
         if (opt["--preview"]) {
             o.preview = opt["--preview"].map(s => tryDecodeUrl(s))
         }
         if (opt["-x"]) o.excmd = tryDecodeUrl(opt["-x"])
-        if (opt["-F"]) o.callback = eval("(" + tryDecodeUrl(opt["-F"]) + ")")
+        if (opt["-F"]) o.callback = eval(tryDecodeUrl(opt["-F"]))
+        if (opt["-j"]) o.compFn = eval(tryDecodeUrl(opt["-j"]))
         o.nofillcmdline = opt["--no-fillcmdline"]
     }
     const enc = s => encodeURIComponent(s).replace(/^-/, '%2D')
@@ -5679,7 +5680,14 @@ export function completionsetup(...args) {
     c.clear()
     c.cmd = "comp"
     c.context = {}
-    c.fn = (argv, ctx, option) => {
+    if (o.compFn) {
+        c.fn = (argv, ctx, option) => {
+            option.prefix = prefix
+            c.fn = o.compFn
+            return c.fn(argv, ctx, option)
+        }
+    }
+    else c.fn = (argv, ctx, option) => {
         if (ctx.a) return
         option.prefix = prefix
         if (o.preview) ctx.a = compFull.map((d, i) => [d, o.preview[i]])
@@ -5703,6 +5711,7 @@ export function comp(...args) {
     const compValue = tryDecodeUrl(option._.join(" "))
     const c = cacheCompletionsCustom
     const {callback} = c
+    if (!c.cmd) fillcmdline_nofocus('Warning: call comp out of context')
     c.clear()
     if (option["-n"]) return callback && callback(compValue)
     const exstr = tryDecodeUrl(option["-x"]) + " " + compValue
@@ -5726,7 +5735,7 @@ function completionsCustomExpand(k) {
 }
 
 export async function getCompletionsCustom(argv: string[], detail: object, option: object): Promise<Array<any>> {
-    const {cmd} = detail
+    const cmd = argv[0]
     const c = cacheCompletionsCustom
     if (!cmd) return c.clear()
     if (c.cmd != cmd) {
@@ -5740,6 +5749,10 @@ export async function getCompletionsCustom(argv: string[], detail: object, optio
     Object.assign(context, detail)
     let ret = fn(argv, context, option)
     if (ret && ret.then) ret = await ret
+    if (option.callback) {
+        c.callback = option.callback
+        option.callback = null
+    }
     return [ret, option]
 }
 
