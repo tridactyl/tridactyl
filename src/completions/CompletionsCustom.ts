@@ -2,7 +2,7 @@ import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 
-export class UserCompletionOption extends Completions.CompletionOptionHTML
+export class CompletionsCustomOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
     constructor({value, display, fuseKeys}) {
@@ -10,7 +10,7 @@ export class UserCompletionOption extends Completions.CompletionOptionHTML
         this.value = value
         this.display = display
         this.fuseKeys.push(...fuseKeys)
-        this.html = html`<tr class="UserCompletionOption option">
+        this.html = html`<tr class="CompletionsCustomOption option">
             <td class="value">${value}</td>
             <td class="display">${display}</td>
         </tr>`
@@ -18,7 +18,7 @@ export class UserCompletionOption extends Completions.CompletionOptionHTML
     }
 }
 
-export class UserCompletionSource extends Completions.CompletionSourceFuse {
+export class CompletionsCustomSource extends Completions.CompletionSourceFuse {
     public options: UserCompletionOption[]
     public compFn: (argv: string[], ctx: object) => any
     public context: object
@@ -28,7 +28,7 @@ export class UserCompletionSource extends Completions.CompletionSourceFuse {
     }
 
     constructor(private _parent) {
-        super([], "UserCompletionSource", "user completions")
+        super([], "CompletionsCustomSource", "completions custom")
 
         this.compFn = this.context = this.lastCmd = null
         this.updateOptions()
@@ -40,7 +40,7 @@ export class UserCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateOptions(exstr)
     }
 
-    select(option: UserCompletionOption) {
+    select(option: CompletionsCustomOption) {
         this.completion = option.value
         option.state = "focused"
         this.lastFocused = option
@@ -50,6 +50,12 @@ export class UserCompletionSource extends Completions.CompletionSourceFuse {
         super.setStateFromScore(scoredOpts, this.userOption.autoselect)
     }
     private clearCompletion() {
+        if (this.lastCmd == null) return
+        Messaging.messageOwnTab(
+            "excmd_content",
+            "getCompletionsCustom",
+            [[''], {cmd: null}, {}],
+        )
         this.options = []
         this.prefixes = []
         this.lastCmd = null
@@ -78,25 +84,26 @@ export class UserCompletionSource extends Completions.CompletionSourceFuse {
             if (opt.fuseOptions) {
                 Object.assign(this.fuseOptions, opt.fuseOptions)
             }
-            if (opt.prefixes) this.prefixes = opt.prefixes
+            if (opt.prefix) this.prefixes = [opt.prefix]
         }
         if (r == undefined) return
         if (!Array.isArray(r)) {
             throw new Error('unknown user completion format')
         }
+        const prefix = this.prefixes[0]
         this.options = r.map(x => {
             let o
             if (!Array.isArray(x)) o = {
-                value: `${cmd} ${x}`,
+                value: prefix + x,
                 display: x,
                 fuseKeys: [x]
             }
             else o = {
-                value: `${cmd} ${x[0]}`,
+                value: prefix + x[0],
                 display: x[1],
                 fuseKeys: [x[1]]
             }
-            return new UserCompletionOption(o)
+            return new CompletionsCustomOption(o)
         })
     }
 }

@@ -5642,15 +5642,14 @@ const cacheCompletionsCustom = {
   }
 }
 config.addChangeListener('completionscustom', () => {
-    const c = cacheCompletionsCustom
-    c.fn = c.context = c.cmd = null
+    cacheCompletionsCustom.clear()
 })
 
 export function completionsetup(...args) {
     let o
     if (args[0] && typeof args[0] == 'object') o = args[0]
     else {
-        o = {fillcmdline: true}
+        o = {}
         const opt = arg.lib({
             "-x": String,
             "-n": Boolean,
@@ -5675,14 +5674,14 @@ export function completionsetup(...args) {
     if (o.excmd) prefix += `-x ${enc(o.excmd)} `
     else prefix += '-n '
     // TODO: remove slice 5
-    const compFull = o.value.map(d => prefix.slice(5) + enc(d))
+    const compFull = o.value.map(d => enc(d))
     const c = cacheCompletionsCustom
     c.clear()
     c.cmd = "comp"
     c.context = {}
     c.fn = (argv, ctx, option) => {
         if (ctx.a) return
-        option.prefixes = [prefix]
+        option.prefix = prefix
         if (o.preview) ctx.a = compFull.map((d, i) => [d, o.preview[i]])
         else ctx.a = compFull.map((d,i) => [d, o.value[i]])
         return ctx.a
@@ -5692,7 +5691,7 @@ export function completionsetup(...args) {
         else c.callback = v => ok(v)
     })
     const ret = {promise: p}
-    if (o.nofillcmdline) return ret
+    if (o.nofillcmdline) return Promise.resolve(ret)
     return fillcmdline_notrail(prefix).then(() => ret)
 }
 
@@ -5705,7 +5704,7 @@ export function comp(...args) {
     const c = cacheCompletionsCustom
     const {callback} = c
     c.clear()
-    if (option["-n"]) return callback(compValue)
+    if (option["-n"]) return callback && callback(compValue)
     const exstr = tryDecodeUrl(option["-x"]) + " " + compValue
     const [excmdfn, arg2] = excmd_parser.parser(exstr, ALL_EXCMDS)
     return excmdfn.call({}, ...arg2)
@@ -5717,13 +5716,22 @@ function tryDecodeUrl(s: string) {
     }
     catch (err) { return s }
 }
+function completionsCustomExpand(k) {
+    let v = k
+    const d = config.get('completionscustom')
+    while (true) {
+        if (v && d[v]) v = d[v]
+        else return v
+    }
+}
 
 export async function getCompletionsCustom(argv: string[], detail: object, option: object): Promise<Array<any>> {
     const {cmd} = detail
     const c = cacheCompletionsCustom
+    if (!cmd) return c.clear()
     if (c.cmd != cmd) {
         c.clear()
-        const jsCode = config.get('completionscustom', cmd)
+        const jsCode = completionsCustomExpand(cmd)
         c.cmd = cmd
         c.fn = eval(jsCode)
         c.context = {}
