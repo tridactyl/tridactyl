@@ -11,8 +11,8 @@ export class CompletionsCustomOption extends Completions.CompletionOptionHTML
         this.display = display
         this.fuseKeys.push(...fuseKeys)
         this.html = html`<tr class="CompletionsCustomOption option">
-            <td class="value">${value}</td>
             <td class="display">${display}</td>
+            <td class="value">${value}</td>
         </tr>`
         this.state = 'normal'
     }

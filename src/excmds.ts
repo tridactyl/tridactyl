@@ -5642,6 +5642,67 @@ const cacheCompletionsCustom = {
   },
 }
 
+/**
+ * Setup completions for the next command so user can choose from them.
+ * Similar to a CLI tool [fzf](https://github.com/junegunn/fzf/) .
+ *
+ * `completionsetup` will open the fill command line with `comp` command,
+ * and show up the passed completion options. After the user choose one,
+ * the excmd (`-x`) or js function (`-F`) will execute with the chosen value.
+ *
+ * `completionsetup` can run as an ex-command or JS function.
+ * In ex-cmd form, user have to escape the special character like space.
+ * In js form, user can pass string directly and share variables in callback
+ * function or promise object.
+ *
+ *  @returns A dict with `promise` property which resolve to the choosen value
+ *
+ * Excmd Usage:
+ *
+ *     `completionsetup -x EXCMD -d value1 -p preview1 -d value2 ...`
+ *
+ *     `completionsetup -F JS_CALLBACK -d value1 -p preview1 ...`
+ *
+ *     `completionsetup -j JS_COMPLETION_FUNCTION`
+ *
+ *   - options
+ *     - `-x EXCMD` The ex-command to execute after user chooses a completion, it should be url-encoded (encodeURIComponent). The chosen completion will append to it with a space.
+ *     - `-F JS_CALLBACK` The js callback function to execute with the chosen completion. It should be url-encoded too. E.g. `comp=>alert(comp)`
+ *     - `-d|--data VALUE` A url-encoded completion value so it can contain space.
+ *     - `-p|--preview DISPLAY` Optional. The display text for the completion value. The number of `-p` parameter must equal to the `-d` parameter.
+ *     - `-j JS_CALLBACK` The function take full controll of the completion generation. The arguments and return values is same to the `completionscustom.*` config.
+ *
+ * Excmd Example:
+ *
+ * ```
+ * completionsetup -x set%20allowautofocus -d true -p allow%20auto%20focus -d false -p prevent%20auto%20focus
+ *
+ * completionsetup -F n=>fillcmdline(document[n]) -d location -p show%20url -d title -p show%20title -d charset -p show%20charset
+ * ```
+ *
+ * JS Usage:
+ *
+ *   `var ret = await tri.excmds.completionsetup({value, preview, callback})`
+ *
+ *  - options:
+ *    - `value`: An array of completion values
+ *    - `preview`: Display text array
+ *    - `callback`: Optional callback function
+ *    - `ret.promise`: A promise resolve to the choosen value or the
+ *      return value of the callback function.
+ *
+ * JS Example:
+ *
+ * ```
+ * js const ids = Array.from(document.querySelectorAll('[id]')); \
+ *    completionsetup({ \
+ *      value: ids.map((e,i) => i), \
+ *      preview: ids.map(e => e.textContent), \
+ *      callback: i => yank(location.href + '#' + ids[i].id)
+ *    })
+ * ```
+ *
+ */
 export function completionsetup(...args) {
     let o
     if (args[0] && typeof args[0] == 'object') o = args[0]
@@ -5649,7 +5710,6 @@ export function completionsetup(...args) {
         o = {}
         const opt = arg.lib({
             "-x": String,
-            "-n": Boolean,
             "-F": String,
             "-j": String, // generate completion
             "--data": [String],
@@ -5699,6 +5759,18 @@ export function completionsetup(...args) {
     return fillcmdline_notrail(prefix).then(() => ret)
 }
 
+/**
+ * Accept the completion value after the `completionsetup` command.
+ * User can input arbitrary value except the pre-defined completions.
+ * This command is only meaningful with the completionsetup command.
+ *
+ *  @returns The return value of the excmd or the js callback in completionsetup
+ *
+ *   - options
+ *     - `-x EXCMD` The ex-command to execute, as same as the completionsetup.
+ *     - `-n` Do not execute and excmd, and just execute the callback function.
+ *
+ */
 export function comp(...args) {
     const option = arg.lib({
         "-x": String,
