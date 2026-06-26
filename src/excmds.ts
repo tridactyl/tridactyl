@@ -5639,11 +5639,8 @@ const cacheCompletionsCustom = {
   clear() {
     const c = this
     c.fn = c.context = c.cmd = c.callback = null
-  }
+  },
 }
-config.addChangeListener('completionscustom', () => {
-    cacheCompletionsCustom.clear()
-})
 
 export function completionsetup(...args) {
     let o
@@ -5671,10 +5668,7 @@ export function completionsetup(...args) {
         o.nofillcmdline = opt["--no-fillcmdline"]
     }
     const enc = s => encodeURIComponent(s).replace(/^-/, '%2D')
-    let prefix = 'comp '
-    if (o.excmd) prefix += `-x ${enc(o.excmd)} `
-    else prefix += '-n '
-    // TODO: remove slice 5
+    const prefix = o.excmd ? `comp -x ${enc(o.excmd)} ` : `comp -n `
     const compFull = o.value.map(d => enc(d))
     const c = cacheCompletionsCustom
     c.clear()
@@ -5687,12 +5681,14 @@ export function completionsetup(...args) {
             return c.fn(argv, ctx, option)
         }
     }
-    else c.fn = (argv, ctx, option) => {
-        if (ctx.a) return
-        option.prefix = prefix
-        if (o.preview) ctx.a = compFull.map((d, i) => [d, o.preview[i]])
-        else ctx.a = compFull.map((d,i) => [d, o.value[i]])
-        return ctx.a
+    else {
+        c.fn = (argv, ctx, option) => {
+            if (ctx.a) return
+            option.prefix = prefix
+            if (o.preview) ctx.a = compFull.map((d, i) => [d, o.preview[i]])
+            else ctx.a = compFull.map((d,i) => [d, o.value[i]])
+            return ctx.a
+        }
     }
     const p = new Promise(ok => {
         if (o.callback) c.callback = v => ok(o.callback(v))
@@ -5716,7 +5712,7 @@ export function comp(...args) {
     if (option["-n"]) return callback && callback(compValue)
     const exstr = tryDecodeUrl(option["-x"]) + " " + compValue
     const [excmdfn, arg2] = excmd_parser.parser(exstr, ALL_EXCMDS)
-    return excmdfn.call({}, ...arg2)
+    return excmdfn.apply({}, arg2)
 }
 
 function tryDecodeUrl(s: string) {

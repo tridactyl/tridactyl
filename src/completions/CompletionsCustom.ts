@@ -20,7 +20,6 @@ export class CompletionsCustomOption extends Completions.CompletionOptionHTML
 
 export class CompletionsCustomSource extends Completions.CompletionSourceFuse {
     public options: UserCompletionOption[]
-    public context: object
     public lastCmd: string
     private userOption: object = {
         autoselect: false,
@@ -29,7 +28,7 @@ export class CompletionsCustomSource extends Completions.CompletionSourceFuse {
     constructor(private _parent) {
         super([], "CompletionsCustomSource", "completions custom")
 
-        this.context = this.lastCmd = null
+        this.lastCmd = null
         this.updateOptions()
         this._parent.appendChild(this.node)
     }
@@ -66,8 +65,10 @@ export class CompletionsCustomSource extends Completions.CompletionSourceFuse {
         const cmd = argv[0]
         if (!cmd) return this.clearCompletion()
         if (this.lastCmd != cmd) {
-            const code = config.get('completionscustom', cmd)
-            if (!code) return this.clearCompletion()
+            if (cmd != 'comp') {
+                const code = config.get('completionscustom', cmd)
+                if (!code) return this.clearCompletion()
+            }
             this.lastCmd = cmd
             this.prefixes = [cmd + ' ']
         }
