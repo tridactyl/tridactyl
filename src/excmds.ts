@@ -5723,12 +5723,17 @@ export function completionsetup(...args) {
             o.preview = opt["--preview"].map(s => tryDecodeUrl(s))
         }
         if (opt["-x"]) o.excmd = tryDecodeUrl(opt["-x"])
-        if (opt["-F"]) o.callback = eval(tryDecodeUrl(opt["-F"]))
+        if (opt["-F"]) o.callback = tryDecodeUrl(opt["-F"])
         if (opt["-j"]) o.compFn = eval(tryDecodeUrl(opt["-j"]))
         o.nofillcmdline = opt["--no-fillcmdline"]
     }
     const enc = s => encodeURIComponent(s).replace(/^-/, '%2D')
-    const prefix = o.excmd ? `comp -x ${enc(o.excmd)} ` : `comp -n `
+
+    let prefix = 'comp '
+    if (o.excmd) prefix += `-x ${enc(o.excmd)} `
+    else if (typeof o.callback == 'string') prefix += `-F ${enc(o.callback)} `
+    else prefix += '-n '
+
     const compFull = o.value.map(d => enc(d))
     const c = cacheCompletionsCustom
     c.clear()
@@ -5751,7 +5756,11 @@ export function completionsetup(...args) {
         }
     }
     const p = new Promise(ok => {
-        if (o.callback) c.callback = v => ok(o.callback(v))
+        if (typeof o.callback == 'function') c.callback = v => {
+            const ret = o.callback(v)
+            ok(ret)
+            return ret
+        }
         else c.callback = v => ok(v)
     })
     const ret = {promise: p}
@@ -5768,12 +5777,17 @@ export function completionsetup(...args) {
  *
  *   - options
  *     - `-x EXCMD` The ex-command to execute, as same as the completionsetup.
- *     - `-n` Do not execute and excmd, and just execute the callback function.
+ *     - `-F JS_CALLBACK` String type callback function, as same as the completionsetup.
+ *     - `-n` Do not execute excmd or js. Just execute the function type
+ *       callback function if defined (the `completionsetup({callback:()=>{}})` 
+ *     - The function type callback (-n) will be cleared after execute,
+ *       but not the `-x` and `-F` .
  *
  */
 export function comp(...args) {
     const option = arg.lib({
         "-x": String,
+        "-F": String,
         "-n": Boolean,
     }, {argv: args})
     const compValue = tryDecodeUrl(option._.join(" "))
@@ -5782,6 +5796,12 @@ export function comp(...args) {
     if (!c.cmd) fillcmdline_nofocus('Warning: call comp out of context')
     c.clear()
     if (option["-n"]) return callback && callback(compValue)
+    if (option["-F"]) {
+        const fn = eval(tryDecodeUrl(option["-F"]))
+        const ret = fn(compValue)
+        if (callback) callback(ret)
+        return ret
+    }
     const exstr = tryDecodeUrl(option["-x"]) + " " + compValue
     const [excmdfn, arg2] = excmd_parser.parser(exstr, ALL_EXCMDS)
     return excmdfn.apply({}, arg2)

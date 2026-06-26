@@ -5,6 +5,8 @@ import * as config from "@src/lib/config"
 export class CompletionsCustomOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
+    public display: string
+    public value: string
     constructor({value, display, fuseKeys}) {
         super()
         this.value = value
@@ -19,7 +21,7 @@ export class CompletionsCustomOption extends Completions.CompletionOptionHTML
 }
 
 export class CompletionsCustomSource extends Completions.CompletionSourceFuse {
-    public options: UserCompletionOption[]
+    public options: CompletionsCustomOption[]
     public lastCmd: string
     private userOption: object = {
         autoselect: false,
