@@ -553,7 +553,7 @@ function onPageFocus(elem: HTMLElement): boolean {
     elem = elem.shadowRoot
         ? (elem.shadowRoot.activeElement as HTMLElement)
         : elem
-    if (isTextEditable(elem)) {
+    if (isTextEditable(elem) && isSubstantial(elem)) {
         LAST_USED_INPUT = elem
     }
     const setting =
