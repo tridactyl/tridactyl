@@ -49,8 +49,11 @@ export abstract class CompletionSource {
             .map(p => p.trim())
             .forEach(p => {
                 this.prefixes.push(p)
-                if (commands[p])
-                    this.prefixes = this.prefixes.concat(commands[p])
+                if (commands[p]) {
+                    const custom = config.get('completionscustom')
+                    const l = commands[p].filter(c => !custom[c])
+                    this.prefixes = this.prefixes.concat(l)
+                }
             })
 
         // Not sure this is necessary but every completion source has it
