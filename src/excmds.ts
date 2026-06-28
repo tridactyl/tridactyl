@@ -1365,7 +1365,7 @@ window.addEventListener("HistoryState", addTabHistory)
 /** Blur (unfocus) the active element and enter normal mode */
 //#content
 export function unfocus() {
-    ;((document.activeElement.shadowRoot ? DOM.deepestShadowRoot(document.activeElement.shadowRoot) : document).activeElement as HTMLInputElement).blur()
+    ((DOM.activeElement() || document.activeElement) as HTMLInputElement)?.blur()
     contentState.mode = "normal"
 }
 

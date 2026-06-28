@@ -56,6 +56,10 @@ interface HTMLElement {
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/inert
     inert: boolean
 
+    // Firefox-only (?) Element attribute
+    // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/dom/openOrClosedShadowRoot
+    openOrClosedShadowRoot: ShadowRoot | null
+
     // Let's be future proof:
     // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus
     focus(options?: any): void

@@ -1,4 +1,4 @@
-import { isTextEditable } from "@src/lib/dom"
+import { isTextEditable, activeElement } from "@src/lib/dom"
 import { contentState, ModeName } from "@src/content/state_content"
 import Logger from "@src/lib/logging"
 import * as controller from "@src/lib/controller"
@@ -8,7 +8,6 @@ import {
     minimalKeyFromKeyboardEvent,
     MinimalKey,
 } from "@src/lib/keyseq"
-import { deepestShadowRoot } from "@src/lib/dom"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
@@ -156,18 +155,12 @@ function* ParserController() {
                 generatorIsWaiting = true
                 const keyevent: KeyEventLike = keysToFeed.length ? keysToFeed.shift() : yield
                 generatorIsWaiting = false
-                let shadowRoot = null
                 let textEditable = false
 
                 if (keyevent instanceof KeyboardEvent) {
-                    shadowRoot = deepestShadowRoot(
-                        (keyevent.target as Element).shadowRoot,
-                    )
+                    const deepTarget = activeElement(keyevent.target as HTMLElement) || keyevent.target as HTMLElement
+                    textEditable = isTextEditable(deepTarget)
 
-                    textEditable =
-                        shadowRoot === null
-                            ? isTextEditable(keyevent.target as Element)
-                            : isTextEditable(shadowRoot.activeElement)
                     // Accumulate key events. The parser will cut this
                     // down whenever it's not a valid prefix of a known
                     // binding, so it can't grow indefinitely unless you
