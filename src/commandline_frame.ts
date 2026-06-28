@@ -42,6 +42,7 @@ import { BufferCompletionSource } from "@src/completions/Tab"
 import { TabAllCompletionSource } from "@src/completions/TabAll"
 import { ThemeCompletionSource } from "@src/completions/Theme"
 import { TabHistoryCompletionSource } from "@src/completions/TabHistory"
+import { CompletionsCustomSource } from "@src/completions/CompletionsCustom"
 import { WindowCompletionSource } from "@src/completions/Window"
 import { ProxyCompletionSource } from "@src/completions/Proxy"
 import { contentState } from "@src/content/state_content"
@@ -135,6 +136,7 @@ export function enableCompletions() {
             ExcmdCompletionSource,
             ThemeCompletionSource,
             TabHistoryCompletionSource,
+            CompletionsCustomSource,
             CompositeCompletionSource,
             FileSystemCompletionSource,
             GotoCompletionSource,

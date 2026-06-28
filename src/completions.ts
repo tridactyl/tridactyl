@@ -49,8 +49,11 @@ export abstract class CompletionSource {
             .map(p => p.trim())
             .forEach(p => {
                 this.prefixes.push(p)
-                if (commands[p])
-                    this.prefixes = this.prefixes.concat(commands[p])
+                if (commands[p]) {
+                    const custom = config.get('completionscustom')
+                    const l = commands[p].filter(c => !custom[c])
+                    this.prefixes = this.prefixes.concat(l)
+                }
             })
 
         // Not sure this is necessary but every completion source has it
@@ -88,7 +91,10 @@ export abstract class CompletionSource {
 
     deselect() {
         this.completion = undefined
-        if (this.lastFocused !== undefined) this.lastFocused.state = "normal"
+        if (this.lastFocused !== undefined &&
+            this.lastFocused.state == "focused") {
+            this.lastFocused.state = "normal"
+        }
     }
 
     /** Update [[node]] to display completions relevant to exstr */
