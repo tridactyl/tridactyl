@@ -1,12 +1,14 @@
 import * as Completions from "@src/completions"
-import * as Metadata from "@src/.metadata.generated"
+import { excmdsFunctions, getDoc } from "@src/.metadata.generated"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 
-export class ExcmdCompletionOption extends Completions.CompletionOptionHTML
-    implements Completions.CompletionOptionFuse {
+export class ExcmdCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
-    constructor(public value: string, public documentation: string = "") {
+    constructor(
+        public value: string,
+        public documentation: string = "",
+    ) {
         super()
         this.fuseKeys.push(this.value)
 
@@ -58,15 +60,13 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
 
-        const excmds = Metadata.everything.getFile("src/excmds.ts")
-        if (!excmds) return
-        const fns = excmds.getFunctions()
-
         // Add all excmds that start with exstr and that tridactyl has metadata about to completions
         this.options = this.scoreOptions(
-            fns
-                .filter(([name, fn]) => !fn.hidden && name.startsWith(exstr))
-                .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
+            Object.entries(excmdsFunctions)
+                .filter(([name]) => name.startsWith(exstr))
+                .map(
+                    ([name, fn]) => new ExcmdCompletionOption(name, getDoc(fn)),
+                ),
         )
 
         // Also narrow down aliases map to possible completions
@@ -80,13 +80,13 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
 
         for (const alias of Object.keys(exaliases)) {
             const cmd = aliases.expandExstr(alias, exaliases)
-            const fn = excmds.getFunction(cmd)
+            const fn = excmdsFunctions[cmd]
 
             if (fn) {
                 this.options.push(
                     new ExcmdCompletionOption(
                         alias,
-                        `Alias for \`${cmd}\`. ${fn.doc}`,
+                        `Alias for \`${cmd}\`. ${getDoc(fn)}`,
                     ),
                 )
             } else {
@@ -100,12 +100,11 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         // Add partial matched funcs like: 'conf' ~= 'viewconfig'
         const seen = new Set(this.options.map(o => o.value))
         const partial_options = this.scoreOptions(
-            fns
-                .filter(
-                    ([name, fn]) =>
-                        !fn.hidden && name.includes(exstr) && !seen.has(name),
-                )
-                .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
+            Object.entries(excmdsFunctions)
+                .filter(([name]) => name.includes(exstr) && !seen.has(name))
+                .map(
+                    ([name, fn]) => new ExcmdCompletionOption(name, getDoc(fn)),
+                ),
         )
         this.options = this.options.concat(partial_options)
 
