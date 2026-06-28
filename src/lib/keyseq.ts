@@ -53,7 +53,10 @@ export class MinimalKey {
     readonly metaKey = false
     readonly shiftKey = false
     translated = false
-    constructor(readonly key: string, modifiers?: KeyModifiers) {
+    constructor(
+        readonly key: string,
+        modifiers?: KeyModifiers,
+    ) {
         if (modifiers !== undefined) {
             for (const mod of Object.keys(modifiers)) {
                 if (
@@ -139,7 +142,7 @@ export interface ParserResponse {
     numericPrefix?: number
 }
 
-function splitNumericPrefix(
+export function splitNumericPrefix(
     keyseq: MinimalKey[],
 ): [MinimalKey[], MinimalKey[]] {
     // If the first key is in 1:9, partition all numbers until you reach a non-number.
