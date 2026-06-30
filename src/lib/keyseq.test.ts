@@ -27,6 +27,10 @@ function mk(k, mod?: ks.KeyModifiers) {
         [mks("<c-6>"), "tablast"],
         [mks("<c-5><c-5>"), "tablast"],
     ])
+    const backslashKeymap = new Map([
+        [mks("\\"), "fillcmdline bare"],
+        [mks("<C-\\>"), "fillcmdline control"],
+    ])
 
     // This one actually found a bug once!
     testAllObject(ks.parse, [
@@ -141,6 +145,16 @@ function mk(k, mod?: ks.KeyModifiers) {
         [
             [[mk(" ")], new Map([[mks("<Space>"), "spacetest"]])],
             { value: "spacetest", isMatch: true },
+        ],
+
+        // A bare key binding must not match events with extra modifiers.
+        [
+            [[mk("\\", { ctrlKey: true })], backslashKeymap],
+            { value: "fillcmdline control", isMatch: true },
+        ],
+        [
+            [[mk("\\")], backslashKeymap],
+            { value: "fillcmdline bare", isMatch: true },
         ],
     ])
 
