@@ -4424,10 +4424,10 @@ export function comclear(name: string) {
     An imaginative use of this is a "layer" where holding a key down changes the rest of the bindings:
 
     ```
-    bind <U-\> --mode=fastscroll mode normal
+    bind --mode=fastscroll <U-\> mode normal
     bind <D-\> mode fastscroll
-    bind j --mode=fastscroll scrollpage 1
-    bind k --mode=fastscroll scrollpage -1
+    bind --mode=fastscroll j scrollpage 1
+    bind --mode=fastscroll k scrollpage -1
     ```
 
     With these bindings, holding \ would make j/k scroll further distances.
