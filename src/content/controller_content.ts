@@ -7,42 +7,22 @@ import {
     ParserResponse,
     minimalKeyFromKeyboardEvent,
     MinimalKey,
+    formatKeysForModeIndicator,
 } from "@src/lib/keyseq"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
 import * as generic from "@src/parsers/genericmode"
 import * as nmode from "@src/parsers/nmode"
-import * as Messaging from "@src/lib/messaging";
+import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
+import { mode2maps } from "@src/lib/binding"
 
 const logger = new Logger("controller")
 
-function PrintableKey(k) {
-    let result = k.key
-    if (
-        result === "Control" ||
-        result === "Meta" ||
-        result === "Alt" ||
-        result === "Shift" ||
-        result === "OS"
-    ) {
-        return ""
-    }
-
-    if (k.altKey) {
-        result = "A-" + result
-    }
-    if (k.ctrlKey) {
-        result = "C-" + result
-    }
-    if (k.shiftKey) {
-        result = "S-" + result
-    }
-    if (result.length > 1) {
-        result = "<" + result + ">"
-    }
-    return result
+function mapstrsForMode(mode: string) {
+    const maps = config.getDynamic(mode2maps.get(mode) || mode + "maps")
+    return Object.keys(maps || {})
 }
 
 /**
@@ -104,29 +84,42 @@ export const canceller = new KeyCanceller()
 
 let commandlineFrameReadyToReceiveMessages = false
 config.getAsync("noiframe").then(noiframe => {
-    if(noiframe === "true") {
+    if (noiframe === "true") {
         commandlineFrameReadyToReceiveMessages = true
     } else {
-        Messaging.addListener("commandline_frame_ready_to_receive_messages", () => {
-            logger.debug("Received commandline_frame_ready_to_receive_messages")
-            commandlineFrameReadyToReceiveMessages = true
-        })
+        Messaging.addListener(
+            "commandline_frame_ready_to_receive_messages",
+            () => {
+                logger.debug(
+                    "Received commandline_frame_ready_to_receive_messages",
+                )
+                commandlineFrameReadyToReceiveMessages = true
+            },
+        )
     }
 })
 
 let mustBufferPageKeysForClInput = false
 let bufferedPageKeys: string[] = []
 let bufferingPageKeysBeginTime: number
-Messaging.addListener("stop_buffering_page_keys", (message, sender, sendResponse) => {
-    const bufferingDuration = performance.now() - bufferingPageKeysBeginTime;
-    logger.debug("stop_buffering_page_keys request received, responding with bufferedPageKeys = ", bufferedPageKeys
-        + " bufferingDuration = " + bufferingDuration + "ms")
-    sendResponse(Promise.resolve(bufferedPageKeys))
-    // At this point, clInput is focused and the page cannot get any more keyboard events
-    // until it is refocused.
-    mustBufferPageKeysForClInput = false
-    bufferedPageKeys = []
-})
+Messaging.addListener(
+    "stop_buffering_page_keys",
+    (message, sender, sendResponse) => {
+        const bufferingDuration = performance.now() - bufferingPageKeysBeginTime
+        logger.debug(
+            "stop_buffering_page_keys request received, responding with bufferedPageKeys = ",
+            bufferedPageKeys +
+                " bufferingDuration = " +
+                bufferingDuration +
+                "ms",
+        )
+        sendResponse(Promise.resolve(bufferedPageKeys))
+        // At this point, clInput is focused and the page cannot get any more keyboard events
+        // until it is refocused.
+        mustBufferPageKeysForClInput = false
+        bufferedPageKeys = []
+    },
+)
 
 let keysToFeed: KeyEventLike[] = []
 let generatorIsWaiting = true
@@ -155,6 +148,15 @@ function* ParserController() {
                 generatorIsWaiting = true
                 const keyevent: KeyEventLike = keysToFeed.length ? keysToFeed.shift() : yield
                 generatorIsWaiting = false
+
+                // Don't break old modes with keyup events
+                // TODO: fix this in these parsers directly
+                if (
+                    ["hint", "gobble"].includes(contentState.mode) &&
+                    (keyevent as any).keyup
+                )
+                    continue
+
                 let textEditable = false
 
                 if (keyevent instanceof KeyboardEvent) {
@@ -231,7 +233,10 @@ function* ParserController() {
                 } else {
                     keyEvents = response.keys
                     // show current keyEvents as a suffix of the contentState
-                    const suffix = keyEvents.map(x => PrintableKey(x)).join("")
+                    const suffix = formatKeysForModeIndicator(
+                        keyEvents,
+                        mapstrsForMode(contentState.mode),
+                    )
                     if (previousSuffix !== suffix) {
                         contentState.suffix = suffix
                         previousSuffix = suffix
@@ -264,15 +269,23 @@ export function keyMuncher(...keys: KeyEventLike[]) {
 /** Feed keys to the ParserController, unless they should be buffered to be later fed to clInput */
 export function acceptKey(keyevent: KeyboardEvent) {
     function tryBufferingPageKeyForClInput(keyevent: KeyboardEvent) {
-        if (!mustBufferPageKeysForClInput)
-            return false;
-        const bufferingDuration = performance.now() - bufferingPageKeysBeginTime;
-        logger.debug("controller_content mustBufferPageKeysForClInput = " + mustBufferPageKeysForClInput
-            + " bufferingDuration = " + bufferingDuration + "ms");
-        const isCharacterKey = keyevent.key.length == 1
-            && !keyevent.metaKey && !keyevent.ctrlKey && !keyevent.altKey && !keyevent.metaKey;
+        if (!mustBufferPageKeysForClInput) return false
+        const bufferingDuration = performance.now() - bufferingPageKeysBeginTime
+        logger.debug(
+            "controller_content mustBufferPageKeysForClInput = " +
+                mustBufferPageKeysForClInput +
+                " bufferingDuration = " +
+                bufferingDuration +
+                "ms",
+        )
+        const isCharacterKey =
+            keyevent.key.length == 1 &&
+            !keyevent.metaKey &&
+            !keyevent.ctrlKey &&
+            !keyevent.altKey &&
+            !keyevent.metaKey
         if (isCharacterKey) {
-            bufferedPageKeys.push(keyevent.key);
+            bufferedPageKeys.push(keyevent.key)
             logger.debug("Buffering page keys", bufferedPageKeys)
         }
         canceller.push(keyevent)
@@ -284,7 +297,12 @@ export function acceptKey(keyevent: KeyboardEvent) {
         // in turn means that the stop_buffering_page_keys message will never be sent to the content/page process.
         // If the content/page process starts buffering keys for clInput, but the stop_buffering_page_keys message is never received,
         // it will keep buffering (and eating events) forever.
-        logger.debug("controller_content Ignoring key event ", keyevent, " since commandline frame is not yet ready to receive messages", keyevent)
+        logger.debug(
+            "controller_content Ignoring key event ",
+            keyevent,
+            " since commandline frame is not yet ready to receive messages",
+            keyevent,
+        )
         return
     }
     if (!tryBufferingPageKeyForClInput(keyevent))
