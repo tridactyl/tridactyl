@@ -1,4 +1,4 @@
-import { isTextEditable } from "@src/lib/dom"
+import { isTextEditable, activeElement } from "@src/lib/dom"
 import { contentState, ModeName } from "@src/content/state_content"
 import Logger from "@src/lib/logging"
 import * as controller from "@src/lib/controller"
@@ -9,7 +9,6 @@ import {
     MinimalKey,
     formatKeysForModeIndicator,
 } from "@src/lib/keyseq"
-import { deepestShadowRoot } from "@src/lib/dom"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
@@ -122,6 +121,9 @@ Messaging.addListener(
     },
 )
 
+let keysToFeed: KeyEventLike[] = []
+let generatorIsWaiting = true
+
 /** Accepts keyevents, resolves them to maps, maps to exstrs, executes exstrs */
 function* ParserController() {
     const parsers: {
@@ -143,7 +145,9 @@ function* ParserController() {
         let keyEvents: MinimalKey[] = []
         try {
             while (true) {
-                const keyevent: KeyEventLike = yield
+                generatorIsWaiting = true
+                const keyevent: KeyEventLike = keysToFeed.length ? keysToFeed.shift() : yield
+                generatorIsWaiting = false
 
                 // Don't break old modes with keyup events
                 // TODO: fix this in these parsers directly
@@ -153,18 +157,12 @@ function* ParserController() {
                 )
                     continue
 
-                let shadowRoot = null
                 let textEditable = false
 
                 if (keyevent instanceof KeyboardEvent) {
-                    shadowRoot = deepestShadowRoot(
-                        (keyevent.target as Element).shadowRoot,
-                    )
+                    const deepTarget = activeElement(keyevent.target as HTMLElement) || keyevent.target as HTMLElement
+                    textEditable = isTextEditable(deepTarget)
 
-                    textEditable =
-                        shadowRoot === null
-                            ? isTextEditable(keyevent.target as Element)
-                            : isTextEditable(shadowRoot.activeElement)
                     // Accumulate key events. The parser will cut this
                     // down whenever it's not a valid prefix of a known
                     // binding, so it can't grow indefinitely unless you
@@ -257,6 +255,16 @@ function* ParserController() {
 
 export const generator = ParserController() // var rather than let stops weirdness in repl.
 generator.next()
+
+export function keyMuncher(...keys: KeyEventLike[]) {
+    if (keys.length === 0) return
+    if (generatorIsWaiting) {
+        keysToFeed = keysToFeed.concat(keys)
+        generator.next(keysToFeed.shift())
+    } else {
+        keysToFeed = keysToFeed.concat(keys)
+    }
+}
 
 /** Feed keys to the ParserController, unless they should be buffered to be later fed to clInput */
 export function acceptKey(keyevent: KeyboardEvent) {

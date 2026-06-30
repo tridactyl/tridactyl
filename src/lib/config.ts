@@ -397,6 +397,7 @@ export class default_config {
         "<C-[>":
             "composite js document.getSelection().empty(); mode normal ; hidecmdline",
         y: "composite js document.getSelection().toString() | clipboard yank",
+        "#": "composite js document.location + '#:~:text=' + encodeURIComponent(document.getSelection().toString()) | clipboard yank",
         s: "composite js document.getSelection().toString() | fillcmdline open search",
         S: "composite js document.getSelection().toString() | fillcmdline tabopen search",
         l: `js

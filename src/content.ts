@@ -27,7 +27,7 @@ import {
 import { CmdlineCmds } from "@src/content/commandline_cmds"
 import { EditorCmds } from "@src/content/editor"
 
-import { getAllDocumentFrames } from "@src/lib/dom"
+import { getAllDocumentFrames, activeElement } from "@src/lib/dom"
 
 import state from "@src/state"
 import { EditorCmds as editor } from "@src/content/editor"
@@ -365,7 +365,7 @@ config.getAsync("modeindicator").then(mode => {
         }
 
         if (
-            dom.isTextEditable(document.activeElement) &&
+            dom.isTextEditable(activeElement()) &&
             !["input", "ignore"].includes(mode)
         ) {
             result = "insert"
@@ -374,7 +374,7 @@ config.getAsync("modeindicator").then(mode => {
             // need to fix loss of focus by click: doesn't do anything here.
         } else if (
             mode === "insert" &&
-            !dom.isTextEditable(document.activeElement)
+            !dom.isTextEditable(activeElement())
         ) {
             result = "normal"
             // statusIndicator.style.borderColor = "lightgray !important"
