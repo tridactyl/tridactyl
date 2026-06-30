@@ -7,6 +7,7 @@ import {
     ParserResponse,
     minimalKeyFromKeyboardEvent,
     MinimalKey,
+    formatKeysForModeIndicator,
 } from "@src/lib/keyseq"
 import { deepestShadowRoot } from "@src/lib/dom"
 
@@ -16,34 +17,13 @@ import * as generic from "@src/parsers/genericmode"
 import * as nmode from "@src/parsers/nmode"
 import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
+import { mode2maps } from "@src/lib/binding"
 
 const logger = new Logger("controller")
 
-function PrintableKey(k) {
-    let result = k.key
-    if (
-        result === "Control" ||
-        result === "Meta" ||
-        result === "Alt" ||
-        result === "Shift" ||
-        result === "OS"
-    ) {
-        return ""
-    }
-
-    if (k.altKey) {
-        result = "A-" + result
-    }
-    if (k.ctrlKey) {
-        result = "C-" + result
-    }
-    if (k.shiftKey) {
-        result = "S-" + result
-    }
-    if (result.length > 1) {
-        result = "<" + result + ">"
-    }
-    return result
+function mapstrsForMode(mode: string) {
+    const maps = config.getDynamic(mode2maps.get(mode) || mode + "maps")
+    return Object.keys(maps || {})
 }
 
 /**
@@ -255,7 +235,10 @@ function* ParserController() {
                 } else {
                     keyEvents = response.keys
                     // show current keyEvents as a suffix of the contentState
-                    const suffix = keyEvents.map(x => PrintableKey(x)).join("")
+                    const suffix = formatKeysForModeIndicator(
+                        keyEvents,
+                        mapstrsForMode(contentState.mode),
+                    )
                     if (previousSuffix !== suffix) {
                         contentState.suffix = suffix
                         previousSuffix = suffix

@@ -324,6 +324,59 @@ export function completions(keyseq: MinimalKey[], map: KeyMap): KeyMap {
     )
 }
 
+function mapstrHasExplicitDirection(mapstr: string): boolean {
+    while (mapstr.length) {
+        if (mapstr[0] === "<") {
+            let key: MinimalKey
+            ;[key, mapstr] = bracketexprToKey(mapstr)
+            if (key.keyup || key.keydown) return true
+        } else {
+            mapstr = mapstr.slice(1)
+        }
+    }
+    return false
+}
+
+function printableKey(k: MinimalKey, showDirection: boolean) {
+    if (["Control", "Meta", "Alt", "Shift", "OS"].includes(k.key)) return ""
+
+    let modifiers = ""
+    if (k.altKey) {
+        modifiers += "A"
+    }
+    if (k.ctrlKey) {
+        modifiers += "C"
+    }
+    if (k.metaKey) {
+        modifiers += "M"
+    }
+    if (k.shiftKey) {
+        modifiers += "S"
+    }
+    if (showDirection) {
+        modifiers += k.keyup ? "U" : "D"
+    }
+    let result = modifiers ? modifiers + "-" + k.key : k.key
+    if (result.length > 1) {
+        result = "<" + result + ">"
+    }
+    return result
+}
+
+export function formatKeysForModeIndicator(
+    keys: MinimalKey[],
+    mapstrs: Iterable<string> = [],
+) {
+    const matchingMapstrs = Array.from(mapstrs).filter(mapstr =>
+        prefixes(keys, mapstrToKeyseq(mapstr)),
+    )
+    const showDirection = matchingMapstrs.some(mapstrHasExplicitDirection)
+    return keys
+        .filter(key => showDirection || !key.keyup)
+        .map(key => printableKey(key, showDirection))
+        .join("")
+}
+
 /** Return the first existing mapstr that would match before mapstr can complete. */
 export function findShadowingMapstr(
     mapstr: string,

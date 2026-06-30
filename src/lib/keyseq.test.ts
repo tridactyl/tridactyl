@@ -840,4 +840,15 @@ testAll(ks.findShadowingMapstr, [
     [["<D-v>", ["v"]], "v"],
 ])
 
+testAll(ks.formatKeysForModeIndicator, [
+    [[[mk("g"), mk("g", { keyup: true })], ["gg"]], "g"],
+    [[[mk("v")], ["<D-v>j"]], "<D-v>"],
+    [[[mk("v", { ctrlKey: true })], ["<CD-v>j"]], "<CD-v>"],
+    [[[mk("v", { keyup: true })], ["<U-v>j"]], "<U-v>"],
+    [
+        [[mk("v"), mk("v", { keyup: true })], ["v<U-v>j"]],
+        "<D-v><U-v>",
+    ],
+])
+
 // }}}
