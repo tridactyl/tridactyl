@@ -153,7 +153,13 @@ ALL_EXCMDS = {
 }
 // }
 
-import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap, MinimalKey } from "@src/lib/keyseq"
+import {
+    mapstrToKeyseq,
+    mozMapToMinimalKey,
+    minimalKeyToMozMap,
+    MinimalKey,
+    findShadowingMapstr,
+} from "@src/lib/keyseq"
 
 //#background_helper
 // {
@@ -4455,13 +4461,12 @@ export async function bind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
-        for (let i = 0; i < args_obj.key.length; i++) {
-            // Check if any initial subsequence of the key exists and will shadow the new binding
-            const key_sub = args_obj.key.slice(0, i)
-            if (config.getDynamic(args_obj.configName, key_sub)) {
-                fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
-                break
-            }
+        const key_sub = findShadowingMapstr(
+            args_obj.key,
+            Object.keys(config.getDynamic(args_obj.configName) || {}),
+        )
+        if (key_sub) {
+            fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
         }
         if (args_obj.mode == "browser") {
             const commands = await browser.commands.getAll()

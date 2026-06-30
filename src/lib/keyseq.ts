@@ -324,6 +324,29 @@ export function completions(keyseq: MinimalKey[], map: KeyMap): KeyMap {
     )
 }
 
+/** Return the first existing mapstr that would match before mapstr can complete. */
+export function findShadowingMapstr(
+    mapstr: string,
+    existingMapstrs: Iterable<string>,
+): string | undefined {
+    const keyseq = mapstrToKeyseq(mapstr)
+    const existing = Array.from(existingMapstrs)
+        .filter(existingMapstr => existingMapstr !== mapstr)
+        .map(existingMapstr =>
+            [existingMapstr, mapstrToKeyseq(existingMapstr)] as [
+                string,
+                MinimalKey[],
+            ],
+        )
+
+    for (let i = 1; i <= keyseq.length; i++) {
+        const prefix = keyseq.slice(0, i)
+        for (const [existingMapstr, existingKeyseq] of existing) {
+            if (isPerfectMatch(prefix, existingKeyseq)) return existingMapstr
+        }
+    }
+}
+
 // }}}
 
 // {{{ mapStrToKeySeq stuff

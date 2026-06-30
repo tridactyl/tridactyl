@@ -832,4 +832,12 @@ testAll(ks.canonicaliseMapstr, [
     ["<C-a>", "<C-a>"],
 ])
 
+testAll(ks.findShadowingMapstr, [
+    [["gg", ["g"]], "g"],
+    [["g", ["gg"]], undefined],
+    [["v", ["v"]], undefined],
+    [["<C-v>", ["v"]], undefined],
+    [["<D-v>", ["v"]], "v"],
+])
+
 // }}}
