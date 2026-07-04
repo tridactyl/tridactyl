@@ -46,12 +46,34 @@
     background: var(--tridactyl-externaledit-bg);
 }
 
+/* whichkey iframe, base layout; JS overrides height and left/right/width per location setting */
+#whichkey_iframe {
+    position: fixed !important;
+    bottom: 0 !important;
+    z-index: 2147483647 !important; /* max z-index; same as cmdline as the two can never coexist */
+    height: 0 !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    pointer-events: none !important;
+    transition: none !important;
+    animation: none !important;
+    background: transparent !important;
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.4)) !important;
+}
+
 @media print {
     span.TridactylStatusIndicator {
         display: none !important;
     }
 
     #cmdline_iframe {
+        display: none !important;
+    }
+
+    #whichkey_iframe {
         display: none !important;
     }
 }

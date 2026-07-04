@@ -137,6 +137,7 @@ import { CmdlineCmds as CtCmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds as CtEditorCmds } from "@src/background/editor"
 import * as DOM from "@src/lib/dom"
 import * as CommandLineContent from "@src/content/commandline_content"
+import * as WhichKeyContent from "@src/content/whichkey_content"
 import * as scrolling from "@src/content/scrolling"
 import { ownTab } from "@src/lib/webext"
 import { rot13_helper, jumble_helper } from "@src/lib/editor_utils"
@@ -4020,6 +4021,34 @@ export function showcmdline(focus = true) {
 //#content
 export function hidecmdline() {
     CommandLineContent.hide_and_blur()
+}
+
+/**
+ * Control the which-key overlay.
+ *
+ * - `enable` / `disable`: toggle the overlay on or off
+ * - `show [mode]`: immediately show all bindings for a mode; defaults to `normal`
+ *
+ * Example: `:whichkey show normal` or `:whichkey disable`
+ */
+//#content
+export function whichkey(action: string, ...args: string[]) {
+    switch (action) {
+        case "enable":
+            config.set("whichkeyenabled", "true")
+            break
+        case "disable":
+            config.set("whichkeyenabled", "false")
+            WhichKeyContent.hide()
+            break
+        case "show": {
+            const mode = args[0] ?? "normal"
+            WhichKeyContent.show(mode, [])
+            break
+        }
+        default:
+            logger.error(`whichkey: unknown action '${action}'. Use enable, disable, or show <mode>.`)
+    }
 }
 
 /** Set the current value of the commandline to string *with* a trailing space */

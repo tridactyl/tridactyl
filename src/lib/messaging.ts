@@ -12,6 +12,8 @@ export type TabMessageType =
     | "omniscient_content"
     | "commandline_cmd"
     | "commandline_frame"
+    | "whichkey_content"
+    | "whichkey_frame"
     | "state"
     | "lock"
     | "alive"
@@ -77,7 +79,7 @@ export function attributeCaller(obj) {
 interface TypedMessage<
     Root,
     Type extends keyof Root,
-    Command extends keyof Root[Type]
+    Command extends keyof Root[Type],
 > {
     type: Type
     command: Command
@@ -87,7 +89,7 @@ interface TypedMessage<
 function backgroundHandler<
     Root,
     Type extends keyof Root,
-    Command extends keyof Root[Type]
+    Command extends keyof Root[Type],
 >(
     root: Root,
     message: TypedMessage<Root, Type, Command>,
@@ -96,21 +98,19 @@ function backgroundHandler<
 }
 
 export function setupListener<Root>(root: Root) {
-    browser.runtime.onMessage.addListener(
-        (message: any) => {
-            if (message.type in root) {
-                if (!(message.command in root[message.type]))
-                    throw new Error(
-                        `missing handler in protocol ${message.type} ${message.command}`,
-                    )
-                if (!Array.isArray(message.args))
-                    throw new Error(
-                        `wrong arguments in protocol ${message.type} ${message.command}`,
-                    )
-                return Promise.resolve(backgroundHandler(root, message))
-            }
-        },
-    )
+    browser.runtime.onMessage.addListener((message: any) => {
+        if (message.type in root) {
+            if (!(message.command in root[message.type]))
+                throw new Error(
+                    `missing handler in protocol ${message.type} ${message.command}`,
+                )
+            if (!Array.isArray(message.args))
+                throw new Error(
+                    `wrong arguments in protocol ${message.type} ${message.command}`,
+                )
+            return Promise.resolve(backgroundHandler(root, message))
+        }
+    })
 }
 
 // type StripPromise<T> = T extends Promise<infer U> ? U : T
@@ -119,7 +119,7 @@ export function setupListener<Root>(root: Root) {
 export async function message<
     Type extends keyof Messages.Background,
     Command extends keyof Messages.Background[Type],
-    F extends ((...args: any[]) => any) & Messages.Background[Type][Command]
+    F extends ((...args: any[]) => any) & Messages.Background[Type][Command],
 >(type: Type, command: Command, ...args: Parameters<F>) {
     const message: TypedMessage<Messages.Background, Type, Command> = {
         type,
