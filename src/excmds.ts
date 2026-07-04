@@ -2885,12 +2885,15 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
         return nativeopen(address) as unknown as browser.tabs.Tab // I don't understand why changing the final return below meant I had to change this
     }
 
-    const aucon = new AutoContain()
-    if (!container && aucon.autocontainConfigured()) {
-        const [autoContainer] = await aucon.getAuconAndProxiesForUrl(address)
-        if (autoContainer && autoContainer !== "firefox-default") {
-            container = autoContainer
-            logger.debug("tabopen setting container automatically using autocontain directive")
+    const maybeURL = await queryAndURLwrangler(query)
+    if (typeof maybeURL === "string" && !container) {
+        const aucon = new AutoContain()
+        if (aucon.autocontainConfigured()) {
+            const [autoContainer] = await aucon.getAuconAndProxiesForUrl(maybeURL)
+            if (autoContainer && autoContainer !== "firefox-default") {
+                container = autoContainer
+                logger.debug("tabopen setting container automatically using autocontain directive")
+            }
         }
     }
 
@@ -2907,7 +2910,6 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     args.bypassFocusHack = bypassFocusHack
     args.discarded = discarded
     args.pinned = pinned
-    const maybeURL = await queryAndURLwrangler(query)
     if (typeof maybeURL === "string") {
         return openInNewTab(maybeURL, args, waitForDom)
     }
