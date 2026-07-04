@@ -270,7 +270,7 @@ export class AutoContain implements IAutoContain {
         return willContainInDefault
     }
 
-    getAuconAndProxiesForUrl = async (url: string): Promise<[string, string[]]> => {
+    getConfiguredAuconAndProxiesForUrl = (url: string): [string, string[]] => {
         const aucons = Config.get("autocontain")
         const ausites = Object.keys(aucons)
         const aukeyarr = ausites.filter(e => url.search(e) >= 0).sort((a, b) => b.length - a.length)
@@ -285,18 +285,24 @@ export class AutoContain implements IAutoContain {
             if (aucon.toLowerCase() === "firefox-default" || aucon.toLowerCase() === "none") {
                 return ["firefox-default", proxies]
             }
-            const containerExists = await Container.exists(aucon)
-            if (!containerExists) {
-                if (Config.get("auconcreatecontainer") === "true") {
-                    await Container.create(aucon)
-                } else {
-                    logger.error(
-                        "Specified container doesn't exist. consider setting 'auconcreatecontainer' to true",
-                    )
-                }
-            }
-            return [await Container.getId(aucon), proxies]
+            return [aucon, proxies]
         }
+    }
+
+    getAuconAndProxiesForUrl = async (url: string): Promise<[string, string[]]> => {
+        const [aucon, proxies] = this.getConfiguredAuconAndProxiesForUrl(url)
+        if (aucon === "firefox-default") return [aucon, proxies]
+
+        if (Config.get("auconcreatecontainer") === "true") {
+            return [await Container.ensure(aucon), proxies]
+        }
+        if (!(await Container.exists(aucon))) {
+            logger.error(
+                "Specified container doesn't exist. consider setting 'auconcreatecontainer' to true",
+            )
+        }
+
+        return [await Container.getId(aucon), proxies]
     }
 
     // Parses autocontain directives and returns valid cookieStoreIds or errors.
