@@ -143,6 +143,7 @@ export function getCommandlineFns(cmdline_state: {
                 })
             cmdline_state.activeCompletions = undefined
             cmdline_state.isVisible = false
+            cmdline_state.resolveCloseWaiters?.()
         },
 
         /**
@@ -210,7 +211,7 @@ export function getCommandlineFns(cmdline_state: {
             // shim to the background, but the latency increase should
             // be acceptable becuase the background-mode excmds tend
             // to be a touch less latency-sensitive.
-            return messageOwnTab("controller_content", "acceptExCmd", [command])
+            return messageOwnTab("controller_content", "acceptExCmd", [command, "commandline"])
         },
 
         execute_ex_on_completion_args: (excmd: string) =>

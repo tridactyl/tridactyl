@@ -4026,13 +4026,22 @@ export function hidecmdline() {
     CommandLineContent.hide_and_blur()
 }
 
-/** Set the current value of the commandline to string *with* a trailing space */
+/** 
+* Set the current value of the commandline to string *with* a trailing space.
+*
+* `fillcmdline --wait` will only return after the command line is closed. It can only be invoked in binds to avoid deadlock.
+*/
 //#content
 export async function fillcmdline(...strarr: string[]) {
+    const wait = strarr[0] === "--wait"
+    if (wait) strarr.shift()
+    if (wait && controller.getCurrentExCmdSource() === "commandline") {
+        throw new Error("fillcmdline --wait cannot be run from the commandline")
+    }
     const str = strarr.join(" ")
     await showcmdline(false)
     logger.debug("excmds fillcmdline sending fillcmdline to commandline_frame")
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true /*trailspace*/, true /*focus*/])
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true /*trailspace*/, true /*focus*/, wait])
 }
 
 /** Set the current value of the commandline to string *without* a trailing space */

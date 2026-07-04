@@ -240,7 +240,7 @@ function* ParserController() {
                 }
             }
             contentState.suffix = ""
-            controller.acceptExCmd(exstr)
+            controller.acceptExCmd(exstr, "content")
         } catch (e) {
             // Rumsfeldian errors are caught here
             logger.error("An error occurred in the content controller: ", e)

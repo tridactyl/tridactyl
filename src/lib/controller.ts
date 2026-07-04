@@ -5,13 +5,22 @@ import state from "@src/state"
 
 const logger = new Logger("controller")
 
+type ExCmdSource = "commandline" | "content"
+let currentExCmdSource: ExCmdSource
+
 let stored_excmds: any
 export function setExCmds(excmds: any) {
     stored_excmds = excmds
 }
 
+export function getCurrentExCmdSource() {
+    return currentExCmdSource
+}
+
 /** Parse and execute ExCmds */
-export async function acceptExCmd(exstr: string): Promise<any> {
+export async function acceptExCmd(exstr: string, source?: ExCmdSource): Promise<any> {
+    const previousExCmdSource = currentExCmdSource
+    currentExCmdSource = source || previousExCmdSource
     // TODO: Errors should go to CommandLine.
     try {
         const [func, args] = exmode_parser(exstr, stored_excmds)
@@ -33,5 +42,7 @@ export async function acceptExCmd(exstr: string): Promise<any> {
     } catch (e) {
         // Errors from parser caught here
         logger.error("controller while accepting: ", e)
+    } finally {
+        currentExCmdSource = previousExCmdSource
     }
 }
