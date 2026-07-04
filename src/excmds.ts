@@ -4048,18 +4048,16 @@ export function fillcmdline_nofocus(...strarr: string[]) {
 
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
 //#content
-export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
+export function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     showcmdline(false)
-    Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
-    return new Promise<void>(resolve =>
-        setTimeout(async () => {
-            if (document.activeElement?.id !== "cmdline_iframe") {
-                CommandLineContent.hide_and_blur()
-                resolve(Messaging.messageOwnTab("commandline_frame", "clear", [true]))
-            }
-            resolve()
-        }, ms),
-    )
+    const done = Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
+    setTimeout(() => {
+        if (document.activeElement?.id !== "cmdline_iframe") {
+            CommandLineContent.hide_and_blur()
+            Messaging.messageOwnTab("commandline_frame", "clear", [true])
+        }
+    }, ms)
+    return done
 }
 
 /**
