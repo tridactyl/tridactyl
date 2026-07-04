@@ -402,15 +402,9 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
 
     let queryWords = query.split(" ")
 
-    // percent-encode if theres a %s in the query string, or if we're apppending
-    // and there's a query string
-    if (
-        (hasInterpolationPoint && urlPattern.search.includes("%s")) ||
-        urlPattern.search !== ""
-    ) {
-        query = encodeURIComponent(query)
-        queryWords = queryWords.map(w => encodeURIComponent(w))
-    }
+    // percent-encode
+    query = encodeURIComponent(query)
+    queryWords = queryWords.map(w => encodeURIComponent(w))
 
     // replace or append as needed
     if (hasInterpolationPoint) {
