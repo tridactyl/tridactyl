@@ -6210,7 +6210,7 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
     }
 
     const notify = () => {
-        fillcmdline_tmp(30000, "Tridactyl " + highestKnownVersion.version + " is available (you're on " + Updates.getInstalledVersion() + "). Visit about:addons, right click Tridactyl, click 'Find Updates'. Restart Firefox once it has downloaded.")
+        fillcmdline_tmp(30000, "Tridactyl " + highestKnownVersion.version + " is available (you're on " + Updates.getInstalledVersion() + "). Visit about:addons, click Extensions, click Tridactyl, click the cog, click 'Check for Updates'. Restart Firefox once it has downloaded.")
     }
 
     // A bit verbose, but I figured it was important to have the logic
