@@ -2750,12 +2750,11 @@ ecdsa-sig-formatter@1.0.11:
   dependencies:
     safe-buffer "^5.0.1"
 
-editor-adapter@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/editor-adapter/-/editor-adapter-0.0.5.tgz#9504a025e89f375d2e970ab8079a1efa1a366e6a"
-  integrity sha512-sfu3pDFIAqHsGGI7a5F1J7bzbWCPK1IQ37DtDJ9/bohEiwC+xuSeOsCIrzBzy8DYqqKO3fQlYsymyrCcfOFqdg==
+"editor-adapter@git+https://github.com/tridactyl/editor-adapter.git#master":
+  version "0.0.9"
+  resolved "git+https://github.com/tridactyl/editor-adapter.git#7f715fa99fb5a2bcd26e28963461988e23963418"
   dependencies:
-    typescript "^4.3.5"
+    typescript "^6.0.3"
 
 emoji-regex@^8.0.0:
   version "8.0.0"
@@ -7974,10 +7973,10 @@ typescript@^3.9.10:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.10.tgz#70f3910ac7a51ed6bef79da7800690b19bf778b8"
   integrity sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==
 
-typescript@^4.3.5:
-  version "4.3.5"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
-  integrity sha512-DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==
+typescript@^6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-6.0.3.tgz#90251dc007916e972786cb94d74d15b185577d21"
+  integrity sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==
 
 typical@^7.2.0:
   version "7.3.0"
