@@ -118,9 +118,9 @@ const getProxies = (): { [key: string]: ProxyInfo } => {
     }, {})
 }
 
-const getProxiesForUrl = async (url: string): Promise<ProxyInfo[]> => {
+const getProxiesForUrl = (url: string): ProxyInfo[] => {
     const aucon = new AutoContain()
-    const [, containerProxies] = await aucon.getAuconAndProxiesForUrl(url)
+    const [, containerProxies] = aucon.getConfiguredAuconAndProxiesForUrl(url)
     if (containerProxies[0] === "none") {
         return []
     }
@@ -138,9 +138,9 @@ const getProxiesForUrl = async (url: string): Promise<ProxyInfo[]> => {
     return filteredProxies
 }
 
-export const onRequestListener = async (
+export const onRequestListener = (
     details: Pick<browser.proxy._OnRequestDetails, "url">,
-): Promise<ProxyInfo[] | never[]> => {
+): ProxyInfo[] | never[] => {
     const noProxy = []
 
     if (config.get("noproxy") === "true") {
@@ -148,7 +148,7 @@ export const onRequestListener = async (
     }
 
     try {
-        const proxies = await getProxiesForUrl(details.url)
+        const proxies = getProxiesForUrl(details.url)
 
         if (!proxies.length) return noProxy
 
