@@ -39,6 +39,11 @@ jobs:
           hugo-version: 'latest'
           extended: true
 
+      - name: Setup PostCSS
+        run: |
+          yarn global add postcss postcss-cli autoprefixer
+          echo "$(yarn global bin)" >> "$GITHUB_PATH"
+
       - name: Build
         run: |
           cd tridactyl
