@@ -74,11 +74,13 @@ export async function ensure(
 
     let promise = ensurePromises.get(key)
     if (promise === undefined) {
-        promise = create(name, color, icon).catch(async e => {
-            const id = await getExistingId(name)
-            if (id) return id
-            throw e
-        }).finally(() => ensurePromises.delete(key))
+        promise = create(name, color, icon)
+            .catch(async e => {
+                const id = await getExistingId(name)
+                if (id) return id
+                throw e
+            })
+            .finally(() => ensurePromises.delete(key))
         ensurePromises.set(key, promise)
     }
     return promise

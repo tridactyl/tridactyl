@@ -82,15 +82,12 @@ export class AutoContain implements IAutoContain {
         if (details.tabId === -1) return { cancel: false }
 
         // Do all of our async lookups in parallel.
-        const [
-            tab,
-            otherExtensionHasPriority,
-            cookieStoreId,
-        ] = await Promise.all([
-            browser.tabs.get(details.tabId),
-            this.checkOtherExtensionsHavePriority(details),
-            this.getAuconForDetails(details),
-        ])
+        const [tab, otherExtensionHasPriority, cookieStoreId] =
+            await Promise.all([
+                browser.tabs.get(details.tabId),
+                this.checkOtherExtensionsHavePriority(details),
+                this.getAuconForDetails(details),
+            ])
 
         // If any other extensions claim this request, we'll ignore it and let them handle it.
         if (otherExtensionHasPriority) return { cancel: false }
@@ -273,7 +270,9 @@ export class AutoContain implements IAutoContain {
     getConfiguredAuconAndProxiesForUrl = (url: string): [string, string[]] => {
         const aucons = Config.get("autocontain")
         const ausites = Object.keys(aucons)
-        const aukeyarr = ausites.filter(e => url.search(e) >= 0).sort((a, b) => b.length - a.length)
+        const aukeyarr = ausites
+            .filter(e => url.search(e) >= 0)
+            .sort((a, b) => b.length - a.length)
         if (!aukeyarr.length) {
             return ["firefox-default", []]
         } else {
@@ -282,14 +281,19 @@ export class AutoContain implements IAutoContain {
             const [aucon, proxies] = matches
                 ? [matches[1], matches[2].split(",")]
                 : [val, []]
-            if (aucon.toLowerCase() === "firefox-default" || aucon.toLowerCase() === "none") {
+            if (
+                aucon.toLowerCase() === "firefox-default" ||
+                aucon.toLowerCase() === "none"
+            ) {
                 return ["firefox-default", proxies]
             }
             return [aucon, proxies]
         }
     }
 
-    getAuconAndProxiesForUrl = async (url: string): Promise<[string, string[]]> => {
+    getAuconAndProxiesForUrl = async (
+        url: string,
+    ): Promise<[string, string[]]> => {
         const [aucon, proxies] = this.getConfiguredAuconAndProxiesForUrl(url)
         if (aucon === "firefox-default") return [aucon, proxies]
 
@@ -307,7 +311,7 @@ export class AutoContain implements IAutoContain {
 
     // Parses autocontain directives and returns valid cookieStoreIds or errors.
     getAuconForDetails = async (details): Promise<string> => {
-        const [aucon, ] = await this.getAuconAndProxiesForUrl(details.url)
+        const [aucon] = await this.getAuconAndProxiesForUrl(details.url)
         return aucon
     }
 }

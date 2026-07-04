@@ -6,7 +6,7 @@ const logger = new Logging.Logger("proxy")
 
 const proxyTypes = ["http", "https", "socks", "socks4"] as const
 
-type ProxyType = typeof proxyTypes[number]
+type ProxyType = (typeof proxyTypes)[number]
 
 interface ProxyInfo {
     type: ProxyType
@@ -78,8 +78,8 @@ export const proxyFromUrl = (proxyUrl: string): ProxyInfo => {
         protocol === "socks5"
             ? "socks"
             : protocol === "ssl"
-            ? "https"
-            : protocol
+              ? "https"
+              : protocol
 
     if (!isProxyType(protocol)) {
         throw new Error(`Invalid proxy type: ${protocol}`)
@@ -98,7 +98,9 @@ export const proxyFromUrl = (proxyUrl: string): ProxyInfo => {
 
 export function exists(names: string[]) {
     const currProxies = Object.keys(config.get("proxies"))
-    const missingProxies = names.filter(name => !currProxies.includes(name) && name !== "none")
+    const missingProxies = names.filter(
+        name => !currProxies.includes(name) && name !== "none",
+    )
     if (missingProxies.length) {
         throw new Error(
             `${
@@ -126,13 +128,10 @@ const getProxiesForUrl = (url: string): ProxyInfo[] => {
     }
     const proxies = getProxies()
     const filteredProxies = Object.entries(proxies)
-        .filter(([name, ]) => containerProxies.includes(name))
+        .filter(([name]) => containerProxies.includes(name))
         .map(([, proxy]) => proxy)
     const defaultProxy = config.get("proxy")
-    if (
-        defaultProxy in proxies &&
-        !containerProxies.includes(defaultProxy)
-    ) {
+    if (defaultProxy in proxies && !containerProxies.includes(defaultProxy)) {
         filteredProxies.push(proxies[defaultProxy])
     }
     return filteredProxies
