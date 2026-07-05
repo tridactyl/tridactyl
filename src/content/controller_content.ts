@@ -61,7 +61,7 @@ class KeyCanceller {
         this.cancelKey(ke, this.keyUp)
     }
 
-    private cancelKey(ke: KeyboardEvent, kes: KeyboardEvent[]) {
+    private removeKey(ke: KeyboardEvent, kes: KeyboardEvent[]) {
         const index = kes.findIndex(
             ke2 =>
                 ke.altKey === ke2.altKey &&
@@ -72,10 +72,15 @@ class KeyCanceller {
                 ke.shiftKey === ke2.shiftKey &&
                 ke.target === ke2.target,
         )
-        if (index >= 0 && ke instanceof KeyboardEvent) {
+        if (index < 0) return false
+        kes.splice(index, 1)
+        return true
+    }
+
+    private cancelKey(ke: KeyboardEvent, kes: KeyboardEvent[]) {
+        if (this.removeKey(ke, kes) && ke instanceof KeyboardEvent) {
             ke.preventDefault()
             ke.stopImmediatePropagation()
-            kes.splice(index, 1)
         }
     }
 }
