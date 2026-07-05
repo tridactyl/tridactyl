@@ -133,7 +133,6 @@ messaging.addListener("alive", async () => true)
 
 const guardedAcceptKey = (keyevent: KeyboardEvent) => {
     if (!keyevent.isTrusted) return
-    (keyevent as any).keyup = keyevent.type == "keyup"
     ContentController.acceptKey(keyevent)
 }
 function listen(elem) {

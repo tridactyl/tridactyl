@@ -164,7 +164,7 @@ function* ParserController() {
                 // TODO: fix this in these parsers directly
                 if (
                     ["hint", "gobble"].includes(contentState.mode) &&
-                    (keyevent as any).keyup
+                    (keyevent instanceof KeyboardEvent ? keyevent.type === "keyup" : keyevent.keyup)
                 )
                     continue
 
