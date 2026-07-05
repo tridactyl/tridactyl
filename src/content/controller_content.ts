@@ -47,8 +47,14 @@ class KeyCanceller {
     push(ke: KeyboardEvent) {
         ke.preventDefault()
         ke.stopImmediatePropagation()
-        this.keyPress.push(ke)
-        this.keyUp.push(ke)
+
+        if (ke.type === "keydown") {
+            this.keyPress.push(ke)
+            this.keyUp.push(ke)
+        } else if (ke.type === "keyup") {
+            // only need to bookkeep, the keyup will be cancelled by the keydown
+            this.removeKey(ke, this.keyUp)
+        }
     }
 
     public cancelKeyPress = (ke: KeyboardEvent) => {
