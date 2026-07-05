@@ -10,7 +10,6 @@ class TabAllCompletionOption
     extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
-    public tab: browser.tabs.Tab
     constructor(
         public value: string,
         tab: browser.tabs.Tab,
@@ -25,7 +24,6 @@ class TabAllCompletionOption
         const valueStr = `${winindex}.${tab.index + 1}`
         this.value = valueStr
         this.fuseKeys.push(this.value, tab.title, tab.url)
-        this.tab = tab
 
         // pre contains max four uppercase characters for tab status.
         // If statusstylepretty is set to true replace use unicode characters,
@@ -88,6 +86,7 @@ class TabAllCompletionOption
 export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
     public options: TabAllCompletionOption[]
     private shouldSetStateFromScore = true
+    private removeTabChangesListener: () => void
 
     constructor(private _parent) {
         super(["taball", "tabgrab"], "TabAllCompletionSource", "All Tabs")
@@ -97,7 +96,14 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
         this.shouldSetStateFromScore =
             config.get("completions", "TabAll", "autoselect") === "true"
 
-        Messaging.addListener("tab_changes", () => this.reactToTabChanges())
+        this.removeTabChangesListener = Messaging.addListener(
+            "tab_changes",
+            () => this.reactToTabChanges(),
+        )
+    }
+
+    public destroy() {
+        this.removeTabChangesListener()
     }
 
     async onInput(exstr) {
