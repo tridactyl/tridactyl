@@ -153,7 +153,13 @@ ALL_EXCMDS = {
 }
 // }
 
-import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap, MinimalKey } from "@src/lib/keyseq"
+import {
+    mapstrToKeyseq,
+    mozMapToMinimalKey,
+    minimalKeyToMozMap,
+    MinimalKey,
+    findShadowingMapstr,
+} from "@src/lib/keyseq"
 
 //#background_helper
 // {
@@ -4411,9 +4417,20 @@ export function comclear(name: string) {
 
     Firefox reserves some keybinds for its own use such as `<C-n>`. If you want to bind to one of these, you need to go to `about:keyboard` and unbind them there before Tridactyl can access them.
 
+    You can view all special key names here: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values
+
     Modifiers are truncated to a single character, so Ctrl -> C, Alt -> A, and Shift -> S. Shift is a bit special as it is only required if Shift does not change the key inputted, e.g. `<S-ArrowDown>` is OK, but `<S-a>` should just be `A`.
 
-    You can view all special key names here: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values
+    Additionally, you can bind explicitly to a keydown or keyup event with the `D` and `U` modifiers respectively. You can make any bind optional by giving it a `?` modifier. Any bind which does not have an explicit `U` or `D` is interpreted as if it is followed by an optional keyup event, unless it is the final key. For example, `gg` becomes `g<?U-g>g`. Explicit keydown events, e.g. `<D-z>`, are not allowed to be the automatic repeat firings you get if you hold the key down. `hint` and `gobble` mode do not currently support `keyup` events.
+
+    An imaginative use of this is a "layer" where holding a key down changes the rest of the bindings:
+
+    ```
+    bind <D-\> mode ignore
+    bind --mode=ignore <U-\> mode normal
+    ```
+
+    With these bindings, holding backslash would let you send keys to the web page, such as `<C-f>` for using Firefox's built-in find mode.
 
     Use [[composite]] if you want to execute multiple excmds. Use
     [[fillcmdline]] to put a string in the cmdline and focus the cmdline
@@ -4444,13 +4461,12 @@ export async function bind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
-        for (let i = 0; i < args_obj.key.length; i++) {
-            // Check if any initial subsequence of the key exists and will shadow the new binding
-            const key_sub = args_obj.key.slice(0, i)
-            if (config.getDynamic(args_obj.configName, key_sub)) {
-                fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
-                break
-            }
+        const key_sub = findShadowingMapstr(
+            args_obj.key,
+            Object.keys(config.getDynamic(args_obj.configName) || {}),
+        )
+        if (key_sub) {
+            fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
         }
         if (args_obj.mode == "browser") {
             const commands = await browser.commands.getAll()
