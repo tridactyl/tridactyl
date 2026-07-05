@@ -17,7 +17,7 @@
     "compute-scroll-into-view": "^3.0.0",
     "csp-serdes": "github:cmcaine/csp-serdes",
     "css": "^3.0.0",
-    "editor-adapter": "^0.0.5",
+    "editor-adapter": "git+https://github.com/tridactyl/editor-adapter.git#master",
     "esbuild": "^0.20.2",
     "fuse.js": "^7.0.0",
     "nearley": "^2.20.1",

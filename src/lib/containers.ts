@@ -2,6 +2,7 @@ import { browserBg } from "@src/lib/webext"
 import Fuse from "fuse.js"
 import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("containers")
+const ensurePromises = new Map<string, Promise<string>>()
 
 // As per Mozilla specification: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
 const ContainerColor = [
@@ -60,6 +61,29 @@ export async function create(
         const res = await browser.contextualIdentities.create(container)
         return res.cookieStoreId
     }
+}
+
+export async function ensure(
+    name: string,
+    color = "random",
+    icon = "fingerprint",
+): Promise<string> {
+    const key = name.toLowerCase()
+    const existingId = await getExistingId(name)
+    if (existingId) return existingId
+
+    let promise = ensurePromises.get(key)
+    if (promise === undefined) {
+        promise = create(name, color, icon)
+            .catch(async e => {
+                const id = await getExistingId(name)
+                if (id) return id
+                throw e
+            })
+            .finally(() => ensurePromises.delete(key))
+        ensurePromises.set(key, promise)
+    }
+    return promise
 }
 
 /** Removes specified container. No fuzzy matching is intentional here. If there are multiple containers with the same name (allowed by other container plugins), it chooses the one with the lowest cookieStoreId
@@ -177,6 +201,13 @@ export async function getId(name: string): Promise<string> {
     } else {
         return res[0].cookieStoreId
     }
+}
+
+async function getExistingId(name: string): Promise<string> {
+    const container = (await getAll()).find(
+        c => c.name.toLowerCase() === name.toLowerCase(),
+    )
+    return container?.cookieStoreId
 }
 
 /** Tries some simple ways to match containers to your input.

@@ -2891,12 +2891,15 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
         return nativeopen(address) as unknown as browser.tabs.Tab // I don't understand why changing the final return below meant I had to change this
     }
 
-    const aucon = new AutoContain()
-    if (!container && aucon.autocontainConfigured()) {
-        const [autoContainer] = await aucon.getAuconAndProxiesForUrl(address)
-        if (autoContainer && autoContainer !== "firefox-default") {
-            container = autoContainer
-            logger.debug("tabopen setting container automatically using autocontain directive")
+    const maybeURL = await queryAndURLwrangler(query)
+    if (typeof maybeURL === "string" && !container) {
+        const aucon = new AutoContain()
+        if (aucon.autocontainConfigured()) {
+            const [autoContainer] = await aucon.getAuconAndProxiesForUrl(maybeURL)
+            if (autoContainer && autoContainer !== "firefox-default") {
+                container = autoContainer
+                logger.debug("tabopen setting container automatically using autocontain directive")
+            }
         }
     }
 
@@ -2913,7 +2916,6 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     args.bypassFocusHack = bypassFocusHack
     args.discarded = discarded
     args.pinned = pinned
-    const maybeURL = await queryAndURLwrangler(query)
     if (typeof maybeURL === "string") {
         return openInNewTab(maybeURL, args, waitForDom)
     }
@@ -4052,18 +4054,16 @@ export function fillcmdline_nofocus(...strarr: string[]) {
 
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
 //#content
-export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
+export function fillcmdline_tmp(ms: number, ...strarr: string[]) {
     showcmdline(false)
-    Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
-    return new Promise<void>(resolve =>
-        setTimeout(async () => {
-            if (document.activeElement?.id !== "cmdline_iframe") {
-                CommandLineContent.hide_and_blur()
-                resolve(Messaging.messageOwnTab("commandline_frame", "clear", [true]))
-            }
-            resolve()
-        }, ms),
-    )
+    const done = Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
+    setTimeout(() => {
+        if (document.activeElement?.id !== "cmdline_iframe") {
+            CommandLineContent.hide_and_blur()
+            Messaging.messageOwnTab("commandline_frame", "clear", [true])
+        }
+    }, ms)
+    return done
 }
 
 /**
@@ -4414,6 +4414,8 @@ export function comclear(name: string) {
         - `bind k`
 
     You can bind to modifiers and special keys by enclosing them with angle brackets, for example `bind <C-\>z fullscreen`, `unbind <F1>` (a favourite of people who use TreeStyleTabs :) ), or `bind <Backspace> forward`.
+
+    Firefox reserves some keybinds for its own use such as `<C-n>`. If you want to bind to one of these, you need to go to `about:keyboard` and unbind them there before Tridactyl can access them.
 
     You can view all special key names here: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values
 
@@ -6228,7 +6230,7 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
     }
 
     const notify = () => {
-        fillcmdline_tmp(30000, "Tridactyl " + highestKnownVersion.version + " is available (you're on " + Updates.getInstalledVersion() + "). Visit about:addons, right click Tridactyl, click 'Find Updates'. Restart Firefox once it has downloaded.")
+        fillcmdline_tmp(30000, "Tridactyl " + highestKnownVersion.version + " is available (you're on " + Updates.getInstalledVersion() + "). Visit about:addons, click Extensions, click Tridactyl, click the cog, click 'Check for Updates'. Restart Firefox once it has downloaded.")
     }
 
     // A bit verbose, but I figured it was important to have the logic
