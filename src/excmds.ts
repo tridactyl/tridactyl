@@ -74,7 +74,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabOnWindow, activeTabId, activeWindowId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -179,7 +179,7 @@ import * as Updates from "@src/lib/updates"
 import * as Extensions from "@src/lib/extension_info"
 import * as webrequests from "@src/background/webrequests"
 import * as commandsHelper from "@src/background/commands"
-import { tgroups, tgroupActivate, setTabTgroup, setWindowTgroup, setTgroups, windowTgroup, windowLastTgroup, tgroupClearOldInfo, tgroupLastTabId, tgroupTabs, clearAllTgroupInfo, tgroupActivateLast, tgroupHandleTabActivated, tgroupHandleTabCreated, tgroupHandleTabAttached, tgroupHandleTabUpdated, tgroupHandleTabRemoved, tgroupHandleTabDetached } from "./lib/tab_groups"
+import { tgroups, tgroupActivate, setTabTgroup, setWindowTgroup, setTgroups, windowTgroup, windowLastTgroup, tgroupClearOldInfo, tgroupLastTabId, tgroupTabs, clearAllTgroupInfo, tgroupActivateLast, tgroupHandleTabActivated, tgroupHandleTabCreated, tgroupHandleTabAttached, tgroupHandleTabUpdated, tgroupHandleTabRemoved, tgroupHandleTabDetached, hasNativeTabGroups, normalizeColor, NATIVE_TAB_GROUP_COLORS, TabGroupColor, migrateToNativeGroups } from "./lib/tab_groups"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -3623,9 +3623,12 @@ export function setContentStateGroup(name: string) {
  *
  * Tab groups exist only for a single window.
  *
+ * For native tab groups (Firefox 137+), also supports setting a color:
+ * :tgroupcreate mygroup blue
+ *
  */
 //#background
-export async function tgroupcreate(name: string) {
+export async function tgroupcreate(name: string, color?: string) {
     const promises = []
     const groups = await tgroups()
 
@@ -3633,7 +3636,64 @@ export async function tgroupcreate(name: string) {
         throw new Error(`Tab group "${name}" already exists`)
     }
 
-    if (groups.size > 0) {
+    if (hasNativeTabGroups()) {
+        const windowId = await activeWindowId()
+        const currentTab = await activeTab()
+        const existingGroupId = currentTab.groupId
+
+        const ungroupedTabs = await browserBg.tabs.query({
+            windowId,
+            pinned: false,
+            groupId: -1,
+        })
+
+        if (ungroupedTabs.length > 0) {
+            const tabIds = ungroupedTabs.map(t => t.id).filter((id): id is number => id !== undefined)
+            const groupId = await browserBg.tabs.group({
+                tabIds,
+                createProperties: { windowId },
+            })
+            const updateProps: { title: string; color?: TabGroupColor } = {
+                title: name,
+            }
+            const normalizedColor = normalizeColor(color)
+            if (normalizedColor) {
+                updateProps.color = normalizedColor
+            }
+            await browserBg.tabGroups.update(groupId, updateProps)
+            if (existingGroupId !== -1) {
+                await browserBg.tabGroups.update(existingGroupId, { collapsed: true })
+            }
+            setContentStateGroup(name)
+            return name
+        }
+
+        const initialUrl = await config.get("tabgroupnewtaburls")[name]
+        const newTab = await tabopen(initialUrl)
+
+        const groupId = await browserBg.tabs.group({
+            tabIds: [newTab.id],
+            createProperties: { windowId },
+        })
+
+        const updateProps: { title: string; color?: TabGroupColor } = {
+            title: name,
+        }
+        const normalizedColor = normalizeColor(color)
+        if (normalizedColor) {
+            updateProps.color = normalizedColor
+        }
+
+        await browserBg.tabGroups.update(groupId, updateProps)
+
+        if (existingGroupId !== -1) {
+            await browserBg.tabGroups.update(existingGroupId, { collapsed: true })
+        }
+
+        await browserBg.tabs.update(newTab.id, { active: true })
+
+        setContentStateGroup(name)
+    } else if (groups.size > 0) {
         await setWindowTgroup(name)
         const initialUrl = await config.get("tabgroupnewtaburls")[name]
         await tabopen(initialUrl)
@@ -3682,6 +3742,26 @@ export async function tgroupswitch(name: string) {
     const groups = await tgroups()
     if (groups.size > 0) {
         if (groups.has(name)) {
+            if (hasNativeTabGroups()) {
+                const windowId = await activeWindowId()
+                const tabGroup = await browserBg.tabGroups.query({
+                    windowId,
+                    title: name,
+                })
+                if (tabGroup.length > 0) {
+                    const groupId = tabGroup[0].id
+                    await browserBg.tabGroups.update(groupId, { collapsed: false })
+                    const tabs = await browserBg.tabs.query({
+                        windowId,
+                        groupId,
+                    })
+                    if (tabs.length > 0) {
+                        await browserBg.tabs.update(tabs[0].id, { active: true })
+                    }
+                }
+                setContentStateGroup(name)
+                return name
+            }
             return tgroupActivate(name).then(() => name)
         } else {
             return tgroupcreate(name).then(() => name)
@@ -3805,14 +3885,19 @@ export async function tgroupmove(name: string) {
     if (tabCount == 1) {
         return Promise.all([
             tgroupClearOldInfo(currentGroup, name),
-            tgroupTabs(name).then(tabs => {
-                browserBg.tabs.show(tabs.map(tab => tab.id))
-            }),
+            hasNativeTabGroups()
+                ? Promise.resolve()
+                : tgroupTabs(name).then(tabs => {
+                      browserBg.tabs.show(tabs.map(tab => tab.id))
+                  }),
         ]).then(() => name)
     } else {
         const lastTabId = await tgroupLastTabId(currentGroup)
         await tabSetActive(lastTabId)
-        return browser.tabs.hide(currentTabId).then(() => currentGroup)
+        if (!hasNativeTabGroups()) {
+            return browser.tabs.hide(currentTabId).then(() => currentGroup)
+        }
+        return currentGroup
     }
 }
 
@@ -3827,6 +3912,35 @@ export async function tgroupabort() {
     }
 
     return clearAllTgroupInfo().then(() => undefined)
+}
+
+/**
+ * Migrate legacy tab groups to native tab groups (Firefox 137+).
+ *
+ * This command is only available when the native tab groups API is present.
+ * It converts groups stored in browser.sessions to native Firefox groups.
+ *
+ */
+//#background
+export async function tgroupmigrate() {
+    if (!hasNativeTabGroups()) {
+        throw new Error("Native tab groups API not available. Requires Firefox 137+.")
+    }
+
+    return migrateToNativeGroups()
+}
+
+/**
+ * List available tab group colors for native tab groups.
+ *
+ */
+//#background
+export function tgroupcolors() {
+    if (hasNativeTabGroups()) {
+        fillcmdline_notrail("Available colors: " + NATIVE_TAB_GROUP_COLORS.join(", "))
+    } else {
+        fillcmdline_notrail("Colors only supported with native tab groups (Firefox 137+)")
+    }
 }
 
 // }}}
