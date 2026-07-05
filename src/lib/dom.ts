@@ -418,6 +418,21 @@ export function compareElementArea(a: HTMLElement, b: HTMLElement): number {
 }
 
 export const hintworthy_js_elems: Set<Element> = new Set()
+const MAX_HINTWORTHY_JS_ELEMS = 1000
+const HINTWORTHY_JS_ELEMS_PRUNE_INTERVAL = 100
+let hintworthy_js_elems_additions = 0
+
+export function pruneHintworthyJSElems() {
+    for (const elem of hintworthy_js_elems) {
+        if (!elem.isConnected) {
+            hintworthy_js_elems.delete(elem)
+        }
+    }
+    while (hintworthy_js_elems.size > MAX_HINTWORTHY_JS_ELEMS) {
+        hintworthy_js_elems.delete(hintworthy_js_elems.values().next().value)
+    }
+    hintworthy_js_elems_additions = 0
+}
 
 /** Adds or removes an element from the hintworthy_js_elems array of the
  *  current tab.
@@ -474,6 +489,14 @@ export function registerEvListenerAction(
         case "mouseover":
             if (add) {
                 hintworthy_js_elems.add(elem)
+                hintworthy_js_elems_additions += 1
+                if (
+                    hintworthy_js_elems_additions >=
+                        HINTWORTHY_JS_ELEMS_PRUNE_INTERVAL ||
+                    hintworthy_js_elems.size > MAX_HINTWORTHY_JS_ELEMS
+                ) {
+                    pruneHintworthyJSElems()
+                }
             } else {
                 // Possible bug: If a page adds an event listener for "click" and
                 // "mousedown" and removes "mousedown" twice, we lose track of the

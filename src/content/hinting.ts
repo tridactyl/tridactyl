@@ -1234,6 +1234,7 @@ export function hintables(
     )
     const hintables: Hintables[] = [{ elements: elems }]
     if (withjs) {
+        DOM.pruneHintworthyJSElems()
         hintables.push({
             elements: changeHintablesToLargestChild(
                 Array.from(DOM.hintworthy_js_elems).filter(
