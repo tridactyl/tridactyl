@@ -137,9 +137,10 @@ export function getCommandlineFns(cmdline_state: {
             // Delete all completion sources - I don't think this is required, but this
             // way if there is a transient bug in completions it shouldn't persist.
             if (cmdline_state.activeCompletions)
-                cmdline_state.activeCompletions.forEach(comp =>
-                    cmdline_state.completionsDiv.removeChild(comp.node),
-                )
+                cmdline_state.activeCompletions.forEach(comp => {
+                    comp.destroy?.()
+                    cmdline_state.completionsDiv.removeChild(comp.node)
+                })
             cmdline_state.activeCompletions = undefined
             cmdline_state.isVisible = false
         },

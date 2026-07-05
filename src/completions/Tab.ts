@@ -79,6 +79,7 @@ class BufferCompletionOption
 export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     public options: BufferCompletionOption[]
     private shouldSetStateFromScore = true
+    private removeTabChangesListener: () => void
 
     // TODO:
     //     - store the exstr and trigger redraws on user or data input without
@@ -109,7 +110,14 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this.updateOptions()
         this._parent.appendChild(this.node)
 
-        Messaging.addListener("tab_changes", () => this.reactToTabChanges())
+        this.removeTabChangesListener = Messaging.addListener(
+            "tab_changes",
+            () => this.reactToTabChanges(),
+        )
+    }
+
+    public destroy() {
+        this.removeTabChangesListener()
     }
 
     async onInput(exstr) {
