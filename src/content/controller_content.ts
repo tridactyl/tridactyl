@@ -279,6 +279,7 @@ export function acceptKey(keyevent: KeyboardEvent) {
                 "ms",
         )
         const isCharacterKey =
+            keyevent.type === "keydown" &&
             keyevent.key.length == 1 &&
             !keyevent.metaKey &&
             !keyevent.ctrlKey &&
