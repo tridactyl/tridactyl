@@ -4426,13 +4426,11 @@ export function comclear(name: string) {
     An imaginative use of this is a "layer" where holding a key down changes the rest of the bindings:
 
     ```
-    bind --mode=fastscroll <U-\> mode normal
-    bind <D-\> mode fastscroll
-    bind --mode=fastscroll j scrollpage 1
-    bind --mode=fastscroll k scrollpage -1
+    bind <D-\> mode ignore
+    bind --mode=ignore <U-\> mode normal
     ```
 
-    With these bindings, holding \ would make j/k scroll further distances.
+    With these bindings, holding backslash would let you send keys to the web page, such as `<C-f>` for using Firefox's built-in find mode.
 
     Use [[composite]] if you want to execute multiple excmds. Use
     [[fillcmdline]] to put a string in the cmdline and focus the cmdline
