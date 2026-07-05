@@ -132,8 +132,7 @@ messaging.addListener("omniscient_content", messaging.attributeCaller(omniscient
 messaging.addListener("alive", async () => true)
 
 const guardedAcceptKey = (keyevent: KeyboardEvent) => {
-    if (!keyevent.isTrusted) return
-    ContentController.acceptKey(keyevent)
+    ContentController.acceptTrustedKey(keyevent)
 }
 function listen(elem) {
     elem.removeEventListener("keydown", guardedAcceptKey, true)

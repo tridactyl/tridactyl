@@ -320,3 +320,11 @@ export function acceptKey(keyevent: KeyboardEvent) {
     if (!tryBufferingPageKeyForClInput(keyevent))
         return generator.next(keyevent)
 }
+
+export function acceptTrustedKey(
+    keyevent: KeyboardEvent,
+    accept: (keyevent: KeyboardEvent) => unknown = acceptKey,
+) {
+    if (!keyevent.isTrusted) return
+    return accept(keyevent)
+}
