@@ -3,12 +3,70 @@ import * as config from "@src/lib/config"
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
 const opts = { smooth: null, duration: null }
+
+// Stopgap keydown/keyup smooth scrolling support
+const smoothscrollState = {
+    xVel: 0,
+    yVel: 0,
+    lastStep: 0,
+    scrolling: false,
+}
+
+// Set key-hold style smoothscroll velocities (pixels per second)
+export function smoothscroll(aVelocity, bVelocity, mult) {
+    mult = Number(mult) || 1
+    if (!bVelocity) {
+        smoothscrollState.xVel = 0
+        smoothscrollState.yVel = Number(aVelocity) * mult || 0
+    } else {
+        smoothscrollState.xVel = Number(aVelocity) * mult || 0
+        smoothscrollState.yVel = Number(bVelocity) * mult || 0
+    }
+
+    const wasScrolling = smoothscrollState.scrolling
+
+    smoothscrollState.scrolling = smoothscrollState.xVel !== 0 || smoothscrollState.yVel !== 0
+
+    if (!wasScrolling && smoothscrollState.scrolling) {
+        smoothscrollState.lastStep = performance.now()
+        smoothscrollStep()
+    }
+}
+
+// Calculate distance to scroll based on time since last scroll and scroll velocity
+function smoothscrollStep() {
+    const thisStep = performance.now()
+    const sliceSeconds = (thisStep - smoothscrollState.lastStep) / 1000
+    smoothscrollState.lastStep = thisStep
+    const xDistance = smoothscrollState.xVel * sliceSeconds
+    const yDistance = smoothscrollState.yVel * sliceSeconds
+
+    // We could only call smoothscrollStep if recursiveScroll returns true
+    // But sub-pixel/unsuccessful scrolls accumulate and would eventually cause a successful scroll
+    // So if recursiveScroll returns false, holding the scroll key down a bit longer might still work
+    recursiveScroll(xDistance, yDistance)
+    .then(() => {
+        if (smoothscrollState.scrolling) requestAnimationFrame(smoothscrollStep)
+    })
+}
+
+export function smoothscrollstop() {
+    smoothscrollState.xVel = 0
+    smoothscrollState.yVel = 0
+    smoothscrollState.scrolling = false
+}
+
 async function getSmooth(): Promise<string> {
+    // Toggle-style smoothscroll will break with existing smoothscroll behaviour
+    if (smoothscrollState.scrolling) return "false"
+
     if (opts.smooth === null)
         opts.smooth = await config.getAsync("smoothscroll")
     return opts.smooth
 }
 async function getDuration(): Promise<number> {
+    if (smoothscrollState.scrolling) return 0
+
     if (opts.duration === null)
         opts.duration = await config.getAsync("scrollduration")
     return opts.duration

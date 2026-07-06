@@ -6516,4 +6516,29 @@ export function hintstylesdirect() {
     ;["fg", "bg", "outline"].forEach(type => config.set("hintstyles", type, "all"))
     ;["overlay", "overlayoutline"].forEach(type => config.set("hintstyles", type, "none"))
 }
+
+/**
+ * Set the x and y velocities to smooth scroll until `:smoothscrollstop` is called.
+ * 
+ * Bind to a keydown to use over regular scrolling:
+ * `:unbind j`
+ * `:unbind <D-j> smoothscroll 0 1000`
+ * 
+ * Bind `smoothscrollstop` to the equivalent keyup:
+ * `:bind <U-j> smoothscrollstop`
+ */
+//#content
+export async function smoothscroll(xVelocity: string, yVelocity: string, mult?: string) {
+    scrolling.smoothscroll(xVelocity, yVelocity, mult)
+}
+
+/**
+ * Stop smooth scrolling. Use with `:smoothscroll` and bind to a keyup.
+ * 
+ * :bind <U-j> smoothscrollstop
+ */
+//#content
+export async function smoothscrollstop() {
+    scrolling.smoothscrollstop()
+}
 // }}}
