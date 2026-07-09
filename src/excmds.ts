@@ -6519,14 +6519,17 @@ export function hintstylesdirect() {
 }
 
 /**
- * Set the x and y velocities to scroll continously until `:scrollstop` is called.
+ * Set the x and y velocities to smooth scroll until `:scrollstop` is called.
  *
- * Bind `:scrollstop` to the equivalent keyup:
+ * Use `:smoothscrollwizard` to overwrite default scroll binds automatically.
+ *
+ * Or bind manually, pairing `:scrollstart` keydown binds with `:scrollstop` keyups:
+ *
  * ```
  * :bind <D-j> scrollstart 0 1000
- * :bind <D-k> scrollstart 0 -1000
  * :bind <U-j> scrollstop
- * :bind <U-k> scrollstop
+ * :unbind j
+ * # etc.
  * ```
  */
 //#content
@@ -6536,10 +6539,8 @@ export async function scrollstart(xVelocity: string, yVelocity: string, mult?: s
 
 /**
  * Stop scrolling initiated by `:scrollstart`.
- * Pair with `:scrollstart` and a keyup bind:
  *
- * :bind <D-j> scrollstart 0 1000
- * :bind <U-j> scrollstop
+ * See [[scrollstart]].
  */
 //#content
 export async function scrollstop() {
