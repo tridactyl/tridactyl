@@ -20,7 +20,7 @@ const continuousScrollState = {
  *  Velocity unit = px/second
  */
 export function scrollstart(aVelocity, bVelocity, mult) {
-    mult = (Number(mult) || 1) / 1000
+    mult = (Number(mult) || 1) / (Number(config.get("scrollduration")) || 100)
     if (!bVelocity) {
         continuousScrollState.xVel = 0
         continuousScrollState.yVel = (Number(aVelocity) || 0) * mult

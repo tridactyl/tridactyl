@@ -6521,6 +6521,9 @@ export function hintstylesdirect() {
 /**
  * Set the x and y velocities to smooth scroll until `:scrollstop` is called.
  *
+ * Use `:set scrollduration` to adjust the speed of all `:scrollstart` binds.
+ * Smaller `scrollduration` = faster scroll speed.
+ *
  * Use `:smoothscrollwizard` to overwrite default scroll binds automatically.
  *
  * Or bind manually, pairing `:scrollstart` keydown binds with `:scrollstop` keyups:
