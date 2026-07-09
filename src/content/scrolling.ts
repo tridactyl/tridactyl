@@ -5,67 +5,75 @@ type scrollingDirection = "scrollLeft" | "scrollTop"
 const opts = { smooth: null, duration: null }
 
 // Stopgap keydown/keyup smooth scrolling support
-const smoothscrollState = {
+const continuousScrollState = {
     xVel: 0,
     yVel: 0,
     lastStep: 0,
     scrolling: false,
 }
 
-// Set key-hold style smoothscroll velocities (pixels per second)
-export function smoothscroll(aVelocity, bVelocity, mult) {
-    mult = Number(mult) || 1
+/** Scroll continuously until scrollstop is called.
+ *  Pass an x and y velocity, or just a y velocity.
+ *  If only a single arg is passed, it will be treated as y (vertical scroll).
+ *  Can also pass a multiplier, intented to be used as a numeric arg when `:scrollstart` is bound to a key.
+ *
+ *  Velocity unit = px/second
+ */
+export function scrollstart(aVelocity, bVelocity, mult) {
+    mult = (Number(mult) || 1) / 1000
     if (!bVelocity) {
-        smoothscrollState.xVel = 0
-        smoothscrollState.yVel = Number(aVelocity) * mult || 0
+        continuousScrollState.xVel = 0
+        continuousScrollState.yVel = (Number(aVelocity) || 0) * mult
     } else {
-        smoothscrollState.xVel = Number(aVelocity) * mult || 0
-        smoothscrollState.yVel = Number(bVelocity) * mult || 0
+        continuousScrollState.xVel = (Number(aVelocity) || 0) * mult
+        continuousScrollState.yVel = (Number(bVelocity) || 0) * mult
     }
 
-    const wasScrolling = smoothscrollState.scrolling
+    const wasScrolling = continuousScrollState.scrolling
 
-    smoothscrollState.scrolling = smoothscrollState.xVel !== 0 || smoothscrollState.yVel !== 0
+    continuousScrollState.scrolling = continuousScrollState.xVel !== 0 || continuousScrollState.yVel !== 0
 
-    if (!wasScrolling && smoothscrollState.scrolling) {
-        smoothscrollState.lastStep = performance.now()
-        smoothscrollStep()
+    if (!wasScrolling && continuousScrollState.scrolling) {
+        continuousScrollState.lastStep = performance.now()
+        continuousScrollStep()
     }
 }
 
 // Calculate distance to scroll based on time since last scroll and scroll velocity
-function smoothscrollStep() {
+function continuousScrollStep() {
     const thisStep = performance.now()
-    const sliceSeconds = (thisStep - smoothscrollState.lastStep) / 1000
-    smoothscrollState.lastStep = thisStep
-    const xDistance = smoothscrollState.xVel * sliceSeconds
-    const yDistance = smoothscrollState.yVel * sliceSeconds
+    const dt = thisStep - continuousScrollState.lastStep
+    continuousScrollState.lastStep = thisStep
+    const xDistance = continuousScrollState.xVel * dt
+    const yDistance = continuousScrollState.yVel * dt
 
-    // We could only call smoothscrollStep if recursiveScroll returns true
+    // We could only call continuousScrollStep if recursiveScroll returns true
     // But sub-pixel/unsuccessful scrolls accumulate and would eventually cause a successful scroll
     // So if recursiveScroll returns false, holding the scroll key down a bit longer might still work
     recursiveScroll(xDistance, yDistance)
     .then(() => {
-        if (smoothscrollState.scrolling) requestAnimationFrame(smoothscrollStep)
+        if (continuousScrollState.scrolling) requestAnimationFrame(continuousScrollStep)
     })
 }
 
-export function smoothscrollstop() {
-    smoothscrollState.xVel = 0
-    smoothscrollState.yVel = 0
-    smoothscrollState.scrolling = false
+/** Call after scrollstart() to cease scrolling.
+ */
+export function scrollstop() {
+    continuousScrollState.xVel = 0
+    continuousScrollState.yVel = 0
+    continuousScrollState.scrolling = false
 }
 
 async function getSmooth(): Promise<string> {
-    // Toggle-style smoothscroll will break with existing smoothscroll behaviour
-    if (smoothscrollState.scrolling) return "false"
+    // Continuous scroll will break with existing smoothscroll behaviour
+    if (continuousScrollState.scrolling) return "false"
 
     if (opts.smooth === null)
         opts.smooth = await config.getAsync("smoothscroll")
     return opts.smooth
 }
 async function getDuration(): Promise<number> {
-    if (smoothscrollState.scrolling) return 0
+    if (continuousScrollState.scrolling) return 0
 
     if (opts.duration === null)
         opts.duration = await config.getAsync("scrollduration")

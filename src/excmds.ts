@@ -6492,6 +6492,7 @@ export async function profilerename(oldName: string, newName: string) {
         throw new Error(`Profile rename failed. Is the native messenger installed? Error: ${e}`)
     }
 }
+// }}}
 
 /**
  * Disable all hilighting of hintable elements when hinting.
@@ -6518,27 +6519,29 @@ export function hintstylesdirect() {
 }
 
 /**
- * Set the x and y velocities to smooth scroll until `:smoothscrollstop` is called.
- * 
- * Bind to a keydown to use over regular scrolling:
- * `:unbind j`
- * `:unbind <D-j> smoothscroll 0 1000`
- * 
- * Bind `smoothscrollstop` to the equivalent keyup:
- * `:bind <U-j> smoothscrollstop`
+ * Set the x and y velocities to scroll continously until `:scrollstop` is called.
+ *
+ * Bind `:scrollstop` to the equivalent keyup:
+ * ```
+ * :bind <D-j> scrollstart 0 1000
+ * :bind <D-k> scrollstart 0 -1000
+ * :bind <U-j> scrollstop
+ * :bind <U-k> scrollstop
+ * ```
  */
 //#content
-export async function smoothscroll(xVelocity: string, yVelocity: string, mult?: string) {
-    scrolling.smoothscroll(xVelocity, yVelocity, mult)
+export async function scrollstart(xVelocity: string, yVelocity: string, mult?: string) {
+    scrolling.scrollstart(xVelocity, yVelocity, mult)
 }
 
 /**
- * Stop smooth scrolling. Use with `:smoothscroll` and bind to a keyup.
- * 
- * :bind <U-j> smoothscrollstop
+ * Stop scrolling initiated by `:scrollstart`.
+ * Pair with `:scrollstart` and a keyup bind:
+ *
+ * :bind <D-j> scrollstart 0 1000
+ * :bind <U-j> scrollstop
  */
 //#content
-export async function smoothscrollstop() {
-    scrolling.smoothscrollstop()
+export async function scrollstop() {
+    scrolling.scrollstop()
 }
-// }}}
