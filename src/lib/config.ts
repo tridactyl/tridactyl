@@ -35,6 +35,8 @@ const removeNull = R.when(
 
 /** @hidden */
 const CONFIGNAME = "userconfig"
+const BACKGROUND_URL = browser.runtime.getURL("_generated_background_page.html")
+const IN_BACKGROUND = !BACKGROUND_URL || BACKGROUND_URL === window.location.href
 /** @hidden */
 const WAITERS = []
 /** @hidden */
@@ -54,6 +56,17 @@ function schlepp(settings) {
 
 /** @hidden */
 export let USERCONFIG = o({})
+let STORE_QUEUE = Promise.resolve()
+
+function store(operation: () => Promise<void>) {
+    const pending = STORE_QUEUE.then(operation)
+    STORE_QUEUE = pending.catch(() => undefined)
+    return pending
+}
+
+function mutateInBackground(command, args) {
+    return browser.runtime.sendMessage({ type: "config_background", command, args })
+}
 
 /** @hidden
  * Ideally, LoggingLevel should be in logging.ts and imported from there. However this would cause a circular dependency, which webpack can't deal with
@@ -2080,6 +2093,7 @@ export async function getAsync(
     ...target: string[]
 ) {
     if (INITIALISED) {
+        if (IN_BACKGROUND) return get(target_typed, ...target)
         // TODO: consider storing keys directly
         const browserconfig = await browser.storage.local.get(CONFIGNAME)
         USERCONFIG = browserconfig[CONFIGNAME] || o({})
@@ -2108,7 +2122,11 @@ export async function push() {
  * Replaces the local configuration with the configuration from your sync storage. Does not merge: it overwrites.
  */
 export async function pull() {
-    return browser.storage.local.set(await browser.storage.sync.get(CONFIGNAME))
+    if (!IN_BACKGROUND) return mutateInBackground("pull", [])
+    if (!INITIALISED) await getAsync()
+    const synced = await browser.storage.sync.get(CONFIGNAME)
+    USERCONFIG = synced[CONFIGNAME] || o({})
+    return save()
 }
 
 /** @hidden
@@ -2141,14 +2159,14 @@ export async function set(...args) {
     const target = args.slice(0, args.length - 1)
     const value = args[args.length - 1]
 
-    if (INITIALISED) {
-        // wait for storage to settle, otherwise we could clobber a previous incomplete set()
+    if (!IN_BACKGROUND) {
         setDeepProperty(USERCONFIG, value, target)
-
-        return save()
-    } else {
-        setDeepProperty(USERCONFIG, value, target)
+        return mutateInBackground("set", args)
     }
+
+    if (!INITIALISED) await getAsync()
+    setDeepProperty(USERCONFIG, value, target)
+    return save()
 }
 
 /** @hidden
@@ -2160,10 +2178,22 @@ export function unsetURL(pattern, ...target) {
 
 /** Delete the key at target in USERCONFIG if it exists
  * @hidden */
-export function unset(...target) {
+export async function unset(...target) {
+    if (IN_BACKGROUND && !INITIALISED) await getAsync()
     const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
     if (parent !== undefined) delete parent[target[target.length - 1]]
+    if (!IN_BACKGROUND) return mutateInBackground("unset", target)
     return save()
+}
+
+export async function clear() {
+    if (!IN_BACKGROUND) {
+        USERCONFIG = o({})
+        return mutateInBackground("clear", [])
+    }
+    if (!INITIALISED) await getAsync()
+    USERCONFIG = o({})
+    return store(() => browser.storage.local.clear())
 }
 
 /** Save the config back to storage API.
@@ -2175,8 +2205,8 @@ export function unset(...target) {
  */
 export async function save() {
     const settingsobj = o({})
-    settingsobj[CONFIGNAME] = USERCONFIG
-    return browser.storage.local.set(settingsobj)
+    settingsobj[CONFIGNAME] = JSON.parse(JSON.stringify(USERCONFIG))
+    return store(() => browser.storage.local.set(settingsobj))
 }
 
 /** Updates the config to the latest version.
@@ -2588,6 +2618,7 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
 browser.storage.onChanged.addListener((changes, areaname) => {
+    if (IN_BACKGROUND) return
     if (CONFIGNAME in changes) {
         const { newValue, oldValue } = changes[CONFIGNAME]
         const old = oldValue || {}
@@ -2633,7 +2664,7 @@ browser.storage.onChanged.addListener((changes, areaname) => {
 
             Object.keys(old)
                 .filter(key => old[key] !== DEFAULTS[key])
-                .forEach(key => triggerChangeListeners(key))
+                .forEach(key => triggerChangeListeners(key, DEFAULTS[key]))
         }
     }
 })

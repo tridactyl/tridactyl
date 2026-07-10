@@ -5118,7 +5118,7 @@ export async function sanitise(...args: string[]) {
     // Tridactyl-specific items
     if (dts.commandline === true) state.cmdHistory = []
     delete dts.commandline
-    if (dts.tridactyllocal === true) await browser.storage.local.clear()
+    if (dts.tridactyllocal === true) await config.clear()
     delete dts.tridactyllocal
     if (dts.tridactylsync === true) await browser.storage.sync.clear()
     delete dts.tridactylsync

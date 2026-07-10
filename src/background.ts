@@ -231,6 +231,12 @@ browser.tabs.onCreated.addListener(aucon.tabCreatedListener)
 // An object to collect all of our statistics in one place.
 const statsLogger: perf.StatsLogger = new perf.StatsLogger()
 const messages = {
+    config_background: {
+        clear: config.clear,
+        pull: config.pull,
+        set: config.set,
+        unset: config.unset,
+    },
     excmd_background: excmds_background,
     controller_background: controller,
     performance_background: statsLogger,
