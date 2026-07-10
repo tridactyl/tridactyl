@@ -159,6 +159,7 @@ import {
     minimalKeyToMozMap,
     MinimalKey,
     findShadowingMapstr,
+    parseMapstr,
 } from "@src/lib/keyseq"
 
 //#background_helper
@@ -4461,6 +4462,8 @@ export async function bind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
+        if (args_obj.mode === "browser" && parseMapstr(args_obj.key).hasExplicitDirection)
+            throw new Error("Browser-mode binds do not support D/U modifiers.")
         const key_sub = findShadowingMapstr(
             args_obj.key,
             Object.keys(config.getDynamic(args_obj.configName) || {}),

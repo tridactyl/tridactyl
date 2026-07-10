@@ -832,6 +832,12 @@ testAll(ks.canonicaliseMapstr, [
     ["<C-a>", "<C-a>"],
 ])
 
+testAll((k: string) => ks.parseMapstr(k).hasExplicitDirection, [
+    ["<DC-4>", true],
+    ["<UC-4>", true],
+    ["gg", false],
+])
+
 testAll(ks.findShadowingMapstr, [
     [["gg", ["g"]], "g"],
     [["g", ["gg"]], undefined],

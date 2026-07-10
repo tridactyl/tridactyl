@@ -458,7 +458,7 @@ export function bracketexprToKey(inputStr) {
 */
 const hasDirection = (key: MinimalKey) => key.keyup || key.keydown
 
-function parseMapstr(mapstr: string) {
+export function parseMapstr(mapstr: string) {
     const keyseq: MinimalKey[] = []
     let hasExplicitDirection = false
 
