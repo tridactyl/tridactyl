@@ -456,4 +456,4 @@ Messaging.addListener(
     perfObserver: perf.listenForCounters(),
 })
 
-Messaging.messageOwnTab("commandline_frame_ready_to_receive_messages")
+Messaging.messageOwnTab("commandline_frame_ready_to_receive_messages", window.name)

@@ -93,23 +93,6 @@ class KeyCanceller {
 
 export const canceller = new KeyCanceller()
 
-let commandlineFrameReadyToReceiveMessages = false
-config.getAsync("noiframe").then(noiframe => {
-    if (noiframe === "true") {
-        commandlineFrameReadyToReceiveMessages = true
-    } else {
-        Messaging.addListener(
-            "commandline_frame_ready_to_receive_messages",
-            () => {
-                logger.debug(
-                    "Received commandline_frame_ready_to_receive_messages",
-                )
-                commandlineFrameReadyToReceiveMessages = true
-            },
-        )
-    }
-})
-
 let mustBufferPageKeysForClInput = false
 let bufferedPageKeys: string[] = []
 let bufferingPageKeysBeginTime: number
@@ -231,9 +214,10 @@ function* ParserController() {
                 if (response.exstr) {
                     exstr = response.exstr
                     if (
-                        exstr.startsWith("fillcmdline") &&
+                        (exstr.startsWith("fillcmdline") || exstr.startsWith("current_url")) &&
                         !exstr.startsWith("fillcmdline_tmp") &&
-                        !exstr.startsWith("fillcmdline_nofocus")
+                        !exstr.startsWith("fillcmdline_nofocus") &&
+                        config.get("noiframe") !== "true"
                     ) {
                         logger.debug("Starting buffering of page keys")
                         bufferingPageKeysBeginTime = performance.now()
@@ -302,20 +286,6 @@ export function acceptKey(keyevent: KeyboardEvent) {
         }
         canceller.push(keyevent)
         return true
-    }
-    if (!commandlineFrameReadyToReceiveMessages) {
-        // If the commandline frame cannot receive messages, the fillcmdline message sent by excmds.fillcmdline() to the
-        // commandline frame will never be received. As a result, commandline_frame.focus() will not be called, which
-        // in turn means that the stop_buffering_page_keys message will never be sent to the content/page process.
-        // If the content/page process starts buffering keys for clInput, but the stop_buffering_page_keys message is never received,
-        // it will keep buffering (and eating events) forever.
-        logger.debug(
-            "controller_content Ignoring key event ",
-            keyevent,
-            " since commandline frame is not yet ready to receive messages",
-            keyevent,
-        )
-        return
     }
     if (!tryBufferingPageKeyForClInput(keyevent))
         return generator.next(keyevent)

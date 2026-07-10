@@ -199,8 +199,8 @@ describe("webdriver", () => {
         const { driver, newProfiles } = await getDriverAndProfileDirs()
         try {
             // Then, make sure `:guiset` is offering completions
-            const iframe = await iframeLoaded(driver)
             await sendKeys(driver, ":guiset ")
+            const iframe = await iframeLoaded(driver)
             await driver.switchTo().frame(iframe)
             const elements = await driver.findElements(
                 By.className("GuisetCompletionOption"),
