@@ -85,7 +85,7 @@ rmdir buildtemp
 
 # Copy extra static files across
 
-cp src/manifest.json build/
+node scripts/generate_manifest.js firefox src/manifest.json build/manifest.json
 cp -r src/static build
 cp -r generated/static build
 cp issue_template.md build/
