@@ -1,4 +1,2 @@
 #!/usr/bin/env bash
-temp=$(mktemp -d)
-unzip -qq "$1" -d "$temp"
-jq '.applications.gecko.id' "$temp"/manifest.json | tr -d '"'
+unzip -p "$1" manifest.json | node -e 'const manifest = JSON.parse(require("fs").readFileSync(0)); console.log(manifest.browser_specific_settings.gecko.id)'

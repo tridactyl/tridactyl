@@ -1,4 +1,5 @@
 import * as config from "@src/lib/config"
+import * as compat from "@src/lib/compat"
 import { browserBg } from "@src/lib/webext"
 import Fuse from "fuse.js"
 
@@ -15,6 +16,7 @@ export type Bookmark = { path: string } & browser.bookmarks.BookmarkTreeNode
  * Search bookmarks, deduplicate and sort by most recent.
  */
 export async function getBookmarks(query: string): Promise<Bookmark[]> {
+    if (await compat.isAndroid()) return []
     let bookmarks =
         config.get("bmarkfoldersearch") == "true"
             ? await fuseBookmarksSearch(query)
@@ -37,6 +39,7 @@ export async function getBookmarks(query: string): Promise<Bookmark[]> {
  * Uses Browser API to search for bookmark by name and URL.
  */
 async function builtInBookmarksSearch(query: string): Promise<Bookmark[]> {
+    // eslint-disable-next-line unsupported-apis-firefox-android
     const bookmarks = await browserBg.bookmarks.search({ query })
     return bookmarks
         .filter(isValidBookmark)
@@ -118,6 +121,7 @@ function isValidBookmark(
 let bookmarkPaths: string[]
 
 export async function getBookmarkFolders(query: string) {
+    if (await compat.isAndroid()) return []
     bookmarkPaths = bookmarkPaths || [
         ...new Set(
             (await collectBookmarkFolders())
@@ -148,6 +152,7 @@ async function collectBookmarkFolders(): Promise<Bookmark[]> {
 async function collectBookmarksAndFolders(): Promise<
     browser.bookmarks.BookmarkTreeNode[]
 > {
+    // eslint-disable-next-line unsupported-apis-firefox-android
     const root = await browserBg.bookmarks.getTree()
     return root.flatMap(flattenChildren)
 }
@@ -185,11 +190,15 @@ export async function getHistory(
     query: string,
 ): Promise<browser.history.HistoryItem[]> {
     // Search history, dedupe and sort by frecency
-    let history = await browserBg.history.search({
-        text: query,
-        maxResults: config.get("historyresults"),
-        startTime: 0,
-    })
+    let history = []
+    if (!(await compat.isAndroid())) {
+        // eslint-disable-next-line unsupported-apis-firefox-android
+        history = await browserBg.history.search({
+            text: query,
+            maxResults: config.get("historyresults"),
+            startTime: 0,
+        })
+    }
 
     // Remove entries with duplicate URLs
     const dedupe = new Map()
@@ -212,7 +221,7 @@ export async function getHistory(
 }
 
 export async function getTopSites() {
-    return (await browserBg.topSites.get()).filter(
+    return (await compat.topSites.get()).filter(
         page => page.url !== newtaburl(),
     )
 }

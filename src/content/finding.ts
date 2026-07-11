@@ -185,6 +185,7 @@ export async function jumpToMatch(searchQuery, option) {
     const sensitive =
         findcase === "sensitive" ||
         (findcase === "smart" && /[A-Z]/.test(searchQuery))
+    // eslint-disable-next-line unsupported-apis-firefox-android
     const findPromise = await browserBg.find.find(searchQuery, {
         tabId: await activeTabId(),
         caseSensitive: sensitive,

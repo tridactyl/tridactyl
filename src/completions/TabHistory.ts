@@ -1,5 +1,5 @@
 import * as Completions from "@src/completions"
-import { browserBg } from "@src/lib/webext"
+import { browserBg, sessionsBg } from "@src/lib/webext"
 
 class TabHistoryCompletionOption
     extends Completions.CompletionOptionHTML
@@ -124,7 +124,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             active: true,
             currentWindow: true,
         })
-        let history = await browserBg.sessions.getTabValue(tab[0].id, "history")
+        let history = await sessionsBg.getTabValue(tab[0].id, "history")
         if (!history) history = { list: [] }
         const tree = this.makeTree(history["list"])
         if (tree.length > 0) {

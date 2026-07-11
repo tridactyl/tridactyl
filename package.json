@@ -31,6 +31,7 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
+    "@mdn/browser-compat-data": "5.5.7",
     "@types/css": "0.0.38",
     "@types/firefox-webext-browser": "^120.0.4",
     "@types/jest": "^27.5.0",
@@ -51,6 +52,7 @@
     "jasmine-fail-fast": "^2.0.1",
     "jest": "^25.5.4",
     "jest-webextension-mock": "^4.0.0",
+    "jszip": "3.10.1",
     "marked": "^12.0.1",
     "prettier": "^3.4.2",
     "selenium-webdriver": "^4.7.1",

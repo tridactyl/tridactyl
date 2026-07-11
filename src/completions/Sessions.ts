@@ -1,4 +1,4 @@
-import { browserBg } from "@src/lib/webext"
+import { sessionsBg } from "@src/lib/webext"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 
@@ -101,7 +101,7 @@ export class SessionsCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        const sessions = await browserBg.sessions.getRecentlyClosed()
+        const sessions = await sessionsBg.getRecentlyClosed()
         this.options = sessions.map(s => new SessionCompletionOption(s))
     }
 }

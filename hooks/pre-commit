@@ -46,7 +46,7 @@ fi
 
 if [ -n "$jsfiles" ]; then
     echo "Linting staged files..."
-    if ! yarn eslint --rulesdir custom-eslint-rules --quiet $jsfiles; then
+    if ! yarn eslint --rulesdir custom-eslint-rules --report-unused-disable-directives --quiet $jsfiles; then
         echo ""
         echo -e "eslint failed. Please fix the errors above."
         echo 'If you see this message repeatedly, skip the check with git commit -n'

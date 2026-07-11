@@ -30,6 +30,7 @@ import * as commands from "@src/background/commands"
 import * as meta from "@src/background/meta"
 import * as Logging from "@src/lib/logging"
 import * as Proxy from "@src/lib/proxy"
+import * as compat from "@src/lib/compat"
 import { tabsProxy } from "@src/lib/tabs"
 
 // Add various useful modules to the window for debugging
@@ -110,7 +111,7 @@ browser.tabs.onDetached.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_detached", [tabId])
 })
 // Fired when a tab is moved within a window.
-browser.tabs.onMoved.addListener(tabId => {
+compat.tabs.onMoved.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_moved", [tabId])
 })
 
