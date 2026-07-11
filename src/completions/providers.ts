@@ -227,7 +227,7 @@ export async function getHistory(
 }
 
 export async function getTopSites() {
-    return (await browserBg.topSites.get()).filter(
+    return (await compat.topSites.get()).filter(
         page => page.url !== newtaburl(),
     )
 }

@@ -4,7 +4,6 @@ import { browserBg, ownTabId } from "@src/lib/webext"
 import state from "@src/state"
 import * as State from "@src/state"
 import { compute as scrollCompute } from "compute-scroll-into-view"
-/* eslint-disable unsupported-apis-firefox-android */
 
 // The host is the shadow root of a span used to contain all highlighting
 // elements. This is the least disruptive way of highlighting text in a page.
@@ -329,6 +328,7 @@ export async function jumpToMatch(searchQuery, option) {
     const regex = option["regex"] && new RegExp(source, flags)
     let results: any = { count: 0 }
     if (!regex)
+        // eslint-disable-next-line unsupported-apis-firefox-android
         results = await browserBg.find.find(searchQuery, {
             tabId: await ownTabId(),
             caseSensitive: sensitive,
