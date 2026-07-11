@@ -70,6 +70,8 @@ export function getContext() {
 
 // Make this library work for both content and background.
 export const browserBg = inContentScript() ? browserProxy : browser
+export const sessionsBg =
+    getContext() === "background" ? compat.sessions : browserProxy.sessions
 
 /** The first active tab in the currentWindow.
  *
@@ -114,15 +116,13 @@ export async function prevActiveTab() {
  *
  */
 export async function activeWindowId() {
-    if (await compat.isAndroid()) return 0 // shrug
+    if (await compat.isAndroid()) return (await activeTab()).windowId
     // eslint-disable-next-line unsupported-apis-firefox-android
     return (await browserBg.windows.getCurrent()).id
 }
 
 export async function removeActiveWindowValue(value) {
-    if (await compat.isAndroid()) return
-    // eslint-disable-next-line unsupported-apis-firefox-android
-    browserBg.sessions.removeWindowValue(await activeWindowId(), value)
+    return sessionsBg.removeWindowValue(await activeWindowId(), value)
 }
 
 export async function activeTabContainerId() {
@@ -299,12 +299,12 @@ export async function openInNewTab(
 
 // lazily copied from excmds.ts' winopen - forceURI really ought to be moved to lib/webext
 // Should consider changing interface of this to match openInNewTab or vice versa
-export function openInNewWindow(createData = {}) {
-    compat.isAndroid().then(isAndroid => {
-        if (isAndroid) return compat.notImplemented("no windows on android")
-        // eslint-disable-next-line unsupported-apis-firefox-android
-        browserBg.windows.create(createData) // it'd be nice if this used the compat.windows thingy but we'd end up with a circular dependency
-    })
+export async function openInNewWindow(
+    createData: browser.windows._CreateCreateData = {},
+) {
+    if (await compat.isAndroid()) return compat.unsupportedApi("no windows on android")
+    // eslint-disable-next-line unsupported-apis-firefox-android
+    return browserBg.windows.create(createData)
 }
 
 // Returns object if we should use the search engine instead
@@ -370,8 +370,9 @@ export async function queryAndURLwrangler(
         return eval(js)(rest)
     }
 
+    const android = await compat.isAndroid()
     // eslint-disable-next-line unsupported-apis-firefox-android
-    const searchEngines = (await compat.isAndroid()) ? [] : await browserBg.search.get()
+    const searchEngines = android ? [] : await browserBg.search.get()
     let engine = searchEngines.find(engine => engine.alias === firstWord)
     // Maybe firstWord is the name of a firefox search engine?
     if (engine !== undefined) {
@@ -426,6 +427,20 @@ export async function queryAndURLwrangler(
         if (engine !== undefined) {
             return { engine: engine.name, query: queryString }
         }
+    }
+
+    if (android) {
+        const fallbackName = enginename || "google"
+        const fallback = searchurls[fallbackName]
+        if (!fallback) {
+            throw new Error(
+                `Search API unavailable. Set searchengine to a searchurls entry.`,
+            )
+        }
+        return UrlUtil.interpolateSearchItem(
+            new URL(fallback),
+            queryString,
+        ).href
     }
 
     // No search engine has been defined in Tridactyl, let's use firefox's default search engine

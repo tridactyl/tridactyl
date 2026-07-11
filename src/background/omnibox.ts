@@ -13,7 +13,9 @@ export function inputEnteredListener(
 
 export function init() {
     compat.omnibox.onInputEntered.addListener(inputEnteredListener)
-    compat.omnibox.setDefaultSuggestion({
-        description: `Execute a Tridactyl exstr (for example, "tabopen -c container www.google.com")`,
-    })
+    compat.omnibox
+        .setDefaultSuggestion({
+            description: `Execute a Tridactyl exstr (for example, "tabopen -c container www.google.com")`,
+        })
+        .catch(() => undefined)
 }

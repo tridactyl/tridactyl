@@ -6,6 +6,7 @@ import * as Native from "@src/lib/native"
 import * as config from "@src/lib/config"
 import * as R from "ramda"
 import { getDownloadFilenameForUrl } from "@src/lib/url_util"
+import * as compat from "@src/lib/compat"
 
 /** Construct an object URL string from a given data URL
  *
@@ -59,7 +60,7 @@ export async function downloadUrl(url: string, saveAs: boolean) {
     //    feed in the dirctory for next time, and FF doesn't remember it
     //    itself (like it does if you right-click-save something)
 
-    const downloadPromise = browser.downloads.download({
+    const downloadPromise = compat.downloads.download({
         url: urlToDownload,
         filename: fileName,
         incognito: config.get("downloadsskiphistory") === "true",
@@ -111,7 +112,7 @@ export async function downloadUrlAs(
         }
     })
 
-    const downloadId = await browser.downloads.download({
+    const downloadId = await compat.downloads.download({
         conflictAction: "uniquify",
         url: urlToDownload,
         filename: fileName,
@@ -130,9 +131,9 @@ export async function downloadUrlAs(
                 downloadDelta.state &&
                 downloadDelta.state.current !== "in_progress"
             ) {
-                browser.downloads.onChanged.removeListener(onDownloadComplete)
+                compat.downloads.onChanged.removeListener(onDownloadComplete)
                 const downloadItem = (
-                    await browser.downloads.search({
+                    await compat.downloads.search({
                         id: downloadId,
                     })
                 )[0]
@@ -178,6 +179,6 @@ export async function downloadUrlAs(
                 }
             }
         }
-        browser.downloads.onChanged.addListener(onDownloadComplete)
+        compat.downloads.onChanged.addListener(onDownloadComplete)
     })
 }

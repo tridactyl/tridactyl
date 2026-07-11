@@ -203,8 +203,13 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
         // Check to see if this is a command that needs to exclude the current
         // window
         const excludeCurrentWindow = ["tabgrab"].includes(prefix.trim())
-        // eslint-disable-next-line unsupported-apis-firefox-android
-        const currentWindow = (await compat.isAndroid()) ? {id: -1337} : await browserBg.windows.getCurrent()
+        let currentWindow
+        if (await compat.isAndroid()) {
+            currentWindow = { id: tabs.find(tab => tab.active)?.windowId }
+        } else {
+            // eslint-disable-next-line unsupported-apis-firefox-android
+            currentWindow = await browserBg.windows.getCurrent()
+        }
         // Window Ids don't make sense so we're using LASTID and WININDEX to compute a window index
         // This relies on the fact that tabs are sorted by window ids
         let lastId = 0
@@ -228,7 +233,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
                         tab.windowId === currentWindow.id,
                     winindex,
                     await Containers.getFromId(tab.cookieStoreId),
-                    windows[tab.windowId].incognito,
+                    windows[tab.windowId]?.incognito ?? tab.incognito,
                     await tabTgroup(tab.id),
                 ),
             )
