@@ -55,6 +55,10 @@ async function beta_number() {
     return (await fs.promises.readFile(".build_cache/count", {encoding: "utf8"})).trim()
 }
 
+function beta_version(versionstr, count) {
+    return versionstr + "pre" + String(count).trim()
+}
+
 async function get_hash() {
     await fs.promises.mkdir(".build_cache", {recursive: true})
     try {
@@ -200,4 +204,4 @@ async function main() {
 
 if (require.main === module) main()
 
-module.exports = { set_beta_version, set_release_version }
+module.exports = { beta_version, set_beta_version, set_release_version }
