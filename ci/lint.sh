@@ -11,7 +11,7 @@ if [ "$incompatible_sed" ]; then
 	printf "%s\n\n" "$incompatible_sed"
 fi
 yarn run lint
-"$(yarn bin)/eslint" --rulesdir custom-eslint-rules --ext .ts .
+"$(yarn bin)/eslint" --rulesdir custom-eslint-rules --report-unused-disable-directives --ext .ts .
 
 if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
 	if ! yarn prettier --check '**/*.ts' ; then
