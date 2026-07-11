@@ -26,7 +26,14 @@ async function add_beta(versionstr) {
     catch {
         ; // Not in a git directory - don't do anything
     }
-    return versionstr + "pre" + (await fs.promises.readFile(".build_cache/count", {encoding: "utf8"})).trim()
+    return beta_version(
+        versionstr,
+        await fs.promises.readFile(".build_cache/count", {encoding: "utf8"}),
+    )
+}
+
+function beta_version(versionstr, count) {
+    return versionstr + "pre" + String(count).trim()
 }
 
 async function get_hash() {
@@ -130,4 +137,6 @@ async function main() {
     }
 }
 
-main()
+if (require.main === module) main()
+
+module.exports = { add_beta, beta_version, bump_version, make_update_json }
