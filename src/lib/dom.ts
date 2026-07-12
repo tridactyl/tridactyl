@@ -290,7 +290,7 @@ export function isVisible(thing: Element | Range) {
 
 /** More accurate element visibility checking than isVisible.
  */
-export async function getVisibleElemsBySelector(selector = "*", filters: ElementFilter[] = []) {
+export async function getVisibleElemsBySelector(selector = "*", filters: ElementFilter[] = []): Promise<HTMLElement[]> {
     // Get frames with an accessible ItersectionObserver constructor (including top window)
     const frameWins = [window as any].concat(
         ...getAllDocumentFrames()
@@ -361,7 +361,7 @@ export async function getVisibleElemsBySelector(selector = "*", filters: Element
             .flat()
             .filter(el => isPainted(el as HTMLElement) &&
                 filters.every(filter => filter(el as HTMLElement))
-            )
+            ) as HTMLElement[]
     )
 }
 

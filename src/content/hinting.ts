@@ -1223,14 +1223,16 @@ function pushSpace() {
 
     @hidden
 */
-export function hintables(
+export async function hintables(
     selectors = DOM.HINTTAGS_selectors,
     withjs = false,
     includeInvisible = false,
 ) {
     const visibleFilter = DOM.isVisibleFilter(includeInvisible)
     const elems = changeHintablesToLargestChild(
-        DOM.getElemsBySelector(selectors, []).filter(visibleFilter),
+        includeInvisible
+            ? DOM.getElemsBySelector(selectors, [])
+            : ((await DOM.getVisibleElemsBySelector(selectors)))
     )
     const hintables: Hintables[] = [{ elements: elems }]
     if (withjs) {
