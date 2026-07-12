@@ -234,6 +234,7 @@ const messages = {
     config_background: {
         clear: config.clear,
         pull: config.pull,
+        push: config.push,
         set: config.set,
         unset: config.unset,
     },
