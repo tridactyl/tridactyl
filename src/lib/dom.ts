@@ -288,6 +288,92 @@ export function isVisible(thing: Element | Range) {
     /* return true */
 }
 
+/** More accurate element visibility checking than isVisible.
+ */
+export async function getVisibleElemsBySelector(selector = "*", filters: ElementFilter[] = []) {
+    // Get frames with an accessible ItersectionObserver constructor (including top window)
+    const frameWins = [window as any].concat(
+        ...getAllDocumentFrames()
+            .filter(frame => {
+                try {
+                    return (
+                        (frame.contentWindow as Window & typeof globalThis).IntersectionObserver &&
+                        isVisible(frame)
+                    )
+                } catch (e) {
+                    return false
+                }
+            })
+            .map(frame => frame.contentWindow),
+    )
+
+    // Create IntersectionObservers in all frames
+    return Promise.all(
+        frameWins.map(async win => {
+            const elems = Array.from(
+                win.document.querySelectorAll(selector),
+            ).concat(...getShadowElementsBySelector(selector, win.document))
+            if (elems.length === 0) {
+                return []
+            }
+
+            // Entries won't be available immediately, wait for a promise
+            return new Promise(resolve => {
+                const visible: HTMLElement[] = []
+                let observer
+                let started = false
+                try {
+                    observer = new win.IntersectionObserver(
+                        entries => {
+                            started = true
+                            for (const entry of entries) {
+                                if (
+                                    entry.isIntersecting &&
+                                    entry.boundingClientRect.width > 3 &&
+                                    entry.boundingClientRect.height > 3
+                                ) {
+                                    visible.push(entry.target)
+                                }
+                            }
+                            observer.disconnect()
+
+                            resolve(visible)
+                        },
+                        { threshold: 0.01 },
+                    )
+                    elems.forEach(elem => observer.observe(elem))
+                } catch (e) {
+                    resolve([])
+                }
+
+                // Just in case the IntersectionObserver fails somehow (can this happen?)
+                setTimeout(() => {
+                    if (!started) {
+                        logger.error("IntersectionObserver failed to observe")
+                        observer.disconnect()
+                        resolve([])
+                    }
+                }, 500)
+            })
+        }),
+    ).then(intersectingElems =>
+        intersectingElems
+            .flat()
+            .filter(el => isPainted(el as HTMLElement) &&
+                filters.every(filter => filter(el as HTMLElement))
+            )
+    )
+}
+
+// Like isVisible with no rect checks
+// Useful to catch "visibility: hidden;" css rule which eludes the IntersectionObserver
+export function isPainted(elem: HTMLElement) {
+    const s = getComputedStyle(elem)
+    return (
+        s.visibility !== "hidden" && s.display !== "none" && s.opacity !== "0"
+    )
+}
+
 /** Return all frames that belong to the document (frames that belong to
  * extensions are ignored).
  *
@@ -335,9 +421,9 @@ export function getSelector(e: HTMLElement) {
 }
 
 /* Get all the elements that match the given selector inside shadow DOM */
-function getShadowElementsBySelector(selector: string) {
+function getShadowElementsBySelector(selector: string, within = document) {
     let elems = []
-    const roots: (Document | ShadowRoot)[] = [document]
+    const roots: (Document | ShadowRoot)[] = [within]
 
     while (roots.length) {
         const root = roots.pop() as ShadowRoot
