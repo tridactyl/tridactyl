@@ -1223,23 +1223,26 @@ function pushSpace() {
 
     @hidden
 */
-export function hintables(
+export async function hintables(
     selectors = DOM.HINTTAGS_selectors,
     withjs = false,
     includeInvisible = false,
 ) {
-    const visibleFilter = DOM.isVisibleFilter(includeInvisible)
+    if (withjs) DOM.pruneHintworthyJSElems()
+    const jsElems = withjs ? Array.from(DOM.hintworthy_js_elems) : []
+    const visibleJSElems = withjs && !includeInvisible
+        ? DOM.getVisibleElemsBySelector(null, [], jsElems)
+        : jsElems
     const elems = changeHintablesToLargestChild(
-        DOM.getElemsBySelector(selectors, []).filter(visibleFilter),
+        includeInvisible
+            ? DOM.getElemsBySelector(selectors, [])
+            : ((await DOM.getVisibleElemsBySelector(selectors)))
     )
     const hintables: Hintables[] = [{ elements: elems }]
     if (withjs) {
-        DOM.pruneHintworthyJSElems()
         hintables.push({
             elements: changeHintablesToLargestChild(
-                Array.from(DOM.hintworthy_js_elems).filter(
-                    el => visibleFilter(el) && !elems.includes(el),
-                ),
+                (await visibleJSElems).filter(el => !elems.includes(el)),
             ),
             hintclasses: ["TridactylJSHint"],
         })
