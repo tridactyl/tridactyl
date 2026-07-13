@@ -290,7 +290,7 @@ export function isVisible(thing: Element | Range) {
 
 /** More accurate element visibility checking than isVisible.
  */
-export async function getVisibleElemsBySelector(selector = "*", filters: ElementFilter[] = []): Promise<HTMLElement[]> {
+export async function getVisibleElemsBySelector(selector: string | null = "*", filters: ElementFilter[] = [], elements: Element[] = []): Promise<HTMLElement[]> {
     // Get frames with an accessible ItersectionObserver constructor (including top window)
     const frameWins = [window as any].concat(
         ...getAllDocumentFrames()
@@ -310,9 +310,11 @@ export async function getVisibleElemsBySelector(selector = "*", filters: Element
     // Create IntersectionObservers in all frames
     return Promise.all(
         frameWins.map(async win => {
-            const elems = Array.from(
-                win.document.querySelectorAll(selector),
-            ).concat(...getShadowElementsBySelector(selector, win.document))
+            const elems = selector
+                ? Array.from(
+                    win.document.querySelectorAll(selector),
+                ).concat(...getShadowElementsBySelector(selector, win.document))
+                : elements.filter(elem => elem.ownerDocument === win.document)
             if (elems.length === 0) {
                 return []
             }

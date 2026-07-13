@@ -1228,7 +1228,11 @@ export async function hintables(
     withjs = false,
     includeInvisible = false,
 ) {
-    const visibleFilter = DOM.isVisibleFilter(includeInvisible)
+    if (withjs) DOM.pruneHintworthyJSElems()
+    const jsElems = withjs ? Array.from(DOM.hintworthy_js_elems) : []
+    const visibleJSElems = withjs && !includeInvisible
+        ? DOM.getVisibleElemsBySelector(null, [], jsElems)
+        : jsElems
     const elems = changeHintablesToLargestChild(
         includeInvisible
             ? DOM.getElemsBySelector(selectors, [])
@@ -1236,12 +1240,9 @@ export async function hintables(
     )
     const hintables: Hintables[] = [{ elements: elems }]
     if (withjs) {
-        DOM.pruneHintworthyJSElems()
         hintables.push({
             elements: changeHintablesToLargestChild(
-                Array.from(DOM.hintworthy_js_elems).filter(
-                    el => visibleFilter(el) && !elems.includes(el),
-                ),
+                (await visibleJSElems).filter(el => !elems.includes(el)),
             ),
             hintclasses: ["TridactylJSHint"],
         })
