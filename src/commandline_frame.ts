@@ -87,6 +87,7 @@ const commandline_state = {
     keyEvents: new Array<MinimalKey>(),
     initialClInputValue: "",
     refresh_completions,
+    resolveCloseWaiters,
     state,
 }
 
@@ -171,6 +172,19 @@ export function enableCompletions() {
 
 /** @hidden **/
 const noblur = () => setTimeout(() => commandline_state.clInput.focus(), 0)
+
+/** @hidden **/
+const closeWaiters: (() => void)[] = []
+
+/** @hidden **/
+function waitForClose() {
+    return new Promise<void>(resolve => closeWaiters.push(resolve))
+}
+
+/** @hidden **/
+function resolveCloseWaiters() {
+    closeWaiters.splice(0).forEach(resolve => resolve())
+}
 
 /** @hidden **/
 export function focus() {
@@ -285,6 +299,7 @@ commandline_state.clInput.addEventListener(
                 // to be a touch less latency-sensitive.
                 Messaging.messageOwnTab("controller_content", "acceptExCmd", [
                     response.value,
+                    "commandline",
                 ]).then(_ => (prev_cmd_called_history = history_called))
             }
         } else {
@@ -396,6 +411,7 @@ export function fillcmdline(
     newcommand?: string,
     trailspace = true,
     ffocus = true,
+    wait = false,
 ) {
     logger.debug(
         "commandline_frame fillcmdline(newcommand = " +
@@ -410,13 +426,14 @@ export function fillcmdline(
     else commandline_state.clInput.value = newcommand
     commandline_state.initialClInputValue = commandline_state.clInput.value
     commandline_state.isVisible = true
+    const closed = wait ? waitForClose() : undefined
     let result = Promise.resolve([])
     // Focus is lost for some reason.
     if (ffocus) {
         focus()
         result = refresh_completions(commandline_state.clInput.value)
     }
-    return result
+    return wait ? result.then(() => closed) : result
 }
 
 /** @hidden **/
