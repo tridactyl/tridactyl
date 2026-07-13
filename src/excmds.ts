@@ -5400,8 +5400,8 @@ export async function hint(...args: string[]): Promise<any> {
         }
     }
 
+    const hintables = await config.hintables()
     return new Promise(async (resolve, reject) => {
-        const hintables = await config.hintables()
 
         // If the user specified a callback, eval it, else use the default
         // action which performs the action matching the open mode
