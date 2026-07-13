@@ -4012,15 +4012,12 @@ export function sleep(time_ms: number) {
 
 /** @hidden */
 //#content
-export function showcmdline(focus = true) {
+export async function showcmdline(focus = true) {
     logger.debug("excmds showcmdline()")
     const hidehover = true
-    CommandLineContent.show(hidehover)
-    let done = Promise.resolve()
-    if (focus) {
-        done = Messaging.messageOwnTab("commandline_frame", "focus")
-    }
-    return done
+    const shown = await CommandLineContent.show(hidehover)
+    if (!shown) await Messaging.messageOwnTab("stop_buffering_page_keys")
+    else if (focus) return Messaging.messageOwnTab("commandline_frame", "focus")
 }
 
 /** @hidden */
@@ -4031,32 +4028,32 @@ export function hidecmdline() {
 
 /** Set the current value of the commandline to string *with* a trailing space */
 //#content
-export function fillcmdline(...strarr: string[]) {
+export async function fillcmdline(...strarr: string[]) {
     const str = strarr.join(" ")
-    showcmdline(false)
+    await showcmdline(false)
     logger.debug("excmds fillcmdline sending fillcmdline to commandline_frame")
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true /*trailspace*/, true /*focus*/])
 }
 
 /** Set the current value of the commandline to string *without* a trailing space */
 //#content
-export function fillcmdline_notrail(...strarr: string[]) {
+export async function fillcmdline_notrail(...strarr: string[]) {
     const str = strarr.join(" ")
-    showcmdline(false)
+    await showcmdline(false)
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false /*trailspace*/, true /*focus*/])
 }
 
 /** Show and fill the command line without focusing it */
 //#content
-export function fillcmdline_nofocus(...strarr: string[]) {
-    showcmdline(false)
+export async function fillcmdline_nofocus(...strarr: string[]) {
+    await showcmdline(false)
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
 }
 
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
 //#content
-export function fillcmdline_tmp(ms: number, ...strarr: string[]) {
-    showcmdline(false)
+export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
+    await showcmdline(false)
     const done = Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
     setTimeout(() => {
         if (document.activeElement?.id !== "cmdline_iframe") {

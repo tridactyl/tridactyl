@@ -3,6 +3,7 @@
 import Logger from "@src/lib/logging"
 import * as config from "@src/lib/config"
 import { theme } from "@src/content/styling"
+import * as Messaging from "@src/lib/messaging"
 const logger = new Logger("messaging")
 const cmdline_logger = new Logger("cmdline")
 
@@ -18,7 +19,12 @@ const cmdline_logger = new Logger("cmdline")
 // inject the commandline iframe into a content page
 
 let cmdline_iframe: HTMLIFrameElement
+let iframeReady: Promise<void>
+let resolveIframeReady: () => void
+let iframeGeneration = ""
 export function makeIframe() {
+    resolveIframeReady?.()
+    iframeGeneration = Math.random().toString()
     cmdline_iframe = window.document.createElementNS(
         "http://www.w3.org/1999/xhtml",
         "iframe",
@@ -30,13 +36,18 @@ export function makeIframe() {
     )
     cmdline_iframe.setAttribute("id", "cmdline_iframe")
     cmdline_iframe.setAttribute("loading", "lazy")
+    cmdline_iframe.name = iframeGeneration
+    iframeReady = new Promise(resolve => (resolveIframeReady = resolve))
+    hide()
 }
 makeIframe()
+Messaging.addListener("commandline_frame_ready_to_receive_messages", message => message.command === iframeGeneration && ((cmdline_iframe as any).ready = true) && resolveIframeReady())
+theme(window.document.querySelector(":root"))
 
 let enabled = false
 
-/** Initialise the cmdline_iframe element unless the window location is included in a value of config/noiframe */
-async function init() {
+/** Initialise the cmdline_iframe eagerly or on demand according to config/noiframe. */
+async function init(onDemand = false) {
     const noiframe = await config.getAsync("noiframe")
     const notridactyl = await config.getAsync("superignore")
 
@@ -45,12 +56,9 @@ async function init() {
         return
     }
 
-    if (noiframe === "false" && notridactyl !== "true" && !enabled) {
-        hide()
+    if ((noiframe === "false" || (onDemand && noiframe === "lazy")) && notridactyl !== "true" && !enabled) {
         document.documentElement.appendChild(cmdline_iframe)
         enabled = true
-        // first theming of page root
-        await theme(window.document.querySelector(":root"))
 
         // Fix #5050: reinsert iframe after React throws a tantrum
         config.getAsync("commandlineterriblewebsitefix").then(enabled => {
@@ -70,6 +78,7 @@ async function init() {
             }
         })
     }
+    return enabled
 }
 
 let hammering_react = false
@@ -100,13 +109,20 @@ init().catch(() => {
 })
 
 export function ensureIframeExists() {
-    if (cmdline_iframe && !cmdline_iframe.isConnected) {
+    if (enabled && !cmdline_iframe.isConnected) {
+        makeIframe()
         document.documentElement.appendChild(cmdline_iframe)
     }
 }
 
-export function show(hidehover = false) {
+export async function show(hidehover = false, deadline = Date.now() + 5000) {
     try {
+        if (!enabled && !(await init(true))) return false
+        ensureIframeExists()
+        const ready = iframeReady
+        if (!(cmdline_iframe as any).ready) await Promise.race([ready, new Promise((_, reject) => setTimeout(reject, deadline - Date.now()))])
+        if (ready !== iframeReady) return show(hidehover, deadline)
+
         /* Hide "hoverlink" pop-up which obscures command line
          *
          * Inspired by VVimpulation: https://github.com/amedama41/vvimpulation/commit/53065d015d1e9a892496619b51be83771f57b3d5
@@ -120,12 +136,12 @@ export function show(hidehover = false) {
             document.body.removeChild(a)
         }
 
-        ensureIframeExists()
         cmdline_iframe.inert = false;
         cmdline_iframe.classList.remove("hidden")
         const height =
             cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
         cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
+        return true
     } catch (e) {
         // Note: We can't use cmdline_logger.error because it will try to log
         // the error in the commandline, which we can't show!
@@ -173,10 +189,12 @@ export function executeWithoutCommandLine(fn) {
     } catch (e) {
         cmdline_logger.error(e)
     }
-    if (cmdline_iframe) parent.appendChild(cmdline_iframe)
+    if (parent) {
+        makeIframe()
+        parent.appendChild(cmdline_iframe)
+    }
     return result
 }
 
-import * as Messaging from "@src/lib/messaging"
 import * as SELF from "@src/content/commandline_content"
 Messaging.addListener("commandline_content", Messaging.attributeCaller(SELF))

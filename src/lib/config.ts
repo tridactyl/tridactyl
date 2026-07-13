@@ -1004,9 +1004,9 @@ export class default_config {
     }
 
     /**
-     * Disables the commandline iframe. Dangerous setting, use [[seturl]] to set it. If you ever set this setting to "true" globally and then want to set it to false again, you can do this by opening Tridactyl's preferences page from about:addons.
+     * Disables the commandline iframe. Dangerous setting, use [[seturl]] to set it. If you ever set this setting to "true" globally and then want to set it to false again, you can do this by opening Tridactyl's preferences page from about:addons. By default, it is set to 'lazy' which should be ideal for the widest level of compatibility.
      */
-    noiframe: "true" | "false" = "false"
+    noiframe: "true" | "false" | "lazy" = "lazy"
 
     /**
      * @deprecated A list of URLs on which to not load the iframe. Use `seturl [URL] noiframe true` instead, as shown in [[noiframe]].
