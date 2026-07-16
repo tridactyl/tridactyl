@@ -1,6 +1,6 @@
 {
     "firefox": {
-        "minimumVersion": "91.1.0",
+        "minimumVersion": "94.0",
         "manifestVersionPath": [
             "applications",
             "gecko",

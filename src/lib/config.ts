@@ -21,6 +21,8 @@ import * as binding from "@src/lib/binding"
 import * as platform from "@src/lib/platform"
 import { DeepPartial } from "tsdef"
 
+declare function structuredClone<T>(value: T): T // delete me once we move off typescript 3
+
 /* Remove all nulls from objects recursively
  * NB: also applies to arrays
  */
@@ -35,6 +37,9 @@ const removeNull = R.when(
 
 /** @hidden */
 const CONFIGNAME = "userconfig"
+const CONFIG_WRITE = "userconfig-write"
+const BACKGROUND_URL = browser.runtime.getURL("_generated_background_page.html")
+const IN_BACKGROUND = !BACKGROUND_URL || BACKGROUND_URL === window.location.href
 /** @hidden */
 const WAITERS = []
 /** @hidden */
@@ -54,6 +59,31 @@ function schlepp(settings) {
 
 /** @hidden */
 export let USERCONFIG = o({})
+let STORE_QUEUE = Promise.resolve()
+let EXCLUSIVE_QUEUE = Promise.resolve()
+let EXCLUSIVE_PENDING = 0
+let WRITE_ID = 0
+const WRITE_SESSION = `${Date.now()}-${Math.random()}:`
+const PENDING_WRITES = new Set<string>()
+
+function store<T>(operation: () => Promise<T>) {
+    const pending = STORE_QUEUE.then(operation)
+    STORE_QUEUE = pending.catch(() => undefined)
+    return pending
+}
+
+function exclusively<T>(operation: () => Promise<T>) {
+    EXCLUSIVE_PENDING++
+    const pending = EXCLUSIVE_QUEUE.then(operation)
+    EXCLUSIVE_QUEUE = pending.catch(() => undefined).then(() => {
+        EXCLUSIVE_PENDING--
+    })
+    return pending
+}
+
+function mutateInBackground(command, args) {
+    return browser.runtime.sendMessage({ type: "config_background", command, args })
+}
 
 /** @hidden
  * Ideally, LoggingLevel should be in logging.ts and imported from there. However this would cause a circular dependency, which webpack can't deal with
@@ -2080,6 +2110,7 @@ export async function getAsync(
     ...target: string[]
 ) {
     if (INITIALISED) {
+        if (IN_BACKGROUND) return get(target_typed, ...target)
         // TODO: consider storing keys directly
         const browserconfig = await browser.storage.local.get(CONFIGNAME)
         USERCONFIG = browserconfig[CONFIGNAME] || o({})
@@ -2098,17 +2129,26 @@ export async function getAsync(
  * Does not synchronise custom themes due to storage constraints.
  */
 export async function push() {
-    const local_conf = await browser.storage.local.get(CONFIGNAME)
-    // eslint-disable-next-line @typescript-eslint/dot-notation
-    delete local_conf[CONFIGNAME]["customthemes"]
-    return browser.storage.sync.set(local_conf)
+    if (!IN_BACKGROUND) return mutateInBackground("push", [])
+    return exclusively(async () => {
+        if (!INITIALISED) await getAsync()
+        const userconfig = structuredClone(USERCONFIG)
+        delete userconfig["customthemes"]
+        return browser.storage.sync.set({ [CONFIGNAME]: userconfig })
+    })
 }
 
 /*
  * Replaces the local configuration with the configuration from your sync storage. Does not merge: it overwrites.
  */
 export async function pull() {
-    return browser.storage.local.set(await browser.storage.sync.get(CONFIGNAME))
+    if (!IN_BACKGROUND) return mutateInBackground("pull", [])
+    return exclusively(async () => {
+        if (!INITIALISED) await getAsync()
+        const synced = await browser.storage.sync.get(CONFIGNAME)
+        USERCONFIG = synced[CONFIGNAME] || o({})
+        return save()
+    })
 }
 
 /** @hidden
@@ -2141,14 +2181,15 @@ export async function set(...args) {
     const target = args.slice(0, args.length - 1)
     const value = args[args.length - 1]
 
-    if (INITIALISED) {
-        // wait for storage to settle, otherwise we could clobber a previous incomplete set()
+    if (!IN_BACKGROUND) {
         setDeepProperty(USERCONFIG, value, target)
-
-        return save()
-    } else {
-        setDeepProperty(USERCONFIG, value, target)
+        return mutateInBackground("set", args)
     }
+
+    if (EXCLUSIVE_PENDING) await EXCLUSIVE_QUEUE
+    if (!INITIALISED) await getAsync()
+    setDeepProperty(USERCONFIG, value, target)
+    return save()
 }
 
 /** @hidden
@@ -2160,10 +2201,26 @@ export function unsetURL(pattern, ...target) {
 
 /** Delete the key at target in USERCONFIG if it exists
  * @hidden */
-export function unset(...target) {
+export async function unset(...target) {
+    if (IN_BACKGROUND && EXCLUSIVE_PENDING) await EXCLUSIVE_QUEUE
+    if (IN_BACKGROUND && !INITIALISED) await getAsync()
     const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
     if (parent !== undefined) delete parent[target[target.length - 1]]
+    if (!IN_BACKGROUND) return mutateInBackground("unset", target)
     return save()
+}
+
+export async function clear() {
+    if (!IN_BACKGROUND) {
+        USERCONFIG = o({})
+        return mutateInBackground("clear", [])
+    }
+    if (EXCLUSIVE_PENDING) await EXCLUSIVE_QUEUE
+    if (!INITIALISED) await getAsync()
+    const old = USERCONFIG
+    USERCONFIG = o({})
+    await store(() => browser.storage.local.clear())
+    notifyChangeListeners(old, USERCONFIG)
 }
 
 /** Save the config back to storage API.
@@ -2175,8 +2232,17 @@ export function unset(...target) {
  */
 export async function save() {
     const settingsobj = o({})
-    settingsobj[CONFIGNAME] = USERCONFIG
-    return browser.storage.local.set(settingsobj)
+    settingsobj[CONFIGNAME] = structuredClone(USERCONFIG)
+    if (IN_BACKGROUND) {
+        settingsobj[CONFIG_WRITE] = WRITE_SESSION + ++WRITE_ID
+        PENDING_WRITES.add(settingsobj[CONFIG_WRITE])
+    }
+    return store(() =>
+        browser.storage.local.set(settingsobj).catch(error => {
+            PENDING_WRITES.delete(settingsobj[CONFIG_WRITE])
+            throw error
+        }),
+    )
 }
 
 /** Updates the config to the latest version.
@@ -2427,6 +2493,15 @@ async function init() {
 /** @hidden */
 const changeListeners = new Map()
 
+function notifyChangeListeners(oldConfig, newConfig) {
+    changeListeners.forEach((listeners, key) => {
+        const old = oldConfig[key] === undefined ? DEFAULTS[key] : oldConfig[key]
+        const next = newConfig[key] === undefined ? DEFAULTS[key] : newConfig[key]
+        if (JSON.stringify(old) !== JSON.stringify(next))
+            listeners.forEach(f => f(old, next))
+    })
+}
+
 /** @hidden
  * @param name The name of a "toplevel" config setting (i.e. "nmaps", not "nmaps.j")
  * @param listener A function to call when the value of $name is modified in the config. Takes the previous and new value as parameters.
@@ -2588,17 +2663,29 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
 browser.storage.onChanged.addListener((changes, areaname) => {
+    if (IN_BACKGROUND) {
+        if (areaname !== "local") return
+        const write = changes[CONFIG_WRITE]?.newValue
+        if (PENDING_WRITES.delete(write)) {
+            const { newValue = {}, oldValue = {} } = changes[CONFIGNAME] || {}
+            notifyChangeListeners(oldValue, newValue)
+            return
+        }
+        if (CONFIGNAME in changes) {
+            exclusively(async () => {
+                await STORE_QUEUE
+                if (!INITIALISED) await getAsync()
+                const old = USERCONFIG
+                const stored = await browser.storage.local.get(CONFIGNAME)
+                USERCONFIG = stored[CONFIGNAME] || o({})
+                notifyChangeListeners(old, USERCONFIG)
+            }).catch(console.error)
+        }
+        return
+    }
     if (CONFIGNAME in changes) {
         const { newValue, oldValue } = changes[CONFIGNAME]
         const old = oldValue || {}
-
-        function triggerChangeListeners(key, value = newValue[key]) {
-            const arr = changeListeners.get(key)
-            if (arr) {
-                const v = old[key] === undefined ? DEFAULTS[key] : old[key]
-                arr.forEach(f => f(v, value))
-            }
-        }
 
         if (areaname === "sync") {
             // Probably do something here with push/pull?
@@ -2621,19 +2708,12 @@ browser.storage.onChanged.addListener((changes, areaname) => {
             // TODO: this should be a deep comparison but this is better than nothing
             changedKeys.forEach(key => (USERCONFIG[key] = newValue[key]))
             unsetKeys.forEach(key => delete USERCONFIG[key])
-
-            // Trigger listeners
-            unsetKeys.forEach(key => triggerChangeListeners(key, DEFAULTS[key]))
-
-            changedKeys.forEach(key => triggerChangeListeners(key))
+            notifyChangeListeners(old, newValue)
         } else {
             // newValue is undefined when calling browser.storage.AREANAME.clear()
             // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
             USERCONFIG = o({})
-
-            Object.keys(old)
-                .filter(key => old[key] !== DEFAULTS[key])
-                .forEach(key => triggerChangeListeners(key))
+            notifyChangeListeners(old, USERCONFIG)
         }
     }
 })

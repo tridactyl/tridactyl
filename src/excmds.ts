@@ -855,8 +855,6 @@ export async function mktridactylrc(...args: string[]) {
  *
  * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage. There's an [example file](https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc) if you want it.
  *
- * There is a [bug](https://github.com/tridactyl/tridactyl/issues/1409) where not all lines of the RC file are executed if you use `sanitise` at the top of it. We instead recommend you put `:bind ZZ composite sanitise tridactyllocal; qall` in your RC file and use `ZZ` to exit Firefox.
- *
  * @param args the file/URL to open. For files: must be an absolute path, but can contain environment variables and things like ~.
  */
 //#background
@@ -5118,7 +5116,7 @@ export async function sanitise(...args: string[]) {
     // Tridactyl-specific items
     if (dts.commandline === true) state.cmdHistory = []
     delete dts.commandline
-    if (dts.tridactyllocal === true) await browser.storage.local.clear()
+    if (dts.tridactyllocal === true) await config.clear()
     delete dts.tridactyllocal
     if (dts.tridactylsync === true) await browser.storage.sync.clear()
     delete dts.tridactylsync
