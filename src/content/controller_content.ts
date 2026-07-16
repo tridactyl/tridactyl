@@ -213,17 +213,6 @@ function* ParserController() {
 
                 if (response.exstr) {
                     exstr = response.exstr
-                    if (
-                        (exstr.startsWith("fillcmdline") || exstr.startsWith("current_url")) &&
-                        !exstr.startsWith("fillcmdline_tmp") &&
-                        !exstr.startsWith("fillcmdline_nofocus") &&
-                        config.get("noiframe") !== "true"
-                    ) {
-                        logger.debug("Starting buffering of page keys")
-                        bufferingPageKeysBeginTime = performance.now()
-                        mustBufferPageKeysForClInput = true
-                        bufferedPageKeys = []
-                    }
                     break
                 } else {
                     keyEvents = response.keys
@@ -250,6 +239,13 @@ function* ParserController() {
 
 export const generator = ParserController() // var rather than let stops weirdness in repl.
 generator.next()
+
+export function startBufferingPageKeys() {
+    logger.debug("Starting buffering of page keys")
+    bufferingPageKeysBeginTime = performance.now()
+    mustBufferPageKeysForClInput = true
+    bufferedPageKeys = []
+}
 
 export function keyMuncher(...keys: KeyEventLike[]) {
     if (keys.length === 0) return
