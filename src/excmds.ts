@@ -113,7 +113,7 @@ let ALL_EXCMDS
 import * as controller from "@src/lib/controller"
 
 //#content_helper
-import { keyMuncher as KEY_MUNCHER } from "@src/content/controller_content"
+import { keyMuncher as KEY_MUNCHER, startBufferingPageKeys } from "@src/content/controller_content"
 
 /**
  * Used to store the types of the parameters for each excmd for
@@ -4024,7 +4024,7 @@ export function hidecmdline() {
     CommandLineContent.hide_and_blur()
 }
 
-/** 
+/**
 * Set the current value of the commandline to string *with* a trailing space.
 *
 * `fillcmdline --wait` will only return after the command line is closed. It can only be invoked in binds to avoid deadlock.
@@ -4037,6 +4037,7 @@ export async function fillcmdline(...strarr: string[]) {
         throw new Error("fillcmdline --wait cannot be run from the commandline")
     }
     const str = strarr.join(" ")
+    startBufferingPageKeys()
     await showcmdline(false)
     logger.debug("excmds fillcmdline sending fillcmdline to commandline_frame")
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true /*trailspace*/, true /*focus*/, wait])
@@ -4046,6 +4047,7 @@ export async function fillcmdline(...strarr: string[]) {
 //#content
 export async function fillcmdline_notrail(...strarr: string[]) {
     const str = strarr.join(" ")
+    startBufferingPageKeys()
     await showcmdline(false)
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false /*trailspace*/, true /*focus*/])
 }
