@@ -70,6 +70,9 @@ module.exports = {
                     "String": {
                         "message": "Avoid using the `String` type. Did you mean `string`?"
                     },
+                    "KeyboardEvent": {
+                        "message": "Use `TrustedKeyboardEvent` to prevent remote code injection from hostile pages."
+                    },
                     "Symbol": {
                         "message": "Avoid using the `Symbol` type. Did you mean `symbol`?"
                     }
@@ -279,5 +282,25 @@ module.exports = {
                 "@typescript-eslint/prefer-regexp-exec": "off",
             },
         },
+        {
+            "files": ["src/content.ts", "src/commandline_frame.ts"],
+            "rules": {
+                "@typescript-eslint/no-explicit-any": "error",
+                "@typescript-eslint/ban-types": [
+                    "error",
+                    {
+                        "extendDefaults": true,
+                        "types": {
+                            "TrustedKeyboardEvent": {
+                                "message": "Events must be validated with `isTrustedKeyboardEvent` at runtime"
+                            },
+                            "KeyboardEvent": {
+                                "message": "Use `Event` instead"
+                            },
+                        },
+                    },
+                ],
+            },
+        }
     ],
 };

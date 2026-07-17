@@ -1,4 +1,5 @@
 import { acceptTrustedKey } from "@src/content/controller_content"
+import { guarded } from "@src/lib/keyseq"
 
 test.each(["keydown", "keyup"])(
     "synthetic %s events do not reach the key parser",
@@ -8,6 +9,9 @@ test.each(["keydown", "keyup"])(
 
         expect(event.isTrusted).toBe(false)
 
+        const guardedAcceptKey = guarded(accept)
+        expect(guarded(accept)).toBe(guardedAcceptKey)
+        guardedAcceptKey(event)
         acceptTrustedKey(event, accept)
 
         expect(accept).not.toHaveBeenCalled()

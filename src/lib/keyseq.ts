@@ -26,8 +26,34 @@ import { filter, find } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"
 import grammar from "@src/grammars/.bracketexpr.generated"
+import { memoise } from "@src/lib/memoise"
 const bracketexpr_grammar = grammar
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
+
+// unspoofable keyboard events
+// this should be ~the only place in the code that accepts KeyboardEvent
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type TrustedKeyboardEvent = KeyboardEvent & { readonly isTrusted: true }
+
+export const guarded = memoise(
+    (accept: (keyevent: TrustedKeyboardEvent) => unknown) =>
+        (keyevent: Event) => {
+            if (!isTrustedKeyboardEvent(keyevent)) return
+            return accept(keyevent)
+        },
+)
+
+export function isTrustedKeyboardEvent(ke: unknown): ke is TrustedKeyboardEvent {
+    if (!ke || typeof ke !== "object") return false
+    try {
+        const event = ke as Event
+        if (event.isTrusted !== true) return false
+        KeyboardEvent.prototype.getModifierState.call(event, "")
+        return true
+    } catch {
+        return false
+    }
+}
 
 let KEYCODETRANSLATEMAP = {}
 
@@ -140,7 +166,7 @@ export class MinimalKey {
     }
 }
 
-export type KeyEventLike = MinimalKey | KeyboardEvent
+export type KeyEventLike = MinimalKey | TrustedKeyboardEvent
 
 // }}}
 
@@ -600,7 +626,7 @@ function numericPrefixToExstrSuffix(numericPrefix: MinimalKey[]) {
  * code if config says so.
  */
 export function minimalKeyFromKeyboardEvent(
-    keyEvent: KeyboardEvent,
+    keyEvent: TrustedKeyboardEvent,
 ): MinimalKey {
     const modifiers = {
         altKey: keyEvent.altKey,

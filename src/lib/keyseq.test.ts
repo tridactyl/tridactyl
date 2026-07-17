@@ -6,6 +6,20 @@ function mk(k, mod?: ks.KeyModifiers) {
     return new ks.MinimalKey(k, mod)
 }
 
+test("isTrustedKeyboardEvent rejects spoofed objects", () => {
+    expect(
+        ks.isTrustedKeyboardEvent({
+            isTrusted: true,
+            view: { KeyboardEvent: { [Symbol.hasInstance]: () => true } },
+        }),
+    ).toBe(false)
+    expect(
+        ks.isTrustedKeyboardEvent(
+            new Proxy({}, { get: () => { throw new Error() } }),
+        ),
+    ).toBe(false)
+})
+
 {
     // {{{ parse and completions
 
