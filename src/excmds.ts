@@ -4037,9 +4037,9 @@ export async function fillcmdline(...strarr: string[]) {
         throw new Error("fillcmdline --wait cannot be run from the commandline")
     }
     const str = strarr.join(" ")
+    startBufferingPageKeys()
     await showcmdline(false)
     logger.debug("excmds fillcmdline sending fillcmdline to commandline_frame")
-    startBufferingPageKeys()
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true /*trailspace*/, true /*focus*/, wait])
 }
 
@@ -4047,8 +4047,8 @@ export async function fillcmdline(...strarr: string[]) {
 //#content
 export async function fillcmdline_notrail(...strarr: string[]) {
     const str = strarr.join(" ")
-    await showcmdline(false)
     startBufferingPageKeys()
+    await showcmdline(false)
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false /*trailspace*/, true /*focus*/])
 }
 
