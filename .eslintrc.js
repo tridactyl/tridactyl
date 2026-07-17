@@ -286,6 +286,9 @@ module.exports = {
             "files": ["src/content.ts", "src/commandline_frame.ts"],
             "rules": {
                 "@typescript-eslint/no-explicit-any": "error",
+                "@typescript-eslint/no-unsafe-assignment": "error",
+                "@typescript-eslint/no-unsafe-call": "error",
+                "@typescript-eslint/no-unsafe-argument": "error",
                 "@typescript-eslint/ban-types": [
                     "error",
                     {
