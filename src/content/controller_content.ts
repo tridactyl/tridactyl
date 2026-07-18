@@ -55,7 +55,8 @@ class KeyCanceller {
             this.keyUp.push(ke)
         } else if (ke.type === "keyup") {
             // only need to bookkeep, the keyup will be cancelled by the keydown
-            this.removeKey(ke, this.keyUp)
+            this.removeKeys(ke, this.keyUp)
+            this.removeKeys(ke, this.keyPress)
         }
     }
 
@@ -65,6 +66,14 @@ class KeyCanceller {
 
     public cancelKeyUp = (ke: TrustedKeyboardEvent) => {
         this.cancelKey(ke, this.keyUp)
+        this.removeKeys(ke, this.keyUp)
+        this.removeKeys(ke, this.keyPress)
+    }
+
+    private removeKeys(ke: TrustedKeyboardEvent, kes: TrustedKeyboardEvent[]) {
+        while (this.removeKey(ke, kes)) {
+            // Repeat keydowns can add duplicate cancellations.
+        }
     }
 
     private removeKey(
