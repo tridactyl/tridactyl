@@ -69,22 +69,24 @@ controller.setExCmds({
 })
 
 // {{{ tri.contentLocation
-// When loading the background, use the active tab to know what the current content url is
-browser.tabs.query({ currentWindow: true, active: true }).then(t => {
-    ;(window as any).tri.contentLocation = new URL(t[0].url)
-})
-// After that, on every tab change, update the current url
 let contentLocationCount = 0
-browser.tabs.onActivated.addListener(ev => {
+function updateContentLocation(windowId = browser.windows.WINDOW_ID_CURRENT) {
     const myId = contentLocationCount + 1
     contentLocationCount = myId
-    browser.tabs.get(ev.tabId).then(t => {
-        // Note: we're using contentLocationCount and myId in order to make sure that only the last onActivated event is used in order to set contentLocation
-        // This is needed because otherWise the following chain of execution might happen: onActivated1 => onActivated2 => tabs.get2 => tabs.get1
-        if (contentLocationCount === myId) {
-            ;(window as any).tri.contentLocation = new URL(t.url)
-        }
-    })
+    browser.tabs
+        .query({ windowId, active: true })
+        .then(t => {
+            // Ignore stale queries when focus or active tabs change quickly.
+            if (contentLocationCount === myId && t[0]?.url) {
+                ;(window as any).tri.contentLocation = new URL(t[0].url)
+            }
+        })
+        .catch(() => undefined)
+}
+browser.tabs.onActivated.addListener(() => updateContentLocation())
+browser.windows.onFocusChanged.addListener(windowId => {
+    if (windowId === browser.windows.WINDOW_ID_NONE) return
+    updateContentLocation(windowId)
 })
 
 browser.proxy.onRequest.addListener(Proxy.onRequestListener, {
@@ -116,10 +118,9 @@ browser.tabs.onMoved.addListener(tabId => {
 
 // Update on navigation too (but remember that sometimes people open tabs in the background :) )
 browser.webNavigation.onDOMContentLoaded.addListener(() => {
-    browser.tabs.query({ currentWindow: true, active: true }).then(t => {
-        ;(window as any).tri.contentLocation = new URL(t[0].url)
-    })
+    updateContentLocation()
 })
+updateContentLocation()
 
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => undefined)
