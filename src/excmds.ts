@@ -3354,7 +3354,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  *
  * `winopen -popup [...]` will open it in a popup window. You can combine the two for a private popup.
  *
- * `winopen -c containername [...]` will open the result in a container while ignoring other options given. See [[tabopen]] for more details on containers.
+ * `winopen -c containername [...]` will open the result in a container. See [[tabopen]] for more details on containers.
  *
  * Example: `winopen -popup -private ddg.gg`
  */
@@ -3363,7 +3363,7 @@ export async function winopen(...args: string[]) {
     const createData = {} as Parameters<typeof browser.windows.create>[0]
     let firefoxArgs = "--new-window"
     let done = false
-    let useContainer = false
+    let containerName: string | undefined
     while (!done) {
         switch (args[0]) {
             case "-private":
@@ -3379,8 +3379,7 @@ export async function winopen(...args: string[]) {
 
             case "-c":
                 if (args.length < 2) throw new Error(`You must provide a container name!`)
-                args.shift()
-                useContainer = true
+                containerName = args.splice(0, 2)[1]
                 break
 
             default:
@@ -3391,12 +3390,12 @@ export async function winopen(...args: string[]) {
 
     const address = args.join(" ")
 
-    if (useContainer) {
-        if (firefoxArgs === "--private-window") {
+    if (containerName !== undefined) {
+        if (createData.incognito || (await browser.windows.getCurrent()).incognito) {
             throw new Error("Can't open a container in a private browsing window.")
-        } else {
-            args.unshift("-c")
-            return tabopen(...args).then(() => tabdetach())
+        }
+        if (containerName !== "firefox-default" && containerName.toLowerCase() !== "none") {
+            createData.cookieStoreId = await Container.fuzzyMatch(containerName)
         }
     }
 
