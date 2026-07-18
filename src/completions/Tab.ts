@@ -70,7 +70,7 @@ class BufferCompletionOption
                 ${this.tabIndex + 1}: ${indicator} ${tab.title}
             </td>
             <td class="content">
-                <a class="url" target="_blank" href=${tab.url}>${tab.url}</a>
+                <a class="url" target="_blank" href=${tab.url}>${Completions.decodeUrlForDisplay(tab.url)}</a>
             </td>
         </tr>`
     }

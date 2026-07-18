@@ -60,7 +60,7 @@ class SessionCompletionOption
                 <img src="${tab.favIconUrl || Completions.DEFAULT_FAVICON}" />
             </td>
             <td class="title">${tab.title}</td>
-            <td class="extraInfo">${extraInfo}</td>
+            <td class="extraInfo">${Completions.decodeUrlForDisplay(extraInfo)}</td>
         </tr>`
     }
 }

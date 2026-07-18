@@ -34,7 +34,7 @@ class HistoryCompletionOption
             <td class="title">${page.title}</td>
             <td class="content">
                 ${page.search ? "Search " : ""}
-                <a class="url" target="_blank" href=${page.url}>${page.url}</a>
+                <a class="url" target="_blank" href=${page.url}>${Completions.decodeUrlForDisplay(page.url)}</a>
             </td>
         </tr>`
     }

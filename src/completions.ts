@@ -14,6 +14,7 @@ import Fuse from "fuse.js"
 import * as aliases from "@src/lib/aliases"
 import { backoff } from "@src/lib/patience"
 import * as config from "@src/lib/config"
+export { decodeUrlForDisplay } from "@src/lib/url_util"
 
 export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",
