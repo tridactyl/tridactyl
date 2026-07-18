@@ -287,6 +287,15 @@ export function keyMuncher(...keys: KeyEventLike[]) {
 export function acceptKey(keyevent: TrustedKeyboardEvent) {
     function tryBufferingPageKeyForClInput(keyevent: TrustedKeyboardEvent) {
         if (!mustBufferPageKeysForClInput) return false
+        const key = minimalKeyFromKeyboardEvent(keyevent)
+        if (
+            keyevent.type === "keydown" &&
+            (keyevent.key === "Escape" || key.toMapstr() === "<C-[>")
+        ) {
+            mustBufferPageKeysForClInput = false
+            bufferedPageKeys = []
+            return false
+        }
         const bufferingDuration = performance.now() - bufferingPageKeysBeginTime
         logger.debug(
             "controller_content mustBufferPageKeysForClInput = " +
