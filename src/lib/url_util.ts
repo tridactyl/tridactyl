@@ -1,6 +1,16 @@
 /** URL handling utlity functions
  */
 
+export function decodeUrlForDisplay(url: string): string {
+    return url.replace(/(?:%[89a-f][0-9a-f])+/gi, encoded => {
+        try {
+            const decoded = decodeURIComponent(encoded)
+            if (!/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u.test(decoded)) return decoded
+        } catch {}
+        return encoded
+    })
+}
+
 /** Increment the last number in a URL.
  *
  * (perhaps this could be made so you can select the "nth" number in a

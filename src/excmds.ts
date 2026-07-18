@@ -4177,6 +4177,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
                 urls = await geturlsforlinks("rev", "canonical")
             }
             if (urls.length > 0) {
+                urls[0] = UrlUtil.decodeUrlForDisplay(urls[0])
                 await yank(urls[0])
                 done = fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                 break
@@ -4185,13 +4186,14 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
         case "yankcanon":
             urls = await geturlsforlinks("rel", "canonical")
             if (urls.length > 0) {
+                urls[0] = UrlUtil.decodeUrlForDisplay(urls[0])
                 await yank(urls[0])
                 done = fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                 break
             }
         // Trying yank if yankcanon failed...
         case "yank":
-            content = content === "" ? (await activeTab()).url : content
+            content = content === "" ? UrlUtil.decodeUrlForDisplay((await activeTab()).url) : content
             await yank(content)
             done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
@@ -4201,12 +4203,12 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
         case "yankmd":
-            content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
+            content = "[" + (await activeTab()).title + "](" + UrlUtil.decodeUrlForDisplay((await activeTab()).url) + ")"
             await yank(content)
             done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
         case "yankorg":
-            content = "[[" + (await activeTab()).url + "][" + (await activeTab()).title + "]]"
+            content = "[[" + UrlUtil.decodeUrlForDisplay((await activeTab()).url) + "][" + (await activeTab()).title + "]]"
             await yank(content)
             done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
@@ -5504,11 +5506,11 @@ export async function hint(...args: string[]): Promise<any> {
                           // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
                           // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
                           anchorUrl.hash = elem.id || elem.name
-                          return anchorUrl.href
+                          return UrlUtil.decodeUrlForDisplay(anchorUrl.href)
 
                       case OpenMode.YankLink:
                           if (elem.href) {
-                              return elem.href
+                              return UrlUtil.decodeUrlForDisplay(elem.href)
                           }
 
                           return

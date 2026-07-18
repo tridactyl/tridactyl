@@ -20,7 +20,7 @@ class TabHistoryCompletionOption
             <td class="container"></td>
             <td class="title">${tab.prefix}${tab.title}</td>
             <td class="content">
-                <a class="url" href="${tab.href}">${tab.href}</a>
+                <a class="url" href="${tab.href}">${Completions.decodeUrlForDisplay(tab.href)}</a>
             </td>
             <td class="time">${timeSpan}</td>
         </tr>`

@@ -59,6 +59,9 @@ class TabGroupCompletionOption
             u => `<a class="url" target="_blank" href="${u}">${u}</a>`,
         )
         this.html.lastElementChild.innerHTML = urlMarkup.join(", ")
+        this.html.lastElementChild.querySelectorAll(".url").forEach(
+            (link, index) => (link.textContent = Completions.decodeUrlForDisplay(urls[index])),
+        )
     }
 }
 

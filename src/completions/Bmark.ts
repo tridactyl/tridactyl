@@ -24,7 +24,7 @@ class BmarkCompletionOption
             <td class="title">${bmark.path}${bmark.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${bmark.url}
-                    >${bmark.url}</a
+                    >${Completions.decodeUrlForDisplay(bmark.url)}</a
                 >
             </td>
         </tr>`

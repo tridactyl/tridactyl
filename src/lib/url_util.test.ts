@@ -2,6 +2,14 @@
 
 import * as UrlUtil from "@src/lib/url_util"
 
+test.each([
+    ["https://example.com/%D0%9F%20%41", "https://example.com/П%20%41"],
+    ["https://example.com/%2F%26%3F", "https://example.com/%2F%26%3F"],
+    ["https://example.com/%", "https://example.com/%"],
+    ["https://example.com/%E2%80%AE%E2%80%A8", "https://example.com/%E2%80%AE%E2%80%A8"],
+])("display %s as %s", (url, displayUrl) =>
+    expect(UrlUtil.decodeUrlForDisplay(url)).toEqual(displayUrl))
+
 function test_increment() {
     let cases = [
         // simple increment
