@@ -3229,7 +3229,13 @@ export async function tabmove(index = "$") {
 
     if (index.startsWith("+") || index.startsWith("-")) {
         relative = true
-        newindex = Number(index) + aTab.index
+        const visibleTabs = windowTabs.filter(
+            tab => !tab.hidden && tab.pinned === aTab.pinned,
+        )
+        const currentIndex = visibleTabs.findIndex(tab => tab.id === aTab.id)
+        const tabCount = visibleTabs.length
+        const targetIndex = (currentIndex + Number(index)).mod(tabCount)
+        newindex = visibleTabs[targetIndex].index
     } else if (["end", "$", "0"].includes(index)) {
         newindex = maxindex
     } else if (["start", "^"].includes(index)) {
