@@ -641,6 +641,8 @@ export class default_config {
 
     /**
      * Default proxy to use for all URLs. Has to be the name of a proxy. To add a proxy, see `:help proxyadd`. NB: usage with `:seturl` is buggy, use `:autocontain -s [regex to match URL] none [proxy]` instead
+     *
+     * The special value `none` disables the proxy and also works with `:autocontain`
      */
     proxy = ""
 
