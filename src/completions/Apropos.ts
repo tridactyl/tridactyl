@@ -7,6 +7,7 @@ import {
 } from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as config from "@src/lib/config"
+import { formatExProgram } from "@src/lib/excmd"
 
 class AproposCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
@@ -85,7 +86,7 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                 options.concat(
                     Object.keys(bindings)
                         .filter(binding =>
-                            (binding + bindings[binding])
+                            (binding + formatExProgram(bindings[binding]))
                                 .toLowerCase()
                                 .includes(query),
                         )
@@ -93,7 +94,7 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                             binding =>
                                 new AproposCompletionOption(
                                     binding,
-                                    `Normal mode binding for \`${bindings[binding]}\``,
+                                    `Normal mode binding for \`${formatExProgram(bindings[binding])}\``,
                                     "-b",
                                 ),
                         ),

@@ -1,4 +1,10 @@
 import Logger from "@src/lib/logging"
+import {
+    ExCommand,
+    ExProgram,
+    isExProgram,
+    programSource,
+} from "@src/lib/excmd"
 import { evaluate } from "@src/parsers/exdsl"
 import { parser as exmode_parser } from "@src/parsers/exmode"
 import * as State from "@src/state"
@@ -20,17 +26,37 @@ export function getCurrentExCmdSource() {
 
 /** Parse and execute ExCmds */
 export async function acceptExCmd(
-    exstr: string,
+    excmd: ExCommand,
     source?: ExCmdSource,
     exversion: "1" | "2" = "1",
 ): Promise<any> {
+    const exstr = programSource(excmd)
+    const isV2 =
+        isExProgram(excmd) || (source === "commandline" && exversion === "2")
+    const recordedExcmd: ExCommand = isV2
+        ? isExProgram(excmd)
+            ? excmd
+            : { source: exstr, exversion: 2 }
+        : exstr
     const previousExCmdSource = currentExCmdSource
     currentExCmdSource = source || previousExCmdSource
     // TODO: Errors should go to CommandLine.
     try {
         let recorded = false
-        const run = (command: string, piped = false, value?: any) => {
+        const run = (
+            command: string,
+            piped = false,
+            value?: any,
+            program?: ExProgram,
+        ) => {
             const [func, args] = exmode_parser(command, stored_excmds)
+            if (
+                program &&
+                !["autocmd", "bind", "bindurl", "repeat"].some(
+                    name => stored_excmds[""][name] === func,
+                )
+            )
+                throw new Error(`${command} does not accept an ex block`)
             // Stop repeat from recursing and don't store private window commands.
             if (!recorded) {
                 recorded = true
@@ -39,14 +65,18 @@ export async function acceptExCmd(
                     exstr.search("winopen -private") < 0
                 )
                     State.getAsync("last_ex_str").then(last_ex_str => {
-                        if (last_ex_str != exstr) state.last_ex_str = exstr
+                        if (
+                            programSource(last_ex_str) !== exstr ||
+                            isExProgram(last_ex_str) !== isV2
+                        )
+                            state.last_ex_str = recordedExcmd
                     })
             }
-            return piped ? func(...args, value) : func(...args)
+            const commandArgs = program ? [...args, program] : args
+            return piped ? func(...commandArgs, value) : func(...commandArgs)
         }
 
-        if (source === "commandline" && exversion === "2")
-            return await evaluate(exstr, run)
+        if (isV2) return await evaluate(exstr, run)
 
         try {
             return await run(exstr)
@@ -57,7 +87,7 @@ export async function acceptExCmd(
     } catch (e) {
         // Errors from parser caught here
         logger.error("controller while accepting: ", e)
-        if (source === "commandline" && exversion === "2") throw e
+        if (isV2) throw e
     } finally {
         currentExCmdSource = previousExCmdSource
     }

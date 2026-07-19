@@ -7,6 +7,7 @@ import {
 } from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as config from "@src/lib/config"
+import { formatExProgram } from "@src/lib/excmd"
 
 class HelpCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
@@ -81,7 +82,7 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
                             binding =>
                                 new HelpCompletionOption(
                                     binding,
-                                    `Normal mode binding for \`${bindings[binding]}\``,
+                                    `Normal mode binding for \`${formatExProgram(bindings[binding])}\``,
                                     "-b",
                                 ),
                         ),

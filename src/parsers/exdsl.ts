@@ -1,3 +1,5 @@
+import { ExProgram } from "@src/lib/excmd"
+
 const operators = [".|", "&&", "||", "|", ";"] as const
 
 export type ExOperator = (typeof operators)[number] | "\n"
@@ -183,7 +185,104 @@ export type ExCommandRunner = (
     source: string,
     piped: boolean,
     value?: any,
+    program?: ExProgram,
 ) => any
+
+interface ExStage {
+    piped: boolean
+    command: string
+    program?: ExProgram
+    block?: ExStage[]
+}
+
+function compile(
+    source: string,
+    structure: ExStructure,
+    initialPiped = false,
+): ExStage[] {
+    const stages: ExStage[] = []
+    let sourceText = ""
+    let piped = false
+    let block: Extract<ExPart, { type: "block" }> | undefined
+    let blockCommand = ""
+
+    const flush = () => {
+        if (block) {
+            if (sourceText.trim())
+                throw new Error("Unsupported text after ex block")
+            const receivesInput = piped || (stages.length === 0 && initialPiped)
+            const body = compile(source, block.body, receivesInput)
+            if (blockCommand) {
+                if (receivesInput)
+                    throw new Error(
+                        "Unsupported pipeline input with an ex block argument",
+                    )
+                stages.push({
+                    command: blockCommand,
+                    piped,
+                    program: {
+                        source: source.slice(block.start + 1, block.end - 1),
+                        exversion: 2,
+                    },
+                })
+            } else {
+                stages.push({ block: body, command: "", piped })
+            }
+        } else if (sourceText.trim()) {
+            stages.push({ command: sourceText.trim(), piped })
+        }
+        sourceText = ""
+        block = undefined
+        blockCommand = ""
+    }
+
+    for (const part of structure.parts) {
+        if (part.type === "text") {
+            sourceText += source.slice(part.start, part.end)
+            continue
+        }
+        if (part.type === "comment") continue
+        if (part.type === "block") {
+            if (block) throw new Error("Unsupported multiple ex blocks")
+            block = part
+            blockCommand = sourceText.trim()
+            sourceText = ""
+            continue
+        }
+        if (!["|", ";", "\n"].includes(part.operator))
+            throw new Error(
+                `Unsupported ex syntax: ${source.slice(part.start, part.end)}`,
+            )
+        flush()
+        piped = part.operator === "|"
+    }
+    flush()
+    return stages
+}
+
+async function execute(
+    stages: ExStage[],
+    run: ExCommandRunner,
+    initialPiped = false,
+    initialValue?: any,
+) {
+    let value = initialValue
+    for (let index = 0; index < stages.length; index++) {
+        const stage = stages[index]
+        const piped = stage.piped || (index === 0 && initialPiped)
+        const input = piped ? value : undefined
+        try {
+            value =
+                stage.block !== undefined
+                    ? await execute(stage.block, run, piped, input)
+                    : await run(stage.command, piped, input, stage.program)
+        } catch (error) {
+            while (stages[index + 1]?.piped) index++
+            if (index === stages.length - 1) throw error
+        }
+    }
+    return value
+}
 
 export async function evaluate(
     source: string,
@@ -193,41 +292,5 @@ export async function evaluate(
     if (structure.status !== "complete")
         throw new Error(`${structure.status} ex command`)
 
-    const stages: { source: string; piped: boolean }[] = []
-    let sourceText = ""
-    let piped = false
-    for (const part of structure.parts) {
-        if (part.type === "text") {
-            sourceText += source.slice(part.start, part.end)
-            continue
-        }
-        if (
-            part.type !== "operator" ||
-            (part.operator !== "|" && part.operator !== ";")
-        )
-            throw new Error(
-                `Unsupported ex syntax: ${source.slice(part.start, part.end)}`,
-            )
-        stages.push({ source: sourceText.trim(), piped })
-        sourceText = ""
-        piped = part.operator === "|"
-    }
-    if (!sourceText.trim()) throw new Error("Invalid empty ex command")
-    stages.push({ source: sourceText.trim(), piped })
-
-    let value: any
-    for (let index = 0; index < stages.length; index++) {
-        const stage = stages[index]
-        try {
-            value = await run(
-                stage.source,
-                stage.piped,
-                stage.piped ? value : undefined,
-            )
-        } catch (error) {
-            while (stages[index + 1]?.piped) index++
-            if (index === stages.length - 1) throw error
-        }
-    }
-    return value
+    return execute(compile(source, structure), run)
 }

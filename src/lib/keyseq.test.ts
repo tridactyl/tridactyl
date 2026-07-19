@@ -184,6 +184,19 @@ test("isTrustedKeyboardEvent rejects spoofed objects", () => {
             new Map([[mks("<Space>"), "spacetest"]]),
         ],
     ])
+
+    test("preserves versioned block bindings", () => {
+        const program = { source: "echo block", exversion: 2 as const }
+        const map = new Map([[mks("x"), program]])
+        expect(ks.parse(mks("x"), map)).toEqual({
+            value: program,
+            exstr: program,
+            isMatch: true,
+            numericPrefix: undefined,
+            keys: [],
+        })
+        expect(() => ks.parse(mks("2x"), map)).toThrow("Counts")
+    })
 } // }}}
 
 // {{{ mapstr ->  keysequence

@@ -11,6 +11,7 @@
  */
 
 import Logger from "@src/lib/logging"
+import { ExCommand } from "@src/lib/excmd"
 import * as messaging from "@src/lib/messaging"
 import { notBackground } from "@src/lib/webext"
 import * as R from "ramda"
@@ -27,7 +28,7 @@ class State {
             jumppos: undefined,
         },
     ]
-    last_ex_str = "echo"
+    last_ex_str: ExCommand = "echo"
     globalMarks: Map<
         string,
         {

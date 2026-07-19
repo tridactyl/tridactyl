@@ -1,6 +1,7 @@
 import * as Messaging from "@src/lib/messaging"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
+import { formatExProgram } from "@src/lib/excmd"
 
 class AutocmdCompletionOption
     extends Completions.CompletionOptionHTML
@@ -127,7 +128,7 @@ export class AutocmdCompletionSource extends Completions.CompletionSourceFuse {
                     // for `autocmd` itself.
                     let description = ""
                     if (is_autocmddelete) {
-                        description = command
+                        description = formatExProgram(command)
                     }
                     const opt = new AutocmdCompletionOption(
                         pattern,

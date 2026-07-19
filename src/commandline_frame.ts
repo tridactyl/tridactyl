@@ -277,7 +277,10 @@ commandline_state.clInput.addEventListener(
             // If excmds start with 'ex.' they're coming back to us anyway, so skip that.
             // This is definitely a hack. Should expand aliases with exmode, etc.
             // but this whole thing should be scrapped soon, so whatever.
-            if (response.value.startsWith("ex.")) {
+            if (
+                typeof response.value === "string" &&
+                response.value.startsWith("ex.")
+            ) {
                 const [funcname, ...args] = response.value.slice(3).split(/\s+/)
 
                 QUEUE[QUEUE.length - 1].then(() => {

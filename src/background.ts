@@ -13,6 +13,7 @@ import { CmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds } from "@src/background/editor"
 import * as convert from "@src/lib/convert"
 import * as config from "@src/lib/config"
+import { formatExProgram } from "@src/lib/excmd"
 import * as dom from "@src/lib/dom"
 import * as download_background from "@src/background/download_background"
 import * as itertools from "@src/lib/itertools"
@@ -132,7 +133,7 @@ browser.runtime.onStartup.addListener(() => {
         // If there's only one rule and it's "all", no need to check the hostname
         if (hosts.length === 1 && hosts[0] === ".*") {
             autocmd_logger.debug(
-                `TriStart matched ${hosts[0]}: ${aucmds[hosts[0]]}`,
+                `TriStart matched ${hosts[0]}: ${formatExProgram(aucmds[hosts[0]])}`,
             )
             controller.acceptExCmd(aucmds[hosts[0]])
         } else {
@@ -140,7 +141,7 @@ browser.runtime.onStartup.addListener(() => {
                 for (const host of hosts) {
                     if (new RegExp(host).exec(hostname.content)) {
                         autocmd_logger.debug(
-                            `TriStart matched ${host}: ${aucmds[host]}`,
+                            `TriStart matched ${host}: ${formatExProgram(aucmds[host])}`,
                         )
                         controller.acceptExCmd(aucmds[host])
                     }

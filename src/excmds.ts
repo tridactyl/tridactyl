@@ -112,6 +112,14 @@ let ALL_EXCMDS
 // The entry-point script will make sure this has the right set of
 // excmds, so we can use it without futher configuration.
 import * as controller from "@src/lib/controller"
+import {
+    ExCommand,
+    ExProgram,
+    formatExProgram,
+    isExProgram,
+    joinExCommand,
+    programSource,
+} from "@src/lib/excmd"
 
 //#content_helper
 import { keyMuncher as KEY_MUNCHER, startBufferingPageKeys } from "@src/content/controller_content"
@@ -1860,8 +1868,8 @@ export async function help(...args: string[]) {
                 // sequence referenced by 'helpItem' and don't check other
                 // modes
                 if (helpItem in bindings) {
-                    helpItem = bindings[helpItem].split(" ")
-                    helpItem = ["composite", "fillcmdline"].includes(helpItem[0]) ? helpItem[1] : helpItem[0]
+                    const command = programSource(bindings[helpItem]).split(" ")
+                    helpItem = ["composite", "fillcmdline"].includes(command[0]) ? command[1] : command[0]
                     return browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
                 }
             }
@@ -2455,12 +2463,24 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "T
         TRI_FIRED_URL: owntab.url,
     }
     for (const aukey of aukeyarr) {
-        for (const [k, v] of Object.entries(replacements)) {
-            aucmds[aukey] = aucmds[aukey].replace(k, v)
+        let excmd: ExCommand = aucmds[aukey]
+        if (
+            isExProgram(excmd) &&
+            Object.keys(replacements).some(key =>
+                programSource(excmd).includes(key),
+            )
+        ) {
+            autocmd_logger.error(
+                "Magic autocmd variables are not supported in ex blocks",
+            )
+            continue
         }
+        if (!isExProgram(excmd))
+            for (const [k, v] of Object.entries(replacements))
+                excmd = excmd.replace(k, () => String(v))
         try {
-            autocmd_logger.debug(`${cmdType} matched ${aukey}: ${aucmds[aukey]}`)
-            await controller.acceptExCmd(aucmds[aukey])
+            autocmd_logger.debug(`${cmdType} matched ${aukey}: ${formatExProgram(excmd)}`)
+            await controller.acceptExCmd(excmd)
         } catch (e) {
             autocmd_logger.error((e as Error).toString())
         }
@@ -3918,10 +3938,18 @@ async function getnexttabs(tabid: number, n?: number) {
 
 */
 //#background
-export async function repeat(n = 1, ...exstr: string[]) {
-    let cmd = state.last_ex_str
-    if (exstr.length > 0) cmd = exstr.join(" ")
-    logger.debug("repeating " + cmd + " " + n + " times")
+export async function repeat(n: number | ExProgram = 1, ...exstr: Array<string | ExProgram>) {
+    let cmd: ExCommand
+    if (isExProgram(n)) {
+        cmd = n
+        n = 1
+    } else {
+        const count = parseFloat(String(n))
+        if (Number.isNaN(count)) throw new Error(`Invalid repeat count: ${n}`)
+        n = count
+        cmd = exstr.length ? joinExCommand(exstr) : state.last_ex_str
+    }
+    logger.debug("repeating " + formatExProgram(cmd) + " " + n + " times")
     for (let i = 0; i < n; i++) {
         await controller.acceptExCmd(cmd)
     }
@@ -4471,7 +4499,7 @@ export function comclear(name: string) {
         - [[reset]]
 */
 //#background
-export async function bind(...args: string[]) {
+export async function bind(...args: Array<string | ExProgram>) {
     if (args.includes("--recursive")) {
         throw new Error("`--recursive` can only be called on unbind.")
     }
@@ -4479,6 +4507,8 @@ export async function bind(...args: string[]) {
     const args_obj = parse_bind_args(...args)
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
+        if (args_obj.mode === "browser" && isExProgram(args_obj.excmd))
+            throw new Error("Browser-mode binds do not support ex blocks")
         if (args_obj.mode === "browser" && parseMapstr(args_obj.key).hasExplicitDirection)
             throw new Error("Browser-mode binds do not support D/U modifiers.")
         const key_sub = findShadowingMapstr(
@@ -4504,7 +4534,7 @@ export async function bind(...args: string[]) {
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = bindshow(...args)
+        p = bindshow(...(args as string[]))
     }
     return p
 }
@@ -4515,7 +4545,7 @@ export async function bind(...args: string[]) {
 //#background
 export function bindshow(...args: string[]) {
     const args_obj = parse_bind_args(...args)
-    return fillcmdline_notrail("bind", (args_obj.mode ? "--mode=" + args_obj.mode + " " : "") + args_obj.key, config.getDynamic(args_obj.configName, args_obj.key))
+    return fillcmdline_notrail("bind", (args_obj.mode ? "--mode=" + args_obj.mode + " " : "") + args_obj.key, formatExProgram(config.getDynamic(args_obj.configName, args_obj.key)))
 }
 
 /**
@@ -4550,15 +4580,15 @@ export async function bindwizard(...args: string[]) {
  *
  */
 //#background
-export function bindurl(pattern: string, mode: string, keys: string, ...excmd: string[]) {
-    const args_obj = parse_bind_args(mode, keys, ...excmd)
+export function bindurl(pattern: string, ...args: Array<string | ExProgram>) {
+    const args_obj = parse_bind_args(...args)
     if (args_obj.mode === "browser") throw new Error("Browser-wide binds are not supported per-URL")
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
         p = config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = fillcmdline_notrail("#", args_obj.key, "=", config.getURL(pattern, [args_obj.configName, args_obj.key]))
+        p = fillcmdline_notrail("#", args_obj.key, "=", formatExProgram(config.getURL(pattern, [args_obj.configName, args_obj.key])))
     }
     return p
 }
@@ -4821,15 +4851,20 @@ export function getAutocmdEvents() {
  *
  */
 //#background
-export async function autocmd(event: string, url: string, ...excmd: string[]) {
+export async function autocmd(event: string, url: string, ...parts: Array<string | ExProgram>) {
     // rudimentary run time type checking
     if (!getAutocmdEvents().includes(event)) {
         throw new Error(event + " is not a supported event.")
     }
+    const excmd = joinExCommand(parts)
+    if (isExProgram(excmd) && excmd.source.includes("TRI_FIRED_"))
+        throw new Error("Magic autocmd variables are not supported in ex blocks")
     if (webrequests.requestEvents.includes(event)) {
-        await webrequests.registerWebRequestAutocmd(event, url, excmd.join(" "))
+        if (isExProgram(excmd))
+            throw new Error("WebRequest autocmds do not accept ex blocks")
+        await webrequests.registerWebRequestAutocmd(event, url, excmd)
     }
-    return config.set("autocmds", event, url, excmd.join(" "))
+    return config.set("autocmds", event, url, excmd)
 }
 
 /**

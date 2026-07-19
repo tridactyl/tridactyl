@@ -3,6 +3,7 @@
 import { contentState } from "@src/content/state_content"
 import * as keyseq from "@src/lib/keyseq"
 import { mode2maps } from "@src/lib/binding"
+import { isExProgram } from "@src/lib/excmd"
 
 /** Simple container for the nmode state. */
 class NModeState {
@@ -42,11 +43,18 @@ export function parser(keys: keyseq.MinimalKey[]) {
     if ((response.exstr !== undefined && response.isMatch) || !response.isMatch)
         modeState.curCommands += 1
     if (modeState.curCommands >= modeState.numCommands) {
-        const prefix =
-            response.exstr === undefined
-                ? ""
-                : "composite " + response.exstr + "; "
-        response.exstr = prefix + modeState.endCommand // NB: this probably breaks any `js` binds
+        if (isExProgram(response.exstr)) {
+            response.exstr = {
+                ...response.exstr,
+                source: `${response.exstr.source}\n${modeState.endCommand}`,
+            }
+        } else {
+            const prefix =
+                response.exstr === undefined
+                    ? ""
+                    : "composite " + response.exstr + "; "
+            response.exstr = prefix + modeState.endCommand // NB: this probably breaks any `js` binds
+        }
         modeState = undefined
     }
     return response

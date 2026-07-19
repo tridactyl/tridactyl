@@ -1,6 +1,7 @@
 // This file is only loaded in tridacyl's help pages
 
 import * as config from "@src/lib/config"
+import { formatExProgram, programSource } from "@src/lib/excmd"
 import { modeMaps } from "@src/lib/binding"
 
 /** Create the element that should contain keybinding information */
@@ -56,14 +57,14 @@ async function addSetting(settingName: string) {
     const settings = await config.getAsyncDynamic(settingName)
     // For each setting
     for (const setting of Object.keys(settings)) {
-        let excmd = settings[setting].split(" ")
+        let excmd: any = programSource(settings[setting]).split(" ")
         // How can we automatically detect what commands can be skipped?
         excmd = ["composite", "fillcmdline", "current_url"].includes(excmd[0])
             ? excmd[1]
             : excmd[0]
         // Find the corresponding setting
         while (settings[excmd]) {
-            excmd = settings[excmd].split(" ")
+            excmd = programSource(settings[excmd]).split(" ")
             excmd = ["fillcmdline", "current_url"].includes(excmd[0])
                 ? excmd[1]
                 : excmd[0]
@@ -73,7 +74,7 @@ async function addSetting(settingName: string) {
         if (settingElems[excmd]) {
             const settingSpan = document.createElement("span")
             settingSpan.innerText = setting
-            settingSpan.title = settings[setting]
+            settingSpan.title = formatExProgram(settings[setting])
             // Add the setting to the element
             settingElems[excmd].appendChild(settingSpan)
             settingElems[excmd].appendChild(document.createTextNode(" "))

@@ -28,6 +28,7 @@ import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"
 import grammar from "@src/grammars/.bracketexpr.generated"
 import { memoise } from "@src/lib/memoise"
+import { ExCommand, isExProgram } from "@src/lib/excmd"
 const bracketexpr_grammar = grammar
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
@@ -173,13 +174,13 @@ export type KeyEventLike = MinimalKey | TrustedKeyboardEvent
 
 // {{{ parser and completions
 
-type MapTarget = string | ((...args: any[]) => any)
+type MapTarget = ExCommand | ((...args: any[]) => any)
 type KeyMap = Map<MinimalKey[], MapTarget>
 
 export interface ParserResponse {
     keys?: MinimalKey[]
-    value?: string
-    exstr?: string
+    value?: MapTarget
+    exstr?: ExCommand
     isMatch?: boolean
     numericPrefix?: number
 }
@@ -269,9 +270,14 @@ export function parse(keyseq: MinimalKey[], map: KeyMap): ParserResponse {
             const perfect = find(possibleMappings, ([k, _v]) =>
                 isPerfectMatch(keyseq, k),
             )
+            const target = perfect[1]
+            if (isExProgram(target) && numericPrefix.length)
+                throw new Error("Counts are not supported for ex block bindings")
             return {
-                value: perfect[1],
-                exstr: perfect[1] + numericPrefixToExstrSuffix(numericPrefix),
+                value: target,
+                exstr: isExProgram(target)
+                    ? target
+                    : target + numericPrefixToExstrSuffix(numericPrefix),
                 isMatch: true,
                 numericPrefix: numericPrefix.length
                     ? Number(numericPrefix.map(ke => ke.key).join(""))
@@ -583,7 +589,7 @@ export function keyMap(conf): KeyMap {
     // Fail silently and pass keys through to page if Tridactyl hasn't loaded yet
     if (!config.INITIALISED) return new Map()
 
-    const mapobj: { [keyseq: string]: string } = config.get(conf)
+    const mapobj: Record<string, ExCommand> = config.get(conf)
     if (mapobj === undefined)
         throw new Error(
             "No binds defined for this mode. Reload page with <C-r> and add binds, e.g. :bind --mode=[mode] <Esc> mode normal",

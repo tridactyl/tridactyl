@@ -143,3 +143,15 @@ test("merge object when user config undefined", () => {
 
     expect(tri.config.USERCONFIG.subconfigs[u][obj]).toEqual({ next: val })
 })
+
+test("refuses to export versioned programs as legacy RC commands", () => {
+    const nmaps = tri.config.USERCONFIG.nmaps
+    tri.config.USERCONFIG.nmaps = {
+        x: { source: "echo one\necho two", exversion: 2 },
+    }
+    try {
+        expect(() => tri.config.parseConfig()).toThrow("cannot yet be exported")
+    } finally {
+        tri.config.USERCONFIG.nmaps = nmaps
+    }
+})

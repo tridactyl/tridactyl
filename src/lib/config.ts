@@ -18,6 +18,7 @@
  */
 import * as R from "ramda"
 import * as binding from "@src/lib/binding"
+import { ExCommand, isExProgram } from "@src/lib/excmd"
 import * as platform from "@src/lib/platform"
 import { DeepPartial } from "tsdef"
 
@@ -162,7 +163,7 @@ export class default_config {
      * exmaps contains all of the bindings for the command line.
      * You can of course bind regular ex commands but also [editor functions](/static/docs/modules/_src_lib_editor_.html) and [commandline-specific functions](/static/docs/modules/_src_commandline_frame_.html).
      */
-    exmaps = {
+    exmaps: Record<string, ExCommand> = {
         "<Enter>": "ex.accept_line",
         "<C-Enter>": "ex.execute_ex_on_completion",
         "<C-j>": "ex.accept_line",
@@ -197,7 +198,7 @@ export class default_config {
      *
      * They consist of key sequences mapped to ex commands.
      */
-    ignoremaps = {
+    ignoremaps: Record<string, ExCommand> = {
         "<S-Insert>": "mode normal",
         "<AC-Escape>": "mode normal",
         "<AC-`>": "mode normal",
@@ -212,7 +213,7 @@ export class default_config {
      *
      * They consist of key sequences mapped to ex commands.
      */
-    imaps = {
+    imaps: Record<string, ExCommand> = {
         "<Escape>": "composite unfocus | mode normal",
         "<C-[>": "composite unfocus | mode normal",
         "<C-i>": "editor",
@@ -228,7 +229,7 @@ export class default_config {
      *
      * They consist of key sequences mapped to ex commands.
      */
-    inputmaps = {
+    inputmaps: Record<string, ExCommand> = {
         "<Tab>": "focusinput -n",
         "<S-Tab>": "focusinput -N",
         /**
@@ -255,7 +256,7 @@ export class default_config {
      *
      * They consist of key sequences mapped to ex commands.
      */
-    nmaps = {
+    nmaps: Record<string, ExCommand> = {
         "<A-p>": "pin",
         "<A-m>": "mute toggle",
         "<F1>": "help",
@@ -422,7 +423,7 @@ export class default_config {
         "`": "gobble 1 markjump",
     }
 
-    vmaps = {
+    vmaps: Record<string, ExCommand> = {
         "<Escape>":
             "composite js document.getSelection().empty(); mode normal; hidecmdline",
         "<C-[>":
@@ -453,7 +454,7 @@ export class default_config {
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 
-    hintmaps = {
+    hintmaps: Record<string, ExCommand> = {
         "<Backspace>": "hint.popKey",
         "<Escape>": "hint.reset",
         "<C-[>": "hint.reset",
@@ -471,7 +472,7 @@ export class default_config {
      * Browser-wide binds accessible in all modes and on pages where Tridactyl "cannot run".
      * <!-- Note to developers: binds here need to also be listed in manifest.json -->
      */
-    browsermaps = {
+    browsermaps: Record<string, ExCommand> = {
         "<C-,>": "escapehatch",
         "<C-6>": "tab #",
         // "<CS-6>": "tab #", // banned by e2e tests
@@ -492,7 +493,7 @@ export class default_config {
      *
      * Related ex command: `autocmd`.
      */
-    autocmds = {
+    autocmds: Record<string, Record<string, ExCommand>> = {
         /**
          * Commands that will be run as soon as Tridactyl loads into a page.
          *
@@ -2621,6 +2622,10 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                         continue
                     }
 
+                    if (isExProgram(pconf[i][e]))
+                        throw new Error(
+                            "Dialect 2 programs cannot yet be exported to an RC file",
+                        )
                     if (pconf[i][e].length > 0) {
                         parseobj.binds.push(`${cmd} ${e} ${pconf[i][e]}`)
                     } else {
@@ -2637,6 +2642,10 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                     }
                 } else if (i === "autocmds") {
                     for (const a of Object.keys(pconf[i][e])) {
+                        if (isExProgram(pconf[i][e][a]))
+                            throw new Error(
+                                "Dialect 2 programs cannot yet be exported to an RC file",
+                            )
                         parseobj.aucmds.push(
                             `autocmd ${e} ${a} ${pconf[i][e][a]}`,
                         )

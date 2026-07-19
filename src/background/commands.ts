@@ -2,16 +2,18 @@ import { useractions } from "@src/background/user_actions"
 import * as config from "@src/lib/config"
 import * as keyseq from "@src/lib/keyseq"
 import * as controller from "@src/lib/controller"
+import { isExProgram } from "@src/lib/excmd"
 
 function makelistener(commands: Array<browser.commands.Command>) {
     return (command_name: string) => {
         const command = commands.filter(c => c.name == command_name)[0]
-        const [excmd, ...exargs] = config
-            .get(
-                "browsermaps",
-                keyseq.mozMapToMinimalKey(command.shortcut).toMapstr(),
-            )
-            .split(" ")
+        const mapped = config.get(
+            "browsermaps",
+            keyseq.mozMapToMinimalKey(command.shortcut).toMapstr(),
+        )
+        if (isExProgram(mapped))
+            throw new Error("Browser-mode binds do not support ex blocks")
+        const [excmd, ...exargs] = mapped.split(" ")
         if (excmd in useractions) return useractions[excmd](...exargs)
         return controller.acceptExCmd([excmd, ...exargs].join(" "))
     }
