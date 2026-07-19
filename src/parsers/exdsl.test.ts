@@ -83,7 +83,7 @@ test.each(["echo a |", "echo a &&", "echo a .|", "echo a ;"])(
 test.each([
     "| echo a",
     "echo a | | echo b",
-    "echo a |\necho b",
+    "echo a ; ; echo b",
     "echo a }",
     "{ echo a | }",
 ])("reports invalid input for %s", source =>
@@ -103,6 +103,17 @@ test("evaluates pipes and sequences in order", async () => {
         ["d", true, "c"],
     ])
     expect(result).toBe("d(c)")
+})
+
+test("continues incomplete operators across newlines", async () => {
+    const run = jest.fn((source, piped, value) =>
+        piped ? `${source}(${value})` : source,
+    )
+    await expect(evaluate("a |\n# comment\n b", run)).resolves.toBe("b(a)")
+    expect(run.mock.calls).toEqual([
+        ["a", false, undefined, undefined],
+        ["b", true, "a", undefined],
+    ])
 })
 
 test.each(["a && b", "a .| b"])(
