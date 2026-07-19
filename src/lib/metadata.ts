@@ -18,6 +18,7 @@ export const staticThemes: string[] = staticThemesJson
 
 type Node = any
 
+const reflections: Record<number, Node> = {}
 const fileBuckets: Record<
     string,
     { functions: Record<string, Node>; classes: Record<string, Node> }
@@ -36,6 +37,7 @@ function walk(node: Node) {
         for (const v of node) walk(v)
         return
     }
+    if (node.id !== undefined) reflections[node.id] = node
     if (node.kindString === "Module") {
         const bucket = fileBuckets[moduleName(node)]
         for (const child of bucket ? node.children || [] : []) {
@@ -116,6 +118,20 @@ export function paramTypes(fnNode: Node | undefined): Node[] {
 // Type coercion + stringification over typedoc type nodes.
 // =============================================================================
 
+function resolveType(t: Node | undefined): Node | undefined {
+    const seen = new Set<number>()
+    while (
+        t?.type === "reference" &&
+        t.id !== undefined &&
+        !t.typeArguments?.length &&
+        !seen.has(t.id)
+    ) {
+        seen.add(t.id)
+        t = reflections[t.id]?.type || t
+    }
+    return t
+}
+
 function intrinsicName(t) {
     switch (t.name) {
         case "string":
@@ -134,6 +150,7 @@ function intrinsicName(t) {
 
 /** Normalised kind: "string" | "number" | "boolean" | "object" | "array" | "void" | "any" | ... */
 export function typeKind(t: Node | undefined): string {
+    t = resolveType(t)
     if (!t) return "any"
     switch (t.type) {
         case "intrinsic":
@@ -156,6 +173,7 @@ export function typeKind(t: Node | undefined): string {
 }
 
 export function typeToString(t: Node | undefined): string {
+    t = resolveType(t)
     if (!t) return "any"
     switch (t.type) {
         case "intrinsic":
@@ -222,6 +240,7 @@ function convertIntrinsic(t, value) {
 }
 
 export function convert(t: Node | undefined, value: any): any {
+    t = resolveType(t)
     if (!t) return value
     switch (t.type) {
         case "intrinsic":
@@ -302,6 +321,7 @@ export function convertMember(
     path: string[],
     value: any,
 ): any {
+    t = resolveType(t)
     const decl = t?.type === "reflection" ? t.declaration : undefined
     const named: Record<string, Node> = {}
     let indexSig: Node | undefined
