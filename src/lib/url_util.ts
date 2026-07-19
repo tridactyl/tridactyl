@@ -176,7 +176,7 @@ function getExtensionForMimetype(mime: string): string {
  *  - otherwise, use the hostname of the URL
  *  - if that fails, "download"
  *
- * @param URL   the URL to make a filename for
+ * @param url   the URL to make a filename for
  * @return      the filename according to the above rules
  */
 export function getDownloadFilenameForUrl(url: URL): string {
@@ -260,7 +260,7 @@ function setUrlQueries(url: URL, qys: string[]) {
  * all instances are removed
  *
  * @param url           the URL to act on
- * @param query         the query to delete
+ * @param matchQuery    the query to delete
  *
  * @return              the modified URL
  */

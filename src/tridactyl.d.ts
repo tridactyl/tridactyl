@@ -9,103 +9,25 @@ interface Number {
     clamp(lo: number, hi: number): number
 }
 
-// Firefox-specific dom properties
-interface Window {
-    scrollByLines(n: number): void
-    scrollByPages(n: number): void
-    eval(str: string): any
-}
-interface Selection {
-    modify(
-        alter: "move" | "extend",
-        direction: "forward" | "backward" | "left" | "right",
-        granularity: "character" | "word" | "line",
-    ): void
-}
-
-// Record that we've added a property with convenience objects to the
-// window object:
+// Record that we've added convenience objects to window.
 interface Window {
     tri: any
 }
 
-// This isn't an actual firefox type but it's nice to have one for this kind of object
-// https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/find/find
-interface findResult {
-    count: number
-    rangeData: Array<{
-        framePos: number
-        startTextNodePos: number
-        endTextNodePos: number
-        startOffset: number
-        endOffset: number
-        text: string
-    }>
-    rectData: {
-        rectsAndTexts: Array<{
-            top: number
-            left: number
-            bottom: number
-            right: number
-        }>
-        textList: string[]
-    }
-}
-
 interface HTMLElement {
-    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/inert
-    inert: boolean
-
     // Firefox-only (?) Element attribute
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/dom/openOrClosedShadowRoot
     openOrClosedShadowRoot: ShadowRoot | null
-
-    // Let's be future proof:
-    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus
-    focus(options?: any): void
-
-    // https://developer.mozilla.org/en-US/docs/Web/API/Element/replaceChildren
-    replaceChildren(...nodes: Node[]): void
 }
 
-/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 // these functions really can be anything, ditto for the objects
 declare function exportFunction(
     func: Function,
     targetScope: object,
     options?: { defineAs?: string; allowCrossOriginArguments?: boolean },
 ): Function
-/* eslint-enable @typescript-eslint/ban-types */
-
-// Web extension types not in web-ext-types yet
-declare namespace browser.find {
-    function find(query, object): any
-}
-
-declare namespace browser.tabs {
-    function setZoom(zoomFactor: number): Promise<void>
-    // setZoom has an optional first argument of tabId: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/setZoom#Parameters
-    // eslint-disable-next-line @typescript-eslint/unified-signatures
-    function setZoom(tabId: number, zoomFactor: number): Promise<void>
-    function toggleReaderMode(tabId?: number): Promise<void>
-}
-
-// web-ext-browser barely declares a third of the management
-// interface, and we can't switch to @types/firefox-webext-browser yet
-// because their enums are all messed up (see
-// https://github.com/DefinitelyTyped/DefinitelyTyped/pull/28369)
-// Instead, we'll copy-paste as much as we need from the fixed branch:
-// https://github.com/DefinitelyTyped/DefinitelyTyped/blob/d1180e5218a7bf69e6f0da5ac2e2584bd57a1cdf/types/firefox-webext-browser/index.d.ts
-interface WebExtEventBase<
-    TAddListener extends (...args: any[]) => any,
-    TCallback,
-> {
-    addListener: TAddListener
-
-    removeListener(cb: TCallback): void
-
-    hasListener(cb: TCallback): boolean
-}
+/* eslint-enable @typescript-eslint/no-unsafe-function-type */
 
 // html-tagged-template.js
 declare function html(
@@ -113,30 +35,9 @@ declare function html(
     ...values: any[]
 ): HTMLElement
 
-declare namespace browser.search {
-    function search(searchProperties: {
-        query: string
-        engine?: string
-        tabId?: number
-    }): void
-    function get(): Promise<
-        Array<{
-            name: string
-            isDefault: boolean
-            alias?: string
-            faviconURL?: string
-        }>
-    >
-}
-
-// Stop typedoc complaining about toBeAll.
+// Custom matcher from src/lib/mod.test.ts.
 declare namespace jest {
     interface Matchers<R> {
         toBeAll: any
     }
-}
-
-// jest-webextension-mock doesn't know about this Firefox specific API
-declare namespace browser.commands {
-    function update(details)
 }

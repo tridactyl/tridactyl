@@ -224,7 +224,7 @@ export async function getRssLinks(): Promise<Array<{ type: string; url: string; 
             }
             if (seen.has(e.href)) return acc
             seen.add(e.href)
-            return acc.concat({ type, url: e.href, title: e.title || e.innerText } as { type: string; url: string; title: string })
+            return acc.concat({ type, url: e.href, title: e.title || e.innerText })
         }, [])
 }
 
@@ -340,7 +340,7 @@ import { getEditor } from "editor-adapter"
  * ```
  *
  * Your editor of choice may need to run in a terminal. For example, this command opens neovim with kitty and exits after closing the editor:
- * ```vim
+ * ```text
  * set editorcmd kitty nvim
  * ```
  *
@@ -446,31 +446,31 @@ export async function guiset_quiet(rule: string, option: string) {
  * Some of the available options:
  *
  * - gui
- *      - full
- *      - none
+ *     - full
+ *     - none
  *
  * - tabs
- *      - always
- *      - autohide
+ *     - always
+ *     - autohide
  *
  * - navbar
- *      - always
- *      - autohide
- *      - none
+ *     - always
+ *     - autohide
+ *     - none
  *
  * - hoverlink (the little link that appears when you hover over a link)
- *      - none
- *      - left
- *      - right
- *      - top-left
- *      - top-right
+ *     - none
+ *     - left
+ *     - right
+ *     - top-left
+ *     - top-right
  *
  * - statuspanel (hoverlink + the indicator that appears when a website is loading)
- *      - none
- *      - left
- *      - right
- *      - top-left
- *      - top-right
+ *     - none
+ *     - left
+ *     - right
+ *     - top-left
+ *     - top-right
  *
  * If you want to use guiset in your tridactylrc, you might want to use [[guiset_quiet]] instead.
  */
@@ -1071,7 +1071,7 @@ export async function curJumps() {
     return jumps
 }
 
-/** Calls [[jumpprev]](-n) */
+/** Calls [[jumpprev]] with `-n`. */
 //#content
 export function jumpnext(n = 1) {
     return jumpprev(-n)
@@ -1465,13 +1465,15 @@ export function scrollpage(n = 1, count = 1) {
 /**
  *  Rudimentary find mode, left unbound by default as we don't currently support `incsearch`. Suggested binds:
  *
- *      bind / fillcmdline find
- *      bind ? fillcmdline find --reverse
- *      bind n findnext --search-from-view
- *      bind N findnext --search-from-view --reverse
- *      bind gn findselect
- *      bind gN composite findnext --search-from-view --reverse; findselect
- *      bind ,<Space> nohlsearch
+ * ```text
+ * bind / fillcmdline find
+ * bind ? fillcmdline find --reverse
+ * bind n findnext --search-from-view
+ * bind N findnext --search-from-view --reverse
+ * bind gn findselect
+ * bind gN composite findnext --search-from-view --reverse; findselect
+ * bind ,<Space> nohlsearch
+ * ```
  *
  *  Argument: A string you want to search for.
  *
@@ -1512,7 +1514,7 @@ export function find(...args: string[]) {
  * - `-f` or `--search-from-view` to search from the current view instead of the previous match
  * - `-?` or `--reverse` to reverse the sign of the number
  *
- * @param number - number of words to advance down the page (use 1 for next word, -1 for previous), default to 1
+ * @param args - flags and number of words to advance down the page (use 1 for next word, -1 for previous), default to 1
  *
  */
 //#content
@@ -2219,7 +2221,7 @@ export function urlparent(count = 1) {
  *  * -Q delete the given query
  *  * -g graft a new path onto URL or parent path of it
  *  * -*u Use last argument as URL input instead of current URL
- * @param replacement the replacement arguments (depends on mode):
+ * @param args the replacement arguments (depends on mode):
  *  * -t <old> <new>
  *  * -r <regexp> <new> [flags]
  *  * -s <query> <value>
@@ -3187,19 +3189,19 @@ export async function undo(item = "recent"): Promise<number> {
     return -1
 }
 
-/** Move the current tab to be just in front of the index specified.
-
-    Known bug: This supports relative movement with `tabmove +pos` and `tabmove -pos`, but autocomplete doesn't know that yet and will override positive and negative indexes.
-
-    Put a space in front of tabmove if you want to disable completion and have the relative indexes at the command line.
-
-    Binds are unaffected.
-
-    @param index
-        New index for the current tab.
-
-        1,start,^ are aliases for the first index. 0,end,$ are aliases for the last index.
-*/
+/**
+ * Move the current tab to be just in front of the index specified.
+ *
+ * Known bug: This supports relative movement with `tabmove +pos` and `tabmove -pos`, but autocomplete doesn't know that yet and will override positive and negative indexes.
+ *
+ * Put a space in front of tabmove if you want to disable completion and have the relative indexes at the command line.
+ *
+ * Binds are unaffected.
+ *
+ * @param index New index for the current tab.
+ *
+ * 1,start,^ are aliases for the first index. 0,end,$ are aliases for the last index.
+ */
 //#background
 export async function tabmove(index = "$") {
     const aTab = await activeTab()
@@ -3272,7 +3274,7 @@ export async function tabmove(index = "$") {
  * - `--title` sorts tabs by title
  * - `--url` sorts tabs by url (the default)
  * - `(tab1, tab2) => true|false`
- *      - sort by arbitrary comparison function. `tab{1,2}` are objects with properties described here: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/Tab
+ *     - sort by arbitrary comparison function. `tab{1,2}` are objects with properties described here: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/Tab
  */
 //#background
 export async function tabsort(...callbackchunks: string[]) {
@@ -3297,7 +3299,7 @@ export async function pin(index: string) {
  Passing "all" to the excmd will operate on  the mute state of all tabs.
  Passing "unmute" to the excmd will unmute.
  Passing "toggle" to the excmd will toggle the state of `browser.tabs.tab.MutedInfo`
- @param string[] muteArgs
+ @param muteArgs
  */
 //#background
 export async function mute(...muteArgs: string[]): Promise<void> {
@@ -3419,7 +3421,7 @@ export async function winopen(...args: string[]) {
 /**
  * Close a window.
  *
- * @param id - The window id. Defaults to the id of the current window.
+ * @param ids - The window ids. Defaults to the id of the current window.
  *
  * Example: `winclose`
  */
@@ -4245,7 +4247,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 /** Copy an image to the clipboard.
 
     @param url
-        Absolute URL to the image to be copied. You can obtain an absolute URL from a relative one using [tri.urlutils.getAbsoluteURL](_src_lib_url_util_.html#getabsoluteurl).
+        Absolute URL to the image to be copied. You can obtain an absolute URL from a relative one using <a href="/static/docs/modules/_src_lib_url_util_.html#getabsoluteurl">tri.urlutils.getAbsoluteURL</a>.
 */
 //#background
 export async function yankimage(url: string): Promise<void> {
@@ -4265,16 +4267,16 @@ export async function yankimage(url: string): Promise<void> {
     }
 }
 
-/** Change active tab.
-
-    @param id
-        A bare number means the current window is used. Starts at 1. 0 refers to last tab of the current window, -1 to penultimate tab, etc.
-
-        A string following the following format: "[0-9]+.[0-9]+" means the first number being the index of the window that should be selected and the second one being the index of the tab within that window. [[taball]] has completions for this format.
-
-        "%" denotes the current tab and "#" denotes the tab that was last accessed in this window.  "P", "A", "M" and "D" indicate tab status (i.e. a pinned, audible, muted or discarded tab).  Use `:set completions.Tab.statusstylepretty true` to display unicode characters instead.  "P","A","M","D" can be used to filter by tab status in either setting.
-
-        A non integer string means to search the URL and title for matches, in this window if called from tab, all windows if called from taball. Title matches can contain '*' as a wildcard.
+/**
+ * Change active tab.
+ *
+ * @param id A bare number means the current window is used. Starts at 1. 0 refers to last tab of the current window, -1 to penultimate tab, etc.
+ *
+ * A string following the following format: "[0-9]+.[0-9]+" means the first number being the index of the window that should be selected and the second one being the index of the tab within that window. [[taball]] has completions for this format.
+ *
+ * "%" denotes the current tab and "#" denotes the tab that was last accessed in this window.  "P", "A", "M" and "D" indicate tab status (i.e. a pinned, audible, muted or discarded tab).  Use `:set completions.Tab.statusstylepretty true` to display unicode characters instead.  "P","A","M","D" can be used to filter by tab status in either setting.
+ *
+ * A non integer string means to search the URL and title for matches, in this window if called from tab, all windows if called from taball. Title matches can contain '*' as a wildcard.
  */
 //#background
 export async function tab(...id: string[]) {
@@ -4753,62 +4755,65 @@ const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLef
 export function getAutocmdEvents() {
     return AUCMDS
 }
-/** Set autocmds to run when certain events happen.
+/**
+ * Set autocmds to run when certain events happen.
  *
  * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'HistoryPushState', 'HistoryReplace', 'UriChange', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
  *
-        - DocStart: When a webpage loading. Exactly, when tridactyl is loading in a page.
-        - DocLoad: When the whole html parsed, not including image/css loaded. (Just like jquery $(fn) or the [DOMContentLoaded event](https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event).)
-        - DocEnd: When a webpage unloaded/closed or backward/forward in history. Exactly, the [pagehide event](https://developer.mozilla.org/en-US/docs/Web/API/Window/pagehide_event).
-        - TabEnter: When a tab get focus.
-        - TabLeft: When a tab lost focus or closed.
+ * - DocStart: When a webpage loading. Exactly, when tridactyl is loading in a page.
+ * - DocLoad: When the whole html parsed, not including image/css loaded. (Just like jquery $(fn) or the [DOMContentLoaded event](https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event).)
+ * - DocEnd: When a webpage unloaded/closed or backward/forward in history. Exactly, the [pagehide event](https://developer.mozilla.org/en-US/docs/Web/API/Window/pagehide_event).
+ * - TabEnter: When a tab get focus.
+ * - TabLeft: When a tab lost focus or closed.
 
-        - A supported webRequest event (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the corresponding [WebExtension webRequest event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events)
+ * - A supported webRequest event (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the corresponding [WebExtension webRequest event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events)
 
-        - The 'HistoryState' event is triggered when a page uses the web history API to change the page location / URI. It should be used in preference to 'UriChange' below since it will use almost no resources. The 'UriChange' event may work on websites where 'HistoryState' does not.
-        - The 'HistoryPushState' is triggered only when a page calls 'history.pushState' to change URI, and 'HistoryReplace' is for 'history.replace'. By the way, the HistoryPopState is not implemented.
-        - The 'UriChange' event is for "single page applications" which change their URIs without triggering DocStart or DocLoad events. It uses a timer to check whether the URI has changed, which has a small impact on battery life on pages matching the `url` parameter. We suggest using it sparingly.
+ * - The 'HistoryState' event is triggered when a page uses the web history API to change the page location / URI. It should be used in preference to 'UriChange' below since it will use almost no resources. The 'UriChange' event may work on websites where 'HistoryState' does not.
+ * - The 'HistoryPushState' is triggered only when a page calls 'history.pushState' to change URI, and 'HistoryReplace' is for 'history.replace'. By the way, the HistoryPopState is not implemented.
+ * - The 'UriChange' event is for "single page applications" which change their URIs without triggering DocStart or DocLoad events. It uses a timer to check whether the URI has changed, which has a small impact on battery life on pages matching the `url` parameter. We suggest using it sparingly.
  *
  * @param url type depends on the event
  *
-        - For most events (DocStart, DocEnd, TabEnter, TabLeft, ...): a JavaScript regex (e.g. `www\.amazon\.co.*`)
-            - We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search)
-        - For TriStart: regular expression that matches the hostname of the computer the autocmd should be run on. This requires the native messenger to be installed, except for the ".*" regular expression which will always be triggered, even without the native messenger.
-        - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
+ * - For most events (DocStart, DocEnd, TabEnter, TabLeft, ...): a JavaScript regex (e.g. `www\.amazon\.co.*`)
+ *     - We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search)
+ * - For TriStart: regular expression that matches the hostname of the computer the autocmd should be run on. This requires the native messenger to be installed, except for the ".*" regular expression which will always be triggered, even without the native messenger.
+ * - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
  *
- * @param command type depends on the event
+ * @param excmd type depends on the event
 
-        - For most events (DocStart, DocEnd, TabEnter, TabLeft, ...): the excmd to run (use [[composite]] to run multiple commands).
-            - Example for zooming in more on a website:
-              ```
-              autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID
-              ```
+ * - For most events (DocStart, DocEnd, TabEnter, TabLeft, ...): the excmd to run (use [[composite]] to run multiple commands).
+ *     - Example for zooming in more on a website:
+ *
+ *       ```text
+ *       autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID
+ *       ```
 
-        - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the text of a javascript function that should accept a [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) and return a [blocking response](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
-            - Example for redirecting from new to old reddit:
-              ```
-              autocmd BeforeRequest https://www.reddit.com/r/* (details) => ({redirectUrl: details.url.replace(/^https:\/\/www\./, "https://old.")})
-              ```
+ * - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the text of a javascript function that should accept a [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) and return a [blocking response](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
+ *     - Example for redirecting from new to old reddit:
+ *
+ *       ```text
+ *       autocmd BeforeRequest https://www.reddit.com/r/* (details) => ({redirectUrl: details.url.replace(/^https:\/\/www\./, "https://old.")})
+ *       ```
 
  * For non-webRequest events, magic variables are available which are replaced with the relevant string at runtime:
 
-        - `TRI_FIRED_MOZ_TABID`: Provides Mozilla's `tabID` associated with the fired event.
-        - `TRI_FIRED_TRI_TABINDEX`: Provides tridactyls internal tab index associated with the fired event.
-        - `TRI_FIRED_MOZ_WINID`: Provides Mozilla's `windowId` associated with the fired event.
-        - `TRI_FIRED_MOZ_OPENERTABID`: The ID of the tab that opened this tab.
-        - `TRI_FIRED_ACTIVE`: Whether the tab is active in its window. This may be true even if the tab's window is not currently focused.
-        - `TRI_FIRED_AUDIBLE`: Indicates whether the tab is producing sound (even if muted).
-        - `TRI_FIRED_MUTED`: Indicates whether the tab is muted.
-        - `TRI_FIRED_DISCARDED`: Whether the tab is discarded. A discarded tab is one whose content has been unloaded from memory.
-        - `TRI_FIRED_HEIGHT`: The height of the tab in pixels.
-        - `TRI_FIRED_WIDTH`: The width of the tab in pixels.
-        - `TRI_FIRED_HIDDEN`: Whether the tab is hidden.
-        - `TRI_FIRED_INCOGNITO`: Whether the tab is in a private browsing window.
-        - `TRI_FIRED_ISARTICLE`: True if the tab can be rendered in Reader Mode, false otherwise.
-        - `TRI_FIRED_LASTACCESSED`: Time at which the tab was last accessed, in milliseconds since the epoch.
-        - `TRI_FIRED_PINNED`: Whether the tab is pinned.
-        - `TRI_FIRED_TITLE`: The title of the tab.
-        - `TRI_FIRED_URL`: The URL of the document that the tab is displaying.
+ * - `TRI_FIRED_MOZ_TABID`: Provides Mozilla's `tabID` associated with the fired event.
+ * - `TRI_FIRED_TRI_TABINDEX`: Provides tridactyls internal tab index associated with the fired event.
+ * - `TRI_FIRED_MOZ_WINID`: Provides Mozilla's `windowId` associated with the fired event.
+ * - `TRI_FIRED_MOZ_OPENERTABID`: The ID of the tab that opened this tab.
+ * - `TRI_FIRED_ACTIVE`: Whether the tab is active in its window. This may be true even if the tab's window is not currently focused.
+ * - `TRI_FIRED_AUDIBLE`: Indicates whether the tab is producing sound (even if muted).
+ * - `TRI_FIRED_MUTED`: Indicates whether the tab is muted.
+ * - `TRI_FIRED_DISCARDED`: Whether the tab is discarded. A discarded tab is one whose content has been unloaded from memory.
+ * - `TRI_FIRED_HEIGHT`: The height of the tab in pixels.
+ * - `TRI_FIRED_WIDTH`: The width of the tab in pixels.
+ * - `TRI_FIRED_HIDDEN`: Whether the tab is hidden.
+ * - `TRI_FIRED_INCOGNITO`: Whether the tab is in a private browsing window.
+ * - `TRI_FIRED_ISARTICLE`: True if the tab can be rendered in Reader Mode, false otherwise.
+ * - `TRI_FIRED_LASTACCESSED`: Time at which the tab was last accessed, in milliseconds since the epoch.
+ * - `TRI_FIRED_PINNED`: Whether the tab is pinned.
+ * - `TRI_FIRED_TITLE`: The title of the tab.
+ * - `TRI_FIRED_URL`: The URL of the document that the tab is displaying.
 
  * For debugging, use `:set logging.autocmds debug` and check the Firefox web console. `WebRequest` events have no logging.
  *
@@ -5297,99 +5302,104 @@ export function setnull(...keys: string[]) {
 const KILL_STACK: Element[] = []
 // {{{ HINTMODE
 
-/** Hint a page.
-
-    @param args Arguments to the `:hint` command. Multiple flags can be combined as long as they don't conflict.
-    Selectors can be specified either standalone (without a flag preceding them) or with the `-c` option. Arguments that
-    take callbacks (`-F` or `-W`) should be specified last, as they consume the rest of the command line.
-
-    Hinting action flags (only one can be specified):
-        - -t open in a new foreground tab
-        - -b open in background
-        - -y copy (yank) link's target to clipboard
-        - -p copy an element's text to the clipboard
-        - -h select an element (as if you click-n-dragged over it)
-        - -P copy an element's title/alt text to the clipboard
-        - -r read an element's text with text-to-speech
-        - -i view an image
-        - -I view an image in a new tab
-        - -k irreversibly deletes an element from the page (until reload)
-        - -K hides an element on the page; hidden elements can be restored using [[elementunhide]].
-        - -s save (download) the linked resource
-        - -S save the linked image
-        - -a save-as the linked resource
-        - -A save-as the linked image
-        - -; focus an element and set it as the element or the child of the element to scroll
-        - -# yank an element's anchor URL to clipboard
-        - -w open in new window
-        - -wp open in new private window
-        - -z scroll an element to the top of the viewport
-        - `-pipe selector key` e.g, `-pipe a href` returns the URL of the chosen link on a page. Only makes sense with `composite`, e.g, `composite hint -pipe .some-class>a textContent | yank`. If you don't select a hint (i.e. press <Esc>), will return an empty string. Most useful when used like `-c` to do things other than opening links. NB: the query selector cannot contain any spaces.
-        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W mpvsafe` to open YouTube videos. NB: appending to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to to it safely. If you need to use a query selector, use `-pipe` instead.
-        - -F [callback] - run a custom callback on the selected hint, e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
-
-    Element selection flags:
-        - -c [selector] hint links that match the css selector
-          - `bind ;c hint -c [class*="expand"],[class*="togg"]` works particularly well on reddit and HN
-          - this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
-        - -C [selector] like `-c [selector]` but also hints all elements that would normally be hinted given the other options selected
-        - -x [selector] exclude the matched elements from hinting
-        - -f [text] hint links and inputs that display the given text
-          - `bind <c-e> hint -f Edit`
-          - Backslashes can escape spaces: `bind <c-s> hint -f Save\ as`
-        - -fr [text] use RegExp to hint the links and inputs
-        - -J* disable javascript hints. Don't generate hints related to javascript events. This is particularly useful when used with the `-c` option when you want to generate only hints for the specified css selectors. Also useful on sites with plenty of useless javascript elements such as google.com
-        - -V create hints for invisible elements. By default, elements outside the viewport when calling :hint are not hinted, this includes them anyways.
-
-    Hinting mode selection:
-        - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
-          - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
-        - -! execute all hints without waiting for a selection
-          - For example, `hint -!bf Comments` opens in background tabs all visible links whose text matches `Comments`
-
-    Deprecated options:
-        - -br deprecated, use `-qb` instead
-
-    Excepting the custom selector mode, background hint mode and the "immediate" modifier, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
-
-    To open a hint in the background, the default bind is `F`.
-
-    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/_src_content_hinting_.html)
-
-    Related settings:
-        - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
-        - "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
-        - "relatedopenpos": "related" | "next" | "last"
-        - "hintuppercase": "true" | "false"
-        - "hintnames": "short" | "uniform" | "numeric"
-        - "hintdelay": 300
-        - "hintshift": "true" | "false"
-        - "hintautoselect": "true" | "false"
-
-          With "short" names, Tridactyl will generate short hints that
-          are never prefixes of each other. With "uniform", Tridactyl
-          will generate hints of uniform length. In either case, the
-          hints are generated from the set in "hintchars".
-
-          With "numeric" names, hints are always assigned using
-          sequential integers, and "hintchars" is ignored. This has the
-          disadvantage that some hints are prefixes of others (and you
-          need to hit space or enter to select such a hint). But it has
-          the advantage that the hints tend to be more predictable
-          (e.g., a news site will have the same hints for its
-          boilerplate each time you visit it, even if the number of
-          links in the main body changes).
-
-    There are some extra hint "modes" that are actually just normal-mode binds. We'll list them here:
-
-    - `;gv` - "open link in MPV" - only available if you have [[native]] installed and `mpv` on your PATH
-    - `;m` and `;M` - do a reverse image search using Google in the current tab and a new tab
-    - `;x` and `;X` - move cursor to element and perform a real click or ctrl-shift-click (to open in a new foreground tab). Only available on Linux, if you have [[native]] installed and `xdotool` on your PATH
-    - `;d` and `;gd` - open links in discarded background tabs (defer loading until tab is switched to)
-
-    NB: by default, hinting respects whether links say they should be opened in new tabs (i.e. `target=_blank`). If you wish to override this you can use `:hint -JW open` to force the hints to open in the current tab. JavaScript hints (grey ones) will always open wherever they want, but if you want to include these anyway you can use `:hint -W open`.
-
-*/
+/**
+ * Hint a page.
+ *
+ * @param args Arguments to the `:hint` command. Multiple flags can be combined as long as they don't conflict.
+ * Selectors can be specified either standalone (without a flag preceding them) or with the `-c` option. Arguments that
+ * take callbacks (`-F` or `-W`) should be specified last, as they consume the rest of the command line.
+ *
+ * Hinting action flags (only one can be specified):
+ *
+ * - -t open in a new foreground tab
+ * - -b open in background
+ * - -y copy (yank) link's target to clipboard
+ * - -p copy an element's text to the clipboard
+ * - -h select an element (as if you click-n-dragged over it)
+ * - -P copy an element's title/alt text to the clipboard
+ * - -r read an element's text with text-to-speech
+ * - -i view an image
+ * - -I view an image in a new tab
+ * - -k irreversibly deletes an element from the page (until reload)
+ * - -K hides an element on the page; hidden elements can be restored using [[elementunhide]].
+ * - -s save (download) the linked resource
+ * - -S save the linked image
+ * - -a save-as the linked resource
+ * - -A save-as the linked image
+ * - -; focus an element and set it as the element or the child of the element to scroll
+ * - -# yank an element's anchor URL to clipboard
+ * - -w open in new window
+ * - -wp open in new private window
+ * - -z scroll an element to the top of the viewport
+ * - `-pipe selector key` e.g, `-pipe a href` returns the URL of the chosen link on a page. Only makes sense with `composite`, e.g, `composite hint -pipe .some-class>a textContent | yank`. If you don't select a hint (i.e. press `<Esc>`), will return an empty string. Most useful when used like `-c` to do things other than opening links. NB: the query selector cannot contain any spaces.
+ * - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W mpvsafe` to open YouTube videos. NB: appending to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to to it safely. If you need to use a query selector, use `-pipe` instead.
+ * - -F [callback] - run a custom callback on the selected hint, e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
+ *
+ * Element selection flags:
+ *
+ * - -c [selector] hint links that match the css selector
+ *     - `bind ;c hint -c [class*="expand"],[class*="togg"]` works particularly well on reddit and HN
+ *     - this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
+ * - -C [selector] like `-c [selector]` but also hints all elements that would normally be hinted given the other options selected
+ * - -x [selector] exclude the matched elements from hinting
+ * - -f [text] hint links and inputs that display the given text
+ *     - `bind <c-e> hint -f Edit`
+ *     - Backslashes can escape spaces: `bind <c-s> hint -f Save\ as`
+ * - -fr [text] use RegExp to hint the links and inputs
+ * - -J* disable javascript hints. Don't generate hints related to javascript events. This is particularly useful when used with the `-c` option when you want to generate only hints for the specified css selectors. Also useful on sites with plenty of useless javascript elements such as google.com
+ * - -V create hints for invisible elements. By default, elements outside the viewport when calling :hint are not hinted, this includes them anyways.
+ *
+ * Hinting mode selection:
+ *
+ * - -q* quick (or rapid) hints mode. Stay in hint mode until you press `<Esc>`, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
+ *     - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
+ * - -! execute all hints without waiting for a selection
+ *     - For example, `hint -!bf Comments` opens in background tabs all visible links whose text matches `Comments`
+ *
+ * Deprecated options:
+ *
+ * - -br deprecated, use `-qb` instead
+ *
+ * Excepting the custom selector mode, background hint mode and the "immediate" modifier, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
+ *
+ * To open a hint in the background, the default bind is `F`.
+ *
+ * Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/_src_content_hinting_.html)
+ *
+ * Related settings:
+ *
+ * - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
+ * - "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
+ * - "relatedopenpos": "related" | "next" | "last"
+ * - "hintuppercase": "true" | "false"
+ * - "hintnames": "short" | "uniform" | "numeric"
+ * - "hintdelay": 300
+ * - "hintshift": "true" | "false"
+ * - "hintautoselect": "true" | "false"
+ *
+ * With "short" names, Tridactyl will generate short hints that
+ * are never prefixes of each other. With "uniform", Tridactyl
+ * will generate hints of uniform length. In either case, the
+ * hints are generated from the set in "hintchars".
+ *
+ * With "numeric" names, hints are always assigned using
+ * sequential integers, and "hintchars" is ignored. This has the
+ * disadvantage that some hints are prefixes of others (and you
+ * need to hit space or enter to select such a hint). But it has
+ * the advantage that the hints tend to be more predictable
+ * (e.g., a news site will have the same hints for its
+ * boilerplate each time you visit it, even if the number of
+ * links in the main body changes).
+ *
+ * There are some extra hint "modes" that are actually just normal-mode binds. We'll list them here:
+ *
+ * - `;gv` - "open link in MPV" - only available if you have [[native]] installed and `mpv` on your PATH
+ * - `;m` and `;M` - do a reverse image search using Google in the current tab and a new tab
+ * - `;x` and `;X` - move cursor to element and perform a real click or ctrl-shift-click (to open in a new foreground tab). Only available on Linux, if you have [[native]] installed and `xdotool` on your PATH
+ * - `;d` and `;gd` - open links in discarded background tabs (defer loading until tab is switched to)
+ *
+ * NB: by default, hinting respects whether links say they should be opened in new tabs (i.e. `target=_blank`). If you wish to override this you can use `:hint -JW open` to force the hints to open in the current tab. JavaScript hints (grey ones) will always open wherever they want, but if you want to include these anyway you can use `:hint -W open`.
+ */
 //#content
 export async function hint(...args: string[]): Promise<any> {
     // Parse configuration and print parsing warnings
@@ -5777,7 +5787,7 @@ export async function ttscontrol(action: string) {
         throw new Error("Unknown text-to-speech action: " + action)
     }
 
-    return TTS.doAction(action as TTS.Action)
+    return TTS.doAction(action)
 }
 
 //}}}

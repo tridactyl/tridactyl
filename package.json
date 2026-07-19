@@ -26,7 +26,7 @@
     "stream-browserify": "^3.0.0",
     "tridactyl-arg": "git+https://github.com/GHolk/arg.git#v5.1.0",
     "tsdef": "^0.0.14",
-    "typedoc": "0.22.18",
+    "typedoc": "0.28.20",
     "xss": "^1.0.15"
   },
   "devDependencies": {
@@ -35,10 +35,10 @@
     "@types/jest": "29.5.12",
     "@types/nearley": "^2.11.5",
     "@types/selenium-webdriver": "^4.1.10",
-    "@typescript-eslint/eslint-plugin": "5.25.0",
-    "@typescript-eslint/parser": "5.25.0",
+    "@typescript-eslint/eslint-plugin": "8.64.0",
+    "@typescript-eslint/parser": "8.64.0",
     "command-line-args": "^6.0.1",
-    "eslint": "^7.32.0",
+    "eslint": "8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsdoc": "^50.6.1",
@@ -55,7 +55,7 @@
     "prettier": "^3.4.2",
     "selenium-webdriver": "^4.7.1",
     "ts-jest": "29.4.11",
-    "typescript": "4.7.4",
+    "typescript": "6.0.3",
     "web-ext": "^7.10.0",
     "yaml-lint": "^1.7.0"
   },

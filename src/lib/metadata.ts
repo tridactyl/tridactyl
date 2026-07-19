@@ -1,10 +1,6 @@
 /**
- * Runtime metadata over `typedoc --json` output for src/excmds.ts and
- * src/lib/config.ts. Exposes plain-object indexes (keyed by symbol name) plus
- * a small set of free helpers that operate on raw typedoc nodes.
- *
- * @hidden symbols are dropped by typedoc itself before they reach this loader,
- * so consumers never see them.
+ * Runtime helpers over the compact metadata schema generated at build time.
+ * TypeDoc-specific conversion stays in scripts/convert_typedoc_metadata.js.
  */
 
 import metadataJson from "../.metadata.generated.json"
@@ -12,123 +8,33 @@ import staticThemesJson from "../.themes.generated.json"
 
 export const staticThemes: string[] = staticThemesJson
 
-// =============================================================================
-// Indexes — built once at module load by walking the typedoc tree.
-// =============================================================================
+type Node = Record<string, any>
 
-type Node = any
-
-const reflections: Record<number, Node> = {}
-const fileBuckets: Record<
-    string,
-    { functions: Record<string, Node>; classes: Record<string, Node> }
-> = {
-    excmds: { functions: {}, classes: {} },
-    "lib/config": { functions: {}, classes: {} },
+const metadata = metadataJson as unknown as {
+    version: number
+    commands: Record<string, Node>
+    settings: Record<string, Node>
 }
+if (metadata.version !== 1)
+    throw new Error(`Unsupported metadata version: ${metadata.version}`)
 
-function moduleName(node: Node): string {
-    return (node.name || "").replace(/^"|"$/g, "").replace(/\\/g, "/")
-}
-
-function walk(node: Node) {
-    if (!node || typeof node !== "object") return
-    if (Array.isArray(node)) {
-        for (const v of node) walk(v)
-        return
-    }
-    if (node.id !== undefined) reflections[node.id] = node
-    if (node.kindString === "Module") {
-        const bucket = fileBuckets[moduleName(node)]
-        for (const child of bucket ? node.children || [] : []) {
-            if (child.kindString === "Function") {
-                bucket.functions[child.name] = child
-            } else if (child.kindString === "Class") {
-                bucket.classes[child.name] = child
-            }
-        }
-    }
-    if (node.children) walk(node.children)
-}
-walk(metadataJson)
-
-export const excmdsFunctions: Record<string, Node> =
-    fileBuckets.excmds.functions
-
-const defaultConfig: Node | undefined =
-    fileBuckets["lib/config"].classes["default_config"]
-
-export const defaultConfigMembers: Record<string, Node> = (() => {
-    const out: Record<string, Node> = {}
-    for (const ch of defaultConfig?.children || []) out[ch.name] = ch
-    return out
-})()
-
-// =============================================================================
-// Doc / type access on function and class-member nodes.
-// =============================================================================
-
-function readComment(c: Node | undefined): string {
-    if (!c) return ""
-    let s: string = c.shortText || ""
-    if (c.text) s += (s ? "\n\n" : "") + c.text
-    return s.replace(/\n+$/, "")
-}
+export const excmdsFunctions = metadata.commands
+export const defaultConfigMembers = metadata.settings
 
 export function getDoc(node: Node | undefined): string {
-    if (!node) return ""
-    return (
-        readComment(node.signatures?.[0]?.comment) || readComment(node.comment)
-    )
+    return node?.doc || ""
 }
 
 export function memberDoc(node: Node | undefined): string {
-    if (!node) return ""
-    if (node.kindString === "Accessor") {
-        const sig = (node.getSignature || [])[0] || (node.setSignature || [])[0]
-        if (sig?.comment) return readComment(sig.comment)
-    }
-    return readComment(node.comment)
+    return node?.doc || ""
 }
 
-/**
- * Returns a typedoc type node for a class member, preserving the children of
- * inferred object literals so downstream helpers can inspect their types.
- */
 export function memberType(node: Node | undefined): Node | undefined {
-    if (!node) return undefined
-    if (node.kindString === "Object literal") {
-        return { type: "reflection", declaration: node }
-    }
-    if (node.type) return node.type
-    if (node.kindString === "Accessor") {
-        const sig = (node.getSignature || [])[0] || (node.setSignature || [])[0]
-        return sig?.type
-    }
-    return undefined
+    return node?.type
 }
 
-/** Parameter list for a function node — each entry has `name`, `type`, `flags`. */
 export function paramTypes(fnNode: Node | undefined): Node[] {
-    return fnNode?.signatures?.[0]?.parameters || []
-}
-
-// =============================================================================
-// Type coercion + stringification over typedoc type nodes.
-// =============================================================================
-
-function resolveType(t: Node | undefined): Node | undefined {
-    const seen = new Set<number>()
-    while (
-        t?.type === "reference" &&
-        t.id !== undefined &&
-        !t.typeArguments?.length &&
-        !seen.has(t.id)
-    ) {
-        seen.add(t.id)
-        t = reflections[t.id]?.type || t
-    }
-    return t
+    return fnNode?.params || []
 }
 
 function intrinsicName(t) {
@@ -149,7 +55,6 @@ function intrinsicName(t) {
 
 /** Normalised kind: "string" | "number" | "boolean" | "object" | "array" | "void" | "any" | ... */
 export function typeKind(t: Node | undefined): string {
-    t = resolveType(t)
     if (!t) return "any"
     switch (t.type) {
         case "intrinsic":
@@ -170,7 +75,6 @@ export function typeKind(t: Node | undefined): string {
 }
 
 export function typeToString(t: Node | undefined): string {
-    t = resolveType(t)
     if (!t) return "any"
     switch (t.type) {
         case "intrinsic":
@@ -235,7 +139,6 @@ function convertIntrinsic(t, value) {
 }
 
 export function convert(t: Node | undefined, value: any): any {
-    t = resolveType(t)
     if (!t) return value
     switch (t.type) {
         case "intrinsic":
@@ -314,7 +217,6 @@ export function convertMember(
     path: string[],
     value: any,
 ): any {
-    t = resolveType(t)
     const decl = t?.type === "reflection" ? t.declaration : undefined
     const named: Record<string, Node> = {}
     let indexSig: Node | undefined
@@ -322,9 +224,8 @@ export function convertMember(
         const childType = memberType(ch)
         if (ch.name && childType) named[ch.name] = childType
     }
-    const idx = decl?.indexSignature
-    const idxArr = Array.isArray(idx) ? idx : idx ? [idx] : []
-    for (const sig of idxArr) if (sig?.type) indexSig = sig.type
+    for (const sig of decl?.indexSignatures || [])
+        if (sig?.type) indexSig = sig.type
 
     const sub = named[path[0]] ?? indexSig
     if (!sub) return value

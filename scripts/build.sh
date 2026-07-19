@@ -57,16 +57,19 @@ if [ "$QUICK_BUILD" != "1" ]; then
     "$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
       src/grammars/.bracketexpr.generated.ts
 
+    printf '{"version":1,"commands":{},"settings":{}}' > src/.metadata.generated.json
+    printf 'export * from "./lib/metadata"\n' > src/.metadata.generated.ts
+    node -e "var fs=require('fs');fs.writeFileSync('src/.themes.generated.json',JSON.stringify(fs.readdirSync('src/static/themes').sort()))"
+
     # Generate runtime metadata via typedoc. The generated TypeScript shim
     # routes the public @src/.metadata.generated import to the JSON loader.
     "$(yarn bin)/typedoc" --json src/.metadata.generated.json \
-      --excludeExternals --disableSources --plugin none --readme none \
+      --excludeExternals --disableSources --readme none \
+      --excludePrivate false --excludePrivateClassFields false \
       --validation.notExported false \
       --exclude 'src/.excmds_*.generated.ts' \
       src/excmds.ts src/lib/config.ts src/content/state_content.ts
-    node scripts/minify_json.js src/.metadata.generated.json
-    node -e "var fs=require('fs');fs.writeFileSync('src/.themes.generated.json',JSON.stringify(fs.readdirSync('src/static/themes').sort()))"
-    printf 'export * from "./lib/metadata"\n' > src/.metadata.generated.ts
+    node scripts/convert_typedoc_metadata.js src/.metadata.generated.json
 
     scripts/newtab.md.sh
     scripts/make_tutorial.sh

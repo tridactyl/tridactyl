@@ -7,7 +7,7 @@ export class ExcmdCompletionOption extends Completions.CompletionOptionHTML impl
     public fuseKeys = []
     constructor(
         public value: string,
-        public documentation: string = "",
+        public documentation = "",
     ) {
         super()
         this.fuseKeys.push(this.value)

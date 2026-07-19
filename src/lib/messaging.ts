@@ -100,7 +100,7 @@ function backgroundHandler<
     return handler.apply(receiver, message.args)
 }
 
-export function setupListener<Root>(root: Root) {
+export function setupListener<Root extends object>(root: Root) {
     browser.runtime.onMessage.addListener(
         (message: any) => {
             if (message.type in root) {

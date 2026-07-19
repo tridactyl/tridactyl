@@ -185,7 +185,7 @@ export async function jumpToMatch(searchQuery, option) {
     const sensitive =
         findcase === "sensitive" ||
         (findcase === "smart" && /[A-Z]/.test(searchQuery))
-    const findPromise = await browserBg.find.find(searchQuery, {
+    const results = await browserBg.find.find(searchQuery, {
         tabId: await activeTabId(),
         caseSensitive: sensitive,
         entireWord: false,
@@ -207,8 +207,6 @@ export async function jumpToMatch(searchQuery, option) {
         node = walker.nextNode()
         nodes.push(node)
     } while (node)
-
-    const results = await findPromise
 
     const host = getFindHost()
     for (let i = 0; i < results.count; ++i) {

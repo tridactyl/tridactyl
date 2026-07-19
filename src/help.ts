@@ -18,7 +18,7 @@ function initTridactylSettingElem(
         bindingNode = document.createElement("p")
         bindingNode.className = `TridactylSetting Tridactyl${kind}`
         bindingNode.textContent = kind + ": "
-        elem.insertBefore(bindingNode, elem.children[2])
+        elem.insertBefore(bindingNode, elem.children[1])
     }
     return bindingNode as HTMLElement
 }
@@ -137,9 +137,11 @@ function addSettingInputs() {
 
     return Promise.all(
         Array.from(
-            document.querySelectorAll<HTMLAnchorElement>("a.tsd-anchor"),
+            document.querySelectorAll<HTMLHeadingElement>(
+                ".tsd-panel.tsd-member > h3.tsd-anchor-link[id]",
+            ),
         ).map(
-            async (a: HTMLAnchorElement) => {
+            async (a: HTMLHeadingElement) => {
                 const section = a.parentNode
 
                 const settingName = a.id.split(".")

@@ -50,35 +50,16 @@ module.exports = {
         "@typescript-eslint/array-type": "off",
         "@typescript-eslint/await-thenable": "error",
         "@typescript-eslint/ban-ts-comment": "error",
-        "@typescript-eslint/ban-types": [
+        "@typescript-eslint/no-restricted-types": [
             "error",
             {
                 "types": {
-                    "Object": {
-                        "message": "Avoid using the `Object` type. Did you mean `object`?"
-                    },
-                    "Function": {
-                        "message": "Avoid using the `Function` type. Prefer a specific function type, like `() => void`."
-                    },
-                    "Boolean": {
-                        "message": "Avoid using the `Boolean` type. Did you mean `boolean`?"
-                    },
-                    "Number": {
-                        "message": "Avoid using the `Number` type. Did you mean `number`?"
-                    },
-                    "String": {
-                        "message": "Avoid using the `String` type. Did you mean `string`?"
-                    },
                     "KeyboardEvent": {
                         "message": "Use `TrustedKeyboardEvent` to prevent remote code injection from hostile pages."
-                    },
-                    "Symbol": {
-                        "message": "Avoid using the `Symbol` type. Did you mean `symbol`?"
                     }
                 }
             }
         ],
-        "@typescript-eslint/class-name-casing": "off",
         "@typescript-eslint/consistent-type-assertions": "error",
         "@typescript-eslint/consistent-type-definitions": "error",
         "@typescript-eslint/dot-notation": "off", // this should be "error" but the fix silently breaks code almost 100% of the time. not worth the headaches
@@ -89,28 +70,14 @@ module.exports = {
             }
         ],
         "@typescript-eslint/explicit-module-boundary-types": "off", //"warn", // This is another hard one to enable
-        "@typescript-eslint/indent": "off",
-        "@typescript-eslint/interface-name-prefix": "off",
-        "@typescript-eslint/member-delimiter-style": [
-            "off",
-            {
-                "multiline": {
-                    "delimiter": "none",
-                    "requireLast": true
-                },
-                "singleline": {
-                    "delimiter": "semi",
-                    "requireLast": false
-                }
-            }
-        ],
         "@typescript-eslint/member-ordering": [
             "error",
             { "default": ["field", "constructor", "method"] },
         ],
+        "@typescript-eslint/no-array-delete": "off",
         "@typescript-eslint/no-array-constructor": "error",
+        "@typescript-eslint/no-base-to-string": "off",
         "@typescript-eslint/no-empty-function": "error",
-        "@typescript-eslint/no-empty-interface": "error",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-extra-non-null-assertion": "error",
         "@typescript-eslint/no-floating-promises": "off", //"error", // We should turn this on eventually but it will take a while to fix
@@ -126,7 +93,7 @@ module.exports = {
         "@typescript-eslint/no-namespace": "error",
         "@typescript-eslint/no-non-null-asserted-optional-chain": "error",
         "@typescript-eslint/no-non-null-assertion": "warn",
-        "@typescript-eslint/no-parameter-properties": "off",
+        "@typescript-eslint/no-redundant-type-constituents": "off",
         "@typescript-eslint/no-this-alias": "error",
         "@typescript-eslint/no-unnecessary-type-assertion": "error",
         "@typescript-eslint/no-unsafe-assignment": "off", //"error",
@@ -146,17 +113,19 @@ module.exports = {
             {
                 "args": "after-used",
                 "argsIgnorePattern": "^_",
+                "caughtErrors": "none",
                 "varsIgnorePattern": "^_",
             },
         ],
         "@typescript-eslint/no-use-before-define": "off",
-        "@typescript-eslint/no-var-requires": "error",
+        "@typescript-eslint/only-throw-error": "off",
         "@typescript-eslint/prefer-as-const": "error",
         "@typescript-eslint/prefer-for-of": "error",
         "@typescript-eslint/prefer-function-type": "error",
         "@typescript-eslint/prefer-namespace-keyword": "error",
+        "@typescript-eslint/prefer-promise-reject-errors": "off",
         "@typescript-eslint/prefer-regexp-exec": "error",
-        "@typescript-eslint/quotes": [
+        "quotes": [
             "error",
             "double",
             {
@@ -167,10 +136,6 @@ module.exports = {
         "@typescript-eslint/require-await": "error",
         "@typescript-eslint/restrict-plus-operands": "off", //"error", // We use this a lot - fixing it is a problem for a rainy day
         "@typescript-eslint/restrict-template-expressions": "off",
-        "@typescript-eslint/semi": [
-            "off",
-            null
-        ],
         "@typescript-eslint/triple-slash-reference": [
             "error",
             {
@@ -179,7 +144,6 @@ module.exports = {
                 "lib": "always"
             }
         ],
-        "@typescript-eslint/type-annotation-spacing": "error",
         "@typescript-eslint/unbound-method": "error",
         "@typescript-eslint/unified-signatures": "error",
         "arrow-body-style": "error",
@@ -207,7 +171,6 @@ module.exports = {
         "import/order": "off",
         "jsdoc/check-alignment": "off",
         "jsdoc/check-indentation": "off",
-        "jsdoc/newline-after-description": "off",
         "max-classes-per-file": "off",
         "max-len": "off",
         "new-parens": "error",
@@ -296,10 +259,9 @@ module.exports = {
             "files": ["src/content.ts", "src/commandline_frame.ts"],
             "rules": {
                 "@typescript-eslint/no-explicit-any": "error",
-                "@typescript-eslint/ban-types": [
+                "@typescript-eslint/no-restricted-types": [
                     "error",
                     {
-                        "extendDefaults": true,
                         "types": {
                             "TrustedKeyboardEvent": {
                                 "message": "Events must be validated with `isTrustedKeyboardEvent` at runtime"

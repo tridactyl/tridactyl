@@ -100,9 +100,7 @@ export async function remove(name: string) {
     TODO: pass an object to this when tridactyl gets proper flag parsing
     NOTE: while browser.contextualIdentities.create does check for valid color/icon combos, browser.contextualIdentities.update does not.
     @param containerId Expects a cookieStringId e.g. "firefox-container-n".
-    @param name the new name of the container
-    @param color the new color of the container
-    @param icon the new icon of the container
+    @param updateObj the new name, color, and icon of the container
  */
 export function update(
     containerId: string,
@@ -139,7 +137,7 @@ export async function getFromId(
 
 /** Fetches all containers from Firefox's contextual identities API and checks if one exists with the specified name.
     Note: This operation is entirely case-insensitive.
-    @param string cname
+    @param cname
     @returns boolean Returns true when cname matches an existing container or on query error.
  */
 export async function exists(cname: string): Promise<boolean> {
