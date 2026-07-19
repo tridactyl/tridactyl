@@ -200,7 +200,6 @@ export async function jumpToMatch(searchQuery, option) {
         document,
         NodeFilter.SHOW_TEXT,
         null,
-        false,
     )
     const nodes = []
     let node

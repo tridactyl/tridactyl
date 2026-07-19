@@ -142,7 +142,7 @@ function addSettingInputs() {
             async (a: HTMLAnchorElement) => {
                 const section = a.parentNode
 
-                const settingName = a.name.split(".")
+                const settingName = a.id.split(".")
                 const value = await config.getAsyncDynamic(...settingName)
                 if (!value) return console.log("Failed to grab value of ", a)
                 if (!["number", "boolean", "string"].includes(typeof value))
@@ -154,7 +154,7 @@ function addSettingInputs() {
                     )
 
                 const input = document.createElement("input")
-                input.name = a.name
+                input.name = a.id
                 input.value = value
                 input.id = "TridactylSettingInput_" + input.name
                 input.className = inputClassName

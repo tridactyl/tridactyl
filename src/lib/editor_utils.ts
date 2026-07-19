@@ -139,7 +139,7 @@ export function wrap_input(
 /**
  * Take an editor function as parameter and wrap it in a function that will handle error conditions
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function needs_text(fn: editor_function, arg?: any): editor_function {
     return (
         text: string,

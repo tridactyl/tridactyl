@@ -160,9 +160,7 @@ export function typeKind(t: Node | undefined): string {
             return t.type
         case "reflection":
             return t.declaration?.signatures?.length ? "function" : "object"
-        case "stringLiteral":
-        case "numberLiteral":
-        case "booleanLiteral":
+        case "literal":
             return "LiteralType"
         case "reference":
             return t.name || "reference"
@@ -183,9 +181,7 @@ export function typeToString(t: Node | undefined): string {
             return `[${(t.elements || []).map(typeToString).join(", ")}]`
         case "union":
             return (t.types || []).map(typeToString).join(" | ")
-        case "stringLiteral":
-        case "numberLiteral":
-        case "booleanLiteral":
+        case "literal":
             return JSON.stringify(t.value)
         case "reference": {
             const args = (t.typeArguments || []).map(typeToString)
@@ -285,9 +281,7 @@ export function convert(t: Node | undefined, value: any): any {
             throw new Error(
                 `Can't convert "${value}" to any of: ${(t.types || []).map(typeToString).join(", ")}`,
             )
-        case "stringLiteral":
-        case "numberLiteral":
-        case "booleanLiteral":
+        case "literal":
             if (value === t.value) return value
             throw new Error(
                 `Argument does not match expected value (${t.value}): ${value}`,

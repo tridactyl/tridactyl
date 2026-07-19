@@ -32,7 +32,6 @@ module.exports = {
     },
     "plugins": [
         "@typescript-eslint",
-        "@typescript-eslint/tslint",
         "sonarjs"
     ],
     "rules": {
@@ -105,7 +104,10 @@ module.exports = {
                 }
             }
         ],
-        "@typescript-eslint/member-ordering": "error",
+        "@typescript-eslint/member-ordering": [
+            "error",
+            { "default": ["field", "constructor", "method"] },
+        ],
         "@typescript-eslint/no-array-constructor": "error",
         "@typescript-eslint/no-empty-function": "error",
         "@typescript-eslint/no-empty-interface": "error",
@@ -128,6 +130,7 @@ module.exports = {
         "@typescript-eslint/no-this-alias": "error",
         "@typescript-eslint/no-unnecessary-type-assertion": "error",
         "@typescript-eslint/no-unsafe-assignment": "off", //"error",
+        "@typescript-eslint/no-unsafe-argument": "off", //"error",
         "@typescript-eslint/no-unsafe-call": "off", //"error",
         "@typescript-eslint/no-unsafe-member-access": "off", //"error", // We've done this a lot, but it would be a good idea to fix it
         "@typescript-eslint/no-unsafe-return": "off", //"error", // We've done this a lot, but it would be a good idea to fix it
@@ -138,13 +141,14 @@ module.exports = {
                 "allowTernary": true,
             }
         ],
-        "@typescript-eslint/no-unused-vars-experimental": [
+        "@typescript-eslint/no-unused-vars": [
             "error",
             {
-                "ignoreArgsIfArgsAfterAreUsed": true,
+                "args": "after-used",
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_",
             },
         ],
-        "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/no-var-requires": "error",
         "@typescript-eslint/prefer-as-const": "error",
@@ -267,6 +271,12 @@ module.exports = {
         "valid-typeof": "off"
     },
     "overrides": [
+        {
+            "files": ["*.d.ts"],
+            "rules": {
+                "@typescript-eslint/no-unused-vars": "off",
+            },
+        },
         {
             "files": ["src/completions/*.ts", "src/excmds.ts"],
             "rules": {

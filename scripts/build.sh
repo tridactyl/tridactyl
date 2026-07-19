@@ -59,9 +59,9 @@ if [ "$QUICK_BUILD" != "1" ]; then
 
     # Generate runtime metadata via typedoc. The generated TypeScript shim
     # routes the public @src/.metadata.generated import to the JSON loader.
-    "$(yarn bin)/typedoc" --json src/.metadata.generated.json --mode modules \
+    "$(yarn bin)/typedoc" --json src/.metadata.generated.json \
       --excludeExternals --disableSources --plugin none --readme none \
-      --exclude 'src/.excmds_*.generated.ts' --ignoreCompilerErrors \
+      --exclude 'src/.excmds_*.generated.ts' \
       src/excmds.ts src/lib/config.ts src/content/state_content.ts
     node scripts/minify_json.js src/.metadata.generated.json
     node -e "var fs=require('fs');fs.writeFileSync('src/.themes.generated.json',JSON.stringify(fs.readdirSync('src/static/themes').sort()))"
