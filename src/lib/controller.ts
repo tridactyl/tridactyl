@@ -1,5 +1,6 @@
 import Logger from "@src/lib/logging"
 import * as config from "@src/lib/config"
+import { evaluate } from "@src/parsers/exdsl"
 import { parser as exmode_parser } from "@src/parsers/exmode"
 import * as State from "@src/state"
 
@@ -35,33 +36,50 @@ export function resolveExCmd(exstr: string) {
 }
 
 /** Parse and execute ExCmds */
-export async function acceptExCmd(exstr: string, source?: ExCmdSource): Promise<any> {
+export async function acceptExCmd(
+    exstr: string,
+    source?: ExCmdSource,
+    exversion: "1" | "2" = "1",
+): Promise<any> {
     const previousExCmdSource = currentExCmdSource
     currentExCmdSource = source || previousExCmdSource
     let lastExUpdate = Promise.resolve()
     // TODO: Errors should go to CommandLine.
     try {
-        const [func, args] = exmode_parser(exstr, stored_excmds)
-        // Don't store repeat, command-line display, update checks, or private-window commands
-        if (
-            !config
-                .get("repeatblacklist")
-                .some(excmd => func === stored_excmds[""][excmd]) &&
-            func !== stored_excmds[""].repeat &&
-            func !== stored_excmds[""].fillcmdline &&
-            func !== stored_excmds[""].fillcmdline_notrail &&
-            func !== stored_excmds[""].fillcmdline_tmp &&
-            func !== stored_excmds[""].fillcmdline_nofocus &&
-            func !== stored_excmds[""].updatecheck &&
-            exstr.search("winopen -private") < 0
-        ) {
-            lastExUpdate = State.getAsync("last_ex_str").then(last_ex_str => {
-                if (last_ex_str != exstr)
-                    return State.setAsync("last_ex_str", exstr)
-            })
+        let recorded = false
+        const run = (command: string, piped = false, value?: any) => {
+            const [func, args] = exmode_parser(command, stored_excmds)
+            if (!recorded) {
+                recorded = true
+                // Don't store repeat, command-line display, update checks, or private-window commands
+                if (
+                    !config
+                        .get("repeatblacklist")
+                        .some(excmd => func === stored_excmds[""][excmd]) &&
+                    func !== stored_excmds[""].repeat &&
+                    func !== stored_excmds[""].fillcmdline &&
+                    func !== stored_excmds[""].fillcmdline_notrail &&
+                    func !== stored_excmds[""].fillcmdline_tmp &&
+                    func !== stored_excmds[""].fillcmdline_nofocus &&
+                    func !== stored_excmds[""].updatecheck &&
+                    exstr.search("winopen -private") < 0
+                ) {
+                    lastExUpdate = State.getAsync("last_ex_str").then(
+                        last_ex_str => {
+                            if (last_ex_str != exstr)
+                                return State.setAsync("last_ex_str", exstr)
+                        },
+                    )
+                }
+            }
+            return piped ? func(...args, value) : func(...args)
         }
+
+        if (source === "commandline" && exversion === "2")
+            return await evaluate(exstr, run)
+
         try {
-            return await func(...args)
+            return await run(exstr)
         } catch (e) {
             // Errors from func are caught here (e.g. no next tab)
             logger.error("controller in excmd: ", e)
@@ -69,6 +87,7 @@ export async function acceptExCmd(exstr: string, source?: ExCmdSource): Promise<
     } catch (e) {
         // Errors from parser caught here
         logger.error("controller while accepting: ", e)
+        if (source === "commandline" && exversion === "2") throw e
     } finally {
         currentExCmdSource = previousExCmdSource
         void lastExUpdate.then(

@@ -1,0 +1,233 @@
+const operators = [".|", "&&", "||", "|", ";"] as const
+
+export type ExOperator = (typeof operators)[number] | "\n"
+
+interface Span {
+    start: number
+    end: number
+}
+
+export interface ExStructure {
+    parts: ExPart[]
+    status: "complete" | "incomplete" | "invalid"
+}
+
+export type ExPart =
+    | ({ type: "text" } & Span)
+    | ({ type: "operator"; operator: ExOperator } & Span)
+    | ({ type: "comment" } & Span)
+    | ({ type: "block"; body: ExStructure } & Span)
+
+interface ParseResult extends ExStructure {
+    end: number
+}
+
+const boundaries = " \t\r\n"
+
+const status = (
+    invalid: boolean,
+    incomplete: boolean,
+): ExStructure["status"] =>
+    invalid ? "invalid" : incomplete ? "incomplete" : "complete"
+const isBoundary = (character: string | undefined) =>
+    character === undefined || boundaries.includes(character)
+
+function operatorAt(source: string, index: number) {
+    if (!isBoundary(source[index - 1])) return undefined
+    return operators.find(
+        operator =>
+            source.startsWith(operator, index) &&
+            isBoundary(source[index + operator.length]),
+    )
+}
+
+function isSpecial(source: string, index: number) {
+    return (
+        "'\"\\{}#".includes(source[index]) ||
+        operators.some(operator => source.startsWith(operator, index))
+    )
+}
+
+function isStandaloneBrace(source: string, index: number) {
+    const boundary = (character: string | undefined) =>
+        isBoundary(character) || character === "{" || character === "}"
+    return boundary(source[index - 1]) && boundary(source[index + 1])
+}
+
+function isWholeLineComment(source: string, index: number) {
+    let previous = index - 1
+    while (previous >= 0 && " \t\r".includes(source[previous])) previous--
+    return previous < 0 || source[previous] === "\n"
+}
+
+function parseRange(
+    source: string,
+    start: number,
+    nested: boolean,
+): ParseResult {
+    const parts: ExPart[] = []
+    let textStart = start
+    let quote: "'" | '"' | undefined
+    let incomplete = false
+    let invalid = false
+    let expectation: "empty" | "command" | "operand" = "empty"
+
+    const text = (end: number) => {
+        if (textStart === end) return
+        parts.push({ type: "text", start: textStart, end })
+        if (source.slice(textStart, end).trim()) expectation = "command"
+    }
+
+    for (let index = start; index < source.length; index++) {
+        const character = source[index]
+
+        if (character === "\\" && isSpecial(source, index + 1)) {
+            index++
+            continue
+        }
+        if (quote) {
+            if (character === quote) quote = undefined
+            continue
+        }
+        if (character === "'" || character === '"') {
+            quote = character
+            continue
+        }
+        if (character === "#" && isWholeLineComment(source, index)) {
+            text(index)
+            const newline = source.indexOf("\n", index)
+            const end = newline < 0 ? source.length : newline
+            parts.push({ type: "comment", start: index, end })
+            index = end - 1
+            textStart = end
+            continue
+        }
+        if (character === "\n") {
+            text(index)
+            parts.push({
+                type: "operator",
+                operator: "\n",
+                start: index,
+                end: index + 1,
+            })
+            if (expectation === "operand") invalid = true
+            expectation = "empty"
+            textStart = index + 1
+            continue
+        }
+        if (character === "{" && isStandaloneBrace(source, index)) {
+            text(index)
+            const child = parseRange(source, index + 1, true)
+            const end = child.end
+            parts.push({
+                type: "block",
+                start: index,
+                end,
+                body: { parts: child.parts, status: child.status },
+            })
+            incomplete = incomplete || child.status === "incomplete"
+            invalid = invalid || child.status === "invalid"
+            expectation = "command"
+            index = end - 1
+            textStart = end
+            continue
+        }
+        if (nested && character === "}" && isStandaloneBrace(source, index)) {
+            text(index)
+            return {
+                parts,
+                status: status(
+                    invalid || expectation === "operand",
+                    incomplete,
+                ),
+                end: index + 1,
+            }
+        }
+        if (!nested && character === "}" && isStandaloneBrace(source, index)) {
+            invalid = true
+            continue
+        }
+
+        const operator = operatorAt(source, index)
+        if (!operator) continue
+        text(index)
+        parts.push({
+            type: "operator",
+            operator,
+            start: index,
+            end: index + operator.length,
+        })
+        if (expectation !== "command") invalid = true
+        expectation = "operand"
+        index += operator.length - 1
+        textStart = index + 1
+    }
+
+    text(source.length)
+    return {
+        parts,
+        status: status(
+            invalid,
+            Boolean(quote || nested || incomplete || expectation === "operand"),
+        ),
+        end: source.length,
+    }
+}
+
+export function parseStructure(source: string): ExStructure {
+    const result = parseRange(source, 0, false)
+    return { parts: result.parts, status: result.status }
+}
+
+export type ExCommandRunner = (
+    source: string,
+    piped: boolean,
+    value?: any,
+) => any
+
+export async function evaluate(
+    source: string,
+    run: ExCommandRunner,
+): Promise<any> {
+    const structure = parseStructure(source)
+    if (structure.status !== "complete")
+        throw new Error(`${structure.status} ex command`)
+
+    const stages: { source: string; piped: boolean }[] = []
+    let sourceText = ""
+    let piped = false
+    for (const part of structure.parts) {
+        if (part.type === "text") {
+            sourceText += source.slice(part.start, part.end)
+            continue
+        }
+        if (
+            part.type !== "operator" ||
+            (part.operator !== "|" && part.operator !== ";")
+        )
+            throw new Error(
+                `Unsupported ex syntax: ${source.slice(part.start, part.end)}`,
+            )
+        stages.push({ source: sourceText.trim(), piped })
+        sourceText = ""
+        piped = part.operator === "|"
+    }
+    if (!sourceText.trim()) throw new Error("Invalid empty ex command")
+    stages.push({ source: sourceText.trim(), piped })
+
+    let value: any
+    for (let index = 0; index < stages.length; index++) {
+        const stage = stages[index]
+        try {
+            value = await run(
+                stage.source,
+                stage.piped,
+                stage.piped ? value : undefined,
+            )
+        } catch (error) {
+            while (stages[index + 1]?.piped) index++
+            if (index === stages.length - 1) throw error
+        }
+    }
+    return value
+}

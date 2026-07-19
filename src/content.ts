@@ -96,7 +96,15 @@ messaging.addListener(
 )
 messaging.addListener(
     "controller_content",
-    messaging.attributeCaller(controller),
+    messaging.attributeCaller({
+        acceptExCmd: async (exstr, source) => {
+            const exversion =
+                source === "commandline"
+                    ? await config.getAsync("exversion")
+                    : "1"
+            return controller.acceptExCmd(exstr, source, exversion)
+        },
+    }),
 )
 messaging.addListener("history_state", () => {
     window.dispatchEvent(new Event("HistoryState"))
