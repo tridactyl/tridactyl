@@ -48,8 +48,11 @@ export async function acceptExCmd(
             piped = false,
             value?: any,
             program?: ExProgram,
+            raw?: string,
         ) => {
             const [func, args] = exmode_parser(command, stored_excmds)
+            // A heredoc is one literal argument, not text for the legacy parser.
+            if (raw !== undefined) args.push(raw)
             if (
                 program &&
                 !["autocmd", "bind", "bindurl", "repeat"].some(
