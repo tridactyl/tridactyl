@@ -271,9 +271,11 @@ commandline_state.clInput.addEventListener(
         const session = commandSession
         commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
-        const [funcname, ...args] = response.value?.startsWith("ex.")
-            ? response.value.slice(3).split(/\s+/)
-            : []
+        const [funcname, ...args] =
+            typeof response.value === "string" &&
+            response.value.startsWith("ex.")
+                ? response.value.slice(3).split(/\s+/)
+                : []
         const command =
             commandline_state.fns[funcname as keyof typeof commandline_state.fns]
         const nativeInsertFallback = nativeInsertFallbacks.get(command)

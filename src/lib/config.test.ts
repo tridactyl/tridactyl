@@ -214,3 +214,15 @@ test("config-only clear preserves persisted state", async () => {
     expect(tri.config.get("editorcmd")).toBe("auto")
     expect(await browser.storage.local.get()).toEqual({ state })
 })
+
+test("refuses to export versioned programs as legacy RC commands", () => {
+    const nmaps = tri.config.USERCONFIG.nmaps
+    tri.config.USERCONFIG.nmaps = {
+        x: { source: "echo one\necho two", exversion: 2 },
+    }
+    try {
+        expect(() => tri.config.parseConfig()).toThrow("cannot yet be exported")
+    } finally {
+        tri.config.USERCONFIG.nmaps = nmaps
+    }
+})

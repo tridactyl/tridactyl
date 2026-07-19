@@ -1,4 +1,5 @@
 import { evaluate, ExStructure, parseStructure } from "@src/parsers/exdsl"
+import { formatExProgram } from "@src/lib/excmd"
 
 function shape(source: string, structure = parseStructure(source)): any[] {
     return structure.parts.map(part => [
@@ -102,7 +103,7 @@ test("evaluates pipes and sequences in order", async () => {
     expect(result).toBe("d(c)")
 })
 
-test.each(["a && b", "a .| b", "bind x { a | b }"])(
+test.each(["a && b", "a .| b"])(
     "rejects unsupported execution syntax in %s",
     source =>
         expect(evaluate(source, jest.fn())).rejects.toThrow("Unsupported"),
@@ -122,3 +123,62 @@ test("continues sequences after a rejected pipeline", async () => {
     await expect(evaluate("a | b ; c", run)).resolves.toBe("c")
     expect(run.mock.calls.map(call => call[0])).toEqual(["a", "c"])
 })
+
+test("ignores comments and treats newlines as sequences", async () => {
+    const run = jest.fn(source => source)
+    await expect(
+        evaluate("# ignored | operator\na\n\n  # also ignored\nb\n", run),
+    ).resolves.toBe("b")
+    expect(run.mock.calls.map(call => call[0])).toEqual(["a", "b"])
+})
+
+test("evaluates nested standalone blocks with pipeline input", async () => {
+    const calls: any[] = []
+    const run = jest.fn((source, piped, value) => {
+        calls.push([source, piped, value])
+        return piped ? `${source}(${value})` : source
+    })
+    await expect(evaluate("a | { b | { c } }", run)).resolves.toBe("c(b(a))")
+    expect(calls).toEqual([
+        ["a", false, undefined],
+        ["b", true, "a"],
+        ["c", true, "b(a)"],
+    ])
+})
+
+test("passes a trailing block as a versioned program argument", async () => {
+    const run = jest.fn()
+    await evaluate("bind x { a\n# keep this comment\nb }", run)
+    expect(run).toHaveBeenCalledWith("bind x", false, undefined, {
+        source: " a\n# keep this comment\nb ",
+        exversion: 2,
+    })
+})
+
+test("formats blocks containing whole-line comments safely", async () => {
+    const source = formatExProgram({
+        source: "# first\na\n# last",
+        exversion: 2,
+    })
+    const run = jest.fn()
+    await evaluate(`bind x ${source}`, run)
+    expect(run.mock.calls[0][3]).toEqual({
+        source: "\n# first\na\n# last\n",
+        exversion: 2,
+    })
+})
+
+test.each(["a ; { b && c }", "a | { bind x { b } }"])(
+    "rejects unsupported nested syntax before executing %s",
+    async source => {
+        const run = jest.fn()
+        await expect(evaluate(source, run)).rejects.toThrow("Unsupported")
+        expect(run).not.toHaveBeenCalled()
+    },
+)
+
+test.each(["bind { a } trailing", "bind x { a } { b }", "a | bind x { b }"])(
+    "rejects ambiguous block arguments in %s",
+    source =>
+        expect(evaluate(source, jest.fn())).rejects.toThrow("Unsupported"),
+)

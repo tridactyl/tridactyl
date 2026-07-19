@@ -1,6 +1,7 @@
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Binding from "@src/lib/binding"
+import { formatExProgram } from "@src/lib/excmd"
 
 const modeDescriptions = new Map([
     ["normal", "Default mode"],
@@ -147,7 +148,7 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
                         options + keystr,
                         {
                             name: keystr,
-                            value: JSON.stringify(bindings[keystr]),
+                            value: formatExProgram(bindings[keystr]),
                             mode: `${configName} (${modeName})`,
                         },
                     ),

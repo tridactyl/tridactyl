@@ -3,6 +3,7 @@
  */
 
 import { canonicaliseMapstr } from "@src/lib/keyseq"
+import { ExCommand, joinExCommand } from "@src/lib/excmd"
 
 export const mode2maps = new Map([
     ["normal", "nmaps"],
@@ -26,19 +27,19 @@ interface bind_args {
     mode: string
     configName: string
     key: string
-    excmd: string
+    excmd: ExCommand
     isRecursive: boolean
 }
 
-export function parse_bind_args(...args: string[]): bind_args {
+export function parse_bind_args(...args: ExCommand[]): bind_args {
     if (args.length === 0) throw new Error("Invalid bind/unbind arguments.")
 
     const result = {} as bind_args
     result.mode = "normal"
 
-    const flags = []; // --mode and --recursive
-    while (args[0].startsWith("--")) {
-        flags.push(args.shift());
+    const flags: string[] = []; // --mode and --recursive
+    while (typeof args[0] === "string" && args[0].startsWith("--")) {
+        flags.push(args.shift() as string);
     }
 
     for (const flag of flags) {
@@ -58,10 +59,11 @@ export function parse_bind_args(...args: string[]): bind_args {
     }
 
     const key = args.shift()
+    if (typeof key !== "string") throw new Error("Invalid bind key.")
     // Convert key to internal representation
     result.key = canonicaliseMapstr(key)
 
-    result.excmd = args.join(" ")
+    result.excmd = joinExCommand(args)
 
     return result
 }
