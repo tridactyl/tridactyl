@@ -16,8 +16,10 @@ export interface ExStructure {
 
 export type ExPart =
     | ({ type: "text" } & Span)
+    | ({ type: "escape" } & Span)
     | ({ type: "operator"; operator: ExOperator } & Span)
     | ({ type: "comment" } & Span)
+    | ({ type: "heredoc"; bodyStart: number; bodyEnd: number } & Span)
     | ({ type: "block"; body: ExStructure } & Span)
 
 interface ParseResult extends ExStructure {
@@ -43,23 +45,97 @@ function operatorAt(source: string, index: number) {
     )
 }
 
-function isSpecial(source: string, index: number) {
+function escapedSyntaxEnd(source: string, index: number) {
+    if (source[index] !== "\\") return undefined
+    const operator = operators.find(
+        candidate =>
+            source.startsWith(candidate, index + 1) &&
+            isBoundary(source[index - 1]) &&
+            isBoundary(source[index + candidate.length + 1]),
+    )
+    if (operator) return index + operator.length + 1
+    const escaped = source[index + 1]
+    if (
+        (escaped === "{" || escaped === "}") &&
+        isBraceBoundary(source, index - 1) &&
+        isBraceBoundary(source, index + 2)
+    )
+        return index + 2
+    if (
+        (escaped === "#" || escaped === '"') &&
+        isWholeLineComment(source, index)
+    )
+        return index + 2
+    return undefined
+}
+
+function isBraceBoundary(source: string, index: number) {
+    const character = source[index]
     return (
-        "'\"\\{}#".includes(source[index]) ||
-        operators.some(operator => source.startsWith(operator, index))
+        isBoundary(character) ||
+        "{}".includes(character) ||
+        (character === "\\" && "{}".includes(source[index + 1]))
     )
 }
 
 function isStandaloneBrace(source: string, index: number) {
-    const boundary = (character: string | undefined) =>
-        isBoundary(character) || character === "{" || character === "}"
-    return boundary(source[index - 1]) && boundary(source[index + 1])
+    return (
+        isBraceBoundary(source, index - 1) && isBraceBoundary(source, index + 1)
+    )
 }
 
 function isWholeLineComment(source: string, index: number) {
     let previous = index - 1
     while (previous >= 0 && " \t\r".includes(source[previous])) previous--
     return previous < 0 || source[previous] === "\n"
+}
+
+function heredocAt(source: string, index: number) {
+    if (!isBoundary(source[index - 1])) return undefined
+    const rest = source.slice(index)
+    const inline =
+        /^<<([A-Za-z_][A-Za-z0-9_]*)[ \t](.*)[ \t]\1[ \t]*\r?(?=\n|$)/.exec(
+            rest,
+        )
+    if (inline) {
+        const bodyStart = index + inline[1].length + 3
+        return {
+            start: index,
+            end: index + inline[0].length,
+            bodyStart,
+            bodyEnd: bodyStart + inline[2].length,
+        }
+    }
+
+    const opener = /^<<([A-Za-z_][A-Za-z0-9_]*)[ \t]*\r?(?:\n|$)/.exec(rest)
+    if (!opener) {
+        if (!/^<<[A-Za-z_][A-Za-z0-9_]*(?=[ \t\r\n]|$)/.test(rest))
+            return undefined
+        if (/[\r\n]/.test(rest))
+            return {
+                start: index,
+                end: source.length,
+                bodyStart: source.length,
+                bodyEnd: source.length,
+                invalid: true,
+            }
+        return { start: index, end: source.length, bodyStart: source.length }
+    }
+    const bodyStart = index + opener[0].length
+    if (!opener[0].endsWith("\n"))
+        return { start: index, end: source.length, bodyStart: source.length }
+
+    const terminator = new RegExp(`^${opener[1]}\\r?(?=\\n|$)`, "m").exec(
+        source.slice(bodyStart),
+    )
+    if (!terminator) return { start: index, end: source.length, bodyStart }
+    const bodyEnd = bodyStart + terminator.index
+    return {
+        start: index,
+        end: bodyEnd + terminator[0].length,
+        bodyStart,
+        bodyEnd,
+    }
 }
 
 function parseRange(
@@ -69,7 +145,6 @@ function parseRange(
 ): ParseResult {
     const parts: ExPart[] = []
     let textStart = start
-    let quote: "'" | '"' | undefined
     let incomplete = false
     let invalid = false
     let expectation: "empty" | "command" | "operand" = "empty"
@@ -83,12 +158,13 @@ function parseRange(
     for (let index = start; index < source.length; index++) {
         const character = source[index]
 
-        if (character === "\\" && isSpecial(source, index + 1)) {
-            index++
-            continue
-        }
-        if (quote) {
-            if (character === quote) quote = undefined
+        const escapedEnd = escapedSyntaxEnd(source, index)
+        if (escapedEnd !== undefined) {
+            text(index)
+            parts.push({ type: "escape", start: index, end: escapedEnd })
+            expectation = "command"
+            index = escapedEnd - 1
+            textStart = escapedEnd
             continue
         }
         if (
@@ -103,8 +179,15 @@ function parseRange(
             textStart = end
             continue
         }
-        if (character === "'" || character === '"') {
-            quote = character
+        const heredoc = character === "<" && heredocAt(source, index)
+        if (heredoc) {
+            text(index)
+            parts.push({ type: "heredoc", bodyEnd: source.length, ...heredoc })
+            if (expectation !== "command") invalid = true
+            if ("invalid" in heredoc) invalid = true
+            if (heredoc.bodyEnd === undefined) incomplete = true
+            index = heredoc.end - 1
+            textStart = heredoc.end
             continue
         }
         if (character === "\n") {
@@ -176,7 +259,7 @@ function parseRange(
         parts,
         status: status(
             invalid,
-            Boolean(quote || nested || incomplete || expectation === "operand"),
+            Boolean(nested || incomplete || expectation === "operand"),
         ),
         end: source.length,
     }
@@ -192,12 +275,14 @@ export type ExCommandRunner = (
     piped: boolean,
     value?: any,
     program?: ExProgram,
+    raw?: string,
 ) => any
 
 interface ExStage {
     piped: boolean
     command: string
     program?: ExProgram
+    raw?: string
     block?: ExStage[]
 }
 
@@ -211,8 +296,11 @@ function compile(
     let piped = false
     let block: Extract<ExPart, { type: "block" }> | undefined
     let blockCommand = ""
+    let raw: string | undefined
 
     const flush = () => {
+        if (block && raw !== undefined)
+            throw new Error("Unsupported ex block with a heredoc")
         if (block) {
             if (sourceText.trim())
                 throw new Error("Unsupported text after ex block")
@@ -235,11 +323,12 @@ function compile(
                 stages.push({ block: body, command: "", piped })
             }
         } else if (sourceText.trim()) {
-            stages.push({ command: sourceText.trim(), piped })
+            stages.push({ command: sourceText.trim(), piped, raw })
         }
         sourceText = ""
         block = undefined
         blockCommand = ""
+        raw = undefined
     }
 
     for (const part of structure.parts) {
@@ -247,7 +336,15 @@ function compile(
             sourceText += source.slice(part.start, part.end)
             continue
         }
+        if (part.type === "escape") {
+            sourceText += source.slice(part.start + 1, part.end)
+            continue
+        }
         if (part.type === "comment") continue
+        if (part.type === "heredoc") {
+            raw = source.slice(part.bodyStart, part.bodyEnd)
+            continue
+        }
         if (part.type === "block") {
             if (block) throw new Error("Unsupported multiple ex blocks")
             block = part
@@ -281,7 +378,15 @@ async function execute(
             value =
                 stage.block !== undefined
                     ? await execute(stage.block, run, piped, input)
-                    : await run(stage.command, piped, input, stage.program)
+                    : stage.raw === undefined
+                      ? await run(stage.command, piped, input, stage.program)
+                      : await run(
+                            stage.command,
+                            piped,
+                            input,
+                            stage.program,
+                            stage.raw,
+                        )
         } catch (error) {
             while (stages[index + 1]?.piped) index++
             if (index === stages.length - 1) throw error
