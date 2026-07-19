@@ -1,6 +1,13 @@
 import * as controller from "@src/lib/controller"
 import * as config from "@src/lib/config"
+import { ExCommand } from "@src/lib/excmd"
 import * as Native from "@src/lib/native"
+import { parseStructure } from "@src/parsers/exdsl"
+
+const isBlankOrComment = (line: string) => /^\s*(?:["#]|$)/.test(line)
+
+const commandVersion = (source: string) =>
+    /^set\s+exversion\s+([12])$/.exec(source.trim())?.[1]
 
 export async function source(filename = "auto") {
     let rctext = ""
@@ -53,31 +60,57 @@ export async function writeRc(conf: string, force = false, filename = "auto") {
 }
 
 export async function runRc(rc: string) {
-    for (const cmd of rcFileToExCmds(rc)) {
-        await controller.acceptExCmd(cmd)
-    }
+    let error
+    for (const cmd of rcFileToExCmds(rc))
+        error = await controller.acceptExCmd(cmd).then(
+            () => undefined,
+            e => e,
+        )
+    if (error) throw error
+
     // Sourced commands have already been saved to the current local config.
     await config.update(true)
 }
 
-export function rcFileToExCmds(rcText: string): string[] {
-    // Split into individual excmds
-    const excmds = rcText.split("\n")
-
-    // Remove empty and comment lines
-    const ex = excmds.filter(
-        x =>
-            /\S/.test(x) &&
-            !x.trim().startsWith('"') &&
-            !x.trim().startsWith("#"),
-    )
-    const res = ex.join("\n") + (rcText.endsWith("\n") ? "\n" : "")
-
-    // Join lines ending in an unescaped backslash and unescape trailing pairs.
-    const joined = res.replace(/(\\+)\n/g, (_, backslashes: string) => {
-        const escaped = "\\".repeat(Math.floor(backslashes.length / 2))
-        return escaped + (backslashes.length % 2 === 0 ? "\n" : "")
-    })
-
-    return joined.replace(/\n$/, "").split("\n")
+export function* rcFileToExCmds(rcText: string): IterableIterator<ExCommand> {
+    rcText = rcText.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n")
+    const lines = rcText.split("\n")
+    let lastRecord = lines.length - 1
+    while (lastRecord >= 0 && isBlankOrComment(lines[lastRecord])) lastRecord--
+    let version: "1" | "2" = "1"
+    let buffer = ""
+    for (let index = 0; index < lines.length; index++) {
+        const line = lines[index]
+        if (version === "1") {
+            if (isBlankOrComment(line)) continue
+            const trailing = /\\+$/.exec(line)?.[0] || ""
+            const hasNewline = index < lastRecord || rcText.endsWith("\n")
+            if (!hasNewline) {
+                buffer += line
+                yield buffer
+                version = (commandVersion(buffer) as "1" | "2") || version
+                buffer = ""
+                continue
+            }
+            const continued = trailing.length % 2 === 1
+            buffer +=
+                line.slice(0, line.length - trailing.length) +
+                "\\".repeat(Math.floor(trailing.length / 2))
+            if (continued) continue
+            yield buffer
+            version = (commandVersion(buffer) as "1" | "2") || version
+            buffer = ""
+        } else {
+            if (!buffer && isBlankOrComment(line)) continue
+            buffer += (buffer ? "\n" : "") + line
+            const status = parseStructure(buffer).status
+            if (status === "incomplete") continue
+            if (status === "invalid") throw new Error("invalid ex command")
+            yield { source: buffer, exversion: 2 }
+            version = (commandVersion(buffer) as "1" | "2") || version
+            buffer = ""
+        }
+    }
+    if (version === "1" && buffer) yield buffer
+    else if (buffer) throw new Error("incomplete ex command")
 }

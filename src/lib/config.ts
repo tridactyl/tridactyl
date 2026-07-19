@@ -18,9 +18,14 @@
  */
 import * as R from "ramda"
 import * as binding from "@src/lib/binding"
-import { ExCommand, isExProgram } from "@src/lib/excmd"
+import { ExCommand, formatExProgram, isExProgram } from "@src/lib/excmd"
 import * as platform from "@src/lib/platform"
 import { DeepPartial } from "tsdef"
+
+const assertV2Argument = (value: string) => {
+    if (/[\s'"]|^(?:\.\||&&|\|\||[|;{}])$/.test(value))
+        throw new Error(`Cannot safely export dialect 2 argument: ${value}`)
+}
 
 /* Remove all nulls from objects recursively
  * NB: also applies to arrays
@@ -2671,6 +2676,7 @@ export function parseConfig(): string {
         aucons: [],
         logging: [],
         nulls: [],
+        v2: [],
     }
 
     p = parseConfigHelper(USERCONFIG, p)
@@ -2684,6 +2690,7 @@ export function parseConfig(): string {
         subconfigs: ``,
         logging: ``,
         nulls: ``,
+        v2: ``,
     }
 
     if (p.conf.length > 0)
@@ -2700,15 +2707,22 @@ export function parseConfig(): string {
         s.logging = `" Logging\n${p.logging.join("\n")}\n\n`
     if (p.nulls.length > 0)
         s.nulls = `" Removed settings\n${p.nulls.join("\n")}\n\n`
+    if (p.v2.length > 0)
+        s.v2 = `" Dialect 2 programs\nset exversion 2\n${p.v2.join("\n")}${
+            USERCONFIG.exversion === "2" ? "" : "\nset exversion 1"
+        }\n\n`
+    else if (USERCONFIG.exversion)
+        s.v2 = `set exversion ${USERCONFIG.exversion}\n\n`
 
     const ftdetect = `" For syntax highlighting see https://github.com/tridactyl/vim-tridactyl\n" vim: set filetype=tridactyl`
 
-    return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${s.aucons}${s.logging}${s.nulls}${ftdetect}`
+    return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${s.aucons}${s.logging}${s.nulls}${s.v2}${ftdetect}`
 }
 
 const parseConfigHelper = (pconf, parseobj, prefix = []) => {
     for (const i of Object.keys(pconf)) {
         if (typeof pconf[i] !== "object" || Array.isArray(pconf[i])) {
+            if (prefix.length === 0 && i === "exversion") continue
             const value = Array.isArray(pconf[i]) ? JSON.stringify(pconf[i]) : pconf[i]
             if (prefix[0] === "subconfigs") {
                 const pattern = prefix[1]
@@ -2723,6 +2737,8 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
             }
         } else if (pconf[i] === null) {
             parseobj.nulls.push(`setnull ${[...prefix, i].join(".")}`)
+        } else if (isExProgram(pconf[i])) {
+            throw new Error("Cannot export dialect 2 program in custom setting")
         } else {
             for (const e of Object.keys(pconf[i])) {
                 if (binding.modeMaps.includes(i)) {
@@ -2740,10 +2756,15 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                         continue
                     }
 
-                    if (isExProgram(pconf[i][e]))
-                        throw new Error(
-                            "Dialect 2 programs cannot yet be exported to an RC file",
+                    if (isExProgram(pconf[i][e])) {
+                        assertV2Argument(e)
+                        if (prefix[0] === "subconfigs")
+                            assertV2Argument(prefix[1])
+                        parseobj.v2.push(
+                            `${cmd} ${e} ${formatExProgram(pconf[i][e])}`,
                         )
+                        continue
+                    }
                     if (pconf[i][e].length > 0) {
                         parseobj.binds.push(`${cmd} ${e} ${pconf[i][e]}`)
                     } else {
@@ -2762,16 +2783,22 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                     parseobj.conf.push(`abbreviate ${e} ${pconf[i][e]}`)
                 } else if (i === "autocmds") {
                     for (const a of Object.keys(pconf[i][e])) {
-                        const value = pconf[i][e][a]
-                        if (isExProgram(value))
-                            throw new Error(
-                                "Dialect 2 programs cannot yet be exported to an RC file",
-                            )
-                        parseobj.aucmds.push(
-                            value === null
-                                ? `autocmddelete ${e} ${a}`
-                                : `autocmd ${e} ${a} ${value}`,
-                        )
+                        const command = pconf[i][e][a]
+                        if (command === null) {
+                            parseobj.aucmds.push(`autocmddelete ${e} ${a}`)
+                            continue
+                        }
+                        const output = `autocmd ${e} ${a} ${formatExProgram(command)}`
+                        if (isExProgram(command)) {
+                            if (prefix.length)
+                                throw new Error(
+                                    "Cannot export scoped dialect 2 autocmd",
+                                )
+                            assertV2Argument(a)
+                            parseobj.v2.push(output)
+                        } else {
+                            parseobj.aucmds.push(output)
+                        }
                     }
                 } else if (i === "autocontain") {
                     parseobj.aucons.push(`autocontain ${e} ${pconf[i][e]}`)

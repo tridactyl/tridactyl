@@ -15,12 +15,13 @@ test.each([
     [`keymap foo ${backslash}${backslash}\n`, [`keymap foo ${backslash}`]],
     [`keymap foo ${backslash}`, [`keymap foo ${backslash}`]],
 ])("parses RC line ending backslashes", (rc, expected) => {
-    expect(rcFileToExCmds(rc)).toEqual(expected)
+    expect([...rcFileToExCmds(rc)]).toEqual(expected)
 })
 
 test("runRc updates and saves versioned config", async () => {
     await config.clear()
     jest.mocked(controller.acceptExCmd).mockImplementation(async cmd => {
+        if (typeof cmd !== "string") throw new Error("Unexpected v2 command")
         const [, key, value] = cmd.split(" ")
         await config.set(key, value)
     })

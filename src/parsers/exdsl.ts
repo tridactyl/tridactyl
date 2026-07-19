@@ -91,17 +91,20 @@ function parseRange(
             if (character === quote) quote = undefined
             continue
         }
-        if (character === "'" || character === '"') {
-            quote = character
-            continue
-        }
-        if (character === "#" && isWholeLineComment(source, index)) {
+        if (
+            (character === "#" || character === '"') &&
+            isWholeLineComment(source, index)
+        ) {
             text(index)
             const newline = source.indexOf("\n", index)
             const end = newline < 0 ? source.length : newline
             parts.push({ type: "comment", start: index, end })
             index = end - 1
             textStart = end
+            continue
+        }
+        if (character === "'" || character === '"') {
+            quote = character
             continue
         }
         if (character === "\n") {
