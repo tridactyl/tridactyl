@@ -109,13 +109,16 @@ function parseRange(
         }
         if (character === "\n") {
             text(index)
+            if (expectation === "operand") {
+                textStart = index + 1
+                continue
+            }
             parts.push({
                 type: "operator",
                 operator: "\n",
                 start: index,
                 end: index + 1,
             })
-            if (expectation === "operand") invalid = true
             expectation = "empty"
             textStart = index + 1
             continue
