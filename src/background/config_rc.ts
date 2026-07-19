@@ -1,5 +1,12 @@
 import * as controller from "@src/lib/controller"
+import { ExCommand } from "@src/lib/excmd"
 import * as Native from "@src/lib/native"
+import { parseStructure } from "@src/parsers/exdsl"
+
+const isBlankOrComment = (line: string) => /^\s*(?:["#]|$)/.test(line)
+
+const commandVersion = (source: string) =>
+    /^set\s+exversion\s+([12])$/.exec(source.trim())?.[1]
 
 export async function source(filename = "auto") {
     let rctext = ""
@@ -52,26 +59,41 @@ export async function writeRc(conf: string, force = false, filename = "auto") {
 }
 
 export async function runRc(rc: string) {
-    for (const cmd of rcFileToExCmds(rc)) {
-        await controller.acceptExCmd(cmd)
-    }
+    let error
+    for (const cmd of rcFileToExCmds(rc))
+        error = await controller.acceptExCmd(cmd).then(
+            () => undefined,
+            e => e,
+        )
+    if (error) throw error
 }
 
-export function rcFileToExCmds(rcText: string): string[] {
-    // Split into individual excmds
-    const excmds = rcText.split("\n")
-
-    // Remove empty and comment lines
-    const ex = excmds.filter(
-        x =>
-            /\S/.test(x) &&
-            !x.trim().startsWith('"') &&
-            !x.trim().startsWith("#"),
-    )
-    const res = ex.join("\n")
-
-    // string-join lines that end with /
-    const joined = res.replace(/\\\n/g, "")
-
-    return joined.split("\n")
+export function* rcFileToExCmds(rcText: string): IterableIterator<ExCommand> {
+    rcText = rcText.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n")
+    let version: "1" | "2" = "1"
+    let buffer = ""
+    let continued = false
+    for (const line of rcText.split("\n")) {
+        if (version === "1") {
+            if (isBlankOrComment(line)) continue
+            continued = line.endsWith("\\")
+            buffer += continued ? line.slice(0, -1) : line
+            if (continued) continue
+            yield buffer
+            version = (commandVersion(buffer) as "1" | "2") || version
+            buffer = ""
+        } else {
+            if (!buffer && isBlankOrComment(line)) continue
+            buffer += (buffer ? "\n" : "") + line
+            const status = parseStructure(buffer).status
+            if (status === "incomplete") continue
+            if (status === "invalid") throw new Error("invalid ex command")
+            yield { source: buffer, exversion: 2 }
+            version = (commandVersion(buffer) as "1" | "2") || version
+            buffer = ""
+        }
+    }
+    if (version === "1" && (buffer || continued))
+        yield buffer + (continued ? "\\" : "")
+    else if (buffer) throw new Error("incomplete ex command")
 }

@@ -39,9 +39,11 @@ test.each([
 })
 
 test("protects operators in whole-line comments and separates lines", () => {
-    const source = "echo one\n# ignore | &&\necho two"
+    const source = 'echo one\n" legacy comment ; .|\n# ignore | &&\necho two'
     expect(shape(source)).toEqual([
         ["text", "echo one", undefined],
+        ["operator", "\n", undefined],
+        ["comment", '" legacy comment ; .|', undefined],
         ["operator", "\n", undefined],
         ["comment", "# ignore | &&", undefined],
         ["operator", "\n", undefined],
