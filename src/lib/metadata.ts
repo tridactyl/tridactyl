@@ -92,16 +92,15 @@ export function memberDoc(node: Node | undefined): string {
 }
 
 /**
- * Returns a typedoc type node for a class member, synthesising an empty
- * reflection for `Object literal` fields (which have no annotated type) so
- * downstream helpers can treat them uniformly as objects.
+ * Returns a typedoc type node for a class member, preserving the children of
+ * inferred object literals so downstream helpers can inspect their types.
  */
 export function memberType(node: Node | undefined): Node | undefined {
     if (!node) return undefined
-    if (node.type) return node.type
     if (node.kindString === "Object literal") {
-        return { type: "reflection", declaration: { children: [] } }
+        return { type: "reflection", declaration: node }
     }
+    if (node.type) return node.type
     if (node.kindString === "Accessor") {
         const sig = (node.getSignature || [])[0] || (node.setSignature || [])[0]
         return sig?.type
@@ -326,7 +325,8 @@ export function convertMember(
     const named: Record<string, Node> = {}
     let indexSig: Node | undefined
     for (const ch of decl?.children || []) {
-        if (ch.name && ch.type) named[ch.name] = ch.type
+        const childType = memberType(ch)
+        if (ch.name && childType) named[ch.name] = childType
     }
     const idx = decl?.indexSignature
     const idxArr = Array.isArray(idx) ? idx : idx ? [idx] : []
