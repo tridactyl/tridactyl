@@ -104,6 +104,9 @@ export class default_config {
      */
     configversion = "0.0"
 
+    /** Ex command syntax version used for interactively entered commands. */
+    exversion: "1" | "2" = "1"
+
     /**
      * Internal field to handle site-specific configs. Use :seturl/:unseturl to change these values.
      */
