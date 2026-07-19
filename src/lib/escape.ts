@@ -1,5 +1,7 @@
 /**
  * Guarantee that your string is interpreted as a string at its destination.
+ *
+ * @packageDocumentation
  */
 
 /** Wrap with single quotes and replace each inner single quote with '\''

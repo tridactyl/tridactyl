@@ -67,6 +67,8 @@
     [libera-link]: ircs://irc.libera.chat:6697/tridactyl
     [matrix-badge]: /static/badges/matrix-badge.svg
     [matrix-link]: https://matrix.to/#/#tridactyl:matrix.org
+
+    @packageDocumentation
 */
 /** ignore this line */
 
@@ -2183,7 +2185,7 @@ export function urlparent(count = 1) {
  *   path). -1 will append to the existing path, -2 will remove the last path
  *   level, and so on.
  *
- *   ```plaintext
+ *   ```text
  *   http://website.com/this/is/the/path/component
  *   Graft point:       ^    ^  ^   ^    ^        ^
  *   From left:         0    1  2   3    4        5

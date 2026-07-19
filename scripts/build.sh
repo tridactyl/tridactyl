@@ -61,6 +61,7 @@ if [ "$QUICK_BUILD" != "1" ]; then
     # routes the public @src/.metadata.generated import to the JSON loader.
     "$(yarn bin)/typedoc" --json src/.metadata.generated.json \
       --excludeExternals --disableSources --plugin none --readme none \
+      --validation.notExported false \
       --exclude 'src/.excmds_*.generated.ts' \
       src/excmds.ts src/lib/config.ts src/content/state_content.ts
     node scripts/minify_json.js src/.metadata.generated.json

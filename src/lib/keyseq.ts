@@ -18,6 +18,7 @@
     If a key is represented by a single character then the shift modifier state
     is ignored unless other modifiers are also present.
 
+    @packageDocumentation
 */
 
 /** */

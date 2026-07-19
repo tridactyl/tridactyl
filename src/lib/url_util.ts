@@ -1,4 +1,6 @@
 /** URL handling utlity functions
+ *
+ * @packageDocumentation
  */
 
 /** Increment the last number in a URL.
