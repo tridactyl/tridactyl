@@ -57,11 +57,10 @@ if [ "$QUICK_BUILD" != "1" ]; then
     "$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
       src/grammars/.bracketexpr.generated.ts
 
-    # Generate runtime metadata via typedoc. src/lib/metadata.ts loads the
-    # JSON and exposes the ProgramMetadata/FileMetadata/Type surface used at
-    # runtime; the .metadata.generated.ts shim below routes the public
-    # @src/.metadata.generated import path to that loader.
-    "$(yarn bin)/typedoc" --json src/.metadata.generated.json --mode file \
+    # Generate runtime metadata via typedoc. The generated TypeScript shim
+    # routes the public @src/.metadata.generated import to the JSON loader.
+    "$(yarn bin)/typedoc" --json src/.metadata.generated.json --mode modules \
+      --excludeExternals \
       --exclude 'src/.excmds_*.generated.ts' --ignoreCompilerErrors \
       src/excmds.ts src/lib/config.ts
     node scripts/minify_json.js src/.metadata.generated.json

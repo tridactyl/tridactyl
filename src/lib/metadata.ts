@@ -22,15 +22,12 @@ const fileBuckets: Record<
     string,
     { functions: Record<string, Node>; classes: Record<string, Node> }
 > = {
-    "src/excmds.ts": { functions: {}, classes: {} },
-    "src/lib/config.ts": { functions: {}, classes: {} },
+    excmds: { functions: {}, classes: {} },
+    "lib/config": { functions: {}, classes: {} },
 }
 
-function inTargetFile(node: Node): string | undefined {
-    for (const src of node.sources || []) {
-        if (fileBuckets[src.fileName]) return src.fileName
-    }
-    return undefined
+function moduleName(node: Node): string {
+    return (node.name || "").replace(/^"|"$/g, "").replace(/\\/g, "/")
 }
 
 function walk(node: Node) {
@@ -39,22 +36,25 @@ function walk(node: Node) {
         for (const v of node) walk(v)
         return
     }
-    if (node.kindString === "Function") {
-        const f = inTargetFile(node)
-        if (f) fileBuckets[f].functions[node.name] = node
-    } else if (node.kindString === "Class") {
-        const f = inTargetFile(node)
-        if (f) fileBuckets[f].classes[node.name] = node
+    if (node.kindString === "Module") {
+        const bucket = fileBuckets[moduleName(node)]
+        for (const child of bucket ? node.children || [] : []) {
+            if (child.kindString === "Function") {
+                bucket.functions[child.name] = child
+            } else if (child.kindString === "Class") {
+                bucket.classes[child.name] = child
+            }
+        }
     }
     if (node.children) walk(node.children)
 }
 walk(metadataJson)
 
 export const excmdsFunctions: Record<string, Node> =
-    fileBuckets["src/excmds.ts"].functions
+    fileBuckets.excmds.functions
 
 const defaultConfig: Node | undefined =
-    fileBuckets["src/lib/config.ts"].classes["default_config"]
+    fileBuckets["lib/config"].classes["default_config"]
 
 export const defaultConfigMembers: Record<string, Node> = (() => {
     const out: Record<string, Node> = {}
