@@ -4009,24 +4009,26 @@ export async function composite(...cmds: string[]) {
 }
 
 /**
- * Transform every element of a piped array with an underscore selector.
- * `_` is identity; dotted paths select properties and throw when an
- * intermediate value is missing. In exversion 2, non-selector targets map ex
+ * Transform every element of a piped array with an underscore expression.
+ * Supports dotted properties, comparisons, short-circuit `&&` and `||`, and
+ * `includes`, `startsWith`, and `endsWith`. In exversion 2, non-expression targets map ex
  * commands, and `array .| target` is shorthand for `array | map target`.
  * Example: `js [{url: "one"}, {url: "two"}] | map _.url`.
  */
 //#both
-export function map(expression: string, values: any[]): any[] {
-    return Collections.map(expression, values)
+export function map(...args: string[]): any[] {
+    const values = args.pop() as any
+    return Collections.map(args.join(" "), values)
 }
 
 /**
- * Keep elements of a piped array whose underscore selector is truthy.
- * Example: `js [{url: "one"}, {}] | filter _.url`.
+ * Keep elements whose underscore expression is truthy. `==` and `!=` use
+ * strict equality. Example: `js [{x: "ok"}, {}] | filter _.x == 'ok'`.
  */
 //#both
-export function filter(expression: string, values: any[]): any[] {
-    return Collections.filter(expression, values)
+export function filter(...args: string[]): any[] {
+    const values = args.pop() as any
+    return Collections.filter(args.join(" "), values)
 }
 
 /**
