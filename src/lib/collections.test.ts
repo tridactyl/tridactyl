@@ -1,9 +1,12 @@
-import { expression, filter, map, selector } from "@src/lib/collections"
+import { expression, filter, join, map, selector } from "@src/lib/collections"
 
 test.each([
     ["_", { url: "one" }, { url: "one" }],
     ["_.url", { url: "one" }, "one"],
     ["_.author.name", { author: { name: "Olie" } }, "Olie"],
+    ["_[0]", ["one", "two"], "one"],
+    ["_[1].url", [null, { url: "two" }], "two"],
+    ["_.items[0][1].name", { items: [[null, { name: "Olie" }]] }, "Olie"],
 ])("applies magic selector %s", (source, value, expected) =>
     expect(selector(source)(value)).toEqual(expected),
 )
@@ -11,6 +14,16 @@ test.each([
 test("maps and filters arrays with magic selectors", () => {
     const values = [{ url: "one" }, {}, { url: "two" }]
     expect(map("_.url", filter("_.url", values))).toEqual(["one", "two"])
+})
+
+test("joins arrays with command separators", () => {
+    expect(join('" "', ["one", "two"])).toBe("one two")
+    expect(join('""', ["one", "two"])).toBe("onetwo")
+    expect(join("", ["one", "two"])).toBe("one,two")
+    expect(join("-", [1, null, undefined, 2])).toBe("1---2")
+    const values = ["one", "two"]
+    values.join = () => "overridden"
+    expect(join("-", values)).toBe("one-two")
 })
 
 test.each([
@@ -30,6 +43,8 @@ test.each([
     ["_ || false", "value", true],
     ["_.x >= 3 && _.x < 5", { x: 4 }, true],
     ["_.a || _.b && _.c", { a: false, b: true, c: false }, false],
+    ["_[1].x == 2", [{}, { x: 2 }], true],
+    ["_[0].name.startsWith('Ol')", [{ name: "Olie" }], true],
     [
         "(_.name == 'ok') || (_.url.startsWith(\"http\"))",
         { name: "no", url: "https://example.com" },
@@ -63,7 +78,7 @@ test("does not invoke allowlisted method names on arbitrary objects", () =>
         "requires a string",
     ))
 
-test.each(["url", "_.url()", "_.0", "_.foo-bar"])(
+test.each(["url", "_.url()", "_.0", "_.foo-bar", "_[-1]", "_[index]"])(
     "rejects unsupported selector %s",
     source => expect(() => selector(source)).toThrow("selector"),
 )
@@ -81,4 +96,5 @@ test.each([
 test.each(["one two", { one: 1 }])("rejects non-array input", value => {
     expect(() => map("_", value as any)).toThrow("array")
     expect(() => filter("_", value as any)).toThrow("array")
+    expect(() => join(",", value as any)).toThrow("array")
 })

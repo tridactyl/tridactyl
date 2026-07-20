@@ -4032,6 +4032,16 @@ export function filter(...args: string[]): any[] {
 }
 
 /**
+ * Join the elements of a piped array. The separator defaults to `,` and may be
+ * a quoted string. Example: `js [{name: "one"}, {name: "two"}] | map _.name | join " "`.
+ */
+//#both
+export function join(...args: string[]): string {
+    const values = args.pop() as any
+    return Collections.join(args.join(" "), values)
+}
+
+/**
  * Escape command for safe use in shell with composite. E.g: `composite js MALICIOUS_WEBSITE_FUNCTION() | shellescape | exclaim ls`
  */
 export async function shellescape(...quoteme: string[]) {

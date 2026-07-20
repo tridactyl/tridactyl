@@ -1,6 +1,9 @@
-const selectorPattern = /^_(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*$/
-const methodPattern =
-    /^(_(?:\.[A-Za-z_$][A-Za-z0-9_$]*)*)\.(includes|startsWith|endsWith)\((.*)\)$/
+const identifier = "[A-Za-z_$][A-Za-z0-9_$]*"
+const selectorSource = `_(?:\\.${identifier}|\\[\\d+\\])*`
+const selectorPattern = new RegExp(`^${selectorSource}$`)
+const methodPattern = new RegExp(
+    `^(${selectorSource})\\.(includes|startsWith|endsWith)\\((.*)\\)$`,
+)
 const comparisons: Record<string, (left: any, right: any) => boolean> = {
     "==": (left, right) => left === right,
     "!=": (left, right) => left !== right,
@@ -11,12 +14,17 @@ const comparisons: Record<string, (left: any, right: any) => boolean> = {
 }
 
 export const isExpression = (source: string) =>
-    source.trim().startsWith("(") || /^_(?:$|[.\s<>=!&|])/.test(source.trim())
+    source.trim().startsWith("(") ||
+    /^_(?:$|[.\s<>=!&|]|\[)/.test(source.trim())
 
 export function selector(source: string): (value: any) => any {
     if (!selectorPattern.test(source))
         throw new Error(`Invalid selector: ${source}`)
-    const path = source.split(".").slice(1)
+    const path = source
+        .slice(1)
+        .split(/(?=\.|\[)/)
+        .filter(Boolean)
+        .map(part => (part[0] === "." ? part.slice(1) : part.slice(1, -1)))
     return value => path.reduce((current, property) => current[property], value)
 }
 
@@ -36,14 +44,19 @@ function operand(source: string): (value: any) => any {
     if (source === "null") return () => null
     if (/^-?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(source))
         return () => Number(source)
-    if (/^'[^'\\\r\n]*'$/.test(source)) return () => source.slice(1, -1)
-    if (source.startsWith('"') && source.endsWith('"')) {
+    const string = stringLiteral(source)
+    if (string !== undefined) return () => string
+    throw new Error(`Invalid expression: ${source}`)
+}
+
+function stringLiteral(source: string): string | undefined {
+    if (/^'[^'\\\r\n]*'$/.test(source)) return source.slice(1, -1)
+    if (source.startsWith('"') && source.endsWith('"'))
         try {
             const value = JSON.parse(source)
-            return () => value
+            if (typeof value === "string") return value
         } catch (_) {}
-    }
-    throw new Error(`Invalid expression: ${source}`)
+    return undefined
 }
 
 function split(source: string, operators: readonly string[]) {
@@ -116,4 +129,16 @@ export function map(source: string, values: any[]): any[] {
 
 export function filter(source: string, values: any[]): any[] {
     return array(values).filter(expression(source))
+}
+
+export function join(source: string, values: any[]): string {
+    const list = array(values)
+    if (!source) return Array.prototype.join.call(list)
+    const separator = stringLiteral(source)
+    if (separator === undefined && /^['"]/.test(source))
+        throw new Error(`Invalid separator: ${source}`)
+    return Array.prototype.join.call(
+        list,
+        separator === undefined ? source : separator,
+    )
 }
