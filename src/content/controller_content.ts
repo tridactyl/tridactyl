@@ -88,7 +88,7 @@ class KeyCanceller {
                 ke.ctrlKey === ke2.ctrlKey &&
                 ke.metaKey === ke2.metaKey &&
                 ke.shiftKey === ke2.shiftKey &&
-                ke.target === ke2.target,
+                (ke.type === "keyup" || ke.target === ke2.target),
         )
         if (index < 0) return false
         kes.splice(index, 1)
