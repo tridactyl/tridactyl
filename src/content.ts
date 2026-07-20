@@ -27,7 +27,7 @@ import {
 import { CmdlineCmds } from "@src/content/commandline_cmds"
 import { EditorCmds } from "@src/content/editor"
 
-import { getAllDocumentFrames, activeElement } from "@src/lib/dom"
+import { activeElement } from "@src/lib/dom"
 
 import state from "@src/state"
 import { EditorCmds as editor } from "@src/content/editor"
@@ -173,10 +173,58 @@ function listen(elem: Window | HTMLElement | HTMLFrameElement) {
         true,
     )
 }
+
 listen(window)
-document.addEventListener("readystatechange", _ =>
-    getAllDocumentFrames().forEach(f => listen(f)),
-)
+
+type FrameElement = HTMLIFrameElement | HTMLFrameElement
+type IframeRoot = Document | ShadowRoot
+const observedIframeRoots = new WeakSet<IframeRoot>()
+const iframeObserver = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE)
+                discoverIframes(node as Element)
+        }
+    }
+})
+
+function listenInIframe(frame: FrameElement) {
+    frame.addEventListener("load", onIframeLoad)
+    try {
+        if (frame.src.startsWith("moz-extension:")) return
+        const doc = frame.contentDocument
+        if (!doc?.defaultView || observedIframeRoots.has(doc)) return
+        listen(doc.defaultView)
+        observeIframeRoot(doc)
+        dom.hijackPageAttachShadow(observeIframeRoot, doc.defaultView)
+        dom.setupFocusHandler(doc)
+    } catch (e) {
+        logger.warning("Could not hijack iframe due to CSP:", e)
+    }
+}
+
+function onIframeLoad(event: Event) {
+    listenInIframe(event.currentTarget as FrameElement)
+}
+
+function discoverIframes(root: IframeRoot | Element) {
+    for (const element of [root as Element, ...root.querySelectorAll("*")]) {
+        if (["iframe", "frame"].includes(element.localName)) {
+            listenInIframe(element as FrameElement)
+        }
+        const shadowRoot = (element as HTMLElement).openOrClosedShadowRoot
+        if (shadowRoot) observeIframeRoot(shadowRoot)
+    }
+}
+
+function observeIframeRoot(root: IframeRoot) {
+    if (observedIframeRoots.has(root)) return
+    observedIframeRoots.add(root)
+    iframeObserver.observe(root, { subtree: true, childList: true })
+    discoverIframes(root)
+}
+
+observeIframeRoot(document)
 
 // Prevent pages from automatically focusing elements on load
 config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
@@ -257,6 +305,7 @@ window["tri"] = Object.assign(Object.create(null), {
 logger.info("Loaded commandline content?", commandline_content)
 
 try {
+    dom.hijackPageAttachShadow(observeIframeRoot)
     dom.setupFocusHandler()
     dom.hijackPageListenerFunctions()
 } catch (e) {

@@ -39,7 +39,8 @@ export function isTextEditable(element: Element) {
         }
 
         // These properties are only defined on HTMLElements
-        if (element instanceof HTMLElement) {
+        const win = element.ownerDocument?.defaultView
+        if (win && element instanceof win.HTMLElement) {
             if (element.contentEditable === undefined) {
                 // This happens on e.g. svgs.
                 return false
@@ -382,7 +383,8 @@ export function isPainted(elem: HTMLElement) {
  * @param doc   The document the frames should be fetched from
  */
 export function getAllDocumentFrames(doc = document) {
-    if (!(doc instanceof HTMLDocument)) return []
+    const win = doc?.defaultView as any
+    if (!win || !(doc instanceof win.HTMLDocument)) return []
     const frames = (
         Array.from(doc.getElementsByTagName("iframe")) as HTMLIFrameElement[] &
             HTMLFrameElement[]
@@ -625,6 +627,45 @@ export function hijackPageListenerFunctions(): void {
     window.eval(eval_str + `;delete ${exportedName}`)
 }
 
+const hijackedAttachShadows = new WeakSet()
+export function hijackPageAttachShadow(
+    onShadowRoot: (root: ShadowRoot) => void,
+    win = window,
+): void {
+    if (!inContentScript()) return
+    try {
+        const prototype = win.Element.prototype
+        const attachShadow = win.eval("p => p.attachShadow")(prototype)
+        if (typeof attachShadow !== "function" || hijackedAttachShadows.has(attachShadow)) return
+
+        const observeShadowRoot = (host: HTMLElement) => {
+            try {
+                // Xray input plus a native brand check rejects fake Elements.
+                Element.prototype.hasAttributes.apply(host)
+                const root = host.openOrClosedShadowRoot
+                if (root) onShadowRoot(root)
+            } catch {}
+        }
+        const wrapped = win.eval(`(prototype, realFunction, observe, apply) => {
+            const wrapped = function (...args) {
+                const result = apply(realFunction, this, args)
+                try { observe(this) } catch {}
+                return result
+            }
+            prototype.attachShadow = wrapped
+            return wrapped
+        }`)(
+            prototype,
+            attachShadow,
+            exportFunction(observeShadowRoot, win),
+            exportFunction(Reflect.apply, win),
+        )
+        hijackedAttachShadows.add(wrapped)
+    } catch (e) {
+        logger.warning("Could not hijack attachShadow:", e)
+    }
+}
+
 /** Focuses an input element and makes sure the cursor is put at the end of the input */
 export function focus(e: HTMLElement): void {
     e.focus()
@@ -688,9 +729,9 @@ async function setInput(el) {
 }
 
 /** Replaces the page's HTMLElement.prototype.focus with our own, onPageFocus */
-function hijackPageFocusFunction(): void {
+function hijackPageFocusFunction(win = window): void {
     const exportedName = "onPageFocus"
-    exportFunction(onPageFocus, window, { defineAs: exportedName })
+    exportFunction(onPageFocus, win, { defineAs: exportedName })
 
     const eval_str = `HTMLElement.prototype.focus = ((realFocus, ${exportedName}) => {
         return function (...args) {
@@ -699,10 +740,14 @@ function hijackPageFocusFunction(): void {
         }
      })(HTMLElement.prototype.focus, ${exportedName})`
 
-    window.eval(eval_str + `;delete ${exportedName}`)
+    win.eval(eval_str + `;delete ${exportedName}`)
 }
 
-export function setupFocusHandler(): void {
+const focusListenerDocs = new WeakSet()
+export function setupFocusHandler(doc = document): void {
+    const win = doc?.defaultView
+    if (!win || focusListenerDocs.has(doc)) return
+
     // Handles when a user selects an input
     const setFocus = elem => {
         if (isTextEditable(elem)) {
@@ -739,10 +784,18 @@ export function setupFocusHandler(): void {
         }
         setFocus(elem)
     }
-    listen(document)
+
+    listen(doc)
+    focusListenerDocs.add(doc)
+
+    // Run handler immediately if the newly found frame has focus
+    if (doc.hasFocus() && doc.activeElement) {
+        handler({ target: doc.activeElement })
+    }
+
     // Handles when the page tries to select an input
     if (inContentScript()) {
-        hijackPageFocusFunction()
+        hijackPageFocusFunction(win)
     }
 }
 
