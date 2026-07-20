@@ -162,12 +162,9 @@ test("binds pipeline input access arguments", () => {
     const value = { items: [{ name: "one" }, { name: "two words" }] }
     const parse = (source: string, piped = true) =>
         parseExCommand(source, commands, { piped, value }).slice(1)
-    expect(parse("echo =.items[1].name =")).toEqual([
-        ["two words", value],
-        true,
-    ])
-    expect(parse("repeat 2 =")).toEqual([[2, value], true])
-    expect(parse("version =")).toEqual([[value], true])
+    expect(parse("echo =.items[1].name =")).toEqual([["two words", "="], true])
+    expect(parse("echo =")).toEqual([["="], false])
+    expect(parse("echo =. =[] =[:]")).toEqual([[value, value, value], true])
     expect(() => parse("echo =[1]", false)).toThrow(
         "Pipeline input reference =[1] used without pipeline input",
     )

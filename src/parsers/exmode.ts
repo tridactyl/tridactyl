@@ -17,7 +17,7 @@ class BoundArgument {
 }
 
 const isInputReference = (argument: string) =>
-    argument === "=" || argument.startsWith("=.") || argument.startsWith("=[")
+    argument.startsWith("=.") || argument.startsWith("=[")
 
 function bindInput(args: string[], input?: PipelineInput) {
     if (!input) return [args, false]

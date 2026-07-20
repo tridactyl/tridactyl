@@ -4022,8 +4022,9 @@ export function map(...args: string[]): any[] {
 }
 
 /**
- * Keep elements whose underscore expression is truthy. `==` and `!=` use
- * strict equality. Example: `js [{x: "ok"}, {}] | filter _.x == 'ok'`.
+ * Keep elements whose underscore expression is truthy, defaulting to the
+ * identity predicate `_.`. `==` and `!=` use strict equality. Example:
+ * `js [{x: "ok"}, {}] | filter _.x == 'ok'`.
  */
 //#both
 export function filter(...args: string[]): any[] {
