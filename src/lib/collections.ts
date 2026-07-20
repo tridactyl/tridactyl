@@ -1,10 +1,12 @@
 const identifier = "[A-Za-z_$][A-Za-z0-9_$]*"
 const integer = "(?:\\d+|-[1-9]\\d*)"
 const subscript = `\\[(?:${integer}|(?:${integer})?:(?:${integer})?)\\]`
-const selectorSource = `_(?:\\.${identifier}|${subscript})*`
+const selectorSource = `_(?:\\.${identifier}|${subscript})+`
 const selectorPattern = new RegExp(`^${selectorSource}$`)
+const identityPattern = /^_(?:\.|\[\]|\[:\])$/
+const receiverSource = `(?:_|${selectorSource})`
 const methodPattern = new RegExp(
-    `^(${selectorSource})\\.(includes|startsWith|endsWith)\\((.*)\\)$`,
+    `^(${receiverSource})\\.(includes|startsWith|endsWith)\\((.*)\\)$`,
 )
 const comparisons: Record<string, (left: any, right: any) => boolean> = {
     "==": (left, right) => left === right,
@@ -16,8 +18,9 @@ const comparisons: Record<string, (left: any, right: any) => boolean> = {
 }
 
 export const isExpression = (source: string) =>
-    source.trim().startsWith("(") ||
-    /^_(?:$|[.\s<>=!&|]|\[)/.test(source.trim())
+    source.trim().startsWith("(") || /^_(?:\.|\[)/.test(source.trim())
+
+const identity = (value: any) => value
 
 function arrayLength(values: any) {
     if (!Array.isArray(values)) throw new Error("Expected an array")
@@ -51,6 +54,7 @@ function slice(values: any, startSource: string, endSource: string) {
 }
 
 export function selector(source: string): (value: any) => any {
+    if (identityPattern.test(source)) return identity
     if (!selectorPattern.test(source))
         throw new Error(`Invalid selector: ${source}`)
     const path = source
@@ -78,11 +82,12 @@ function operand(source: string): (value: any) => any {
         return compile(source.slice(1, -1))
     const method = methodPattern.exec(source)
     if (method) {
-        const object = selector(method[1])
+        const object = method[1] === "_" ? identity : selector(method[1])
         const argument = compile(method[3])
         return value => call(method[2], object(value), argument(value))
     }
-    if (selectorPattern.test(source)) return selector(source)
+    if (identityPattern.test(source) || selectorPattern.test(source))
+        return selector(source)
     if (source === "true") return () => true
     if (source === "false") return () => false
     if (source === "null") return () => null
@@ -172,7 +177,7 @@ export function map(source: string, values: any[]): any[] {
 }
 
 export function filter(source: string, values: any[]): any[] {
-    return array(values).filter(expression(source))
+    return array(values).filter(expression(source || "_."))
 }
 
 export function join(source: string, values: any[]): string {

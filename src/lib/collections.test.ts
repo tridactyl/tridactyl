@@ -1,7 +1,6 @@
 import { expression, filter, join, map, selector } from "@src/lib/collections"
 
 test.each([
-    ["_", { url: "one" }, { url: "one" }],
     ["_.url", { url: "one" }, "one"],
     ["_.author.name", { author: { name: "Olie" } }, "Olie"],
     ["_[0]", ["one", "two"], "one"],
@@ -12,7 +11,6 @@ test.each([
     ["_[1:1]", [0, 1, 2], [1]],
     ["_[:-2]", [0, 1, 2], [0, 1]],
     ["_[1:]", [0, 1, 2], [1, 2]],
-    ["_[:]", [0, 1, 2], [0, 1, 2]],
     ["_[:2]", [], []],
     ["_[3:4]", [0, 1, 2], []],
     ["_[-5:-4]", [0, 1, 2], []],
@@ -25,9 +23,16 @@ test.each([
     expect(selector(source)(value)).toEqual(expected),
 )
 
+test.each(["_.", "_[]", "_[:]"])("%s is an identity selector", source => {
+    const value = { url: "one" }
+    expect(selector(source)(value)).toBe(value)
+    expect(expression(source)(value)).toBe(value)
+})
+
 test("maps and filters arrays with magic selectors", () => {
     const values = [{ url: "one" }, {}, { url: "two" }]
     expect(map("_.url", filter("_.url", values))).toEqual(["one", "two"])
+    expect(filter("", [0, 1, false, 2])).toEqual([1, 2])
 })
 
 test("joins arrays with command separators", () => {
@@ -49,12 +54,12 @@ test.each([
     ["_.startsWith('hel')", "hello", true],
     ["_.endsWith('lo')", "hello", true],
     ["_.x == _.y", { x: 1, y: 1 }, true],
-    ["_ >= 3", 3, true],
-    ["_ == null", null, true],
-    ["_ == '3'", 3, false],
+    ["_[:] >= 3", 3, true],
+    ["_[] == null", null, true],
+    ["_. == '3'", 3, false],
     ["_.includes(2)", [1, 2], true],
-    ["_ == 'a || b'", "a || b", true],
-    ["_ || false", "value", true],
+    ["_[:] == 'a || b'", "a || b", true],
+    ["_[] || false", "value", true],
     ["_.x >= 3 && _.x < 5", { x: 4 }, true],
     ["_.a || _.b && _.c", { a: false, b: true, c: false }, false],
     ["_[1].x == 2", [{}, { x: 2 }], true],
@@ -94,6 +99,7 @@ test("does not invoke allowlisted method names on arbitrary objects", () =>
     ))
 
 test.each([
+    "_",
     "url",
     "_.url()",
     "_.0",
@@ -111,14 +117,14 @@ test("rejects slicing non-arrays", () =>
 test("slices return new arrays and preserve holes", () => {
     const values = Array(3)
     values[1] = 1
-    const result = selector("_[:]")(values)
+    const result = selector("_[0:]")(values)
     expect(result).toEqual(values)
     expect(result).not.toBe(values)
     expect(0 in result).toBe(false)
     values[-1] = "named"
     expect(selector("_[-4]")(values)).toBeUndefined()
     expect(() =>
-        selector("_[:]")(
+        selector("_[0:]")(
             new Proxy([], {
                 get: (_, key) => (key === "length" ? 1.5 : undefined),
             }),
@@ -127,10 +133,12 @@ test("slices return new arrays and preserve holes", () => {
 })
 
 test.each([
+    "_",
     "_.x === 'ok'",
     "_.x + 1",
     "_.includes()",
     "_.unknown('x')",
+    "_..includes('x')",
     `_.x == "\\q"`,
 ])("rejects unsupported expression %s", source =>
     expect(() => expression(source)).toThrow("expression"),

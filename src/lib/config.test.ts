@@ -219,6 +219,7 @@ test("groups versioned programs after legacy RC commands", () => {
     const nmaps = tri.config.USERCONFIG.nmaps
     const exversion = tri.config.USERCONFIG.exversion
     tri.config.USERCONFIG.nmaps = {
+        "=": { source: "echo equals", exversion: 2 },
         x: "echo legacy | command",
         y: { source: "echo one\necho two", exversion: 2 },
     }
@@ -229,6 +230,7 @@ test("groups versioned programs after legacy RC commands", () => {
             rc.indexOf("set exversion 2"),
         )
         expect(rc).toContain("bind y {\necho one\necho two\n}")
+        expect(rc).toContain("bind = {\necho equals\n}")
         expect(rc).toContain("set exversion 1")
         tri.config.USERCONFIG.nmaps = {
             ";": { source: "echo unsafe", exversion: 2 },
