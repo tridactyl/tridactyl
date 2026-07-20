@@ -3037,7 +3037,7 @@ export async function tabduplicate(index?: number) {
 /** Detach a tab, opening it in a new window.
 
     @param index
-        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
+        The 1-based index of the tab to target. index < 1 wraps. `#` targets the previous tab and `%` the current tab. If omitted, this tab.
 */
 //#background
 export async function tabdetach(index?: string) {
