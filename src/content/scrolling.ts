@@ -114,8 +114,6 @@ class ScrollingData {
             return true
         }
         this.endPos = this.startPos + distance
-        if ("style" in this.elem)
-            (this.elem as any).style.scrollBehavior = "unset"
         this.scrolling = this.scrollStep()
         if (this.scrolling)
             // If the element can be scrolled, scroll until animation completion
@@ -165,7 +163,9 @@ class ScrollingData {
     private scrollStep(): boolean {
         const prevScrollPos: number = this.elem[this.scrollDirection]
         const target = this.getStep()
-        this.elem[this.scrollDirection] = target
+        const options: ScrollToOptions = { behavior: "instant" }
+        options[this.scrollDirection === "scrollTop" ? "top" : "left"] = target
+        ;(this.elem as Element).scrollTo(options)
         // Ensure endPos value is possible for display dpi
         if (target === this.endPos)
             this.endPos = this.elem[this.scrollDirection]
