@@ -3047,7 +3047,8 @@ export async function tabdetach(index?: string) {
     let tempWin
     try {
         tempWin = await browser.windows.create({ incognito: currentTab.incognito, url: "about:blank" })
-    } catch (_error) {
+    } catch (error) {
+        if (currentTab.incognito) throw error
         // Some Firefox setups can fail to resolve the default new-window URI.
         // Fall back to the simplest guaranteed-valid create call.
         tempWin = await browser.windows.create({ url: "about:blank" })
