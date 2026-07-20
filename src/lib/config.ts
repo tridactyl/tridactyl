@@ -324,7 +324,7 @@ export class default_config {
         g0: "tabfirst",
         g$: "tablast",
         ga: "tabaudio",
-        gr: "reader --old",
+        gr: "reader",
         gu: "urlparent",
         gU: "urlroot",
         gf: "viewsource",
@@ -421,32 +421,32 @@ export class default_config {
 
     vmaps = {
         "<Escape>":
-            "composite js document.getSelection().empty(); mode normal; hidecmdline",
+            "composite js tri.dom.getSelection().empty(); mode normal; hidecmdline",
         "<C-[>":
-            "composite js document.getSelection().empty(); mode normal ; hidecmdline",
-        y: "composite js document.getSelection().toString() | clipboard yank",
-        "#": "composite js document.location + '#:~:text=' + encodeURIComponent(document.getSelection().toString()) | clipboard yank",
-        s: "composite js document.getSelection().toString() | fillcmdline open search",
-        S: "composite js document.getSelection().toString() | fillcmdline tabopen search",
+            "composite js tri.dom.getSelection().empty(); mode normal ; hidecmdline",
+        y: "composite js tri.dom.getSelection().toString() | clipboard yank",
+        "#": "composite js document.location + '#:~:text=' + encodeURIComponent(tri.dom.getSelection().toString()) | clipboard yank",
+        s: "composite js tri.dom.getSelection().toString() | fillcmdline open search",
+        S: "composite js tri.dom.getSelection().toString() | fillcmdline tabopen search",
         l: `js
-            const sel = document.getSelection();
+            const sel = tri.dom.getSelection();
             tri.visual.extendByCharacter(sel, "forward");
         `,
         h: `js
-            const sel = document.getSelection();
+            const sel = tri.dom.getSelection();
             tri.visual.extendByCharacter(sel, "backward");
         `,
-        e: 'js document.getSelection().modify("extend","forward","word")',
-        w: 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
-        b: 'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
-        j: 'js document.getSelection().modify("extend","forward","line")',
-        q: "composite js document.getSelection().toString() | text2qr --timeout 5",
+        e: 'js tri.dom.getSelection().modify("extend","forward","word")',
+        w: 'js let s=tri.dom.getSelection(); s.modify("extend","forward","word"); s.modify("extend","forward","word"); s.modify("extend","backward","word"); s.modify("extend","forward","character")',
+        b: 'js let s=tri.dom.getSelection(); s.modify("extend","backward","character"); s.modify("extend","backward","word"); s.modify("extend","forward","character")',
+        j: 'js tri.dom.getSelection().modify("extend","forward","line")',
+        q: "composite js tri.dom.getSelection().toString() | text2qr --timeout 5",
         // "j": 'js document.getSelection().modify("extend","forward","paragraph")', // not implemented in Firefox
-        k: 'js document.getSelection().modify("extend","backward","line")',
-        $: 'js document.getSelection().modify("extend","forward","lineboundary")',
-        "0": 'js document.getSelection().modify("extend","backward","lineboundary")',
-        "=": "js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
-        o: "js tri.visual.reverseSelection(document.getSelection())",
+        k: 'js tri.dom.getSelection().modify("extend","backward","line")',
+        $: 'js tri.dom.getSelection().modify("extend","forward","lineboundary")',
+        "0": 'js tri.dom.getSelection().modify("extend","backward","lineboundary")',
+        "=": "js let s = tri.dom.getSelection(); let n = s.anchorNode.parentNode; let r = n.ownerDocument.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
+        o: "js tri.visual.reverseSelection(tri.dom.getSelection())",
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 

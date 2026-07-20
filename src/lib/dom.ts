@@ -404,6 +404,19 @@ export function getAllDocumentFrames(doc = document) {
     )
 }
 
+/** Return the first non-collapsed selection in this document or an accessible frame. */
+export function getSelection(doc = document) {
+    const selection = doc.getSelection()
+    if (selection && !selection.isCollapsed) return selection
+    for (const frame of getAllDocumentFrames(doc)) {
+        try {
+            const frameSelection = frame.contentDocument?.getSelection()
+            if (frameSelection && !frameSelection.isCollapsed) return frameSelection
+        } catch {}
+    }
+    return selection
+}
+
 /** Computes the unique CSS selector of a specific HTMLElement */
 export function getSelector(e: HTMLElement) {
     function uniqueSelector(e: HTMLElement) {
