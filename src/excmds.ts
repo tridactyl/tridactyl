@@ -93,6 +93,7 @@ import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
+import * as Collections from "@src/lib/collections"
 import semverCompare from "semver-compare"
 import * as hint_util from "@src/lib/hint_util"
 import { OpenMode } from "@src/lib/hint_util"
@@ -4005,6 +4006,27 @@ export async function composite(...cmds: string[]) {
     } catch (e) {
         logger.error(e)
     }
+}
+
+/**
+ * Transform every element of a piped array with an underscore selector.
+ * `_` is identity; dotted paths select properties and throw when an
+ * intermediate value is missing. In exversion 2, non-selector targets map ex
+ * commands, and `array .| target` is shorthand for `array | map target`.
+ * Example: `js [{url: "one"}, {url: "two"}] | map _.url`.
+ */
+//#both
+export function map(expression: string, values: any[]): any[] {
+    return Collections.map(expression, values)
+}
+
+/**
+ * Keep elements of a piped array whose underscore selector is truthy.
+ * Example: `js [{url: "one"}, {}] | filter _.url`.
+ */
+//#both
+export function filter(expression: string, values: any[]): any[] {
+    return Collections.filter(expression, values)
 }
 
 /**
