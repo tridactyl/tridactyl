@@ -3,8 +3,41 @@
 import { excmdsFunctions, paramTypes, convert } from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
+import { selector } from "@src/lib/collections"
 
 const logger = new Logging.Logger("exmode")
+
+interface PipelineInput {
+    piped: boolean
+    value: any
+}
+
+class BoundArgument {
+    constructor(public value: any) {}
+}
+
+const isInputReference = (argument: string) =>
+    argument === "=" || argument.startsWith("=.") || argument.startsWith("=[")
+
+function bindInput(args: string[], input?: PipelineInput) {
+    if (!input) return [args, false]
+    let consumed = false
+    const bound = args.map(argument => {
+        if (argument.startsWith("\\") && isInputReference(argument.slice(1)))
+            return argument.slice(1)
+        if (!isInputReference(argument)) return argument
+        if (!input.piped)
+            throw new Error(
+                `Pipeline input reference ${argument} used without pipeline input`,
+            )
+        consumed = true
+        return new BoundArgument(selector(`_${argument.slice(1)}`)(input.value))
+    })
+    return [bound, consumed]
+}
+
+const convertArg = (type, argument) =>
+    argument instanceof BoundArgument ? argument.value : convert(type, argument)
 
 function convertArgs(params, argv) {
     const typedArgs = []
@@ -12,21 +45,39 @@ function convertArgs(params, argv) {
         const p = params[i]
         // Special casing arrays because that's why the previous arg conversion code did
         if (p.flags?.isRest || p.type?.type === "array") {
+            if (argv.slice(j).some(arg => arg instanceof BoundArgument))
+                return typedArgs.concat(
+                    argv
+                        .slice(j)
+                        .map(arg =>
+                            convertArg(p.type?.elementType || p.type, arg),
+                        ),
+                )
             return typedArgs.concat(convert(p.type, argv.slice(j)))
         }
-        typedArgs.push(convert(p.type, argv[j]))
+        typedArgs.push(convertArg(p.type, argv[j]))
     }
-    return typedArgs
+    return typedArgs.concat(
+        argv
+            .slice(params.length)
+            .filter(arg => arg instanceof BoundArgument)
+            .map(arg => arg.value),
+    )
 }
 
 // Simplistic Ex command line parser.
 // TODO: Quoting arguments
 // TODO: Pipe to separate commands
 // TODO: Abbreviated commands
-export function parser(exstr: string, all_excmds: any): any[] {
+export function parser(
+    exstr: string,
+    all_excmds: any,
+    input?: PipelineInput,
+): any[] {
     // Expand aliases
     const expandedExstr = aliases.expandExstr(exstr)
-    const [func, ...args] = expandedExstr.trim().split(/\s+/)
+    const [func, ...rawArgs] = expandedExstr.trim().split(/\s+/)
+    const [args, consumed] = bindInput(rawArgs, input) as [any[], boolean]
 
     // Try to find which namespace (ex, text, ...) the command is in
     const dotIndex = func.indexOf(".")
@@ -62,5 +113,11 @@ export function parser(exstr: string, all_excmds: any): any[] {
         throw new Error(`Not an excmd: ${func}`)
     }
 
-    return [excmds[funcName], converted_args]
+    return [
+        excmds[funcName],
+        converted_args.map(arg =>
+            arg instanceof BoundArgument ? arg.value : arg,
+        ),
+        consumed,
+    ]
 }

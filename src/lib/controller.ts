@@ -50,7 +50,11 @@ export async function acceptExCmd(
             program?: ExProgram,
             raw?: string,
         ) => {
-            const [func, args] = exmode_parser(command, stored_excmds)
+            const [func, args, consumed] = exmode_parser(
+                command,
+                stored_excmds,
+                isV2 ? { piped, value } : undefined,
+            )
             // A heredoc is one literal argument, not text for the legacy parser.
             if (raw !== undefined) args.push(raw)
             if (
@@ -76,7 +80,8 @@ export async function acceptExCmd(
                     })
             }
             const commandArgs = program ? [...args, program] : args
-            return piped ? func(...commandArgs, value) : func(...commandArgs)
+            if (piped && !consumed) commandArgs.push(value)
+            return func(...commandArgs)
         }
 
         if (isV2) return await evaluate(exstr, run)
