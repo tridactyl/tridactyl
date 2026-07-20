@@ -18,15 +18,11 @@ function heredoc(source: string) {
 }
 
 test("finds standalone composition operators losslessly", () => {
-    const source = "a .| b && c || d ; e"
+    const source = "a .| b ; e"
     expect(shape(source)).toEqual([
         ["text", "a ", undefined],
         ["operator", ".|", undefined],
         ["text", " b ", undefined],
-        ["operator", "&&", undefined],
-        ["text", " c ", undefined],
-        ["operator", "||", undefined],
-        ["text", " d ", undefined],
         ["operator", ";", undefined],
         ["text", " e", undefined],
     ])
@@ -48,7 +44,7 @@ test("only backslash protects and is removed from standalone DSL syntax", async 
     const run = jest.fn()
     await evaluate("echo \\| \\&& \\|| \\.| \\; \\{ \\} \\{\\}", run)
     expect(run).toHaveBeenCalledWith(
-        "echo | && || .| ; { } {}",
+        "echo | \\&& \\|| .| ; { } {}",
         false,
         undefined,
         undefined,
@@ -110,7 +106,7 @@ test("parses nested blocks independently", () => {
 test("reports an unterminated block as incomplete", () =>
     expect(parseStructure("bind x { echo done").status).toBe("incomplete"))
 
-test.each(["echo a |", "echo a &&", "echo a .|", "echo a ;"])(
+test.each(["echo a |", "echo a .|", "echo a ;"])(
     "reports a missing right operand in %s",
     source => expect(parseStructure(source).status).toBe("incomplete"),
 )
@@ -183,6 +179,23 @@ test.each(["values .| _.url", "values | map _.url"])(
         expect(run.mock.calls.map(call => call[0])).toEqual([
             "values",
             "map _.url",
+        ])
+    },
+)
+
+test.each(["values .| _.x >= 3", "values | map _.x >= 3"])(
+    "passes full magic expressions to the standard map command in %s",
+    async source => {
+        const values = [{ x: 2 }, { x: 3 }]
+        const run = jest.fn((command, _piped, input) => {
+            if (command === "values") return values
+            if (command === "map _.x >= 3") return [false, true]
+            throw new Error(`Unexpected command: ${command}`)
+        })
+        await expect(evaluate(source, run)).resolves.toEqual([false, true])
+        expect(run.mock.calls.map(call => call[0])).toEqual([
+            "values",
+            "map _.x >= 3",
         ])
     },
 )
@@ -291,14 +304,10 @@ test("continues incomplete operators across newlines", async () => {
     ])
 })
 
-test.each(["a && b"])("rejects unsupported execution syntax in %s", source =>
-    expect(evaluate(source, jest.fn())).rejects.toThrow("Unsupported"),
-)
-
-test("rejects unsupported syntax before execution", async () => {
+test("treats Boolean expression symbols as command text", async () => {
     const run = jest.fn()
-    await expect(evaluate("a ; b && c", run)).rejects.toThrow("Unsupported")
-    expect(run).not.toHaveBeenCalled()
+    await evaluate("filter (_.x == 1) || (_.y == 2) && _.ok", run)
+    expect(run.mock.calls[0][0]).toBe("filter (_.x == 1) || (_.y == 2) && _.ok")
 })
 
 test("continues sequences after a rejected pipeline", async () => {
@@ -410,14 +419,13 @@ test("formats blocks containing whole-line comments safely", async () => {
     })
 })
 
-test.each(["a ; { b && c }", "a | { bind x { b } }"])(
-    "rejects unsupported nested syntax before executing %s",
-    async source => {
-        const run = jest.fn()
-        await expect(evaluate(source, run)).rejects.toThrow("Unsupported")
-        expect(run).not.toHaveBeenCalled()
-    },
-)
+test("rejects unsupported nested syntax before executing", async () => {
+    const run = jest.fn()
+    await expect(evaluate("a | { bind x { b } }", run)).rejects.toThrow(
+        "Unsupported",
+    )
+    expect(run).not.toHaveBeenCalled()
+})
 
 test.each([
     "bind { a } trailing",
