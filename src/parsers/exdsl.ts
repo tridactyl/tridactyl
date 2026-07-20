@@ -1,5 +1,5 @@
 import { ExProgram } from "@src/lib/excmd"
-import { isExpression } from "@src/lib/collections"
+import { expression, isExpression } from "@src/lib/collections"
 
 const operators = [".|", "|", ";"] as const
 
@@ -282,6 +282,7 @@ export type ExCommandRunner = (
 interface ExStage {
     piped: boolean
     command: string
+    expression?: (value: any) => any
     map?: ExStage[]
     program?: ExProgram
     raw?: string
@@ -331,12 +332,18 @@ function compile(
     }
 
     const push = (stage: ExStage) => {
+        const receivesInput =
+            stage.piped || (stages.length === 0 && initialPiped)
         stages.push(
             mapNext
-                ? isExpression(stage.command)
+                ? stage.raw === undefined && isExpression(stage.command)
                     ? { ...stage, command: `map ${stage.command}`, piped: true }
                     : mapStage([stage], true)
-                : stage,
+                : receivesInput &&
+                    stage.raw === undefined &&
+                    isExpression(stage.command)
+                  ? { ...stage, expression: expression(stage.command) }
+                  : stage,
         )
         mapNext = false
     }
@@ -450,15 +457,17 @@ async function execute(
                 ? await mapValues(stage.map, run, input)
                 : stage.block !== undefined
                   ? await execute(stage.block, run, piped, input)
-                  : stage.raw === undefined
-                    ? await run(stage.command, piped, input, stage.program)
-                    : await run(
-                          stage.command,
-                          piped,
-                          input,
-                          stage.program,
-                          stage.raw,
-                      )
+                  : stage.expression
+                    ? await stage.expression(input)
+                    : stage.raw === undefined
+                      ? await run(stage.command, piped, input, stage.program)
+                      : await run(
+                            stage.command,
+                            piped,
+                            input,
+                            stage.program,
+                            stage.raw,
+                        )
         } catch (error) {
             while (stages[index + 1]?.piped) index++
             if (index === stages.length - 1) throw error

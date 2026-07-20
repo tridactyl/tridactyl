@@ -149,6 +149,26 @@ test("preserves typed values in ordinary pipes", async () => {
 })
 
 test.each([
+    [
+        "value | _.items[1][0].name",
+        { items: [[{ name: "one" }], [{ name: "two" }]] },
+        "two",
+    ],
+    [
+        "value | _.item | _.name",
+        { item: Promise.resolve({ name: "one" }) },
+        "one",
+    ],
+])("evaluates bare expression pipeline %s", (source, value, expected) =>
+    expect(
+        evaluate(source, command => {
+            if (command === "value") return value
+            throw new Error(`Unexpected command: ${command}`)
+        }),
+    ).resolves.toBe(expected),
+)
+
+test.each([
     ["values .| double", "double"],
     ["values | map double", "double"],
     ["values .| _double", "_double"],
@@ -179,6 +199,24 @@ test.each(["values .| _.url", "values | map _.url"])(
         expect(run.mock.calls.map(call => call[0])).toEqual([
             "values",
             "map _.url",
+        ])
+    },
+)
+
+test.each(["values .| _[0].url", "values | map _[0].url"])(
+    "maps indexed expressions through the standard command in %s",
+    async source => {
+        const values = [[{ url: "one" }], [{ url: "two" }]]
+        const run = jest.fn((command, _piped, input) => {
+            if (command === "values") return values
+            if (command === "map _[0].url")
+                return input.map(value => value[0].url)
+            throw new Error(`Unexpected command: ${command}`)
+        })
+        await expect(evaluate(source, run)).resolves.toEqual(["one", "two"])
+        expect(run.mock.calls.map(call => call[0])).toEqual([
+            "values",
+            "map _[0].url",
         ])
     },
 )
