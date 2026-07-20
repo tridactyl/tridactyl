@@ -49,7 +49,10 @@ jobs:
           cd tridactyl
           yarn install --frozen-lockfile
           yarn run build
-          find . -iname "*.html" -exec sed 's@href="/static@href="/build/static@' -i '{}' ';' # ideally this url would be less gnarly
+          # The hosted copy cannot run WebExtension scripts and lives under /build.
+          find build -iname "*.html" -exec sed -E -i \
+            -e 's@="/static@="/build/static@g' \
+            -e 's@<script src="/(content|help)\.js"></script>@@g' '{}' +
           cd ../site
           hugo
           cp -r ../tridactyl/build/ public
