@@ -27,7 +27,7 @@ import {
 import { CmdlineCmds } from "@src/content/commandline_cmds"
 import { EditorCmds } from "@src/content/editor"
 
-import { activeElement } from "@src/lib/dom"
+import { getSelection, activeElement } from "@src/lib/dom"
 
 import state from "@src/state"
 import { EditorCmds as editor } from "@src/content/editor"
@@ -195,6 +195,7 @@ function listenInIframe(frame: FrameElement) {
         const doc = frame.contentDocument
         if (!doc?.defaultView || observedIframeRoots.has(doc)) return
         listen(doc.defaultView)
+        doc.addEventListener("selectionchange", selectionChanged)
         observeIframeRoot(doc)
         dom.hijackPageAttachShadow(observeIframeRoot, doc.defaultView)
         dom.setupFocusHandler(doc)
@@ -502,12 +503,14 @@ window.addEventListener("load", () => {
     phoneHome()
 })
 
-document.addEventListener("selectionchange", () => {
-    const selection = document.getSelection()
+function selectionChanged(event: Event) {
+    const selection = (event.currentTarget as Document).getSelection()
+    if (!selection) return
     if (
         contentState.mode == "visual" &&
         config.get("visualexitauto") == "true" &&
-        selection.isCollapsed
+        selection.isCollapsed &&
+        getSelection()?.isCollapsed
     ) {
         contentState.mode = "normal"
         return
@@ -522,18 +525,20 @@ document.addEventListener("selectionchange", () => {
         const text = selection.focusNode // text node or null
         if (!text) break b
 
-        let element
-        if (text instanceof Element) element = text
-        else element = text.parentElement
+        const element =
+            text.nodeType === Node.ELEMENT_NODE
+                ? (text as HTMLElement)
+                : text.parentElement
 
         if (
-            !element.isContentEditable ||
+            !element?.isContentEditable ||
             element.contentEditable === undefined // svg
         ) {
             contentState.mode = "visual"
         }
     }
-})
+}
+document.addEventListener("selectionchange", selectionChanged)
 
 // Try to catch the iframe/status indicator being removed by a script (React again)
 const checkElemsSurvived = () => {

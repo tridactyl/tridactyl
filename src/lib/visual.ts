@@ -30,7 +30,7 @@ function getSelectionDirection(selection: Selection): boolean {
         return undefined
     }
 
-    const range = document.createRange()
+    const range = anchorNode.ownerDocument.createRange()
     range.setStart(anchorNode, selection.anchorOffset)
     range.setEnd(focusNode, selection.focusOffset)
     return !range.collapsed

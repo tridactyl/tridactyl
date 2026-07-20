@@ -5451,10 +5451,11 @@ export async function hint(...args: string[]): Promise<any> {
 
                   switch (config.openMode) {
                       case OpenMode.Highlight:
-                          const r = document.createRange()
+                          const doc = elem.ownerDocument
+                          const r = doc.createRange()
                           r.setStart(elem, 0)
                           r.setEnd(elem, 1)
-                          const s = document.getSelection()
+                          const s = doc.getSelection()
                           s.addRange(r)
                           return elem
 
