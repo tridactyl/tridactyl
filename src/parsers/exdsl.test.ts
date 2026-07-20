@@ -143,6 +143,124 @@ test("evaluates pipes and sequences in order", async () => {
     expect(result).toBe("d(c)")
 })
 
+test("preserves typed values in ordinary pipes", async () => {
+    const value = [{ id: 1 }]
+    const run = jest.fn((source, _piped, input) =>
+        source === "source" ? value : input,
+    )
+    await expect(evaluate("source | sink", run)).resolves.toBe(value)
+    expect(run.mock.calls[1][2]).toBe(value)
+})
+
+test.each(["values .| double", "values | map double"])(
+    "maps exactly one command in %s",
+    async source => {
+        const run = jest.fn((command, _piped, input) =>
+            command === "values" ? [1, 2, 3] : input * 2,
+        )
+        await expect(evaluate(source, run)).resolves.toEqual([2, 4, 6])
+        expect(run.mock.calls.map(call => call[0])).toEqual([
+            "values",
+            "double",
+            "double",
+            "double",
+        ])
+    },
+)
+
+test("maps a command with arguments and pipes the collected results", async () => {
+    const run = jest.fn((command, _piped, input) => {
+        if (command === "values") return [1, 2]
+        if (command === "add 3") return input + 3
+        return input.reduce((sum, value) => sum + value, 0)
+    })
+    await expect(evaluate("values | map add 3 | sum", run)).resolves.toBe(9)
+})
+
+test.each([
+    "values .| { double | stringify }",
+    "values | map { double | stringify }",
+])("maps a multi-stage block in %s", source =>
+    expect(
+        evaluate(source, (command, _piped, input) => {
+            if (command === "values") return [1, 2]
+            if (command === "double") return input * 2
+            return String(input)
+        }),
+    ).resolves.toEqual(["2", "4"]),
+)
+
+test.each(["matrix .| map { double }", "matrix | map map { double }"])(
+    "supports nested command and block maps in %s",
+    source =>
+        expect(
+            evaluate(source, (command, _piped, input) =>
+                command === "matrix"
+                    ? [
+                          [1, 2],
+                          [3, 4],
+                      ]
+                    : input * 2,
+            ),
+        ).resolves.toEqual([
+            [2, 4],
+            [6, 8],
+        ]),
+)
+
+test("runs mapped commands concurrently while preserving result order", async () => {
+    let active = 0
+    let maximumActive = 0
+    const run = jest.fn(async (command, _piped, input) => {
+        if (command === "values") return [1, 2, 3]
+        maximumActive = Math.max(maximumActive, ++active)
+        await new Promise(resolve => setTimeout(resolve, 4 - input))
+        active--
+        return input * 2
+    })
+    await expect(evaluate("values .| work", run)).resolves.toEqual([2, 4, 6])
+    expect(maximumActive).toBe(3)
+})
+
+test("reports the failed map item while already-started items continue", async () => {
+    const started: number[] = []
+    const error = await evaluate("values .| work", (command, _piped, input) => {
+        if (command === "values") return [0, 1, 2]
+        started.push(input)
+        if (input === 1) throw new Error("boom")
+        return input
+    }).catch(error => error)
+    expect(error).toEqual(
+        expect.objectContaining({ message: "map item 1: boom" }),
+    )
+    expect(error.cause).toEqual(expect.objectContaining({ message: "boom" }))
+    expect(started).toEqual([0, 1, 2])
+})
+
+test.each(["text", "object"])("rejects %s map input", async command => {
+    const value = command === "text" ? "one two" : { one: 1, two: 2 }
+    await expect(
+        evaluate(`${command} | map echo`, source =>
+            source === command ? value : source,
+        ),
+    ).rejects.toThrow("map expected an array")
+})
+
+test("maps an empty array without invoking the target", async () => {
+    const run = jest.fn(source => {
+        if (source === "values") return []
+        throw new Error("target invoked")
+    })
+    await expect(evaluate("values .| target", run)).resolves.toEqual([])
+    expect(run).toHaveBeenCalledTimes(1)
+})
+
+test.each(["map target", "values | map"])(
+    "rejects invalid map form %s",
+    source =>
+        expect(evaluate(source, jest.fn())).rejects.toThrow("map requires"),
+)
+
 test("continues incomplete operators across newlines", async () => {
     const run = jest.fn((source, piped, value) =>
         piped ? `${source}(${value})` : source,
@@ -154,10 +272,8 @@ test("continues incomplete operators across newlines", async () => {
     ])
 })
 
-test.each(["a && b", "a .| b"])(
-    "rejects unsupported execution syntax in %s",
-    source =>
-        expect(evaluate(source, jest.fn())).rejects.toThrow("Unsupported"),
+test.each(["a && b"])("rejects unsupported execution syntax in %s", source =>
+    expect(evaluate(source, jest.fn())).rejects.toThrow("Unsupported"),
 )
 
 test("rejects unsupported syntax before execution", async () => {

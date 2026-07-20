@@ -281,9 +281,27 @@ export type ExCommandRunner = (
 interface ExStage {
     piped: boolean
     command: string
+    map?: ExStage[]
     program?: ExProgram
     raw?: string
     block?: ExStage[]
+}
+
+const mapStage = (map: ExStage[], piped = false): ExStage => ({
+    command: "",
+    piped,
+    map,
+})
+
+function mapError(index: number, cause: unknown) {
+    return Object.assign(
+        new Error(
+            `map item ${index}: ${
+                cause instanceof Error ? cause.message : String(cause)
+            }`,
+        ),
+        { cause },
+    )
 }
 
 function compile(
@@ -294,9 +312,26 @@ function compile(
     const stages: ExStage[] = []
     let sourceText = ""
     let piped = false
+    let mapNext = false
     let block: Extract<ExPart, { type: "block" }> | undefined
     let blockCommand = ""
     let raw: string | undefined
+
+    function commandStage(
+        command: string,
+        piped: boolean,
+        raw?: string,
+    ): ExStage {
+        const mapped = /^map(?:\s+(.*))?$/.exec(command)
+        if (!mapped) return { command, piped, raw }
+        if (!mapped[1]) throw new Error("map requires a command or block")
+        return mapStage([commandStage(mapped[1], false, raw)], piped)
+    }
+
+    const push = (stage: ExStage) => {
+        stages.push(mapNext ? mapStage([stage], true) : stage)
+        mapNext = false
+    }
 
     const flush = () => {
         if (block && raw !== undefined)
@@ -304,14 +339,28 @@ function compile(
         if (block) {
             if (sourceText.trim())
                 throw new Error("Unsupported text after ex block")
-            const receivesInput = piped || (stages.length === 0 && initialPiped)
-            const body = compile(source, block.body, receivesInput)
-            if (blockCommand) {
+            const mapDepth = /^map(?:\s+map)*$/.test(blockCommand)
+                ? blockCommand.split(/\s+/).length
+                : 0
+            const receivesInput =
+                piped || mapNext || (stages.length === 0 && initialPiped)
+            const body = compile(
+                source,
+                block.body,
+                receivesInput || mapDepth > 0,
+            )
+            if (mapDepth > 0) {
+                let stage = mapStage(body)
+                for (let depth = 1; depth < mapDepth; depth++)
+                    stage = mapStage([stage])
+                stage.piped = piped
+                push(stage)
+            } else if (blockCommand) {
                 if (receivesInput)
                     throw new Error(
                         "Unsupported pipeline input with an ex block argument",
                     )
-                stages.push({
+                push({
                     command: blockCommand,
                     piped,
                     program: {
@@ -320,10 +369,10 @@ function compile(
                     },
                 })
             } else {
-                stages.push({ block: body, command: "", piped })
+                push({ block: body, command: "", piped })
             }
         } else if (sourceText.trim()) {
-            stages.push({ command: sourceText.trim(), piped, raw })
+            push(commandStage(sourceText.trim(), piped, raw))
         }
         sourceText = ""
         block = undefined
@@ -352,15 +401,27 @@ function compile(
             sourceText = ""
             continue
         }
-        if (!["|", ";", "\n"].includes(part.operator))
+        if (!["|", ".|", ";", "\n"].includes(part.operator))
             throw new Error(
                 `Unsupported ex syntax: ${source.slice(part.start, part.end)}`,
             )
         flush()
+        mapNext = part.operator === ".|"
         piped = part.operator === "|"
     }
     flush()
     return stages
+}
+
+async function mapValues(stages: ExStage[], run: ExCommandRunner, input: any) {
+    if (!Array.isArray(input)) throw new Error("map expected an array")
+    return Promise.all(
+        input.map((item, index) =>
+            execute(stages, run, true, item).catch(error => {
+                throw mapError(index, error)
+            }),
+        ),
+    )
 }
 
 async function execute(
@@ -375,18 +436,21 @@ async function execute(
         const piped = stage.piped || (index === 0 && initialPiped)
         const input = piped ? value : undefined
         try {
-            value =
-                stage.block !== undefined
-                    ? await execute(stage.block, run, piped, input)
-                    : stage.raw === undefined
-                      ? await run(stage.command, piped, input, stage.program)
-                      : await run(
-                            stage.command,
-                            piped,
-                            input,
-                            stage.program,
-                            stage.raw,
-                        )
+            if (stage.map && !piped)
+                throw new Error("map requires pipeline input")
+            value = stage.map
+                ? await mapValues(stage.map, run, input)
+                : stage.block !== undefined
+                  ? await execute(stage.block, run, piped, input)
+                  : stage.raw === undefined
+                    ? await run(stage.command, piped, input, stage.program)
+                    : await run(
+                          stage.command,
+                          piped,
+                          input,
+                          stage.program,
+                          stage.raw,
+                      )
         } catch (error) {
             while (stages[index + 1]?.piped) index++
             if (index === stages.length - 1) throw error
