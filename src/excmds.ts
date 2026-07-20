@@ -4010,8 +4010,8 @@ export async function composite(...cmds: string[]) {
 
 /**
  * Transform every element of a piped array with an underscore expression.
- * Supports dotted properties, comparisons, short-circuit `&&` and `||`, and
- * `includes`, `startsWith`, and `endsWith`. In exversion 2, non-expression targets map ex
+ * Supports property, integer-index, inclusive-slice, and comparison expressions;
+ * short-circuit `&&` and `||`; and `includes`, `startsWith`, and `endsWith`. In exversion 2, non-expression targets map ex
  * commands, and `array .| target` is shorthand for `array | map target`.
  * Example: `js [{url: "one"}, {url: "two"}] | map _.url`.
  */

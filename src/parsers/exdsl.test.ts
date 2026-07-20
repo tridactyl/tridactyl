@@ -177,10 +177,10 @@ test("binds pipeline input access arguments", () => {
 
 test("explicit input bindings replace the implicit pipeline argument", () => {
     const sink = jest.fn((...args) => args)
-    setExCmds({ "": { source: () => ["one", "two"], sink, repeat: jest.fn() } })
+    setExCmds({ "": { source: () => [0, 1, 2], sink, repeat: jest.fn() } })
     return expect(
-        acceptExCmd({ source: "source | sink =[1]", exversion: 2 }),
-    ).resolves.toEqual(["two"])
+        acceptExCmd({ source: "source | sink =[2:0]", exversion: 2 }),
+    ).resolves.toEqual([[2, 1, 0]])
 })
 
 test.each([

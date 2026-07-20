@@ -5,8 +5,22 @@ test.each([
     ["_.url", { url: "one" }, "one"],
     ["_.author.name", { author: { name: "Olie" } }, "Olie"],
     ["_[0]", ["one", "two"], "one"],
+    ["_[-1]", [0, 1, 2], 2],
+    ["_[0:2]", [0, 1, 2], [0, 1, 2]],
+    ["_[:2]", [0, 1, 2], [0, 1, 2]],
+    ["_[2:0]", [0, 1, 2], [2, 1, 0]],
+    ["_[1:1]", [0, 1, 2], [1]],
+    ["_[:-2]", [0, 1, 2], [0, 1]],
+    ["_[1:]", [0, 1, 2], [1, 2]],
+    ["_[:]", [0, 1, 2], [0, 1, 2]],
+    ["_[:2]", [], []],
+    ["_[3:4]", [0, 1, 2], []],
+    ["_[-5:-4]", [0, 1, 2], []],
+    ["_[-1:0]", [0, 1, 2], [2, 1, 0]],
+    ["_[01]", { "01": "one" }, "one"],
     ["_[1].url", [null, { url: "two" }], "two"],
     ["_.items[0][1].name", { items: [[null, { name: "Olie" }]] }, "Olie"],
+    ["_.items[2:0][1]", { items: [0, 1, 2] }, 1],
 ])("applies magic selector %s", (source, value, expected) =>
     expect(selector(source)(value)).toEqual(expected),
 )
@@ -45,6 +59,7 @@ test.each([
     ["_.a || _.b && _.c", { a: false, b: true, c: false }, false],
     ["_[1].x == 2", [{}, { x: 2 }], true],
     ["_[0].name.startsWith('Ol')", [{ name: "Olie" }], true],
+    ["_[2:0].includes(1)", [0, 1, 2], true],
     [
         "(_.name == 'ok') || (_.url.startsWith(\"http\"))",
         { name: "no", url: "https://example.com" },
@@ -78,10 +93,38 @@ test("does not invoke allowlisted method names on arbitrary objects", () =>
         "requires a string",
     ))
 
-test.each(["url", "_.url()", "_.0", "_.foo-bar", "_[-1]", "_[index]"])(
-    "rejects unsupported selector %s",
-    source => expect(() => selector(source)).toThrow("selector"),
+test.each([
+    "url",
+    "_.url()",
+    "_.0",
+    "_.foo-bar",
+    "_[index]",
+    "_[x:1]",
+    "_[1:2:3]",
+])("rejects unsupported selector %s", source =>
+    expect(() => selector(source)).toThrow("selector"),
 )
+
+test("rejects slicing non-arrays", () =>
+    expect(() => selector("_[0:1]")("abc")).toThrow("array"))
+
+test("slices return new arrays and preserve holes", () => {
+    const values = Array(3)
+    values[1] = 1
+    const result = selector("_[:]")(values)
+    expect(result).toEqual(values)
+    expect(result).not.toBe(values)
+    expect(0 in result).toBe(false)
+    values[-1] = "named"
+    expect(selector("_[-4]")(values)).toBeUndefined()
+    expect(() =>
+        selector("_[:]")(
+            new Proxy([], {
+                get: (_, key) => (key === "length" ? 1.5 : undefined),
+            }),
+        ),
+    ).toThrow("length")
+})
 
 test.each([
     "_.x === 'ok'",
