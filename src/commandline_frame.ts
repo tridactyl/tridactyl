@@ -292,7 +292,9 @@ commandline_state.clInput.addEventListener(
                                 funcname as keyof typeof commandline_state.fns
                             ](
                                 args.length === 0 ? undefined : args.join(" "),
-                            ))(),
+                            ))().catch(error => {
+                                logger.error(error)
+                            }),
                     )
                     prev_cmd_called_history = history_called
                 })
