@@ -152,18 +152,37 @@ test("preserves typed values in ordinary pipes", async () => {
     expect(run.mock.calls[1][2]).toBe(value)
 })
 
-test.each(["values .| double", "values | map double"])(
-    "maps exactly one command in %s",
+test.each([
+    ["values .| double", "double"],
+    ["values | map double", "double"],
+    ["values .| _double", "_double"],
+    ["values | map _double", "_double"],
+])("maps exactly one command in %s", async (source, target) => {
+    const run = jest.fn((command, _piped, input) =>
+        command === "values" ? [1, 2, 3] : input * 2,
+    )
+    await expect(evaluate(source, run)).resolves.toEqual([2, 4, 6])
+    expect(run.mock.calls.map(call => call[0])).toEqual([
+        "values",
+        target,
+        target,
+        target,
+    ])
+})
+
+test.each(["values .| _.url", "values | map _.url"])(
+    "maps magic selectors through the standard command in %s",
     async source => {
-        const run = jest.fn((command, _piped, input) =>
-            command === "values" ? [1, 2, 3] : input * 2,
-        )
-        await expect(evaluate(source, run)).resolves.toEqual([2, 4, 6])
+        const values = [{ url: "one" }, { url: "two" }]
+        const run = jest.fn((command, _piped, input) => {
+            if (command === "values") return values
+            if (command === "map _.url") return input.map(value => value.url)
+            throw new Error(`Unexpected command: ${command}`)
+        })
+        await expect(evaluate(source, run)).resolves.toEqual(["one", "two"])
         expect(run.mock.calls.map(call => call[0])).toEqual([
             "values",
-            "double",
-            "double",
-            "double",
+            "map _.url",
         ])
     },
 )

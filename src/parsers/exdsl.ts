@@ -1,4 +1,5 @@
 import { ExProgram } from "@src/lib/excmd"
+import { isSelector } from "@src/lib/collections"
 
 const operators = [".|", "&&", "||", "|", ";"] as const
 
@@ -323,13 +324,20 @@ function compile(
         raw?: string,
     ): ExStage {
         const mapped = /^map(?:\s+(.*))?$/.exec(command)
-        if (!mapped) return { command, piped, raw }
+        if (!mapped || (mapped[1] && isSelector(mapped[1])))
+            return { command, piped, raw }
         if (!mapped[1]) throw new Error("map requires a command or block")
         return mapStage([commandStage(mapped[1], false, raw)], piped)
     }
 
     const push = (stage: ExStage) => {
-        stages.push(mapNext ? mapStage([stage], true) : stage)
+        stages.push(
+            mapNext
+                ? isSelector(stage.command)
+                    ? { ...stage, command: `map ${stage.command}`, piped: true }
+                    : mapStage([stage], true)
+                : stage,
+        )
         mapNext = false
     }
 
