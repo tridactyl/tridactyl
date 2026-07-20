@@ -1,5 +1,7 @@
 import { evaluate, ExStructure, parseStructure } from "@src/parsers/exdsl"
 import { formatExProgram } from "@src/lib/excmd"
+import { parser as parseExCommand } from "@src/parsers/exmode"
+import { acceptExCmd, setExCmds } from "@src/lib/controller"
 
 function shape(source: string, structure = parseStructure(source)): any[] {
     return structure.parts.map(part => [
@@ -146,6 +148,39 @@ test("preserves typed values in ordinary pipes", async () => {
     )
     await expect(evaluate("source | sink", run)).resolves.toBe(value)
     expect(run.mock.calls[1][2]).toBe(value)
+})
+
+test("binds pipeline input access arguments", () => {
+    const commands = {
+        "": {
+            echo: jest.fn(),
+            map: jest.fn(),
+            repeat: jest.fn(),
+            version: jest.fn(),
+        },
+    }
+    const value = { items: [{ name: "one" }, { name: "two words" }] }
+    const parse = (source: string, piped = true) =>
+        parseExCommand(source, commands, { piped, value }).slice(1)
+    expect(parse("echo =.items[1].name =")).toEqual([
+        ["two words", value],
+        true,
+    ])
+    expect(parse("repeat 2 =")).toEqual([[2, value], true])
+    expect(parse("version =")).toEqual([[value], true])
+    expect(() => parse("echo =[1]", false)).toThrow(
+        "Pipeline input reference =[1] used without pipeline input",
+    )
+    expect(parse("echo \\=[1]")).toEqual([["=[1]"], false])
+    expect(parse("map _[0]")).toEqual([["_[0]"], false])
+})
+
+test("explicit input bindings replace the implicit pipeline argument", () => {
+    const sink = jest.fn((...args) => args)
+    setExCmds({ "": { source: () => ["one", "two"], sink, repeat: jest.fn() } })
+    return expect(
+        acceptExCmd({ source: "source | sink =[1]", exversion: 2 }),
+    ).resolves.toEqual(["two"])
 })
 
 test.each([
