@@ -324,7 +324,7 @@ export class default_config {
         g0: "tabfirst",
         g$: "tablast",
         ga: "tabaudio",
-        gr: "reader --old",
+        gr: "reader",
         gu: "urlparent",
         gU: "urlroot",
         gf: "viewsource",

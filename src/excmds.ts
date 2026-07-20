@@ -6377,17 +6377,11 @@ export async function readerurl() {
 /**
  * Open the current page as an article in reader view for easier reading. Flags `--tab` and `--window` open the article in new tabs and windows respectively.
  *
+ * Article content is sanitised and displayed in a sandboxed frame where scripts are disabled. Remote images and media may make cross-site authenticated requests, which could technically be exploitable to submit GET requests as a logged-in user, but I think the likelihood of anyone doing this and relying on you putting their website into reader mode is vanishingly small.
+ *
  * Use `:reader --old` to use Firefox's built-in reader mode, which Tridactyl can't run on.
  *
- * __NB:__ the reader page is a privileged environment which has access to all Tridactyl functions, notably the native messenger if you have it installed. We are parsing untrusted web-content to run in this environment. Mozilla's readability library will strip out most of these, then we use a sanitation library, `js-xss`, to strip out any remaining unsafe tags, but if there was a serious bug in this library, and a targeted attack against Tridactyl, an attacker could get remote code execution. If you're worried about this, use `:reader --old` instead or only use `:reader` on pages you trust.
- *
- * You may use [userContent.css](http://kb.mozillazine.org/index.php?title=UserContent.css&printable=yes) to enhance or override default styling of the new reader view. The `body` of the page has id `tridactyl-reader` and the article content follows in a `main` tag. Therefore to alter default styling, you can do something like this in your `userContent.css`:
- *
- * ```css
- * #tridactyl-reader > main {
- *   width: 80vw !important;
- *   text-align: left;
- * }
+ * You can use `:colourscheme --module=reader` to change the CSS of the reader view. See our [newspaper theme](https://github.com/tridactyl/tridactyl/blob/25bb2764cbb59804f9b75f79b43d21f5806f3a13/contrib/themes/reader/newspaper.css) for an example.
  * ```
  *
  * Follow [issue #4657](https://github.com/tridactyl/tridactyl/issues/4657) if you would like to find out when we have made a more user-friendly solution.

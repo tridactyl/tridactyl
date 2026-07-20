@@ -296,7 +296,8 @@ export async function recursiveScroll(
                 (await recursiveScroll(
                     xDistance,
                     yDistance,
-                    (treeWalker.currentNode as any).contentDocument.body,
+                    (treeWalker.currentNode as any).contentDocument.scrollingElement ??
+                        (treeWalker.currentNode as any).contentDocument.documentElement,
                 )))
         ) {
             // Cache the node for next time and stop trying to scroll
