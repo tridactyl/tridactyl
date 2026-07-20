@@ -6,7 +6,7 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   **Breaking change**: user binds to `nmode` have been broken by the new keyup/keydown binds. Fix by explicitly binding to `<D-[key]><U-[key]>` to ensure that the keyup gets consumed before entering nmode
 
--   Tridactyl funding 👀: [donate via GitHub sponsors here](https://github.com/users/bovine3dom/sponsorship). Please consider starting a recurring donation to bovine3dom (me) if you find Tridactyl useful. In July 2025, I got the lowest amount since 2023, so I guess I need to gently push this again :)
+-   Tridactyl funding 👀: [donate via GitHub sponsors here](https://github.com/users/bovine3dom/sponsorship). Please consider starting a recurring donation to bovine3dom (me) if you find Tridactyl useful. As of July 2026, I'm having to withdraw a little more from my savings than I'd like for regular outgoings so any contributions would be gratefully received.
 
 -   All GitHub and Patreon donors get a nice little newsletter every now and then; for people who donate at least 10USD a month I briefly did a "tips & tricks" newsletter roughly once a month ([see an example here](https://github.com/tridactyl/tridactyl/blob/master/doc/newsletters/tips-and-tricks/1-hint-css-selectors.md)) but now I'm open to other ideas for saying thanks. You can also donate via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY), but they charge fairly high fees and you won't get any newsletters. Donations currently aim to ensure that bovine3dom can work one day a week on Tridactyl at minimum wage. Previously the donations have funded an in-person developer retreat.
 
@@ -33,9 +33,9 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 -   `s` — if you want to search for something that looks like a domain name or URL.
 -   `gi` — scroll to and focus the last-used input on the page.
 -   `gr` — open Firefox reader mode (note: Tridactyl will not work in this mode).
--   Bind your own commands with, e.g., `:bind J tabprev`. Type `:help bind` to see help on custom binds.
+-   Bind your own commands with, e.g., `:bind gD composite tabduplicate; tabdetach`. Type `:help bind` to see help on custom binds.
 -   `yy` — copy the current page URL to your clipboard.
--   `[[`/`]]` — navigate forward/backward though paginated pages.
+-   `[[`/`]]` — navigate backward/forward though paginated pages.
 -   `ZZ` — close all tabs and windows, but it will only "save" them if your about:preferences are set to "show your tabs and windows from last time".
 -   `<C-v>` – send a single keystroke to the current website, bypassing bindings by entering ignore mode temporarily
 -   `<C-o>` – run a single normal mode binding when in ignore mode
@@ -53,7 +53,7 @@ REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED
 
 ## Why do I see this here?
 
-Tridactyl overrides your newtab page because it cannot insert its content script on the default about:newtab. Without the content script, our shortcuts won't work, even if you're just passing through the page. We're working with Firefox on improvements to the WebExtension APIs that will remove this restriction.
+Tridactyl overrides your newtab page because it cannot insert its content script on the default about:newtab. Without the content script, our shortcuts won't work, even if you're just passing through the page.
 
 ### How can I get rid of it?
 
@@ -62,7 +62,7 @@ Tridactyl overrides your newtab page because it cannot insert its content script
 
 Also, if you want to use a new tab page provided by another extension, make sure to install said extension after Tridactyl. Uninstalling and re-installing the other extension should work too.
 
-Alternatively, if you don't need Tridactyl to work on the new tab page, you can install the beta build without new tab page. You can get it [here][nonewtablink]. To migrate your configuration across builds, see [this comment][migratelink] or [this issue](https://github.com/tridactyl/tridactyl/issues/1353#issuecomment-463094704).
+Alternatively, if you don't need Tridactyl to work on the new tab page, you can install the beta build without new tab page. You can get it [here][nonewtablink]. To migrate your configuration across builds, use `:mkt --clipboard` and `:source --clipboard`.
 
 ## FAQ
 

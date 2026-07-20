@@ -8,7 +8,7 @@ You can scroll up and down pages using `k` and `j`, and left and right with `h` 
 
 Use `.` to repeat the last action.
 
-Many keypresses in normal mode take you into another mode. `t`, for example, puts you into command mode prefilled with the command for opening a new tab; `F` puts you into hinting mode to open a link in a background tab; `gi` focuses the first text box on the page and allows you to press `Tab` to switch between text boxes.
+Many keypresses in normal mode take you into another mode. `t`, for example, puts you into command mode prefilled with the command for opening a new tab; `F` puts you into hinting mode to open a link in a background tab; `gi` focuses the last used text box on the page, falling back to the first, and allows you to press `Tab` to switch between text boxes.
 
 Tridactyl uses a similar notation to Vim for keys with modifiers: `<C-x>` means press Ctrl, tap x, release Ctrl; i.e. `Ctrl-x`. `<C-` almost always means a literal Ctrl key, even on Macs: `<M-` means the Meta ("splat") key. The exception is when describing default Firefox binds for Macintosh: then `<C-` means Meta. This arises most often for find mode where the `<C-g>`, `<C-G>` and `<C-f>` default binds are all in fact `<M-g>`, `<M-G>` and `<M-f>`.
 
@@ -35,7 +35,7 @@ All the keys in normal mode are bound to commands; for example, `j` is bound to 
 
 ## Browser-wide binds
 
-By default, there are three browser "mode" binds: `<C-,>` to `:escapehatch`, and `<C-6>` and `<CS-6>` to `:tab #`. These binds are accessible in all modes and anywhere within Firefox - even on pages where Tridactyl cannot run. New browser mode binds can be added with `:bind --mode=browser [ex command]`. Note that any ex-commands which require access to the page you are on will fail to run if Tridactyl does not have access to that page. The best thing to do is to try it and see.
+By default, there are three browser "mode" binds: `<C-,>` to `:escapehatch`, and `<C-6>` (`<A-6>` on Windows) to `:tab #`. These binds are accessible in all modes and anywhere within Firefox - even on pages where Tridactyl cannot run. New browser mode binds can be added with `:bind --mode=browser [ex command]`. Note that any ex-commands which require access to the page you are on will fail to run if Tridactyl does not have access to that page. The best thing to do is to try it and see.
 
 There are quite a few caveats with these binds - see `:help bind` for more details.
 

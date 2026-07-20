@@ -9,7 +9,6 @@ Tridactyl
 <h4 align="center">Replace Firefox's default control mechanism with one modelled on the one true editor, Vim.</h4>
 
 <p align="center">
-<a href="https://travis-ci.org/tridactyl/tridactyl"><img src="https://travis-ci.org/tridactyl/tridactyl.svg?branch=master" alt="Build Status"></a>
 <a href="https://matrix.to/#/#tridactyl:matrix.org"><img src="https://img.shields.io/badge/matrix-join%20chat-green" alt="Matrix Chat"></a>
 <a href="https://gitter.im/tridactyl/Lobby"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join Gitter Chat"></a>
 <a href="https://discord.gg/DWbNGTAvmh"><img src="https://img.shields.io/discord/854326924402622474?color=%235865F2&label=discord" alt="Join Discord Chat"></a>
@@ -53,7 +52,7 @@ Tridactyl stable can be installed from the [Mozilla add-ons website (the AMO)][a
 
 ### Extra features through [Native Messaging](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging)
 
-If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:installnative` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead.
+If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:nativeinstall` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead.
 
 #### Containerized/sandboxed Firefox Installations
 
@@ -81,7 +80,7 @@ The changelog for the stable versions can be found [here](https://github.com/tri
 
 Type `:help` or press `<F1>` for online help once you're in, or `:tutor` for a friendly introduction. You might also find the [unofficial Tridactyl Memrise course](https://app.memrise.com/community/course/5995499/tridactyls-main-shortcuts/) (requires login) useful for memorising keybinds.
 
-Remember that Tridactyl cannot run on any page on about:\*, data:\*, view-source:\* and file:\*. We're sorry about that and we're working with Firefox to improve this situation by removing restrictions on existing APIs and developing a new API.
+Remember that Tridactyl cannot run on any page on about:\*, data:\*, view-source:\* and file:\*. We're sorry about that :(
 
 If you're enjoying Tridactyl, or not, please leave a review on the [AMO](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/reviews/).
 
@@ -111,11 +110,11 @@ You can try `:help key` to know more about `key`. If it is an existing binding, 
 -   `gi` — scroll to and focus the last-used input on the page
 -   `r`/`R` — reload page or hard reload page
 -   `yy` — copy the current page URL to the clipboard
--   `[[`/`]]` — navigate forward/backward though paginated pages, for example comics, multi-part articles, search result pages, etc.
+-   `[[`/`]]` — navigate backward/forward though paginated pages, for example comics, multi-part articles, search result pages, etc.
 -   `]c`/`[c` — increment/decrement the current URL by 1
 -   `gu` — go to the parent of the current URL
 -   `gU` — go to the root domain of the current URL
--   `gr` — open Firefox reader mode (note: Tridactyl will not work in this mode)
+-   `gr` — open Firefox reader mode (note: Tridactyl will only work on our own `:reader` command which has complicated security implications)
 -   `zi`/`zo`/`zz` — zoom in/out/reset zoom
 -   `<C-f>`/`<C-b>` — jump to the next/previous part of the page
 -   `g?` — Apply Caesar cipher to page (run `g?` again to switch back)
@@ -185,7 +184,7 @@ Additionally, you can hint elements matching a custom CSS selector with `:hint -
 
 ### Binding custom commands
 
-You can bind your own shortcuts in normal mode with the `:bind` command. For example `:bind J tabprev` to bind `J` to switch to the previous tab. See `:help bind` for details about this command.
+You can bind your own shortcuts in normal mode with the `:bind` command. For example `:bind gD composite tabduplicate; tabdetach` to duplicate and detach the current tab. See `:help bind` for details about this command.
 
 ## WebExtension-related issues
 
@@ -235,6 +234,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
     To use one of the built in themes use: `:colors <color>`. The current options are:
 
     -   default
+    -   auto
     -   dark (authored by @furgerf)
     -   shydactyl (authored by @atrnh)
     -   greenmat (authored by @caputchinefrobles)
@@ -242,12 +242,14 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
     -   quake
     -   quakelight
     -   midnight (authored by @karizma)
+    -   vimium
+    -   tokyonight
 
     Tridactyl can also load themes from disk or URL. You could use this for example to load one of the themes originally authored by @bezmi ([tridactyl/base16-tridactyl](https://github.com/tridactyl/base16-tridactyl)). See `:help colors` for more information.
 
 -   How to remap keybindings? or How can I bind keys using the control/alt key modifiers (eg: `ctrl+^`)?
 
-    You can remap keys in normal, ignore, input and insert mode with `:bind --mode=$mode $key $excmd`. Hint mode and the command line are currently special and can't be rebound. See `:help bind` for more information.
+    You can remap keys with `:bind --mode=$mode $key $excmd`. See `:help bind` for more information.
 
     Modifiers can be bound like this: `:bind <C-f> scrollpage 1`. Special keys can be bound too: `:bind <F3> colors dark` and with modifiers: `:bind <S-F3> colors default` and with multiple modifiers: `:bind <SA-F3> composite set hintchars 1234567890 | set hintfiltermode vimperator-reflow`
 
@@ -279,7 +281,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Can I change proxy via commands?
 
-    Not yet, but this feature will eventually be implemented.
+    Yes, see `:help proxyadd`
 
 -   How do I disable Tridactyl on certain sites?
 
@@ -289,7 +291,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   How can I list the current bindings?
 
-    `viewconfig nmaps` works OK, but Tridactyl commands won't work on the shown page for "security reasons". We'll eventually provide a better way. See [#98](https://github.com/tridactyl/tridactyl/issues/98).
+    `viewconfig nmaps` works OK, but Tridactyl commands won't work on the shown page for "security reasons". We'll eventually provide a better way. See [#98](https://github.com/tridactyl/tridactyl/issues/98). You can also look at `:bind ` completions and `:apropos `
 
 -   How can I know which mode I'm in/have a status line?
 
@@ -297,7 +299,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
 
 -   Does anyone actually use Tridactyl?
 
-    In addition to the developers, some other people do. Mozilla keeps tabs on stable users [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30), but, as of a while ago, you can't see that link if you aren't listed as a Tridactyl developer on the AMO. The maintainers guess the number of unstable users from unique IPs downloading the betas each week when they feel like it. Last time they checked there were 4600 of them.
+    In addition to the developers, some other people do. Mozilla keeps tabs on stable users [here](https://addons.mozilla.org/en-US/firefox/addon/tridactyl-vim/statistics/?last=30), but, as of a while ago, you can't see that link if you aren't listed as a Tridactyl developer on the AMO. The maintainers guess the number of unstable users from unique IPs downloading the betas each week when they feel like it. Last time they checked there were 4600 of them. Unscientifically extrapolating from Arch linux's pop contest for package installations gives us an estimate of around 50,000 users.
 
 -   How do I prevent websites from stealing focus?
 
@@ -355,13 +357,11 @@ If you are on a distribution which builds Firefox with `--with-unsigned-addon-sc
 
 -   Install [NodeJS for Windows][win-nodejs]
 
-    -   Current 8.11.1 LTS seems to work fine
-
 -   Launch the installation steps described above from MinTTY shell
     -   Also known as "Git Bash"
 
 [win-git]: https://git-scm.com/download/win
-[win-nodejs]: https://nodejs.org/dist/v8.11.1/node-v8.11.1-x64.msi
+[win-nodejs]: https://nodejs.org/dist/
 [pyinstaller]: https://www.pyinstaller.org
 [gpg4win]: https://www.gpg4win.org
 
@@ -379,7 +379,7 @@ You can speed up the build process after your first build by using `yarn run reb
 
 ### Committing
 
-A pre-commit hook is added by `yarn install` that simply runs `yarn test`. If you know that your commit doesn't break the tests you can commit with `git commit -n` to ignore the hooks. If you're making a PR, travis will check your build anyway.
+A pre-commit hook is added by `yarn install` that simply runs `yarn test`. If you know that your commit doesn't break the tests you can commit with `git commit -n` to ignore the hooks. If you're making a PR, GitHub will check your build anyway once a maintainer has approved it.
 
 ### Documentation
 

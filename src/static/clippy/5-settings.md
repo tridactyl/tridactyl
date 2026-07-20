@@ -12,8 +12,8 @@ Here we will briefly summarise some of the main settings:
     -   the style of hint mode to use. Set it to "vimperator" to filter links by typing in the text they display
     -   You will also want to change the hintchars setting to something that allows you to type in most text, e.g, 5432167890.
 -   theme
-    -   dark or default
--   excmds
+    -   e.g. dark or default, but it's more convenient to use the `:colours` command to change it
+-   exaliases
     -   aliases for command mode: the things on the left actually run the commands on the right. The most interesting one of these is `current_url`, which is how the binds for O, W and T (`bind T`) work.
 
 There are many other commands related to settings:

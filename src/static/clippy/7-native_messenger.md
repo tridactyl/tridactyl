@@ -9,7 +9,6 @@ The native messenger is an external executable that you can install on your comp
 - Load themes from your disk (`:h colors`).
 - Open privileged pages (e.g. `about:preferences`) from Tridactyl's commandline (`:h nativeopen`).
 - Copy things to your X selection buffer if you're on linux (`:h yankto`).
-- Make Tridactyl work on `addons.mozilla.org` (`:h fixamo`).
 - Set firefox preferences from Tridactyl's command line (`:h setpref`).
 - Choose where to save files when using Tridactyl's `:saveas` command.
 - Run arbitrary shell commands (`:h exclaim`).
