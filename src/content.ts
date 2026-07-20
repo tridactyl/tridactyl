@@ -196,6 +196,7 @@ function listenInIframe(frame: FrameElement) {
         if (!doc?.defaultView || observedIframeRoots.has(doc)) return
         listen(doc.defaultView)
         observeIframeRoot(doc)
+        dom.hijackPageAttachShadow(observeIframeRoot, doc.defaultView)
         dom.setupFocusHandler(doc)
     } catch (e) {
         logger.warning("Could not hijack iframe due to CSP:", e)
@@ -304,6 +305,7 @@ window["tri"] = Object.assign(Object.create(null), {
 logger.info("Loaded commandline content?", commandline_content)
 
 try {
+    dom.hijackPageAttachShadow(observeIframeRoot)
     dom.setupFocusHandler()
     dom.hijackPageListenerFunctions()
 } catch (e) {

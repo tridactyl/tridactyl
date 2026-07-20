@@ -627,6 +627,45 @@ export function hijackPageListenerFunctions(): void {
     window.eval(eval_str + `;delete ${exportedName}`)
 }
 
+const hijackedAttachShadows = new WeakSet()
+export function hijackPageAttachShadow(
+    onShadowRoot: (root: ShadowRoot) => void,
+    win = window,
+): void {
+    if (!inContentScript()) return
+    try {
+        const prototype = win.Element.prototype
+        const attachShadow = win.eval("p => p.attachShadow")(prototype)
+        if (typeof attachShadow !== "function" || hijackedAttachShadows.has(attachShadow)) return
+
+        const observeShadowRoot = (host: HTMLElement) => {
+            try {
+                // Xray input plus a native brand check rejects fake Elements.
+                Element.prototype.hasAttributes.apply(host)
+                const root = host.openOrClosedShadowRoot
+                if (root) onShadowRoot(root)
+            } catch {}
+        }
+        const wrapped = win.eval(`(prototype, realFunction, observe, apply) => {
+            const wrapped = function (...args) {
+                const result = apply(realFunction, this, args)
+                try { observe(this) } catch {}
+                return result
+            }
+            prototype.attachShadow = wrapped
+            return wrapped
+        }`)(
+            prototype,
+            attachShadow,
+            exportFunction(observeShadowRoot, win),
+            exportFunction(Reflect.apply, win),
+        )
+        hijackedAttachShadows.add(wrapped)
+    } catch (e) {
+        logger.warning("Could not hijack attachShadow:", e)
+    }
+}
+
 /** Focuses an input element and makes sure the cursor is put at the end of the input */
 export function focus(e: HTMLElement): void {
     e.focus()
