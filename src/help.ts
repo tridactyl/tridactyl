@@ -18,7 +18,7 @@ function initTridactylSettingElem(
         bindingNode = document.createElement("p")
         bindingNode.className = `TridactylSetting Tridactyl${kind}`
         bindingNode.textContent = kind + ": "
-        elem.insertBefore(bindingNode, elem.children[2])
+        elem.insertBefore(bindingNode, elem.children[1])
     }
     return bindingNode as HTMLElement
 }
@@ -137,12 +137,14 @@ function addSettingInputs() {
 
     return Promise.all(
         Array.from(
-            document.querySelectorAll<HTMLAnchorElement>("a.tsd-anchor"),
+            document.querySelectorAll<HTMLHeadingElement>(
+                ".tsd-panel.tsd-member > h3.tsd-anchor-link[id]",
+            ),
         ).map(
-            async (a: HTMLAnchorElement) => {
+            async (a: HTMLHeadingElement) => {
                 const section = a.parentNode
 
-                const settingName = a.name.split(".")
+                const settingName = a.id.split(".")
                 const value = await config.getAsyncDynamic(...settingName)
                 if (!value) return console.log("Failed to grab value of ", a)
                 if (!["number", "boolean", "string"].includes(typeof value))
@@ -154,7 +156,7 @@ function addSettingInputs() {
                     )
 
                 const input = document.createElement("input")
-                input.name = a.name
+                input.name = a.id
                 input.value = value
                 input.id = "TridactylSettingInput_" + input.name
                 input.className = inputClassName

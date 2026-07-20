@@ -114,7 +114,7 @@ export function setContentEditableValues(e, text, start, end) {
 /**
  * Take an editor function as parameter and return it wrapped in a function that will handle grabbing text and caret position from the HTML element it takes as parameter
  *
- * @param editor_function A function that takes a [string, selectionStart, selectionEnd] tuple as argument and returns a [string, selectionStart, selectionEnd] tuple corresponding to the new state of the text.
+ * @param fn A function that takes a [string, selectionStart, selectionEnd] tuple as argument and returns a [string, selectionStart, selectionEnd] tuple corresponding to the new state of the text.
  *
  * @return boolean Whether the editor function was actually called or not
  *
@@ -139,7 +139,7 @@ export function wrap_input(
 /**
  * Take an editor function as parameter and wrap it in a function that will handle error conditions
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function needs_text(fn: editor_function, arg?: any): editor_function {
     return (
         text: string,

@@ -9,7 +9,7 @@ export const CmdlineCmds = new Proxy(functions as any, {
     get(target, property) {
         if (target[property]) {
             return (...args) =>
-                messageOwnTab("commandline_cmd", property as string, args)
+                messageOwnTab("commandline_cmd", property, args)
         }
         return target[property]
     },

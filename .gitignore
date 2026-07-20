@@ -10,9 +10,8 @@ native/native_main
 native_main.spec
 .wine-pyinstaller
 tags
-compiler/*.js
-compiler/**/*.js
 .*.generated.ts
+.*.generated.json
 .tmp/
 .DS_Store
 .build_cache/

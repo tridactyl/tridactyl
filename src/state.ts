@@ -111,7 +111,7 @@ const state = new Proxy(overlay, {
             }
             browser.storage.local.set({
                 state: R.pick(PERSISTENT_KEYS, target),
-            } as any)
+            })
         }
         return true
     },

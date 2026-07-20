@@ -42,7 +42,7 @@ jobs:
         cache: 'yarn'
 
     - name: Install deps
-      run: yarn install
+      run: yarn install --frozen-lockfile
 
     - name: Setup Firefox
       uses: browser-actions/setup-firefox@v1

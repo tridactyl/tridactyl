@@ -57,13 +57,19 @@ if [ "$QUICK_BUILD" != "1" ]; then
     "$(yarn bin)/nearleyc" src/grammars/bracketexpr.ne > \
       src/grammars/.bracketexpr.generated.ts
 
-    # It's important to generate the metadata before the documentation because
-    # missing imports might break documentation generation on clean builds
-    "$(yarn bin)/tsc" compiler/gen_metadata.ts -m commonjs --target es2017 \
-      && node compiler/gen_metadata.js \
-              --out src/.metadata.generated.ts \
-              --themeDir src/static/themes \
-              src/excmds.ts src/lib/config.ts
+    printf '{"version":1,"commands":{},"settings":{}}' > src/.metadata.generated.json
+    printf 'export * from "./lib/metadata"\n' > src/.metadata.generated.ts
+    node -e "var fs=require('fs');fs.writeFileSync('src/.themes.generated.json',JSON.stringify(fs.readdirSync('src/static/themes').sort()))"
+
+    # Generate runtime metadata via typedoc. The generated TypeScript shim
+    # routes the public @src/.metadata.generated import to the JSON loader.
+    "$(yarn bin)/typedoc" --json src/.metadata.generated.json \
+      --excludeExternals --disableSources --readme none \
+      --excludePrivate false --excludePrivateClassFields false \
+      --validation.notExported false \
+      --exclude 'src/.excmds_*.generated.ts' \
+      src/excmds.ts src/lib/config.ts src/content/state_content.ts
+    node scripts/convert_typedoc_metadata.js src/.metadata.generated.json
 
     scripts/newtab.md.sh
     scripts/make_tutorial.sh

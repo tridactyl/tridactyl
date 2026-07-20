@@ -232,8 +232,8 @@ export async function getBestEditor(): Promise<string> {
  * helpful error message in the command line if the native messenger is not
  * installed, or is the wrong version.
  *
- * @arg version: A string representing the minimal required version.
- * @arg interactive: True if a message should be displayed on version mismatch.
+ * @param version A string representing the minimal required version.
+ * @param interactive True if a message should be displayed on version mismatch.
  * @return false if the required version is higher than the currently available
  * native messenger version.
  */

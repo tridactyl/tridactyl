@@ -1,10 +1,13 @@
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
-import * as metadata from "@src/.metadata.generated"
+import {
+    defaultConfigMembers,
+    memberDoc,
+    memberType,
+    typeToString,
+} from "@src/.metadata.generated"
 
-class SettingsCompletionOption
-    extends Completions.CompletionOptionHTML
-    implements Completions.CompletionOptionFuse {
+class SettingsCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
     constructor(
@@ -66,11 +69,9 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
 
         options += options ? " " : ""
 
-        const file = metadata.everything.getFile("src/lib/config.ts")
-        const default_config = file.getClass("default_config")
         const settings = config.get()
 
-        if (default_config === undefined || settings === undefined) {
+        if (settings === undefined) {
             return
         }
 
@@ -78,18 +79,12 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
             .filter(x => x.startsWith(query))
             .sort()
             .map(setting => {
-                const md = default_config.getMember(setting)
-                let doc = ""
-                let type = ""
-                if (md !== undefined) {
-                    doc = md.doc
-                    type = md.type.toString()
-                }
+                const md = defaultConfigMembers[setting]
                 return new SettingsCompletionOption(options + setting, {
                     name: setting,
                     value: JSON.stringify(settings[setting]),
-                    doc,
-                    type,
+                    doc: memberDoc(md),
+                    type: md ? typeToString(memberType(md)) : "",
                 })
             })
 

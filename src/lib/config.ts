@@ -21,8 +21,6 @@ import * as binding from "@src/lib/binding"
 import * as platform from "@src/lib/platform"
 import { DeepPartial } from "tsdef"
 
-declare function structuredClone<T>(value: T): T // delete me once we move off typescript 3
-
 /* Remove all nulls from objects recursively
  * NB: also applies to arrays
  */

@@ -32,7 +32,7 @@ export abstract class CompletionOption {
 }
 
 export abstract class CompletionSource {
-    readonly options: CompletionOption[]
+    options: CompletionOption[]
     node: HTMLElement
     public completion: string
     public args: string
@@ -151,6 +151,7 @@ export interface ScoredOption {
 }
 
 export abstract class CompletionSourceFuse extends CompletionSource {
+    options: CompletionOptionFuse[]
     public node
 
     fuseOptions = {
@@ -173,15 +174,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     protected optionContainer = html`<table class="optionContainer"></table>`
 
-    // invalidate cache on option change
-    private _options: CompletionOptionFuse[]
-    public get options(): CompletionOptionFuse[] {
-        return this._options
-    }
-    public set options(val: CompletionOptionFuse[]) {
-        this._options = val
-        this.fuse = undefined
-    }
+    private fusedOptions: CompletionOptionFuse[]
 
     constructor(
         prefixes,
@@ -262,8 +255,9 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string): ScoredOption[] {
-        if (this.fuse === undefined) {
+        if (this.fuse === undefined || this.fusedOptions !== this.options) {
             this.fuse = new Fuse(this.options, this.fuseOptions)
+            this.fusedOptions = this.options
         }
 
         return this.fuse.search(query).map(result => ({
@@ -298,7 +292,8 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
         if (this.sortScoredOptions) {
             const sorted_options = scoredOpts.map(res => res.option)
-            this._options = sorted_options.concat(hidden_options)
+            this.options = sorted_options.concat(hidden_options)
+            this.fusedOptions = this.options
         }
     }
 
@@ -330,7 +325,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
 
     // Lots of methods don't need this but some do
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     async onInput(exstr: string) {}
 }
 

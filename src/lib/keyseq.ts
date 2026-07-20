@@ -18,6 +18,7 @@
     If a key is represented by a single character then the shift modifier state
     is ignored unless other modifiers are also present.
 
+    @packageDocumentation
 */
 
 /** */
@@ -32,7 +33,7 @@ const bracketexpr_parser = new Parser(bracketexpr_grammar)
 
 // unspoofable keyboard events
 // this should be ~the only place in the code that accepts KeyboardEvent
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-restricted-types
 export type TrustedKeyboardEvent = KeyboardEvent & { readonly isTrusted: true }
 
 export const guarded = memoise(

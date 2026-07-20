@@ -16,6 +16,7 @@
  *
  * Contrary to the main tridactyl help page, this one doesn't tell you whether a specific function is bound to something. For now, you'll have to make do with with `:bind` and `:viewconfig`.
  *
+ * @packageDocumentation
  */
 /** ignore this line */
 

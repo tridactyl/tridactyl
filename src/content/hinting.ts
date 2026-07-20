@@ -10,6 +10,7 @@
  *
  * Contrary to the main tridactyl help page, this one doesn't tell you whether a specific function is bound to something. For now, you'll have to make do with `:bind` and `:viewconfig`.
  *
+ * @packageDocumentation
  */
 /** ignore this line */
 
@@ -710,7 +711,7 @@ class Hint {
     public readonly flag = document.createElement("span")
     public readonly highlight: HTMLElement | null = null
     public readonly outline: HTMLElement | null = null
-    public readonly rect: ClientRect = null
+    public readonly rect: Omit<ClientRect, "x" | "y" | "toJSON"> = null
     public result: any = null
 
     public width = 0

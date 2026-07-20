@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "module": "es2020",
+    "strict": false,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "noImplicitAny": false,
     "noEmitOnError": true,
     "outDir": "build/tsc-out",
@@ -14,10 +16,9 @@
     "strictBindCallApply": true,
     "noImplicitThis": true,
     "strictFunctionTypes": true,
-    "baseUrl": "src/",
     "types": ["@types/firefox-webext-browser"],
     "paths": {
-        "@src/*": ["*"]
+        "@src/*": ["./src/*"]
     }
   },
   "include": [

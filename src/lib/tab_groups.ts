@@ -139,11 +139,9 @@ async function tabIdsOrCurrent(ids?: number | number[]): Promise<number[]> {
  */
 export async function setTabTgroup(name: string, id?: number | number[]) {
     const ids = await tabIdsOrCurrent(id)
-    return Promise.all(
-        ids.map(id => {
-            browserBg.sessions.setTabValue(id, "tridactyl-tgroup", name)
-        }),
-    )
+    return ids.map(id => {
+        browserBg.sessions.setTabValue(id, "tridactyl-tgroup", name)
+    })
 }
 
 /**
@@ -154,11 +152,9 @@ export async function setTabTgroup(name: string, id?: number | number[]) {
  */
 export async function clearTabTgroup(id?: number | number[]) {
     const ids = await tabIdsOrCurrent(id)
-    return Promise.all(
-        ids.map(id => {
-            browserBg.sessions.removeTabValue(id, "tridactyl-tgroup")
-        }),
-    )
+    return ids.map(id => {
+        browserBg.sessions.removeTabValue(id, "tridactyl-tgroup")
+    })
 }
 
 /**
@@ -209,7 +205,7 @@ export async function tgroupLastTabId(name: string, previous = false) {
 /**
  * Clear stored information for a tab group.
  *
- * @param name The name of the tab group.
+ * @param oldName The name of the tab group.
  * @param newName A name to rename the group to.
  * @param id The id of the window. Use the current window if not specified.
  *
