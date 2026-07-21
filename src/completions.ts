@@ -231,6 +231,18 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         this.updateDisplay()
     }
 
+    completionForOption(option: CompletionOption) {
+        const [prefix] = this.splitOnPrefix(this.lastExstr)
+        return prefix ? [prefix, option.value].join(" ") : option.value
+    }
+
+    visibleCompletions() {
+        if (this.state === "hidden") return []
+        return (this.options || [])
+            .filter(option => option.state !== "hidden")
+            .map(option => this.completionForOption(option))
+    }
+
     select(option: CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
             const [prefix] = this.splitOnPrefix(this.lastExstr)

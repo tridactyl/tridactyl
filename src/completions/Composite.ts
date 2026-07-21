@@ -35,6 +35,15 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
         this.updateDisplay()
     }
 
+    completionForOption(option: ExcmdCompletions.ExcmdCompletionOption) {
+        return (
+            this.lastExstr.replace(
+                new RegExp(this.getendexstr(this.lastExstr) + "$"),
+                "",
+            ) + option.value
+        )
+    }
+
     select(option: ExcmdCompletions.ExcmdCompletionOption) {
         this.completion =
             this.lastExstr.replace(

@@ -79,6 +79,10 @@ const commandline_state = {
     completionsDiv: window.document.getElementById("completions"),
     fns: undefined as ReturnType<typeof getCommandlineFns>,
     getCompletion,
+    getCompletions: () =>
+        (commandline_state.activeCompletions || []).flatMap(source =>
+            source.visibleCompletions(),
+        ),
     getActiveCompletionSource,
     history,
     /** @hidden

@@ -220,6 +220,9 @@ export function getCommandlineFns(cmdline_state: {
         execute_ex_on_completion: (excmd: string) =>
             execute_ex_on_x(false, cmdline_state, excmd),
 
+        execute_ex_on_all_completions: (excmd: string) =>
+            execute_ex_on_all(cmdline_state, excmd),
+
         copy_completion: () => {
             const command = cmdline_state.getCompletion()
             cmdline_state.fns.hide_and_clear()
@@ -230,14 +233,29 @@ export function getCommandlineFns(cmdline_state: {
     }
 }
 
-function execute_ex_on_x(args_only: boolean, cmdline_state, excmd: string) {
-    const args =
+function execute_ex_on_x(
+    args_only: boolean,
+    cmdline_state,
+    excmd: string,
+    args?: string,
+) {
+    args ??=
         cmdline_state.getCompletion(args_only) || cmdline_state.clInput.value
-
     const cmdToExec = (excmd ? excmd + " " : "") + args
     cmdline_state.fns.store_ex_string(cmdToExec)
 
     return messageOwnTab("controller_content", "acceptExCmd", [cmdToExec])
+}
+
+async function execute_ex_on_all(cmdline_state, excmd: string) {
+    await cmdline_state.refresh_completions(cmdline_state.clInput.value)
+    return Promise.all(
+        cmdline_state
+            .getCompletions()
+            .map(command =>
+                execute_ex_on_x(false, cmdline_state, excmd, command),
+            ),
+    )
 }
 
 function space(cmdline_state) {

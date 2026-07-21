@@ -187,6 +187,7 @@ export class default_config {
         "<C-o>yy": "ex.execute_ex_on_completion_args clipboard yank",
         "<C-o>t": "ex.execute_ex_on_completion_args tabopen -b",
         "<C-o>w": "ex.execute_ex_on_completion_args winopen",
+        "<C-o>x": "ex.execute_ex_on_all_completions",
     }
 
     /**

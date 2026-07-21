@@ -7,6 +7,7 @@ class ExtensionsCompletionOption extends Completions.CompletionOptionHTML
 
     constructor(public name: string, public optionsUrl: string) {
         super()
+        this.value = name
         this.fuseKeys.push(this.name)
 
         this.html = html`<tr class="option">
