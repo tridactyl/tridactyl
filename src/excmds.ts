@@ -4587,7 +4587,7 @@ export function keymap(source: string, target: string) {
         fillcmdline("You can't keymap with keyboardlayoutforce set. Set values in keyboardlayoutoverrides to change layout for tridactyl shortcuts.")
         return
     }
-    return set("keytranslatemap." + source, target)
+    return config.set("keytranslatemap", source, target)
 }
 
 /**
