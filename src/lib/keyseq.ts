@@ -250,16 +250,54 @@ export function parse(keyseq: MinimalKey[], map: KeyMap): ParserResponse {
     if (keyseq.length === 0) return { keys: [], isMatch: false }
 
     // Split into numeric prefix and non-numeric suffix
-    let numericPrefix: MinimalKey[]
-    ;[numericPrefix, keyseq] = splitNumericPrefix(keyseq)
+    const [originalNumericPrefix, originalKeyseq] = splitNumericPrefix(keyseq)
+    let numericPrefix = originalNumericPrefix
+    keyseq = originalKeyseq.slice()
 
     // If keyseq is a prefix of a key in map, proceed, else try dropping keys
     // from keyseq until it is empty or is a prefix.
     let possibleMappings = completions(keyseq, map)
+    // Don't let a held key's non-extending repeats abandon a valid prefix.
+    const repeated = keyseq[keyseq.length - 1]
+    if (possibleMappings.size === 0 && repeated?.repeat && !repeated.keyup) {
+        const withoutRepeat = keyseq.slice(0, -1)
+        const hasDown = originalNumericPrefix
+            .concat(withoutRepeat)
+            .some(
+                key =>
+                    !key.keyup && !key.repeat && key.match(repeated) === true,
+            )
+        const mappingsBeforeRepeat = completions(withoutRepeat, map)
+        if (hasDown && mappingsBeforeRepeat.size > 0) {
+            keyseq = withoutRepeat
+            possibleMappings = mappingsBeforeRepeat
+        }
+    }
     while (possibleMappings.size === 0 && keyseq.length > 0) {
         keyseq.shift()
         numericPrefix = []
         possibleMappings = completions(keyseq, map)
+    }
+
+    // Retry unmatched late keyups where ordinary mappings expect them.
+    if (keyseq.length === 0) {
+        const released = originalKeyseq.pop()
+        const isDown = key =>
+            key.key === released?.key && !key.keyup && !key.repeat
+        const downIndex = R.findLastIndex(isDown, originalKeyseq)
+        if (released?.keyup && downIndex >= 0) {
+            const mappingsBeforeRelease = completions(originalKeyseq, map)
+            originalKeyseq.splice(downIndex + 1, 0, released)
+            const reorderedMappings = completions(
+                originalKeyseq,
+                mappingsBeforeRelease,
+            )
+            if (reorderedMappings.size > 0) {
+                numericPrefix = originalNumericPrefix
+                keyseq = originalKeyseq
+                possibleMappings = reorderedMappings
+            }
+        }
     }
 
     if (possibleMappings.size > 0) {
