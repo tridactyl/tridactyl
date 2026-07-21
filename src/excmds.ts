@@ -5999,7 +5999,7 @@ async function js_helper(str: string[]) {
         }
 
         // d for delimiter innit
-        const match = /-d(.)/.exec(flag)
+        const match = /^-d(.)/.exec(flag)
         if (match !== null) {
             separator = match[1]
             str.shift()
