@@ -24,6 +24,18 @@ function test_increment() {
         [1, "http://example.com/book1", "http://example.com/book2"],
         // test urls with no incrementable parts return null
         [1, "http://example.com", null],
+        // test percent encoding is preserved
+        [
+            1,
+            "https://example.com/?q=is%3Aopen&page=15",
+            "https://example.com/?q=is%3Aopen&page=16",
+        ],
+        // test encoded bytes are not mistaken for numbers
+        [1, "http://example.com/%20", null],
+        // test encoded digits are incremented
+        [1, "http://example.com/%31", "http://example.com/2"],
+        // test encoding after the number is preserved
+        [1, "http://example.com/item/1%20", "http://example.com/item/2%20"],
     ]
 
     for (let [step, input, output] of cases) {
@@ -334,6 +346,7 @@ function test_url_graft_path() {
 
 function test_url_query_interpolation() {
     let cases = [
+        ["http://example.com/%s000", "a/query", "http://example.com/a/query000"],
         [
             // not percent-encoded and appended
             "http://example.com",

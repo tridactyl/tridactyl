@@ -23,17 +23,25 @@ export function decodeUrlForDisplay(url: string): string {
  * @return          the incremented URL, or null if cannot be incremented
  */
 export function incrementUrl(url, count) {
-    const url_en=decodeURI(url)
-    const regex = /(.*?)(\d+)(\D*)$/
+    // Decode escaped bytes for the search while retaining the original spelling.
+    const urlParts = url.match(/%[0-9a-f]{2}|[\s\S]/gi) || []
+    const searchableUrl = urlParts
+        .map(part =>
+            part.length === 3
+                ? String.fromCharCode(parseInt(part.slice(1), 16))
+                : part,
+        )
+        .join("")
     // Find the final number in a URL
-    const matches = regex.exec(url_en)
+    const matches = searchableUrl.match(/(.*?)(\d+)(\D*)$/)
 
     // no number in URL - nothing to do here
     if (matches === null) {
         return null
     }
 
-    const [, pre, number, post] = matches
+    const [, pre, number] = matches
+    const numberIndex = matches.index + pre.length
     const newNumber = parseInt(number, 10) + count
     let newNumberStr = String(newNumber > 0 ? newNumber : 0)
 
@@ -45,7 +53,11 @@ export function incrementUrl(url, count) {
         }
     }
 
-    return encodeURI(pre + newNumberStr + post)
+    return (
+        urlParts.slice(0, numberIndex).join("") +
+        newNumberStr +
+        urlParts.slice(numberIndex + number.length).join("")
+    )
 }
 
 /** Get the root of a URL
@@ -428,7 +440,7 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
     if (hasInterpolationPoint) {
         const resultingURL = new URL(
             urlPattern.href
-                .replace(/%s\d+/g, function (x) {
+                .replace(/%s[1-9]\d*/g, function (x) {
                     const index = parseInt(x.slice(2), 10) - 1
                     if (index >= queryWords.length) {
                         return ""
