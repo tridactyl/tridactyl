@@ -440,7 +440,7 @@ export function interpolateSearchItem(urlPattern: URL, query: string): URL {
     if (hasInterpolationPoint) {
         const resultingURL = new URL(
             urlPattern.href
-                .replace(/%s\d+/g, function (x) {
+                .replace(/%s[1-9]\d*/g, function (x) {
                     const index = parseInt(x.slice(2), 10) - 1
                     if (index >= queryWords.length) {
                         return ""
