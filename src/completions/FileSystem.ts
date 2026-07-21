@@ -39,7 +39,10 @@ export class FileSystemCompletionSource extends Completions.CompletionSourceFuse
         }
 
         let [cmd, path] = this.splitOnPrefix(exstr)
-        if (cmd === undefined) {
+        if (
+            cmd === undefined ||
+            (cmd === "source" && /^--url(?:\s|$)/.test(path))
+        ) {
             this.state = "hidden"
             return
         }
