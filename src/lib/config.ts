@@ -181,7 +181,7 @@ export class default_config {
         "<C-f>": "ex.complete",
         "<Tab>": "ex.next_completion",
         "<S-Tab>": "ex.prev_completion",
-        "<Space>": "ex.insert_space_or_completion",
+        "<Space>": "ex.insert_character_or_completion",
         "<C-Space>": "ex.insert_space",
 
         "<C-o>yy": "ex.execute_ex_on_completion_args clipboard yank",
