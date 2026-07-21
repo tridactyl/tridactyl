@@ -114,6 +114,7 @@ let ALL_EXCMDS
 // excmds, so we can use it without futher configuration.
 import * as controller from "@src/lib/controller"
 import {
+    EX_CANCELLED,
     ExCommand,
     ExProgram,
     formatExProgram,
@@ -5384,6 +5385,7 @@ const KILL_STACK: Element[] = []
  *
  * Hinting action flags (only one can be specified):
  *
+ * - -e return the selected live DOM element(s) without activating it. In exversion 2, use e.g. `hint -e | _.href | tabopen -b`. Escape cancels a normal element hint and skips the rest of its program; `-qe` and `-!e` return arrays.
  * - -t open in a new foreground tab
  * - -b open in background
  * - -y copy (yank) link's target to clipboard
@@ -5521,6 +5523,8 @@ export async function hint(...args: string[]): Promise<any> {
                   }
 
                   switch (config.openMode) {
+                      case OpenMode.Element:
+                          return elem
                       case OpenMode.Highlight:
                           const r = document.createRange()
                           r.setStart(elem, 0)
@@ -5657,7 +5661,14 @@ export async function hint(...args: string[]): Promise<any> {
             resolve(results)
         } else {
             // Perform hinting
-            hinting.hintPage(hintables, action, resolve, reject, config.rapid)
+            hinting.hintPage(
+                hintables,
+                action,
+                resolve,
+                reject,
+                config.rapid,
+                config.openMode === OpenMode.Element ? EX_CANCELLED : "",
+            )
         }
     }).then(value => {
         // Fix #1374 for all types of yanks: join returned results

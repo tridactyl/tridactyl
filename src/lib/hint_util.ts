@@ -11,6 +11,7 @@ import * as hinting from "@src/content/hinting"
  */
 export enum OpenMode {
     Default = "",
+    Element = "-e",
     Tab = "-t",
     BackgroundTab = "-b",
     Window = "-w",
@@ -170,6 +171,9 @@ export class HintConfig implements HintOptions {
                                     cOrPipeFlagPresent = true
                                     result.includeDefaultHintables = false
                                     newState = State.ExpectPipeSelector
+                                    break
+                                case "e":
+                                    newOpenMode = OpenMode.Element
                                     break
                                 case "t":
                                     newOpenMode = OpenMode.Tab

@@ -3,6 +3,18 @@ export interface ExProgram {
     exversion: 2
 }
 
+export const EX_CANCELLED = Object.freeze({
+    __tridactylExOutcome: "cancelled" as const,
+})
+
+export function isExCancelled(value: unknown): value is typeof EX_CANCELLED {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        (value as typeof EX_CANCELLED).__tridactylExOutcome === "cancelled"
+    )
+}
+
 export type ExCommand = string | ExProgram
 
 export function isExProgram(command: unknown): command is ExProgram {

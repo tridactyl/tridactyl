@@ -74,6 +74,7 @@ class HintState {
         public resolve: (x) => void,
         public reject: (x) => void,
         public rapid: boolean,
+        private readonly cancelResult: unknown = "",
     ) {
         this.hud.classList.add("TridactylHud", "cleanslate")
         this.hudTranslate.classList.add("TridactylHudTranslation")
@@ -115,7 +116,7 @@ class HintState {
         if (this.rapid) this.resolve(this.selectedHints.map(h => h.result))
         else
             this.resolve(
-                this.selectedHints[0] ? this.selectedHints[0].result : "",
+                this.selectedHints[0] ? this.selectedHints[0].result : this.cancelResult,
             )
     }
 
@@ -489,12 +490,13 @@ export function hintPage(
     resolve: (x?) => void = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     reject: (x?) => void = () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     rapid = false,
+    cancelResult: unknown = "",
 ) {
     reset() // Tidy up in case any previous hinting wasn't exited cleanly
     const buildHints: HintBuilder = defaultHintBuilder()
     const filterHints: HintFilter = defaultHintFilter()
     contentState.mode = "hint"
-    modeState = new HintState(filterHints, resolve, reject, rapid)
+    modeState = new HintState(filterHints, resolve, reject, rapid, cancelResult)
 
     if (!rapid) {
         buildHints(hintableElements, hint => {
