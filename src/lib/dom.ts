@@ -86,6 +86,10 @@ function isEditableHTMLInput(element: HTMLInputElement) {
     return false
 }
 
+export function isWithinDisabledFormControl(element: Element): boolean {
+    return element.closest(":disabled:not(fieldset)") !== null
+}
+
 /**
  * Dispatch a mouse event to the target element
  * based on cVim's implementation
