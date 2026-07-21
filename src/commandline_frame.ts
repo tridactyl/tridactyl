@@ -251,6 +251,8 @@ let prev_cmd_called_history = false
 // Save programmer time by generating an immediately resolved promise
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const QUEUE: Promise<void>[] = [(async () => {})()]
+let pendingExCommands = 0
+const nativeInsertFallbacks = new Map<object, () => boolean>()
 
 /** @hidden **/
 commandline_state.clInput.addEventListener(
@@ -263,7 +265,25 @@ commandline_state.clInput.addEventListener(
         )
         commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
-        if (response.isMatch) {
+        const [funcname, ...args] = response.value?.startsWith("ex.")
+            ? response.value.slice(3).split(/\s+/)
+            : []
+        const command =
+            commandline_state.fns[funcname as keyof typeof commandline_state.fns]
+        const nativeInsertFallback = nativeInsertFallbacks.get(command)
+        const commandArgument =
+            args.length === 0
+                ? nativeInsertFallback && keyevent.key.length === 1
+                    ? keyevent.key
+                    : undefined
+                : args.join(" ")
+        const insertCharacterNatively =
+            args.length === 0 &&
+            keyevent.key.length === 1 &&
+            !(keyevent.altKey || keyevent.ctrlKey || keyevent.metaKey) &&
+            pendingExCommands === 0 &&
+            nativeInsertFallback?.()
+        if (response.isMatch && !insertCharacterNatively) {
             keyevent.preventDefault()
             keyevent.stopImmediatePropagation()
         } else {
@@ -277,23 +297,21 @@ commandline_state.clInput.addEventListener(
         if (response.value) {
             commandline_state.keyEvents = []
             history_called = false
+            if (insertCharacterNatively) return
 
             // If excmds start with 'ex.' they're coming back to us anyway, so skip that.
             // This is definitely a hack. Should expand aliases with exmode, etc.
             // but this whole thing should be scrapped soon, so whatever.
-            if (response.value.startsWith("ex.")) {
-                const [funcname, ...args] = response.value.slice(3).split(/\s+/)
+            if (funcname) {
+                pendingExCommands++
 
                 QUEUE[QUEUE.length - 1].then(() => {
                     QUEUE.push(
                         // Abuse async to wrap non-promises in a promise
                         // eslint-disable-next-line @typescript-eslint/require-await
-                        (async () =>
-                            commandline_state.fns[
-                                funcname as keyof typeof commandline_state.fns
-                            ](
-                                args.length === 0 ? undefined : args.join(" "),
-                            ))(),
+                        (async () => command(commandArgument))()
+                            .catch(error => void logger.error(error))
+                            .finally(() => pendingExCommands--),
                     )
                     prev_cmd_called_history = history_called
                 })
@@ -468,6 +486,10 @@ Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
 logger.debug("Added commandline_frame message listener")
 
 commandline_state.fns = getCommandlineFns(commandline_state)
+nativeInsertFallbacks.set(
+    commandline_state.fns.insert_character_or_completion,
+    () => !getCompletion(),
+)
 Messaging.addListener(
     "commandline_cmd",
     Messaging.attributeCaller(commandline_state.fns),

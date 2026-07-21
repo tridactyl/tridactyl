@@ -96,6 +96,17 @@ export function getCommandlineFns(cmdline_state: {
             return result
         },
 
+        /** Inserts the selected completion, or its argument/keybinding character. */
+        insert_character_or_completion: (character?: string) => {
+            if (cmdline_state.getActiveCompletionSource()?.completion)
+                return cmdline_state.fns.insert_space_or_completion()
+            if (character !== undefined)
+                insertCharacter(cmdline_state, character)
+            return cmdline_state.refresh_completions(
+                cmdline_state.clInput.value,
+            )
+        },
+
         /**
          * If a completion is selected, inserts it in the command line with a space.
          * If no completion is selected, inserts a space where the caret is.
@@ -112,7 +123,7 @@ export function getCommandlineFns(cmdline_state: {
                 cmdline_state.clInput.value =
                     completion + (completionSource?.trailingSpace ? " " : "")
             } else {
-                space(cmdline_state)
+                insertCharacter(cmdline_state)
             }
             return cmdline_state.refresh_completions(
                 cmdline_state.clInput.value,
@@ -123,7 +134,7 @@ export function getCommandlineFns(cmdline_state: {
          * Insert a space
          */
         insert_space: () => {
-            space(cmdline_state)
+            insertCharacter(cmdline_state)
         },
 
         /** Hide the command line and cmdline_state.clear its content without executing it. **/
@@ -258,13 +269,13 @@ async function execute_ex_on_all(cmdline_state, excmd: string) {
     )
 }
 
-function space(cmdline_state) {
+function insertCharacter(cmdline_state, character = " ") {
     const selectionStart = cmdline_state.clInput.selectionStart
     const selectionEnd = cmdline_state.clInput.selectionEnd
     cmdline_state.clInput.value =
         cmdline_state.clInput.value.substring(0, selectionStart) +
-        " " +
+        character +
         cmdline_state.clInput.value.substring(selectionEnd)
     cmdline_state.clInput.selectionStart = cmdline_state.clInput.selectionEnd =
-        selectionStart + 1
+        selectionStart + character.length
 }
