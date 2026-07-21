@@ -112,7 +112,12 @@ export class MinimalKey {
         const fail = () => (this.optional ? "skip" as const : false)
         if (this.key !== keyevent.key) return fail()
         for (const [_, attr] of modifiers.entries()) {
-            if (attr === "shiftKey" && this.key.length === 1) continue
+            if (
+                attr === "shiftKey" &&
+                this.key.length === 1 &&
+                this.key !== " "
+            )
+                continue
             if (this[attr] !== keyevent[attr]) return fail()
         }
         if (this.keyup !== keyevent.keyup) return fail()
