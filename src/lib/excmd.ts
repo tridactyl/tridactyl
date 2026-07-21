@@ -17,6 +17,9 @@ export function isExCancelled(value: unknown): value is typeof EX_CANCELLED {
 
 export type ExCommand = string | ExProgram
 
+export const stripLeadingColons = (source: string) =>
+    source.replace(/^(\s*):+/, "$1")
+
 export function isExProgram(command: unknown): command is ExProgram {
     return (
         typeof command === "object" &&

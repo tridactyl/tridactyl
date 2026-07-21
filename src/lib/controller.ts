@@ -4,6 +4,7 @@ import {
     ExProgram,
     isExProgram,
     programSource,
+    stripLeadingColons,
 } from "@src/lib/excmd"
 import { evaluate } from "@src/parsers/exdsl"
 import { parser as exmode_parser } from "@src/parsers/exmode"
@@ -30,12 +31,13 @@ export async function acceptExCmd(
     source?: ExCmdSource,
     exversion: "1" | "2" = "1",
 ): Promise<any> {
-    const exstr = programSource(excmd)
+    const exstr = stripLeadingColons(programSource(excmd))
+    if (!exstr.trim()) return
     const isV2 =
         isExProgram(excmd) || (source === "commandline" && exversion === "2")
     const recordedExcmd: ExCommand = isV2
         ? isExProgram(excmd)
-            ? excmd
+            ? { ...excmd, source: exstr }
             : { source: exstr, exversion: 2 }
         : exstr
     const previousExCmdSource = currentExCmdSource

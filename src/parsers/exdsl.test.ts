@@ -141,6 +141,49 @@ test("evaluates pipes and sequences in order", async () => {
     expect(result).toBe("d(c)")
 })
 
+test("ignores leading colons on every command", async () => {
+    const run = jest.fn(source => source)
+    await evaluate(":one\n{ :::two } ; :echo :::argument", run)
+    expect(run.mock.calls.map(call => call[0])).toEqual([
+        "one",
+        "two",
+        "echo :::argument",
+    ])
+})
+
+test("leading colons work with map and preserve heredoc bodies", async () => {
+    const values = [{ id: 1 }, { id: 2 }]
+    const mapRun = jest.fn(source => (source === "values" ? values : source))
+    await evaluate("values | :map _.id", mapRun)
+    expect(mapRun.mock.calls.map(call => call[0])).toEqual([
+        "values",
+        "map _.id",
+    ])
+
+    const run = jest.fn()
+    await evaluate(":js <<JS\n:literal\nJS", run)
+    expect(run).toHaveBeenCalledWith(
+        "js",
+        false,
+        undefined,
+        undefined,
+        ":literal\n",
+    )
+})
+
+test.each([
+    ":::echo https://example.org/a:b :::argument",
+    {
+        source: ":::echo https://example.org/a:b :::argument",
+        exversion: 2 as const,
+    },
+])("normalizes leading colons before executing %p", async command => {
+    const echo = jest.fn((...args) => args)
+    setExCmds({ "": { echo, repeat: jest.fn() } })
+    await acceptExCmd(command)
+    expect(echo).toHaveBeenCalledWith("https://example.org/a:b", ":::argument")
+})
+
 test("preserves typed values in ordinary pipes", async () => {
     const value = [{ id: 1 }]
     const run = jest.fn((source, _piped, input) =>

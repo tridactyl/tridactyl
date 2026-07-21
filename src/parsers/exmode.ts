@@ -4,6 +4,7 @@ import { excmdsFunctions, paramTypes, convert } from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
 import { selector } from "@src/lib/collections"
+import { stripLeadingColons } from "@src/lib/excmd"
 
 const logger = new Logging.Logger("exmode")
 
@@ -75,7 +76,7 @@ export function parser(
     input?: PipelineInput,
 ): any[] {
     // Expand aliases
-    const expandedExstr = aliases.expandExstr(exstr)
+    const expandedExstr = aliases.expandExstr(stripLeadingColons(exstr))
     const [func, ...rawArgs] = expandedExstr.trim().split(/\s+/)
     const [args, consumed] = bindInput(rawArgs, input) as [any[], boolean]
 

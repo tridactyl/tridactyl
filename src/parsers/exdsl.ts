@@ -1,4 +1,4 @@
-import { ExProgram, isExCancelled } from "@src/lib/excmd"
+import { ExProgram, isExCancelled, stripLeadingColons } from "@src/lib/excmd"
 import { expression, isExpression } from "@src/lib/collections"
 
 const operators = [".|", "|", ";"] as const
@@ -324,6 +324,7 @@ function compile(
         piped: boolean,
         raw?: string,
     ): ExStage {
+        command = stripLeadingColons(command).trimStart()
         const mapped = /^map(?:\s+(.*))?$/.exec(command)
         if (!mapped || (mapped[1] && isExpression(mapped[1])))
             return { command, piped, raw }
@@ -386,8 +387,9 @@ function compile(
             } else {
                 push({ block: body, command: "", piped })
             }
-        } else if (sourceText.trim()) {
-            push(commandStage(sourceText.trim(), piped, raw))
+        } else {
+            const command = stripLeadingColons(sourceText.trim()).trimStart()
+            if (command) push(commandStage(command, piped, raw))
         }
         sourceText = ""
         block = undefined
@@ -412,7 +414,7 @@ function compile(
         if (part.type === "block") {
             if (block) throw new Error("Unsupported multiple ex blocks")
             block = part
-            blockCommand = sourceText.trim()
+            blockCommand = stripLeadingColons(sourceText.trim()).trimStart()
             sourceText = ""
             continue
         }
