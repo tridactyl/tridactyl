@@ -357,6 +357,9 @@ config.getAsync("modeindicator").then(mode => {
         "cleanslate TridactylStatusIndicator " +
         privateMode +
         " TridactylModenormal "
+    if (config.get("modeindicatormodes", "normal") === "false") {
+        statusIndicator.classList.add("TridactylInvisible")
+    }
 
     // Dynamically sets the border container color.
     if (containerIndicator === "true") {
