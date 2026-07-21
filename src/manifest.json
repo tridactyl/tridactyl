@@ -37,6 +37,10 @@
             }
         },
         "command_4": {
+            "suggested_key": {
+                "default": "MacCtrl+7",
+                "windows": "Alt+7"
+            },
             "description": "Internal use. See `:help bind`. Use `:bind --mode=browser` to change - do not change here."
         },
         "command_5": {
