@@ -251,7 +251,7 @@ let prev_cmd_called_history = false
 // Save programmer time by generating an immediately resolved promise
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const QUEUE: Promise<void>[] = [(async () => {})()]
-let pendingExCommands = 0
+let commandSession = { pending: 0 }
 const nativeInsertFallbacks = new Map<object, () => boolean>()
 
 /** @hidden **/
@@ -263,6 +263,7 @@ commandline_state.clInput.addEventListener(
             "commandline_frame clInput keydown event listener",
             keyevent,
         )
+        const session = commandSession
         commandline_state.keyEvents.push(minimalKeyFromKeyboardEvent(keyevent))
         const response = keyParser(commandline_state.keyEvents)
         const [funcname, ...args] = response.value?.startsWith("ex.")
@@ -271,17 +272,16 @@ commandline_state.clInput.addEventListener(
         const command =
             commandline_state.fns[funcname as keyof typeof commandline_state.fns]
         const nativeInsertFallback = nativeInsertFallbacks.get(command)
-        const commandArgument =
-            args.length === 0
-                ? nativeInsertFallback && keyevent.key.length === 1
-                    ? keyevent.key
-                    : undefined
-                : args.join(" ")
+        const commandArgument = args.length
+            ? args.join(" ")
+            : nativeInsertFallback && keyevent.key.length === 1
+              ? keyevent.key
+              : undefined
         const insertCharacterNatively =
             args.length === 0 &&
             keyevent.key.length === 1 &&
             !(keyevent.altKey || keyevent.ctrlKey || keyevent.metaKey) &&
-            pendingExCommands === 0 &&
+            session.pending === 0 &&
             nativeInsertFallback?.()
         if (response.isMatch && !insertCharacterNatively) {
             keyevent.preventDefault()
@@ -303,17 +303,18 @@ commandline_state.clInput.addEventListener(
             // This is definitely a hack. Should expand aliases with exmode, etc.
             // but this whole thing should be scrapped soon, so whatever.
             if (funcname) {
-                pendingExCommands++
+                session.pending++
 
                 QUEUE[QUEUE.length - 1].then(() => {
                     QUEUE.push(
                         // Abuse async to wrap non-promises in a promise
                         // eslint-disable-next-line @typescript-eslint/require-await
-                        (async () => command(commandArgument))()
+                        (async () => session === commandSession && command(commandArgument))()
                             .catch(error => void logger.error(error))
-                            .finally(() => pendingExCommands--),
+                            .finally(() => session.pending--),
                     )
-                    prev_cmd_called_history = history_called
+                    if (session === commandSession)
+                        prev_cmd_called_history = history_called
                 })
             } else {
                 // Send excmds directly to our own tab, which fixes the
@@ -391,6 +392,8 @@ let cmdline_history_current = ""
  *  Otherwise, no need to pass an argument.
  */
 export function clear(evlistener = false) {
+    if (evlistener) commandSession = { pending: 0 }
+    if (evlistener) prev_cmd_called_history = false
     if (evlistener)
         commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.value = ""
@@ -486,10 +489,7 @@ Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
 logger.debug("Added commandline_frame message listener")
 
 commandline_state.fns = getCommandlineFns(commandline_state)
-nativeInsertFallbacks.set(
-    commandline_state.fns.insert_character_or_completion,
-    () => !getCompletion(),
-)
+nativeInsertFallbacks.set(commandline_state.fns.insert_character_or_completion, () => !getCompletion())
 Messaging.addListener(
     "commandline_cmd",
     Messaging.attributeCaller(commandline_state.fns),
