@@ -6,6 +6,7 @@
  */
 
 import Logger from "./logging"
+import { browserBg } from "./webext"
 
 /** Friendly-names of extensions that are used in different places so
     that we can refer to them with more readable and less magic ids.
@@ -45,7 +46,7 @@ export function getExtensionInstalled(id: string): boolean {
 }
 
 async function hasManagementPermission() {
-    return browser.permissions.contains({
+    return browserBg.permissions.contains({
         permissions: ["management"],
     })
 }
@@ -68,7 +69,7 @@ export async function init() {
     // https://github.com/stoically/temporary-containers/blob/master/src/background/management.js
     let extensions = []
     try {
-        extensions = await browser.management.getAll()
+        extensions = await browserBg.management.getAll()
     } catch (e) {
         return
     }
@@ -77,6 +78,7 @@ export async function init() {
         installedExtensions[extension.id] = extension
     }
 
+    if (!browser.management) return
     browser.management.onInstalled.addListener(updateExtensionInfo)
     browser.management.onEnabled.addListener(updateExtensionInfo)
     browser.management.onDisabled.addListener(updateExtensionInfo)
