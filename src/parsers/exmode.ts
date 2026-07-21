@@ -5,6 +5,7 @@ import * as aliases from "@src/lib/aliases"
 import * as config from "@src/lib/config"
 import * as Logging from "@src/lib/logging"
 import { selector } from "@src/lib/collections"
+import { stripLeadingColons } from "@src/lib/excmd"
 
 const logger = new Logging.Logger("exmode")
 
@@ -75,9 +76,10 @@ export function parser(
     input?: PipelineInput,
 ): any[] {
     const exaliases = config.get("exaliases")
-    const [unexpandedFunc] = exstr.trim().split(/\s+/)
+    const normalizedExstr = stripLeadingColons(exstr)
+    const [unexpandedFunc] = normalizedExstr.trim().split(/\s+/)
     const builtinExcmds = all_excmds[""] || {}
-    let expandedExstr = exstr
+    let expandedExstr = normalizedExstr
 
     if (
         unexpandedFunc &&
@@ -98,7 +100,10 @@ export function parser(
                 `Ambiguous excmd: ${unexpandedFunc}. Possible matches: ${matches.join(", ")}`,
             )
         if (matches.length === 1)
-            expandedExstr = exstr.replace(unexpandedFunc, matches[0])
+            expandedExstr = normalizedExstr.replace(
+                unexpandedFunc,
+                matches[0],
+            )
     }
 
     // Expand aliases

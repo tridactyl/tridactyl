@@ -77,7 +77,7 @@ const commandline_state = {
     activeCompletions: undefined as CompletionSourceFuse[],
     clInput: window.document.getElementById(
         "tridactyl-input",
-    ) as HTMLInputElement,
+    ) as HTMLTextAreaElement,
     clear,
     cmdline_history_position: 0,
     completionsDiv: window.document.getElementById("completions"),
@@ -115,6 +115,14 @@ function resizeArea() {
     }
 }
 window.addEventListener("tridactyl-refresh-completions", resizeArea)
+
+function resizeInput(resizeFrame = true) {
+    const input = commandline_state.clInput
+    const previousHeight = input.style.height
+    input.style.height = "auto"
+    input.style.height = `${input.scrollHeight}px`
+    if (resizeFrame && input.style.height !== previousHeight) resizeArea()
+}
 
 /** @hidden
  * This is a bit loosely defined at the moment.
@@ -346,6 +354,7 @@ commandline_state.clInput.addEventListener(
 
 let refreshQueue: Promise<unknown> = Promise.resolve()
 export function refresh_completions(exstr) {
+    resizeInput()
     const session = commandSession
     const result = refreshQueue.then(() =>
         session === commandSession ? refreshCompletions(exstr) : undefined,
@@ -400,6 +409,7 @@ async function updateCompletions(exstr: string, session = commandSession) {
 
 /** @hidden **/
 function clInputValueChanged() {
+    resizeInput()
     const exstr = commandline_state.clInput.value
     const session = commandSession
     contentState.current_cmdline = exstr
@@ -438,6 +448,7 @@ export function clear(evlistener = false) {
     if (evlistener)
         commandline_state.clInput.removeEventListener("blur", noblur)
     commandline_state.clInput.value = ""
+    resizeInput(!evlistener)
     commandline_state.cmdline_history_position = 0
     cmdline_history_current = ""
 }
@@ -498,6 +509,7 @@ export function fillcmdline(
     else commandline_state.clInput.value = newcommand
     commandline_state.initialClInputValue = commandline_state.clInput.value
     commandline_state.isVisible = true
+    resizeInput()
     const closed = wait ? waitForClose() : undefined
     let result = Promise.resolve([])
     // Focus is lost for some reason.
