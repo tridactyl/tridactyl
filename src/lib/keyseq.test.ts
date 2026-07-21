@@ -209,6 +209,29 @@ test("isTrustedKeyboardEvent rejects spoofed objects", () => {
         const repeated = [mk("g", { repeat: true }), rollover[1], rollover[2]]
         expect(ks.parse(repeated, ordinary).isMatch).toBe(false)
     })
+
+    test("repeats do not abandon a compatible prefix", () => {
+        const prefix = [mk("g"), mk("o")]
+        const repeated = [...prefix, mk("o", { repeat: true })]
+        const maps = new Map([
+            [mks("got"), "quickmark"],
+            [mks("o"), "open"],
+            [mks("<C-o>"), "modified"],
+        ])
+        const parse = (keys: ks.MinimalKey[]) => ks.parse(keys, maps)
+        const pending = parse(repeated)
+        expect(pending.keys).toEqual(prefix)
+        expect(parse([...pending.keys, mk("t")]).value).toBe("quickmark")
+        expect(parse([mk("o", { repeat: true })]).value).toBe("open")
+        expect(ks.parse(repeated, new Map([[mks("goo"), "goo"]])).value).toBe(
+            "goo",
+        )
+        expect(
+            parse([...prefix, mk("o", { ctrlKey: true, repeat: true })]).value,
+        ).toBe("modified")
+        const counted = parse([mk("2"), ...prefix, mk("2", { repeat: true })])
+        expect(parse([...counted.keys, mk("t")]).exstr).toBe("quickmark 2")
+    })
 } // }}}
 
 // {{{ mapstr ->  keysequence

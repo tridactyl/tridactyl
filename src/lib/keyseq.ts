@@ -257,6 +257,22 @@ export function parse(keyseq: MinimalKey[], map: KeyMap): ParserResponse {
     // If keyseq is a prefix of a key in map, proceed, else try dropping keys
     // from keyseq until it is empty or is a prefix.
     let possibleMappings = completions(keyseq, map)
+    // Don't let a held key's non-extending repeats abandon a valid prefix.
+    const repeated = keyseq[keyseq.length - 1]
+    if (possibleMappings.size === 0 && repeated?.repeat && !repeated.keyup) {
+        const withoutRepeat = keyseq.slice(0, -1)
+        const hasDown = originalNumericPrefix
+            .concat(withoutRepeat)
+            .some(
+                key =>
+                    !key.keyup && !key.repeat && key.match(repeated) === true,
+            )
+        const mappingsBeforeRepeat = completions(withoutRepeat, map)
+        if (hasDown && mappingsBeforeRepeat.size > 0) {
+            keyseq = withoutRepeat
+            possibleMappings = mappingsBeforeRepeat
+        }
+    }
     while (possibleMappings.size === 0 && keyseq.length > 0) {
         keyseq.shift()
         numericPrefix = []
