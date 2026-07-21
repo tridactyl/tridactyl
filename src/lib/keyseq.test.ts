@@ -160,6 +160,16 @@ test("isTrustedKeyboardEvent rejects spoofed objects", () => {
             [[mk(" ")], new Map([[mks("<Space>"), "spacetest"]])],
             { value: "spacetest", isMatch: true },
         ],
+        [
+            [
+                [mk(" ", { shiftKey: true })],
+                new Map([
+                    [mks("<Space>"), "plain"],
+                    [mks("<S-Space>"), "shift"],
+                ]),
+            ],
+            { value: "shift", isMatch: true },
+        ],
 
         // A bare key binding must not match events with extra modifiers.
         [
