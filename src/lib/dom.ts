@@ -121,10 +121,33 @@ export function mouseEvent(
     })
 }
 
+/** Exclude whitespace and wrappers with one substantial text-bearing child. */
+function hasDistinctText(element: Element, includeInvisibleChildren: boolean) {
+    let childWithText: Element | undefined
+    for (const node of element.childNodes) {
+        if (
+            (node.nodeType === Node.TEXT_NODE ||
+                node.nodeType === Node.CDATA_SECTION_NODE) &&
+            (node as CharacterData).data.trim() !== ""
+        ) {
+            return true
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) continue
+        if (node.textContent.trim() === "") continue
+        if (childWithText) return true
+        childWithText = node as Element
+    }
+    return (
+        childWithText !== undefined &&
+        !includeInvisibleChildren &&
+        !isSubstantial(childWithText)
+    )
+}
+
 export function elementsWithText(includeInvisible = false) {
     return getElemsBySelector("*", [
         isVisibleFilter(includeInvisible),
-        hint => hint.textContent !== "",
+        hint => hasDistinctText(hint, includeInvisible),
     ])
 }
 
@@ -154,10 +177,10 @@ type ElementFilter = (element: Element) => boolean
  */
 export function isSubstantial(element: Element) {
     const clientRect = element.getClientRects()[0]
+    if (!clientRect) return false
     const computedStyle = getComputedStyle(element)
     // remove elements that are barely within the viewport, tiny, or invisible
     switch (true) {
-        case !clientRect:
         case clientRect.width < 3:
         case clientRect.height < 3:
         case computedStyle.visibility !== "visible":
