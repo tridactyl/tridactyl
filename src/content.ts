@@ -293,7 +293,10 @@ window["tri"] = Object.assign(Object.create(null), {
     scrolling,
     visual,
     webext,
-    l: prom => prom.then(console.log).catch(console.error),
+    l: value =>
+        typeof value?.then === "function"
+            ? value.then(console.log).catch(console.error)
+            : console.log(value),
     native,
     styling,
     contentLocation: window.location,

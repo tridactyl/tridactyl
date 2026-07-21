@@ -48,7 +48,10 @@ import { tabsProxy } from "@src/lib/tabs"
     state,
     webext,
     webrequests,
-    l: (prom: Promise<any>) => prom.then(console.log).catch(console.error),
+    l: (value: any) =>
+        typeof value?.then === "function"
+            ? value.then(console.log).catch(console.error)
+            : console.log(value),
     contentLocation: window.location,
     R,
     perf,
