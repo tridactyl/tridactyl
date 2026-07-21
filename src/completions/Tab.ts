@@ -105,8 +105,6 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             "Tabs",
         )
         this.sortScoredOptions = true
-        this.shouldSetStateFromScore =
-            config.get("completions", "Tab", "autoselect") === "true"
         this.updateOptions()
         this._parent.appendChild(this.node)
 
@@ -128,8 +126,6 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
 
     async filter(exstr) {
         this.lastExstr = exstr
-        const prefix = this.splitOnPrefix(exstr).shift()
-        if (prefix === "tabrename") this.shouldSetStateFromScore = false
         return this.onInput(exstr)
     }
 
@@ -232,6 +228,11 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
         const [prefix, query] = this.splitOnPrefix(exstr)
+        this.shouldSetStateFromScore =
+            config.get("completions", "Tab", "autoselect") === "true" &&
+            prefix !== "tabrename" &&
+            !(prefix === "tabmove" && /^[+-][0-9]+$/.test(query)) &&
+            !(prefix === "tabdiscard" && /^\s*--all(?:\s|$)/u.test(query))
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -243,10 +244,6 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
             this.state = "hidden"
             return
         }
-
-        // When the user is asking for tabmove completions, don't autoselect if the query looks like a relative move https://github.com/tridactyl/tridactyl/issues/825
-        if (prefix === "tabmove")
-            this.shouldSetStateFromScore = !/^[+-][0-9]+$/.exec(query)
 
         await this.fillOptions(prefix)
         this.completion = undefined
