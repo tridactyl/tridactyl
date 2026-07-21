@@ -29,7 +29,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["set", "get", "unset", "seturl", "unseturl", "viewconfig"],
+            ["set", "setnull", "get", "unset", "seturl", "unseturl", "viewconfig"],
             "SettingsCompletionSource",
             "Settings",
         )
