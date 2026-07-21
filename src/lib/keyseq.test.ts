@@ -184,6 +184,31 @@ test("isTrustedKeyboardEvent rejects spoofed objects", () => {
             new Map([[mks("<Space>"), "spacetest"]]),
         ],
     ])
+
+    test("late keyups preserve compatible mappings", () => {
+        const rollover = [mk("g"), mk("o"), mk("g", { keyup: true })]
+        const ordinary = new Map([[mks("got"), "open"]])
+        const pending = ks.parse(rollover, ordinary)
+        expect(pending.keys).toEqual([rollover[0], rollover[2], rollover[1]])
+        expect(ks.parse([...pending.keys, mk("t")], ordinary).value).toBe(
+            "open",
+        )
+        expect(
+            ks.parse(rollover, new Map([[mks("<D-g>ot"), "down"]])).isMatch,
+        ).toBe(false)
+
+        const withKeyup = new Map([
+            [mks("got"), "open"],
+            [mks("<U-g>"), "up"],
+        ] as [ks.MinimalKey[], string][])
+        expect(ks.parse(rollover, withKeyup).value).toBe("up")
+        const counted = ks.parse([mk("2"), ...rollover], ordinary)
+        expect(ks.parse([...counted.keys, mk("t")], ordinary).exstr).toBe(
+            "open 2",
+        )
+        const repeated = [mk("g", { repeat: true }), rollover[1], rollover[2]]
+        expect(ks.parse(repeated, ordinary).isMatch).toBe(false)
+    })
 } // }}}
 
 // {{{ mapstr ->  keysequence
