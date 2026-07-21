@@ -100,6 +100,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
     select(option: Completions.CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
             this.completion = "bmarks " + option.value
+            this.args = option.value
             option.state = "focused"
             this.lastFocused = option
         } else {
