@@ -1,5 +1,5 @@
 import { evaluate, ExStructure, parseStructure } from "@src/parsers/exdsl"
-import { formatExProgram } from "@src/lib/excmd"
+import { EX_CANCELLED, formatExProgram, isExCancelled } from "@src/lib/excmd"
 import { parser as parseExCommand } from "@src/parsers/exmode"
 import { acceptExCmd, setExCmds } from "@src/lib/controller"
 
@@ -387,6 +387,36 @@ test("continues sequences after a rejected pipeline", async () => {
     })
     await expect(evaluate("a | b ; c", run)).resolves.toBe("c")
     expect(run.mock.calls.map(call => call[0])).toEqual(["a", "c"])
+})
+
+test.each(["a | cancel | b ; c", "a | { cancel | b } ; c"])(
+    "cancellation stops the whole program in %s",
+    async source => {
+        const run = jest.fn(command =>
+            command === "cancel"
+                ? JSON.parse(JSON.stringify(EX_CANCELLED))
+                : command,
+        )
+        const result = await evaluate(source, run)
+        expect(isExCancelled(result)).toBe(true)
+        expect(run.mock.calls.map(call => call[0])).toEqual(["a", "cancel"])
+    },
+)
+
+test("cancellation in a map stops its parent program", async () => {
+    const run = jest.fn((command, _piped, input) => {
+        if (command === "values") return [0, 1, 2]
+        if (command === "work") return input === 1 ? EX_CANCELLED : input
+        return command
+    })
+    const result = await evaluate("values .| work | sink ; after", run)
+    expect(isExCancelled(result)).toBe(true)
+    expect(run.mock.calls.map(call => call[0])).toEqual([
+        "values",
+        "work",
+        "work",
+        "work",
+    ])
 })
 
 test("ignores comments and treats newlines as sequences", async () => {

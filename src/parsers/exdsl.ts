@@ -1,4 +1,4 @@
-import { ExProgram } from "@src/lib/excmd"
+import { ExProgram, isExCancelled } from "@src/lib/excmd"
 import { expression, isExpression } from "@src/lib/collections"
 
 const operators = [".|", "|", ";"] as const
@@ -430,13 +430,14 @@ function compile(
 
 async function mapValues(stages: ExStage[], run: ExCommandRunner, input: any) {
     if (!Array.isArray(input)) throw new Error("map expected an array")
-    return Promise.all(
+    const values = await Promise.all(
         input.map((item, index) =>
             execute(stages, run, true, item).catch(error => {
                 throw mapError(index, error)
             }),
         ),
     )
+    return values.find(isExCancelled) ?? values
 }
 
 async function execute(
@@ -472,6 +473,7 @@ async function execute(
             while (stages[index + 1]?.piped) index++
             if (index === stages.length - 1) throw error
         }
+        if (isExCancelled(value)) return value
     }
     return value
 }
