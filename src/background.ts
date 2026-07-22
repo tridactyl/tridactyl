@@ -118,6 +118,26 @@ browser.tabs.onDetached.addListener(tabId => {
 browser.tabs.onMoved.addListener(tabId => {
     messaging.messageAllTabs("tab_changes", "tab_moved", [tabId])
 })
+browser.tabs.onUpdated.addListener(
+    tabId => {
+        messaging.messageAllTabs("tab_changes", "tab_updated", [tabId])
+    },
+    {
+        properties: [
+            "audible",
+            "discarded",
+            "favIconUrl",
+            "hidden",
+            "mutedInfo",
+            "pinned",
+            "title",
+            "url",
+        ],
+    },
+)
+browser.tabs.onActivated.addListener(({ tabId }) => {
+    messaging.messageAllTabs("tab_changes", "tab_activated", [tabId])
+})
 
 // Update on navigation too (but remember that sometimes people open tabs in the background :) )
 browser.webNavigation.onDOMContentLoaded.addListener(() => {

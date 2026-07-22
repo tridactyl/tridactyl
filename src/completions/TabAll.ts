@@ -10,6 +10,7 @@ class TabAllCompletionOption
     extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
+    public tabId: number
     constructor(
         public value: string,
         tab: browser.tabs.Tab,
@@ -21,6 +22,7 @@ class TabAllCompletionOption
         tgroupname: string,
     ) {
         super()
+        this.tabId = tab.id
         const valueStr = `${winindex}.${tab.index + 1}`
         this.value = valueStr
         this.fuseKeys.push(this.value, tab.title, tab.url)
@@ -129,28 +131,14 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
      * the appropriate option.
      */
     private async reactToTabChanges(): Promise<void> {
-        // const prevOptions = this.options
+        if (this.state === "hidden") return
+        const lastFocused = this.lastFocused as TabAllCompletionOption
+        const lastFocusedTabId =
+            lastFocused?.state === "focused" ? lastFocused.tabId : undefined
         await this.updateOptions(this.lastExstr)
-
-        // TODO: update this from Tab.ts for TabAll.ts
-        // if (!prevOptions || !this.options || !this.lastFocused) return
-
-        // // Determine which option to focus on
-        // const diff = R.differenceWith(
-        //     (x, y) => x.tab.id === y.tab.id,
-        //     prevOptions,
-        //     this.options,
-        // )
-        // const lastFocusedTabCompletion = this
-        //     .lastFocused as TabAllCompletionOption
-
-        // // If the focused option was removed then focus on the next option
-        // if (
-        //    diff.length === 1 &&
-        //    diff[0].tab.id === lastFocusedTabCompletion.tab.id
-        // ) {
-        //    //this.select(this.getTheNextTabOption(lastFocusedTabCompletion))
-        // }
+        const option = this.options?.find(o => o.tabId === lastFocusedTabId)
+        if (option) this.lastFocused.state = "normal"
+        if (option) this.select(option)
     }
 
     /**

@@ -1,5 +1,6 @@
 import { browserBg } from "@src/lib/webext"
 import * as Completions from "@src/completions"
+import * as Messaging from "@src/lib/messaging"
 
 class WindowCompletionOption
     extends Completions.CompletionOptionHTML
@@ -31,6 +32,7 @@ class WindowCompletionOption
 
 export class WindowCompletionSource extends Completions.CompletionSourceFuse {
     public options: WindowCompletionOption[]
+    private removeTabChangesListener: () => void
 
     constructor(private _parent) {
         super(
@@ -41,6 +43,14 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
 
         this.updateOptions()
         this._parent.appendChild(this.node)
+        this.removeTabChangesListener = Messaging.addListener(
+            "tab_changes",
+            () => this.reactToTabChanges(),
+        )
+    }
+
+    public destroy() {
+        this.removeTabChangesListener()
     }
 
     async onInput(exstr) {
@@ -52,6 +62,16 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
     async filter(exstr) {
         this.lastExstr = exstr
         return this.onInput(exstr)
+    }
+
+    private async reactToTabChanges() {
+        if (this.state === "hidden") return
+        const lastFocusedWindowId =
+            this.lastFocused?.state === "focused" ? this.lastFocused.value : undefined
+        await this.updateOptions(this.lastExstr)
+        const option = this.options?.find(o => o.value === lastFocusedWindowId)
+        if (option) this.lastFocused.state = "normal"
+        if (option) this.select(option)
     }
 
     private async updateOptions(exstr = "") {
