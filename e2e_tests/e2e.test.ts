@@ -8,6 +8,7 @@ import {
     getDriver,
     getDriverAndProfileDirs,
     iframeLoaded,
+    quitDrivers,
     sendKeys,
 } from "./utils"
 
@@ -22,9 +23,7 @@ describe("webdriver", () => {
         driver = await getDriver()
     })
 
-    afterEach(async () => {
-        await driver.quit()
-    })
+    afterEach(quitDrivers)
 
     interface Tab {
         active: boolean
@@ -225,8 +224,6 @@ describe("webdriver", () => {
             expect(profile).toBeDefined()
         } catch (e) {
             fail(e)
-        } finally {
-            await driver.quit()
         }
     })
 

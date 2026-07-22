@@ -6,6 +6,7 @@ import { Browser, Builder, By, Key, WebDriver } from "selenium-webdriver"
 import { Driver, Options } from "selenium-webdriver/firefox"
 import * as Until from "selenium-webdriver/lib/until"
 const env = process.env
+const drivers = new Set<Driver>()
 
 /** Returns the path of the newest file in directory */
 export async function getNewestFileIn(directory: string): Promise<string> {
@@ -48,6 +49,7 @@ export async function getDriver() {
         .forBrowser(Browser.FIREFOX)
         .setFirefoxOptions(options)
         .build() as unknown as Driver
+    drivers.add(driver)
 
     // This will be the default tab.
     await driver.installAddon(extensionPath, true)
@@ -93,6 +95,18 @@ export async function getDriverAndProfileDirs() {
     }
 
     return { driver, newProfiles }
+}
+
+export async function quitDrivers() {
+    const results = await Promise.allSettled(
+        [...drivers].map(driver =>
+            driver.quit().finally(() => drivers.delete(driver)),
+        ),
+    )
+    const failure = results.find(result => result.status === "rejected")
+    if (failure?.status === "rejected") {
+        throw failure.reason
+    }
 }
 
 const vimToSelenium = {
