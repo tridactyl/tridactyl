@@ -3901,12 +3901,14 @@ export function version() {
 /**
  *  Switch mode.
  *
- *  For now you probably shouldn't manually switch to other modes than `normal` and `ignore`. Make sure you're aware of the key bindings (ignoremaps) that will allow you to go come back to normal mode from ignore mode before you run `:mode ignore` otherwise you're going to have a hard time re-enabling Tridactyl.
+ *  `mode ignore` temporarily disables almost all Tridactyl key bindings. By default, `<S-Escape>` toggles between `normal` and `ignore` modes. Shift-Insert, Ctrl-Alt-Escape and Ctrl-Alt-Backtick also do this.
  *
- *  Example:
- *      - `mode ignore` to ignore almost all keys.
+ *  To make `<Insert>` toggle ignore mode, bind it in both modes:
  *
- *  If you're looking for a way to temporarily disable Tridactyl, `mode ignore` might be what you're looking for.
+ *      bind --mode=normal <Insert> mode ignore
+ *      bind --mode=ignore <Insert> mode normal
+ *
+ *  You probably shouldn't manually switch to modes other than `normal` and `ignore`.
  *
  *  Note that when in ignore mode, Tridactyl will not switch to insert mode when focusing text areas/inputs. This is by design.
  *
