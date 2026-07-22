@@ -57,7 +57,7 @@ export function parser(keys: MinimalKey[]) {
         modeState.numKeysOrTerminator === keys[0].toMapstr()
     ) {
         return exec()
-    } else if (keys[0].isPrintable()) {
+    } else if (keys[0].isPrintable() || key === "Tab") {
         modeState.keyCombination += keys[0].toMapstr()
         if (
             typeof modeState.numKeysOrTerminator === "number" &&
