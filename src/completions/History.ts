@@ -140,6 +140,13 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
                 break
             }
         }
+        if (
+            this.completion === undefined &&
+            this.options.length > 0 &&
+            config.get("completions", "History", "autoselect") === "true"
+        ) {
+            this.select(this.options[0])
+        }
 
         return this.updateDisplay()
     }

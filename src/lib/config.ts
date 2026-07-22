@@ -1290,6 +1290,9 @@ export class default_config {
         Bmark: {
             autoselect: "true",
         },
+        History: {
+            autoselect: "false",
+        },
         Sessions: {
             autoselect: "true",
         },
