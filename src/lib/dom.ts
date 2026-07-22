@@ -24,7 +24,17 @@ const logger = new Logging.Logger("dom")
  */
 export function isTextEditable(element: Element) {
     if (element) {
-        if ((element as any).readOnly === true) return false
+        // Disabled options can remain focusable, so prefer their listbox owner.
+        const keyboardWidget =
+            element.closest('[role="listbox"]') ||
+            element.closest(
+                '[role="combobox"], [role="option"], [aria-haspopup="listbox"], .ui.selection.dropdown[tabindex]:not(.disabled)',
+            )
+        if (
+            (element as any).readOnly === true ||
+            (keyboardWidget || element).closest('[aria-disabled="true"]')
+        )
+            return false
         // HTML is always upper case, but XHTML is not necessarily upper case
         if (element.nodeName.toUpperCase() === "INPUT") {
             return isEditableHTMLInput(element as HTMLInputElement)
@@ -35,6 +45,11 @@ export function isTextEditable(element: Element) {
                 element.nodeName.toUpperCase(),
             )
         ) {
+            return true
+        }
+
+        // Keyboard widgets own their input; Semantic UI does not expose a role.
+        if (keyboardWidget) {
             return true
         }
 
