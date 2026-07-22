@@ -24,12 +24,16 @@ function getFindHost() {
     return host
 }
 
+const NATIVE_HIGHLIGHTS = typeof Highlight === "function" && "highlights" in CSS
+
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
+    public nativeRange: Range
     private background = `rgba(127,255,255,0.5)`
 
     constructor(public range: Range) {
         super()
+        this.nativeRange = NATIVE_HIGHLIGHTS ? range.cloneRange() : range
         {
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1716685
             const proto = FindHighlight.prototype
@@ -54,6 +58,10 @@ class FindHighlight extends HTMLSpanElement {
     }
 
     updateRectsPosition() {
+        if (NATIVE_HIGHLIGHTS) {
+            this.top = this.getBoundingClientRect().top + window.pageYOffset
+            return
+        }
         const rects = this.getClientRects()
         this.top = Infinity
         const windowTop = window.pageYOffset
@@ -90,6 +98,7 @@ class FindHighlight extends HTMLSpanElement {
         return this.range.getClientRects()
     }
     unfocus() {
+        setNativeFocus(this.nativeRange, false)
         this.background = `rgba(127,255,255,0.5)`
         for (const node of this.children) {
             ;(node as HTMLElement).style.background = this.background
@@ -120,12 +129,13 @@ class FindHighlight extends HTMLSpanElement {
         }
     }
     focus() {
-        if (!DOM.isVisible(this)) {
+        if (!isHighlightVisible(this)) {
             this.scrollIntoView({ block: "center", inline: "center" })
         }
         const focusable = this.queryInRange("a,input,button,details")
         if (focusable) focusable.focus()
 
+        setNativeFocus(this.nativeRange, true)
         this.background = `rgba(255,127,255,0.5)`
         for (const node of this.children) {
             const element = node as HTMLElement
@@ -172,6 +182,39 @@ class FindHighlight extends HTMLSpanElement {
 
 customElements.define("find-highlight", FindHighlight, { extends: "span" })
 
+const HIGHLIGHT_NAME = "tridactyl-find-highlight"
+const ACTIVE_HIGHLIGHT_NAME = "tridactyl-find-highlight-active"
+let nativeHighlights: { normal: Highlight; active: Highlight }
+
+function isHighlightVisible(highlight: FindHighlight) {
+    return DOM.isVisible(nativeHighlights ? highlight.range : highlight)
+}
+
+function setNativeFocus(range: Range, active: boolean) {
+    if (!nativeHighlights) return
+    nativeHighlights.normal[active ? "delete" : "add"](range)
+    nativeHighlights.active[active ? "add" : "delete"](range)
+}
+
+function clearNativeHighlights() {
+    if (!nativeHighlights) return
+    if (CSS.highlights.get(HIGHLIGHT_NAME) === nativeHighlights.normal)
+        CSS.highlights.delete(HIGHLIGHT_NAME)
+    if (CSS.highlights.get(ACTIVE_HIGHLIGHT_NAME) === nativeHighlights.active)
+        CSS.highlights.delete(ACTIVE_HIGHLIGHT_NAME)
+    nativeHighlights = undefined
+}
+
+function highlightsDrawn() {
+    if (!nativeHighlights) return !!host?.firstChild
+    return (
+        CSS.highlights.get(HIGHLIGHT_NAME) === nativeHighlights.normal &&
+        CSS.highlights.get(ACTIVE_HIGHLIGHT_NAME) === nativeHighlights.active &&
+        nativeHighlights.normal.size + nativeHighlights.active.size ===
+            lastHighlights.length
+    )
+}
+
 // Highlights corresponding to the last search
 let lastHighlights
 // Which element of `lastSearch` was last selected
@@ -182,9 +225,10 @@ let REPOSITION_TIMER
 const POSITION_OBSERVER = new MutationObserver(scheduleReposition)
 
 function scheduleReposition() {
+    if (!host?.firstChild) return
     clearTimeout(REPOSITION_TIMER)
     REPOSITION_TIMER = setTimeout(() => {
-        if (host?.firstChild) repositionHighlight()
+        repositionHighlight()
     }, 50)
 }
 
@@ -225,18 +269,17 @@ export async function jumpToMatch(searchQuery, option) {
         nodes.push(node)
     } while (node)
 
-    const host = getFindHost()
     for (let i = 0; i < results.count; ++i) {
         const range = results.rangeData[i]
         try {
             const high = FindHighlight.fromFindApi(range, nodes)
-            host.appendChild(high)
             lastHighlights.push(high)
         } catch (_) {} // Inaccessible range, eg cross-origin iframe - ignore
     }
     if (lastHighlights.length < 1) {
         throw new Error("Pattern not found: " + searchQuery)
     }
+    drawHighlights(lastHighlights)
     lastHighlights.sort(
         option["reverse"] ? (a, b) => b.top - a.top : (a, b) => a.top - b.top,
     )
@@ -250,7 +293,7 @@ export async function jumpToMatch(searchQuery, option) {
 
     // Just reuse the code to find the first match in the view
     selected = 0
-    if (DOM.isVisible(lastHighlights[selected])) {
+    if (isHighlightVisible(lastHighlights[selected])) {
         focusHighlight(selected)
     } else {
         const searchFromView = true
@@ -259,6 +302,17 @@ export async function jumpToMatch(searchQuery, option) {
 }
 
 function drawHighlights(highlights) {
+    if (NATIVE_HIGHLIGHTS) {
+        const normal = new Highlight()
+        highlights.forEach(highlight => normal.add(highlight.nativeRange))
+        const active = new Highlight()
+        normal.priority = 2147483646
+        active.priority = 2147483647
+        CSS.highlights.set(HIGHLIGHT_NAME, normal)
+        CSS.highlights.set(ACTIVE_HIGHLIGHT_NAME, active)
+        nativeHighlights = { normal, active }
+        return
+    }
     const host = getFindHost()
     highlights.forEach(elem => host.appendChild(elem))
 }
@@ -266,12 +320,13 @@ function drawHighlights(highlights) {
 export function removeHighlighting() {
     POSITION_OBSERVER.disconnect()
     clearTimeout(REPOSITION_TIMER)
-    const host = getFindHost()
-    while (host.firstChild) host.removeChild(host.firstChild)
+    clearNativeHighlights()
+    while (host?.firstChild) host.removeChild(host.firstChild)
 }
 
 export function focusHighlight(index) {
     lastHighlights[index].focus()
+    if (nativeHighlights) return
     repositionHighlight()
     POSITION_OBSERVER.observe(document, {
         attributes: true,
@@ -296,7 +351,7 @@ export async function jumpToNextMatch(n: number, searchFromView = false) {
         n = n - n / Math.abs(n)
         searchFromView = false
     }
-    if (!host.firstChild) {
+    if (!highlightsDrawn()) {
         const timeout = config.get("findhighlighttimeout")
         if (timeout > 0) {
             clearTimeout(HIGHLIGHT_TIMER)
@@ -311,7 +366,7 @@ export async function jumpToNextMatch(n: number, searchFromView = false) {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     ;(lastHighlights[selected] as any).unfocus()
 
-    if (!searchFromView || DOM.isVisible(lastHighlights[selected])) {
+    if (!searchFromView || isHighlightVisible(lastHighlights[selected])) {
         // if the last selected is inside the view,
         // count nth match from the last selected.
         selected =

@@ -67,3 +67,27 @@
     background-color: var(--tridactyl-search-highlight-color) !important;
     z-index: 2147483647 !important;
 }
+
+::highlight(tridactyl-find-highlight) {
+    color: var(--tridactyl-search-highlight-text-color, black) !important;
+    -webkit-text-fill-color: currentColor !important;
+    background-color: var(--tridactyl-search-highlight-color) !important;
+}
+
+::highlight(tridactyl-find-highlight-active) {
+    color: black !important;
+    -webkit-text-fill-color: currentColor !important;
+    background-color: rgb(255 127 255) !important;
+}
+
+@media (forced-colors: active) {
+    ::highlight(tridactyl-find-highlight) {
+        color: MarkText !important;
+        background-color: Mark !important;
+    }
+
+    ::highlight(tridactyl-find-highlight-active) {
+        color: HighlightText !important;
+        background-color: Highlight !important;
+    }
+}
