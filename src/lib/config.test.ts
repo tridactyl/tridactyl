@@ -78,6 +78,23 @@ test("null removes and exports a default autocmd", async () => {
     expect(tri.config.parseConfig()).toContain(`autocmddelete ${event} ${url}`)
 })
 
+test("parseConfig preserves multiline settings", async () => {
+    const key = "issue2536"
+    const value = 'first line\n# not a comment\r\n" neither is this'
+    await tri.config.set(key, value)
+
+    const command = tri.config
+        .parseConfig()
+        .split("\n")
+        .find(line => line.startsWith('jsb tri.excmds["set"]'))
+    expect(command).toBeDefined()
+
+    await tri.config.unset(key)
+    await eval(command.slice(4).replace('tri.excmds["set"]', "tri.config.set"))
+    expect(tri.config.USERCONFIG[key]).toBe(value)
+    await tri.config.unset(key)
+})
+
 test("get in modified inherit keymap", () => {
     expect(config["vmaps"]["🕷🕷INHERITS🕷🕷"]).toBe("nmaps")
     expect("q" in config["vmaps"]).toBe(true)

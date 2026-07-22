@@ -709,8 +709,6 @@ export class default_config {
         bN: "tabprev",
         tprev: "tabprev",
         bprev: "tabprev",
-        tabfirst: "tab 1",
-        tablast: "tab 0",
         bfirst: "tabfirst",
         blast: "tablast",
         tfirst: "tabfirst",
@@ -2586,22 +2584,37 @@ export function parseConfig(): string {
     return `${s.general}${s.binds}${s.subconfigs}${s.aliases}${s.aucmds}${s.aucons}${s.logging}${s.nulls}${ftdetect}`
 }
 
+const hasLineBreak = value =>
+    typeof value === "string"
+        ? /[\r\n]/.test(value)
+        : value && typeof value === "object" && Object.entries(value).some(entry => entry.some(hasLineBreak))
+
+const serialiseExCmd = (command, args, implementation?) => {
+    if (!hasLineBreak([command, args])) return [command, ...args].map(String).join(" ")
+    // Ex-mode splits on whitespace, so encode the arguments into one token.
+    const [name, ...prefix] = command.split(" ")
+    const encodedArgs = encodeURIComponent(JSON.stringify([...prefix, ...args].map(String)))
+    return `jsb tri.excmds[${JSON.stringify(implementation || name)}](...JSON.parse(decodeURIComponent(${JSON.stringify(encodedArgs)})))`
+}
+
+const serialiseSetUrl = (pattern, key, value) => {
+    if (!hasLineBreak([pattern, key, value])) return `seturl ${pattern} ${key} ${value}`
+    const args = encodeURIComponent(JSON.stringify([pattern, ...key.split("."), value]))
+    return `jsb tri.config.setURL(...JSON.parse(decodeURIComponent(${JSON.stringify(args)})))`
+}
+
 const parseConfigHelper = (pconf, parseobj, prefix = []) => {
     for (const i of Object.keys(pconf)) {
         if (typeof pconf[i] !== "object") {
             if (prefix[0] === "subconfigs") {
                 const pattern = prefix[1]
                 const subconf = [...prefix.slice(2), i].join(".")
-                parseobj.subconfigs.push(
-                    `seturl ${pattern} ${subconf} ${pconf[i]}`,
-                )
+                parseobj.subconfigs.push(serialiseSetUrl(pattern, subconf, pconf[i]))
             } else {
-                parseobj.conf.push(
-                    `set ${[...prefix, i].join(".")} ${pconf[i]}`,
-                )
+                parseobj.conf.push(serialiseExCmd("set", [[...prefix, i].join("."), pconf[i]]))
             }
         } else if (pconf[i] === null) {
-            parseobj.nulls.push(`setnull ${[...prefix, i].join(".")}`)
+            parseobj.nulls.push(serialiseExCmd("setnull", [[...prefix, i].join(".")]))
         } else {
             for (const e of Object.keys(pconf[i])) {
                 if (binding.modeMaps.includes(i)) {
@@ -2615,35 +2628,32 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                     }
 
                     if (pconf[i][e] === null) {
-                        parseobj.binds.push(`un${cmd} ${e}`)
+                        parseobj.binds.push(serialiseExCmd(`un${cmd}`, [e]))
                         continue
                     }
 
                     if (pconf[i][e].length > 0) {
-                        parseobj.binds.push(`${cmd} ${e} ${pconf[i][e]}`)
+                        parseobj.binds.push(serialiseExCmd(cmd, [e, pconf[i][e]]))
                     } else {
-                        parseobj.binds.push(`un${cmd} ${e}`)
+                        parseobj.binds.push(serialiseExCmd(`un${cmd}`, [e]))
                     }
                 } else if (pconf[i][e] === null) {
-                    parseobj.nulls.push(`setnull ${i}.${e}`)
+                    parseobj.nulls.push(serialiseExCmd("setnull", [`${i}.${e}`]))
                 } else if (i === "exaliases") {
                     // Only really useful if mapping the entire config and not just pconf.
-                    if (e === "alias") {
-                        parseobj.aliases.push(`command ${e} ${pconf[i][e]}`)
-                    } else {
-                        parseobj.aliases.push(`alias ${e} ${pconf[i][e]}`)
-                    }
+                    const cmd = e === "alias" ? "command" : "alias"
+                    parseobj.aliases.push(serialiseExCmd(cmd, [e, pconf[i][e]], "command"))
                 } else if (i === "autocmds") {
                     for (const a of Object.keys(pconf[i][e])) {
                         const value = pconf[i][e][a]
                         parseobj.aucmds.push(
                             value === null
-                                ? `autocmddelete ${e} ${a}`
-                                : `autocmd ${e} ${a} ${value}`,
+                                ? serialiseExCmd("autocmddelete", [e, a])
+                                : serialiseExCmd("autocmd", [e, a, value]),
                         )
                     }
                 } else if (i === "autocontain") {
-                    parseobj.aucons.push(`autocontain ${e} ${pconf[i][e]}`)
+                    parseobj.aucons.push(serialiseExCmd("autocontain", [e, pconf[i][e]]))
                 } else if (i === "logging") {
                     // Map the int values in e to a log level
                     let level
@@ -2652,7 +2662,7 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                     if (pconf[i][e] === 2) level = "warning"
                     if (pconf[i][e] === 3) level = "info"
                     if (pconf[i][e] === 4) level = "debug"
-                    parseobj.logging.push(`set logging.${e} ${level}`)
+                    parseobj.logging.push(serialiseExCmd("set", [`logging.${e}`, level]))
                 } else if (i === "customthemes") {
                     // Skip custom themes for now because writing their CSS is hard
                     // parseobj.themes.push(`colourscheme ${e}`) // TODO: check if userconfig.theme == e and write this, otherwise don't.
