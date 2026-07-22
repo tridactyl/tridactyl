@@ -239,6 +239,7 @@ const messages = {
         clear: config.clear,
         pull: config.pull,
         push: config.push,
+        ready: () => config.getAsync().then(() => undefined),
         set: config.set,
         unset: config.unset,
     },
@@ -276,8 +277,6 @@ window.tri = Object.assign(window.tri || Object.create(null), {
 omnibox.init()
 
 // }}}
-
-setTimeout(config.update, 5000)
 
 commands.updateListener()
 

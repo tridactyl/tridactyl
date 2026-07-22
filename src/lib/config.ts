@@ -36,12 +36,14 @@ const removeNull = R.when(
 /** @hidden */
 const CONFIGNAME = "userconfig"
 const CONFIG_WRITE = "userconfig-write"
+const CURRENT_CONFIG_VERSION = "2.0"
 const BACKGROUND_URL = browser.runtime.getURL("_generated_background_page.html")
 const IN_BACKGROUND = !BACKGROUND_URL || BACKGROUND_URL === window.location.href
 /** @hidden */
 const WAITERS = []
 /** @hidden */
 export let INITIALISED = false
+let INITIALISATION_ERROR
 
 /** @hidden */
 // make a naked object
@@ -2110,6 +2112,7 @@ export async function getAsync(
     target_typed?: keyof default_config,
     ...target: string[]
 ) {
+    if (INITIALISATION_ERROR) throw INITIALISATION_ERROR
     if (INITIALISED) {
         if (IN_BACKGROUND) return get(target_typed, ...target)
         // TODO: consider storing keys directly
@@ -2118,8 +2121,10 @@ export async function getAsync(
 
         return get(target_typed, ...target)
     } else {
-        return new Promise(resolve =>
-            WAITERS.push(() => resolve(get(target_typed, ...target))),
+        return new Promise((resolve, reject) =>
+            WAITERS.push(() =>
+                getAsync(target_typed, ...target).then(resolve, reject),
+            ),
         )
     }
 }
@@ -2257,6 +2262,16 @@ export async function save() {
     @hidden
  */
 export async function update() {
+    const set = (...args) => setDeepProperty(USERCONFIG, args.pop(), args)
+    const unset = (...target) => {
+        const key = target.pop()
+        delete getDeepProperty(USERCONFIG, target)?.[key]
+    }
+    const setURL = (pattern, ...args) => {
+        new RegExp(pattern)
+        set("subconfigs", pattern, ...args)
+    }
+    // Avoid public setters, which wait for migration to finish.
     // Updates a value both in the main config and in sub (=site specific) configs
     const updateAll = (setting: string[], fn: (any) => any) => {
         const val = getDeepProperty(USERCONFIG, setting)
@@ -2461,7 +2476,7 @@ export async function update() {
                       ? sync.storageloc
                       : "sync"
             if (current_storageloc == "sync") {
-                await pull()
+                USERCONFIG = sync || o({})
             } else if (current_storageloc != "local") {
                 throw new Error(
                     "storageloc was set to something weird: " +
@@ -2469,10 +2484,11 @@ export async function update() {
                         ", automatic migration of settings was not possible.",
                 )
             }
-            set("configversion", "2.0")
+            set("configversion", CURRENT_CONFIG_VERSION)
             updated = true // NB: when adding a new updater, move this line to the end of it
         }
     }
+    if (updated) await save()
     return updated
 }
 
@@ -2482,12 +2498,22 @@ export async function update() {
     @hidden
  */
 async function init() {
+    if (!IN_BACKGROUND) await mutateInBackground("ready", [])
     const localConfig = await browser.storage.local.get(CONFIGNAME)
     schlepp(localConfig[CONFIGNAME])
 
-    INITIALISED = true
-    for (const waiter of WAITERS) {
-        waiter()
+    if (IN_BACKGROUND) {
+        const syncConfig = await browser.storage.sync.get([CONFIGNAME, "nmaps"])
+        const isNewProfile =
+            localConfig[CONFIGNAME] === undefined &&
+            syncConfig[CONFIGNAME] === undefined &&
+            syncConfig.nmaps === undefined
+        if (isNewProfile) {
+            USERCONFIG.configversion = CURRENT_CONFIG_VERSION
+            await save()
+        } else {
+            await update()
+        }
     }
 }
 
@@ -2723,3 +2749,9 @@ browser.storage.onChanged.addListener((changes, areaname) => {
 })
 
 init()
+    .then(() => (INITIALISED = true))
+    .catch(error => {
+        INITIALISATION_ERROR = error
+        console.error(error)
+    })
+    .then(() => WAITERS.forEach(waiter => waiter()))
