@@ -2680,6 +2680,8 @@ export async function tablast() {
 /** Switch to the next tab, wrapping round.
 
     If increment is specified, move that many tabs forwards.
+
+    Pass `--skip-discarded` to skip discarded tabs.
  */
 //#background
 export async function tabnext(...args: string[]) {
@@ -2707,6 +2709,8 @@ export async function tabnext_gt(index?: number) {
 /** Switch to the previous tab, wrapping round.
 
     If increment is specified, move that many tabs backwards.
+
+    Pass `--skip-discarded` to skip discarded tabs.
  */
 //#background
 export async function tabprev(...args: string[]) {
@@ -2715,6 +2719,7 @@ export async function tabprev(...args: string[]) {
             "--nowrap": Boolean,
             "--noisy": Boolean,
             "--reverse": Boolean,
+            "--skip-discarded": Boolean,
         },
         {
             argv: args,
@@ -2726,8 +2731,10 @@ export async function tabprev(...args: string[]) {
     option["nowrap"] = Boolean(argOpt["--nowrap"])
     option["noisy"] = Boolean(argOpt["--noisy"])
     option["reverse"] = Boolean(argOpt["--reverse"])
+    option["skip-discarded"] = Boolean(argOpt["--skip-discarded"])
     const increment = (parseInt(argOpt._.join(" "), 10) || 1) * (option["reverse"] ? -1 : 1)
     return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
+        if (option["skip-discarded"]) tabs = tabs.filter(tab => !tab.discarded)
         tabs.sort((t1, t2) => t1.index - t2.index)
         const curTab = tabs.findIndex(t => t.active)
         const prevTab = !option["nowrap"] ? (curTab - increment + tabs.length) % tabs.length : Math.min(Math.max(curTab - increment, 0), tabs.length - 1)
