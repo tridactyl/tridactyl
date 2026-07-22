@@ -245,7 +245,7 @@ export const backward_kill_line = wrap_input(
             return [
                 text.substring(0, selectionStart - 1) +
                     text.substring(selectionStart),
-                selectionStart,
+                selectionStart - 1,
                 null,
             ]
         }
