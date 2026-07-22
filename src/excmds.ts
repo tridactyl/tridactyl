@@ -552,7 +552,7 @@ export async function colourscheme(...args: string[]) {
             if (url === "%") url = window.location.href // this is basically an easter egg
             if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
             const css = await (await fetch(url)).text()
-            set("customthemes." + themename, css)
+            await set("customthemes." + themename, css)
         } else {
             await loadtheme(themename)
         }
