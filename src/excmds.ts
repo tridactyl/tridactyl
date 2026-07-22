@@ -1372,7 +1372,7 @@ window.addEventListener("HistoryState", addTabHistory)
 //#content
 export function unfocus() {
     ((DOM.activeElement() || document.activeElement) as HTMLInputElement)?.blur()
-    contentState.mode = "normal"
+    hinting.getHintCommands().reset()
 }
 
 /** Scrolls the window or any scrollable child element by a pixels on the horizontal axis and b pixels on the vertical axis.
