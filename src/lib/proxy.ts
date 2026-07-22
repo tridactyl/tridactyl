@@ -129,6 +129,11 @@ const getProxiesForUrl = (url: string): ProxyInfo[] => {
     const proxies = getProxies()
     const filteredProxies = Object.entries(proxies)
         .filter(([name]) => containerProxies.includes(name))
+        .sort(
+            ([first], [second]) =>
+                containerProxies.indexOf(first) -
+                containerProxies.indexOf(second),
+        )
         .map(([, proxy]) => proxy)
     const defaultProxy = config.get("proxy")
     if (defaultProxy in proxies && !containerProxies.includes(defaultProxy)) {
