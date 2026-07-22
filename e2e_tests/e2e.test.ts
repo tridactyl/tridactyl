@@ -214,7 +214,7 @@ describe("webdriver", () => {
                     `return document.getElementById("tridactyl-input").value`,
                 ),
             ).toEqual(
-                "userChrome.css written. Please restart Firefox to see the changes.",
+                `userChrome.css written to ${newProfiles[0]}/chrome/userChrome.css. Please restart Firefox to see the changes.`,
             )
             const profile = newProfiles.find(async p =>
                 (await fs.readdir(path.join(p, "chrome"))).find(files =>

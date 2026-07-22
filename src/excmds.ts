@@ -429,7 +429,8 @@ export async function guiset_quiet(rule: string, option: string) {
     }
     // Trim due to https://github.com/reworkcss/css/issues/113
     const stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
-    return Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
+    await Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
+    return profile_dir
 }
 
 /**
@@ -476,11 +477,12 @@ export async function guiset_quiet(rule: string, option: string) {
  */
 //#background
 export async function guiset(rule: string, option: string) {
-    if (!(await guiset_quiet(rule, option))) {
+    const profile_dir = await guiset_quiet(rule, option)
+    if (!profile_dir) {
         throw new Error(":guiset failed. Please ensure native messenger is installed.")
     }
 
-    return fillcmdline_tmp(3000, "userChrome.css written. Please restart Firefox to see the changes.")
+    return fillcmdline_tmp(3000, `userChrome.css written to ${profile_dir}/chrome/userChrome.css. Please restart Firefox to see the changes.`)
 }
 
 /** @hidden */
