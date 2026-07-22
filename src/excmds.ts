@@ -3872,6 +3872,7 @@ export function version() {
 //#content
 export function mode(mode: ModeName) {
     // TODO: event emition on mode change.
+    if (mode === undefined) throw new Error("Mode must be provided!")
     if (mode === "hint") {
         hint()
     } else {
