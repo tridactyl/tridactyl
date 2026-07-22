@@ -141,7 +141,7 @@ function* ParserController() {
         normal: keys => generic.parser("nmaps", keys),
         insert: keys => generic.parser("imaps", keys, false),
         input: keys => generic.parser("inputmaps", keys, false),
-        ignore: keys => generic.parser("ignoremaps", keys),
+        ignore: keys => generic.parser("ignoremaps", keys, false),
         hint: hinting.parser,
         gobble: gobblemode.parser,
         visual: keys => generic.parser("vmaps", keys),

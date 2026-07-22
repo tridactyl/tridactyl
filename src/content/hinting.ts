@@ -1434,6 +1434,7 @@ export function parser(keys: keyseq.MinimalKey[]) {
                 ),
             ),
         ),
+        false,
     )
     if (parsed.isMatch === true) {
         return parsed

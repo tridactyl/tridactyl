@@ -200,6 +200,8 @@ test("isTrustedKeyboardEvent rejects spoofed objects", () => {
         const response = ks.parse([mk("2")], map, false)
         expect(response).toMatchObject({ keys: [], isMatch: false })
         expect(ks.parse(mks("2qa"), map, false).exstr).toBe("command")
+        const numericMap = new Map([[mks("2qa"), "numeric"]])
+        expect(ks.parse(mks("2qa"), numericMap, false).exstr).toBe("numeric")
     })
 
     test("late keyups preserve compatible mappings", () => {

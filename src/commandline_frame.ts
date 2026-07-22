@@ -242,7 +242,7 @@ let HISTORY_SEARCH_STRING: string
 /** @hidden
  * Command line keybindings
  **/
-const keyParser = keys => genericParser.parser("exmaps", keys)
+const keyParser = keys => genericParser.parser("exmaps", keys, false)
 /** @hidden **/
 let history_called = false
 /** @hidden **/
