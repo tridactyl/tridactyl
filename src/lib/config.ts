@@ -780,8 +780,8 @@ export class default_config {
      * Edit these if you want to add, e.g. other language support.
      */
     followpagepatterns = {
-        next: "^(next|newer)\\b|»|>>|more",
-        prev: "^(prev(ious)?|older)\\b|«|<<",
+        next: "^(next|newer|neuer(e[mnrs]?)?|nächst(e[mnrs]?)?|weiter(e[mnrs]?)?|suivante?s?|prochaine?s?|successiv[oaie]|seguent[ei]|avanti|siguientes?|próxim[oa]s?)\\b|»|>>|more",
+        prev: "^(prev(ious)?|older|vorherig(e[mnrs]?)?|älter(e[mnrs]?)?|zurück|précédente?s?|precedent[ei]|indietro|anterior(es)?|atrás)\\b|«|<<",
     }
 
     /**

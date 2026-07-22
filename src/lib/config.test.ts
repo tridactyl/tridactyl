@@ -11,6 +11,31 @@ const config = new default_config()
 // todo: test subconfigs and platform_defaults
 const nmaps = Object.keys(config.nmaps)
 
+test.each([
+    ["next", "Nächste Seite"],
+    ["next", "Neuere Beiträge"],
+    ["next", "Weiter"],
+    ["next", "Suivantes"],
+    ["next", "Successivi"],
+    ["next", "Seguente"],
+    ["next", "Siguientes"],
+    ["next", "Próxima"],
+    ["prev", "Vorherige Seite"],
+    ["prev", "Ältere Beiträge"],
+    ["prev", "Zurück"],
+    ["prev", "Précédentes"],
+    ["prev", "Precedenti"],
+    ["prev", "Indietro"],
+    ["prev", "Anteriores"],
+    ["prev", "Atrás"],
+] as const)("default %s-page pattern matches %s", (direction, text) => {
+    const opposite = direction === "next" ? "prev" : "next"
+    expect(text).toMatch(new RegExp(config.followpagepatterns[direction], "i"))
+    expect(text).not.toMatch(
+        new RegExp(config.followpagepatterns[opposite], "i"),
+    )
+})
+
 // Test that all of the default maps use the canonical representation (otherwise they won't work correctly, because Tridactyl expects the maps in the config to be canonical; which now that I write it, that does seem like an obvious foot-gun for if we ever change the canonicalisation algorithm).
 //
 // But, hey, at least with this test we are more likely to notice if that happens and either not change the canonicalisation algorithm or introduce a migration.
