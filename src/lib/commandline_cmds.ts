@@ -176,6 +176,7 @@ export function getCommandlineFns(cmdline_state: {
 
             // Save non-secret commandlines to the history.
             if (
+                !command.startsWith(" ") &&
                 !browser.extension.inIncognitoContext &&
                 !(func === "winopen" && args[0] === "-private")
             ) {
