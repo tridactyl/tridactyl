@@ -1,4 +1,5 @@
 import * as config from "@src/lib/config"
+import { updateBrowserTheme } from "@src/content/styling"
 import * as DOM from "@src/lib/dom"
 import { browserBg, activeTabId } from "@src/lib/webext"
 import state from "@src/state"
@@ -76,6 +77,7 @@ class FindHighlight extends HTMLSpanElement {
             highlight.style.height = `${rect.bottom - rect.top}px`
             highlight.style.zIndex = "2147483645"
             highlight.style.pointerEvents = "none"
+            highlight.style.opacity = "0.5"
         }
     }
 
@@ -87,7 +89,8 @@ class FindHighlight extends HTMLSpanElement {
     }
     unfocus() {
         for (const node of this.children) {
-            ;(node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
+            ;(node as HTMLElement).style.backgroundColor =
+                "var(--tridactyl-search-highlight-color)"
         }
     }
     scrollIntoView(...options) {
@@ -124,7 +127,7 @@ class FindHighlight extends HTMLSpanElement {
 
         for (const node of this.children) {
             const element = node as HTMLElement
-            element.style.background = `rgba(255,127,255,0.5)`
+            element.style.backgroundColor = "var(--tridactyl-of-bg)"
         }
     }
     queryInRange(selector: string): HTMLElement | null {
@@ -175,6 +178,7 @@ let selected = 0
 let HIGHLIGHT_TIMER
 
 export async function jumpToMatch(searchQuery, option) {
+    await updateBrowserTheme()
     const timeout = config.get("findhighlighttimeout")
     if (timeout > 0) {
         clearTimeout(HIGHLIGHT_TIMER)

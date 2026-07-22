@@ -1,7 +1,7 @@
 import { staticThemes } from "@src/.metadata.generated"
 import * as config from "@src/lib/config"
 import * as Logging from "@src/lib/logging"
-import { browserBg, ownTabId } from "@src/lib/webext"
+import { browserBg, ownTab, ownTabId } from "@src/lib/webext"
 
 const logger = new Logging.Logger("styling")
 
@@ -35,7 +35,43 @@ const customCss = {
     code: "",
 }
 
+type ThemeColors = NonNullable<browser._manifest.ThemeType["colors"]>
+function applyBrowserTheme(element, c: ThemeColors = {}) {
+    const background =
+        c.toolbar_field_focus || c.toolbar_field || c.toolbar || c.frame
+    const foreground =
+        c.toolbar_field_text_focus ||
+        c.toolbar_field_text ||
+        c.toolbar_text ||
+        c.bookmark_text ||
+        c.tab_background_text
+    const selected = c.popup_highlight || c.tab_line
+    const set = (property, color) => {
+        const value = Array.isArray(color)
+            ? `${color.length === 4 ? "rgba" : "rgb"}(${color})`
+            : color
+        if (value && CSS.supports("color", value))
+            element.style.setProperty(`--tridactyl-${property}`, value)
+        else element.style.removeProperty(`--tridactyl-${property}`)
+    }
+    set("cmdl-bg", background)
+    set("cmdl-fg", foreground)
+    set("cmplt-bg", c.popup || background)
+    set("cmplt-fg", c.popup_text || foreground)
+    set("of-bg", selected)
+    set("of-fg", c.popup_highlight_text || foreground)
+    set("search-highlight-color", c.toolbar_field_highlight || selected)
+}
+
+async function syncBrowserTheme(element) {
+    const colors = ["default", "auto"].includes(await config.getAsync("theme"))
+        ? (await browserBg.theme.getCurrent((await ownTab()).windowId)).colors
+        : undefined
+    applyBrowserTheme(element, colors || {})
+}
+
 export async function theme(element) {
+    if (!THEMED_ELEMENTS.includes(element)) THEMED_ELEMENTS.push(element)
     // Remove any old theme
 
     /**
@@ -171,17 +207,13 @@ export async function theme(element) {
         }
     }
 
-    // Record for re-theming
-    // considering only elements :root (page and cmdline_iframe)
-    // TODO:
-    //     - Find ways to check if element is already pushed
-    if (
-        THEMED_ELEMENTS.length < 2 &&
-        element.tagName.toUpperCase() === "HTML"
-    ) {
-        THEMED_ELEMENTS.push(element)
-    }
+    await syncBrowserTheme(element)
 }
+
+export const updateBrowserTheme = () =>
+    Promise.all(THEMED_ELEMENTS.map(syncBrowserTheme))
+
+if (isMozExtension) browser.theme.onUpdated.addListener(updateBrowserTheme)
 
 function retheme() {
     THEMED_ELEMENTS.forEach(element => {
