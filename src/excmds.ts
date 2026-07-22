@@ -494,8 +494,11 @@ export function cssparse(...css: string[]) {
 export async function loadtheme(themename: string) {
     if (!(await Native.nativegate("0.1.9"))) return
     const separator = (await browserBg.runtime.getPlatformInfo()).os === "win" ? "\\" : "/"
+    const rcPath = await Native.getrcpath().catch(
+        () => `~${separator}.config${separator}tridactyl${separator}tridactylrc`,
+    )
     // remove the "tridactylrc" bit so that we're left with the directory
-    const path = (await Native.getrcpath()).split(separator).slice(0, -1).join(separator) + separator + "themes" + separator + themename + ".css"
+    const path = rcPath.split(separator).slice(0, -1).join(separator) + separator + "themes" + separator + themename + ".css"
     const file = await Native.read(path)
     if (file.code !== 0) {
         if (Object.keys(await config.get("customthemes")).includes(themename)) return
