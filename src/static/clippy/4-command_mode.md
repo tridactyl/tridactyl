@@ -5,10 +5,12 @@ Command mode, i.e, "the console", is used for accessing less frequently used com
 -   `tabdetach` to detach the current tab into a new window
 -   `bind [key] [excommand]` to bind keys
 -   `viewsource` to view the current page's source
--   `viewconfig nmaps` to view the current normal mode bindings
+-   `viewconfig nmaps`, `viewconfig hintmaps`, or `viewconfig exmaps` to view the current normal, hint, or command mode bindings
 -   `help [command]` to access help on a command
 -   `help [key]` to access help on an existing binding
 -   `composite [command 1]; [command 2]; [command 3]...` lets you execute commands sequentially, useful for binding. If you want the results of each command to be piped to the other, use pipes `|` instead of semi-colons.
+
+Completions for `:bind --mode=` list the available modes. Add a space after selecting a mode, for example `:bind --mode=ex `, to see its current bindings.
 
 We support a handful of keybinds in the console:
 
