@@ -2659,12 +2659,8 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                     }
                 } else if (i === "autocmds") {
                     for (const a of Object.keys(pconf[i][e])) {
-                        const value = pconf[i][e][a]
-                        parseobj.aucmds.push(
-                            value === null
-                                ? `autocmddelete ${e} ${a}`
-                                : `autocmd ${e} ${a} ${value}`,
-                        )
+                        for (const command of [pconf[i][e][a]].flat())
+                            parseobj.aucmds.push(command === null ? `autocmddelete ${e} ${a}` : `autocmd ${e} ${a} ${command}`)
                     }
                 } else if (i === "autocontain") {
                     parseobj.aucons.push(`autocontain ${e} ${pconf[i][e]}`)
