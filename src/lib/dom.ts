@@ -1034,6 +1034,13 @@ export function getElementCentre(el) {
 
 export function getAbsoluteCentre(el) {
     const pos = getElementCentre(el)
+    let frame = el.ownerDocument.defaultView.frameElement
+    while (frame) {
+        const framePos = frame.getBoundingClientRect()
+        pos.x += framePos.left
+        pos.y += framePos.top
+        frame = frame.ownerDocument.defaultView.frameElement
+    }
     return {
         x: pos.x + (window as any).mozInnerScreenX,
         y: pos.y + (window as any).mozInnerScreenY,
