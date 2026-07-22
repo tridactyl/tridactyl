@@ -1719,30 +1719,7 @@ export async function open_quiet(...urlarr: string[]) {
  */
 //#content
 export async function url2args() {
-    const url = document.location.href
-    const searchurls = await config.getAsync("searchurls")
-    let result = url
-
-    for (const engine of Object.keys(searchurls)) {
-        const [beginning, end] = [...searchurls[engine].split("%s"), ""]
-        if (url.startsWith(beginning) && url.endsWith(end)) {
-            // Get the string matching %s
-            let encodedArgs = url.substring(beginning.length)
-            encodedArgs = encodedArgs.substring(0, encodedArgs.length - end.length)
-            // Remove any get parameters that might have been added by the search engine
-            // This works because if the user's query contains an "&", it will be encoded as %26
-            const amperpos = encodedArgs.search("&")
-            if (amperpos > 0) encodedArgs = encodedArgs.substring(0, amperpos)
-
-            // Do transformations depending on the search engine
-            if (beginning.search("duckduckgo") > 0) encodedArgs = encodedArgs.replace(/\+/g, " ")
-            else if (beginning.search("wikipedia") > 0) encodedArgs = encodedArgs.replace(/_/g, " ")
-
-            const args = engine + " " + decodeURIComponent(encodedArgs)
-            if (args.length < result.length) result = args
-        }
-    }
-    return result
+    return UrlUtil.searchUrlToArgs(document.location.href, await config.getAsync("searchurls"))
 }
 
 /** @hidden */

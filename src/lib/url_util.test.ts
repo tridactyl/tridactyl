@@ -391,6 +391,20 @@ function test_url_query_interpolation() {
     }
 }
 
+test.each([
+    ["google", "https://example.com/?q=%s&source=test", "a query"],
+    ["wiki", "https://example.com/wiki/", "an/article"],
+])("convert an interpolated %s URL back to arguments", (engine, pattern, query) => {
+    const searchurls = { [engine]: pattern }
+    const url = UrlUtil.interpolateSearchItem(new URL(pattern), query).href
+    expect(UrlUtil.searchUrlToArgs(url, searchurls)).toEqual(`${engine} ${query}`)
+})
+
+test("leave a URL that does not match a search URL unchanged", () => {
+    const url = "https://example.com/"
+    expect(UrlUtil.searchUrlToArgs(url, { google: "https://google.com/?q=" })).toEqual(url)
+})
+
 test_increment()
 test_root()
 test_parent()

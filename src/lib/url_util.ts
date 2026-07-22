@@ -406,6 +406,33 @@ export function graftUrlPath(url: URL, newTail: string, level: number) {
     return newUrl
 }
 
+/** Convert a URL matching a configured search URL back to command arguments. */
+export function searchUrlToArgs(
+    url: string,
+    searchurls: Record<string, string>,
+): string {
+    let result = url
+
+    for (const engine of Object.keys(searchurls)) {
+        const [beginning, end] = [...searchurls[engine].split("%s"), ""]
+        if (url.startsWith(beginning) && url.endsWith(end)) {
+            let encodedArgs = url.substring(beginning.length)
+            encodedArgs = encodedArgs.substring(0, encodedArgs.length - end.length)
+            // Ignore parameters appended by the engine; query ampersands are encoded.
+            const amperpos = encodedArgs.search("&")
+            if (amperpos > 0) encodedArgs = encodedArgs.substring(0, amperpos)
+
+            // Undo engine-specific query separators.
+            if (beginning.search("duckduckgo") > 0) encodedArgs = encodedArgs.replace(/\+/g, " ")
+            else if (beginning.search("wikipedia") > 0) encodedArgs = encodedArgs.replace(/_/g, " ")
+
+            const args = engine + " " + decodeURIComponent(encodedArgs)
+            if (args.length < result.length) result = args
+        }
+    }
+    return result
+}
+
 /**
  * Interpolates a query or other search item into a URL
  *
