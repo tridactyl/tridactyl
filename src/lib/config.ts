@@ -1251,6 +1251,11 @@ export class default_config {
     historyresults = 50
 
     /**
+     * Whether bookmarks are included in :open, :tabopen and :winopen completions.
+     */
+    bmarkopen: "true" | "false" = "true"
+
+    /**
      * When displaying bookmarks in history completions, how many page views to pretend they have.
      */
     bmarkweight = 100
