@@ -30,6 +30,7 @@ build_no_sign_beta(){
     yarn run clean
     yarn run build --no-native
     scripts/version.js beta
+    node -e 'const fs = require("fs"), manifest = require("./build/manifest.json"); delete manifest.applications.gecko.update_url; fs.writeFileSync("./build/manifest.json", JSON.stringify(manifest, null, 4))'
     sed 's/"name": "Tridactyl"/"name": "Tridactyl: Beta"/' -i build/manifest.json
     mkdir -p web-ext-artifacts
     yarn run web-ext build --source-dir ./build --overwrite-dest
