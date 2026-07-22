@@ -49,6 +49,12 @@ export function getCommandlineFns(cmdline_state: {
                 cmdline_state.activeCompletions.forEach(comp => comp.next())
         },
 
+        /** Selects the next completion, or history line if none is selected. */
+        next_history_or_completion: () =>
+            cmdline_state.getActiveCompletionSource()
+                ? cmdline_state.fns.next_completion()
+                : cmdline_state.fns.next_history(),
+
         /**
          * Selects the previous completion.
          */
@@ -61,6 +67,12 @@ export function getCommandlineFns(cmdline_state: {
             if (cmdline_state.activeCompletions)
                 cmdline_state.activeCompletions.forEach(comp => comp.prev())
         },
+
+        /** Selects the previous completion, or history line if none is selected. */
+        prev_history_or_completion: () =>
+            cmdline_state.getActiveCompletionSource()
+                ? cmdline_state.fns.prev_completion()
+                : cmdline_state.fns.prev_history(),
 
         /**
          * Deselects the currently selected completion.

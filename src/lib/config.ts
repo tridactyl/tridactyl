@@ -168,8 +168,8 @@ export class default_config {
         "<C-m>": "ex.accept_line",
         "<Escape>": "ex.hide_and_clear",
         "<C-[>": "ex.hide_and_clear",
-        "<ArrowUp>": "ex.prev_history",
-        "<ArrowDown>": "ex.next_history",
+        "<ArrowUp>": "ex.prev_history_or_completion",
+        "<ArrowDown>": "ex.next_history_or_completion",
         "<S-Delete>": "ex.execute_ex_on_completion_args tabclose",
 
         "<A-b>": "text.backward_word",
