@@ -75,8 +75,7 @@ export function setSimpleValues(e, text, start, end) {
         if (text !== null) e.value = text
         if (start !== null) {
             if (end === null) end = start
-            e.selectionStart = start
-            e.selectionEnd = end
+            e.setSelectionRange(start, end)
         }
     })
 }
