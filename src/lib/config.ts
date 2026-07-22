@@ -770,6 +770,9 @@ export class default_config {
         noscrollsmoothwizard: "nosmoothscrollwizard",
     }
 
+    /** Ex-mode abbreviations, added with [[abbreviate]]. */
+    abbreviations: { [abbreviation: string]: string } = {}
+
     /**
      * Used by `]]` and `[[` to look for links containing these words.
      *
@@ -2663,6 +2666,8 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                     } else {
                         parseobj.aliases.push(`alias ${e} ${pconf[i][e]}`)
                     }
+                } else if (i === "abbreviations") {
+                    parseobj.conf.push(`abbreviate ${e} ${pconf[i][e]}`)
                 } else if (i === "autocmds") {
                     for (const a of Object.keys(pconf[i][e])) {
                         const value = pconf[i][e][a]

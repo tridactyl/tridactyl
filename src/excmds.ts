@@ -4455,6 +4455,20 @@ export function comclear(name: string) {
     config.unset("exaliases", name)
 }
 
+/** Define an abbreviation that is expanded in the command line. */
+//#background
+export function abbreviate(abbreviation: string, ...expansion: string[]) {
+    if (!abbreviation || !expansion.length) throw new Error("abbreviate requires an abbreviation and expansion")
+    return config.set("abbreviations", abbreviation, expansion.join(" "))
+}
+
+/** Remove a command-line abbreviation. */
+//#background
+export function unabbreviate(abbreviation: string) {
+    if (!abbreviation) throw new Error("unabbreviate requires an abbreviation")
+    return config.unset("abbreviations", abbreviation)
+}
+
 /** Bind a sequence of keys to an excmd or view bound sequence.
 
     This is an easier-to-implement bodge while we work on vim-style maps.

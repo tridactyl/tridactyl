@@ -1,6 +1,7 @@
 import { messageOwnTab } from "@src/lib/messaging"
 import * as State from "@src/state"
 import { contentState } from "@src/content/state_content"
+import * as config from "@src/lib/config"
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -100,8 +101,10 @@ export function getCommandlineFns(cmdline_state: {
         insert_character_or_completion: (character?: string) => {
             if (cmdline_state.getActiveCompletionSource()?.completion)
                 return cmdline_state.fns.insert_space_or_completion()
-            if (character !== undefined)
+            if (character !== undefined) {
+                expandAbbreviation(cmdline_state.clInput)
                 insertCharacter(cmdline_state, character)
+            }
             return cmdline_state.refresh_completions(
                 cmdline_state.clInput.value,
             )
@@ -268,6 +271,18 @@ async function execute_ex_on_all(cmdline_state, excmd: string) {
                 execute_ex_on_x(false, cmdline_state, excmd, command),
             ),
     )
+}
+
+/** @hidden */
+export function expandAbbreviation(input) {
+    const selectionStart = input.selectionStart
+    const selectionEnd = input.selectionEnd
+    const abbreviation = input.value.substring(0, selectionStart).match(/\S+$/)?.[0]
+    if (!abbreviation) return
+    const expansion = config.get("abbreviations", abbreviation)
+    if (typeof expansion !== "string") return
+    input.setRangeText(expansion, selectionStart - abbreviation.length, selectionStart, "end")
+    input.selectionEnd = selectionEnd + expansion.length - abbreviation.length
 }
 
 function insertCharacter(cmdline_state, character = " ") {

@@ -47,7 +47,7 @@ import { WindowCompletionSource } from "@src/completions/Window"
 import { ProxyCompletionSource } from "@src/completions/Proxy"
 import { contentState } from "@src/content/state_content"
 import { theme } from "@src/content/styling"
-import { getCommandlineFns } from "@src/lib/commandline_cmds"
+import { expandAbbreviation, getCommandlineFns } from "@src/lib/commandline_cmds"
 import * as tri_editor from "@src/lib/editor"
 import "@src/lib/DANGEROUS-html-tagged-template"
 import Logger from "@src/lib/logging"
@@ -490,7 +490,14 @@ Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
 logger.debug("Added commandline_frame message listener")
 
 commandline_state.fns = getCommandlineFns(commandline_state)
-nativeInsertFallbacks.set(commandline_state.fns.insert_character_or_completion, () => !getCompletion())
+nativeInsertFallbacks.set(
+    commandline_state.fns.insert_character_or_completion,
+    () => {
+        if (getCompletion()) return false
+        expandAbbreviation(commandline_state.clInput)
+        return true
+    },
+)
 Messaging.addListener(
     "commandline_cmd",
     Messaging.attributeCaller(commandline_state.fns),
