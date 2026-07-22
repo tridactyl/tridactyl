@@ -16,16 +16,17 @@ function getFindHost() {
     const elem = document.createElement("span")
     elem.id = "TridactylFindHost"
     elem.className = "cleanslate"
-    elem.style.position = "absolute"
-    elem.style.top = "0px"
-    elem.style.left = "0px"
-    document.body.appendChild(elem)
+    elem.style.setProperty("position", "absolute", "important")
+    elem.style.setProperty("top", "0px", "important")
+    elem.style.setProperty("left", "0px", "important")
+    document.documentElement.appendChild(elem)
     host = elem.attachShadow({ mode: "closed" })
     return host
 }
 
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
+    private background = `rgba(127,255,255,0.5)`
 
     constructor(public range: Range) {
         super()
@@ -76,7 +77,10 @@ class FindHighlight extends HTMLSpanElement {
             highlight.style.height = `${rect.bottom - rect.top}px`
             highlight.style.zIndex = "2147483645"
             highlight.style.pointerEvents = "none"
+            highlight.style.background = this.background
         }
+        while (this.children.length > rects.length)
+            this.lastElementChild?.remove()
     }
 
     getBoundingClientRect() {
@@ -86,8 +90,9 @@ class FindHighlight extends HTMLSpanElement {
         return this.range.getClientRects()
     }
     unfocus() {
+        this.background = `rgba(127,255,255,0.5)`
         for (const node of this.children) {
-            ;(node as HTMLElement).style.background = `rgba(127,255,255,0.5)`
+            ;(node as HTMLElement).style.background = this.background
         }
     }
     scrollIntoView(...options) {
@@ -111,8 +116,7 @@ class FindHighlight extends HTMLSpanElement {
 
         const actions = scrollCompute(fakeNode as HTMLElement, option)
         for (const { el: element, top, left } of actions) {
-            element.scrollTop = top
-            element.scrollLeft = left
+            element.scrollTo({ top, left, behavior: "instant" })
         }
     }
     focus() {
@@ -122,9 +126,10 @@ class FindHighlight extends HTMLSpanElement {
         const focusable = this.queryInRange("a,input,button,details")
         if (focusable) focusable.focus()
 
+        this.background = `rgba(255,127,255,0.5)`
         for (const node of this.children) {
             const element = node as HTMLElement
-            element.style.background = `rgba(255,127,255,0.5)`
+            element.style.background = this.background
         }
     }
     queryInRange(selector: string): HTMLElement | null {
@@ -173,6 +178,18 @@ let lastHighlights
 let selected = 0
 
 let HIGHLIGHT_TIMER
+let REPOSITION_TIMER
+const POSITION_OBSERVER = new MutationObserver(scheduleReposition)
+
+function scheduleReposition() {
+    clearTimeout(REPOSITION_TIMER)
+    REPOSITION_TIMER = setTimeout(() => {
+        if (host?.firstChild) repositionHighlight()
+    }, 50)
+}
+
+window.addEventListener("resize", scheduleReposition)
+window.addEventListener("scroll", scheduleReposition, true)
 
 export async function jumpToMatch(searchQuery, option) {
     const timeout = config.get("findhighlighttimeout")
@@ -247,6 +264,8 @@ function drawHighlights(highlights) {
 }
 
 export function removeHighlighting() {
+    POSITION_OBSERVER.disconnect()
+    clearTimeout(REPOSITION_TIMER)
     const host = getFindHost()
     while (host.firstChild) host.removeChild(host.firstChild)
 }
@@ -254,6 +273,12 @@ export function removeHighlighting() {
 export function focusHighlight(index) {
     lastHighlights[index].focus()
     repositionHighlight()
+    POSITION_OBSERVER.observe(document, {
+        attributes: true,
+        childList: true,
+        characterData: true,
+        subtree: true,
+    })
 }
 
 export function repositionHighlight() {
