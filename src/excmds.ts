@@ -2154,6 +2154,10 @@ export function urlparent(count = 1) {
 /**
  * Open a URL made by modifying the current URL
  *
+ * Prefix any mode with `--safe` to suppress repeated navigation to the same
+ * URL within one second in a tab. This can prevent redirect loops in
+ * [[autocmd]]s: `autocmd DocStart amazon.co.uk urlmodify --safe -t www smile`
+ *
  * There are several modes:
  *
  * * Text replace mode:   `urlmodify -t <old> <new>`
@@ -2241,10 +2245,21 @@ export function urlparent(count = 1) {
  *  * -*u <arguments> <URL>
  */
 //#content
-export function urlmodify(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-tu" | "-ru" | "-su" | "-qu" | "-Qu" | "-gu", ...args: string[]) {
-    const newUrl = urlmodify_js(mode, ...args)
+export async function urlmodify(mode: "--safe" | "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-tu" | "-ru" | "-su" | "-qu" | "-Qu" | "-gu", ...args: string[]) {
+    const safe = mode === "--safe"
+    const modifyMode = safe ? args.shift() as Parameters<typeof urlmodify_js>[0] : mode
+    const newUrl = urlmodify_js(modifyMode, ...args)
     // TODO: once we have an arg parser, have a quiet flag that prevents the page from being added to history
     if (newUrl && newUrl !== window.location.href) {
+        if (safe) {
+            const tabId = (await ownTab()).id
+            const now = Date.now()
+            const target = newUrl.toString()
+            const recent = ((await browserBg.sessions.getTabValue(tabId, "urlmodify-safe")) as [string, number][] || []).filter(([, time]) => now - time < 1000)
+            if (recent.some(([url]) => url === target)) return
+            recent.push([target, now])
+            await browserBg.sessions.setTabValue(tabId, "urlmodify-safe", recent)
+        }
         window.location.replace(newUrl)
     }
 }
