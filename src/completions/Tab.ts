@@ -227,7 +227,8 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     @Perf.measuredAsync
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
-        const [prefix, query] = this.splitOnPrefix(exstr)
+        let [prefix, query] = this.splitOnPrefix(exstr)
+        if (prefix) prefix = this.canonicalisePrefix(prefix)
         this.shouldSetStateFromScore =
             config.get("completions", "Tab", "autoselect") === "true" &&
             prefix !== "tabrename" &&

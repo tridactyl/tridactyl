@@ -96,17 +96,6 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
         // Call concrete class
         return this.updateDisplay()
     }
-
-    select(option: Completions.CompletionOption) {
-        if (this.lastExstr !== undefined && option !== undefined) {
-            this.completion = "bmarks " + option.value
-            this.args = option.value
-            option.state = "focused"
-            this.lastFocused = option
-        } else {
-            throw new Error("lastExstr and option must be defined!")
-        }
-    }
 }
 
 export class BookmarkFolderCompletionSource extends Completions.CompletionSourceFuse {

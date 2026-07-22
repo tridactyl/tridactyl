@@ -52,6 +52,7 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
             this.state = "hidden"
             return
         }
+        prefix = this.canonicalisePrefix(prefix)
 
         if (prefix === "unseturl" && !query.includes(" ")) {
             this.options = Object.keys(config.get("subconfigs"))

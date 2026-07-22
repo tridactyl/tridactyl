@@ -199,7 +199,7 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
 
         // Check to see if this is a command that needs to exclude the current
         // window
-        const excludeCurrentWindow = ["tabgrab"].includes(prefix.trim())
+        const excludeCurrentWindow = this.canonicalisePrefix(prefix) === "tabgrab"
         const currentWindow = await browserBg.windows.getCurrent()
         // Window Ids don't make sense so we're using LASTID and WININDEX to compute a window index
         // This relies on the fact that tabs are sorted by window ids

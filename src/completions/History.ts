@@ -72,6 +72,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         const headerPostfix = []
+        prefix = this.canonicalisePrefix(prefix)
 
         // Ignoring command-specific arguments
         // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented

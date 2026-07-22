@@ -59,6 +59,10 @@ export abstract class CompletionSource {
         this.trailingSpace = options.trailingSpace
     }
 
+    protected canonicalisePrefix(prefix: string) {
+        return aliases.expandExstr(prefix).trim()
+    }
+
     /** Control presentation of Source */
     set state(newstate: OptionState) {
         switch (newstate) {

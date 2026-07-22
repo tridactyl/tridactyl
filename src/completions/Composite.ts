@@ -5,7 +5,6 @@ import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 
 const PREFIX = "composite"
-const regex = new RegExp("^" + PREFIX + " ")
 
 // Most of this is copied verbatim from Excmd.ts - would have liked to inherit but constructor posed difficulties
 export class CompositeCompletionSource extends Completions.CompletionSourceFuse {
@@ -121,8 +120,8 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
     }
 
     private getendexstr(exstr) {
-        return exstr
-            .replace(regex, "")
+        const [, query = exstr] = this.splitOnPrefix(exstr)
+        return query
             .split("|")
             .slice(-1)[0]
             .split(";")

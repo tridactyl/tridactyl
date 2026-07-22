@@ -51,6 +51,7 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
             this.state = "hidden"
             return
         }
+        prefix = this.canonicalisePrefix(prefix)
 
         this.deselect()
 
