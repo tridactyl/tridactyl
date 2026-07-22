@@ -1406,20 +1406,25 @@ export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
     const percentage = a.clamp(0, 100)
     let done = Promise.resolve(undefined as any)
     if (b === "y") {
-        const top = elem.getClientRects()[0].top
-        window.scrollTo(window.scrollX, (percentage * elem.scrollHeight) / 100)
-        if (top === elem.getClientRects()[0].top && (percentage === 0 || percentage === 100)) {
-            // scrollTo failed, if the user wants to go to the top/bottom of
-            // the page try scrolling.recursiveScroll instead
-            done = scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage === 0 ? -1 : 1), document.documentElement)
+        if (percentage === 0 || percentage === 100)
+            done = scrolling.recursiveScroll(
+                0,
+                percentage === 0 ? -Infinity : Infinity,
+                document.documentElement,
+            )
+        else {
+            scrolling.stop()
+            window.scrollTo(window.scrollX, (percentage * elem.scrollHeight) / 100)
         }
     } else if (b === "x") {
         const left = elem.getClientRects()[0].left
+        scrolling.stop()
         window.scrollTo((percentage * elem.scrollWidth) / 100, window.scrollY)
         if (left === elem.getClientRects()[0].left && (percentage === 0 || percentage === 100)) {
             done = scrolling.recursiveScroll(1073741824 * (percentage === 0 ? -1 : 1), window.scrollX, document.documentElement)
         }
     } else {
+        scrolling.stop()
         window.scrollTo(a, Number(b)) // a,b numbers
     }
     return done.then(() => undefined)
