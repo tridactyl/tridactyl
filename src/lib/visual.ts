@@ -57,3 +57,23 @@ export function extendByCharacter(
     reverseSelection(selection)
     selection.modify("extend", direction, "character")
 }
+
+export function extendByWord(selection: Selection): void {
+    if (!selection.focusNode) return
+
+    selection.modify("extend", "forward", "word")
+    selection.modify("extend", "forward", "word")
+    selection.modify("extend", "backward", "word")
+    const oldFocusNode = selection.focusNode
+    const oldFocusOffset = selection.focusOffset
+    const oldAnchorNode = selection.anchorNode
+    const oldAnchorOffset = selection.anchorOffset
+    selection.modify("extend", "forward", "character")
+    if (!selection.isCollapsed) return
+    selection.setBaseAndExtent(
+        oldAnchorNode,
+        oldAnchorOffset,
+        oldFocusNode,
+        oldFocusOffset,
+    )
+}

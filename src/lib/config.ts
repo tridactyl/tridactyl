@@ -441,7 +441,7 @@ export class default_config {
             tri.visual.extendByCharacter(sel, "backward");
         `,
         e: 'js tri.dom.getSelection().modify("extend","forward","word")',
-        w: 'js let s=tri.dom.getSelection(); s.modify("extend","forward","word"); s.modify("extend","forward","word"); s.modify("extend","backward","word"); s.modify("extend","forward","character")',
+        w: "js tri.visual.extendByWord(tri.dom.getSelection())",
         b: 'js let s=tri.dom.getSelection(); s.modify("extend","backward","character"); s.modify("extend","backward","word"); s.modify("extend","forward","character")',
         j: 'js tri.dom.getSelection().modify("extend","forward","line")',
         q: "composite js tri.dom.getSelection().toString() | text2qr --timeout 5",
