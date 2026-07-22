@@ -709,8 +709,6 @@ export class default_config {
         bN: "tabprev",
         tprev: "tabprev",
         bprev: "tabprev",
-        tabfirst: "tab 1",
-        tablast: "tab 0",
         bfirst: "tabfirst",
         blast: "tablast",
         tfirst: "tabfirst",
