@@ -424,6 +424,7 @@ async function history(n) {
     const pot_history = matches[clamped_ind]
     commandline_state.clInput.value =
         pot_history === undefined ? cmdline_history_current : pot_history
+    clInputValueChanged()
 
     // if there was no clampage, update history position
     // there's a more sensible way of doing this but that would require more programmer time
