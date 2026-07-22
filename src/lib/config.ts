@@ -1256,6 +1256,11 @@ export class default_config {
     bmarkopen: "true" | "false" = "true"
 
     /**
+     * Whether searchurls are included in :open, :tabopen and :winopen completions.
+     */
+    searchurlopen: "true" | "false" = "true"
+
+    /**
      * When displaying bookmarks in history completions, how many page views to pretend they have.
      */
     bmarkweight = 100

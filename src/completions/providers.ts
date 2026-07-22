@@ -225,7 +225,9 @@ export async function getCombinedHistoryBmarks(
         config.get("bmarkopen") === "true"
             ? getBookmarks(query)
             : Promise.resolve<Bookmark[]>([]),
-        getSearchUrls(query),
+        config.get("searchurlopen") === "true"
+            ? getSearchUrls(query)
+            : Promise.resolve([]),
     ])
 
     // Join records by URL, using the title from bookmarks by preference.
