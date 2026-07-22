@@ -4649,6 +4649,8 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
  *  e.g,
  *      keymap ę e
  *
+ *  Remove mappings with [[unkeymap]].
+ *
  */
 //#background
 export function keymap(source: string, target: string) {
@@ -4657,6 +4659,12 @@ export function keymap(source: string, target: string) {
         return
     }
     return config.set("keytranslatemap", source, target)
+}
+
+/** Removes a key translation set with [[keymap]], e.g. `unkeymap .`. */
+//#background
+export function unkeymap(source: string) {
+    return config.unset("keytranslatemap", source)
 }
 
 /**
