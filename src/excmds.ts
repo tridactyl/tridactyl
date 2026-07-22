@@ -2640,6 +2640,18 @@ async function tabIndexSetActive(index: number | string) {
     return tabSetActive(await idFromIndex(index))
 }
 
+/** Switch to the first tab in Firefox's tab order. */
+//#background
+export async function tabfirst() {
+    return tabSetActive((await getSortedTabs("default"))[0].id)
+}
+
+/** Switch to the last tab in Firefox's tab order. */
+//#background
+export async function tablast() {
+    return tabSetActive((await getSortedTabs("default")).slice(-1)[0].id)
+}
+
 /** Switch to the next tab, wrapping round.
 
     If increment is specified, move that many tabs forwards.
