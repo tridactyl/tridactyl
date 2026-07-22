@@ -986,8 +986,7 @@ export const vimpHelper = {
 
     matchHint: function matchHint(str, key) {
         // Match a hint key to hint text
-        // match every part of key splited by space.
-        return key.split(/\s+/).every(keyi => str.includes(keyi))
+        return str.includes(key)
     },
 }
 
