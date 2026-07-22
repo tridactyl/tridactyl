@@ -190,10 +190,13 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         // this window.
 
         const altTab = await prevActiveTab()
-        // Since tabmove always uses absolute tab indices, we need
-        // to override possible MRU setting to match tabmove behavior
+        // tabmove uses physical order within the pinned or unpinned group.
         const forceSort = prefix === "tabmove" ? "default" : undefined
-        const tabs = await getSortedTabs(forceSort)
+        let tabs = await getSortedTabs(forceSort)
+        if (prefix === "tabmove") {
+            const activeTab = tabs.find(tab => tab.active)
+            tabs = tabs.filter(tab => tab.pinned === activeTab.pinned)
+        }
         const options = []
 
         const container_all = await browserBg.contextualIdentities.query({})
