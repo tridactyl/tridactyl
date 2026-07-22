@@ -2158,11 +2158,11 @@ export function urlparent(count = 1) {
  *   all instances respectively
  *      * `http://example.com` -> (`-r [ea] X g`) -> `http://XxXmplX.com`
  *
- * * Query set mode: `urlmodify -s <query> <value>`
+ * * Query set mode: `urlmodify -s <query> <value> [[-s] <query> <value> ...]`
  *
- *   Sets the value of a query to be a specific one. If the query already
- *   exists, it will be replaced.
- *      * `http://e.com?id=abc` -> (`-s foo bar`) -> `http://e.com?id=abc&foo=bar
+ *   Sets the value of each query to be a specific one. If a query already
+ *   exists, it will be replaced. The `-s` between pairs is optional.
+ *      * `http://e.com?id=abc` -> (`-s foo bar baz quux`) -> `http://e.com?id=abc&foo=bar&baz=quux`
  *
  * * Query replace mode: `urlmodify -q <query> <new_val>`
  *
@@ -2210,7 +2210,7 @@ export function urlparent(count = 1) {
  *   Examples:
  *
  *   * `urlmodify -tu <old> <new> <URL>`
- *   * `urlmodify -su <query> <value> <URL>`
+ *   * `urlmodify -su <query> <value> [[-s] <query> <value> ...] <URL>`
  *   * `urlmodify -gu <graft_point> <new_path_tail> <URL>`
  *
  * @param mode      The replace mode:
@@ -2224,7 +2224,7 @@ export function urlparent(count = 1) {
  * @param args the replacement arguments (depends on mode):
  *  * -t <old> <new>
  *  * -r <regexp> <new> [flags]
- *  * -s <query> <value>
+ *  * -s <query> <value> [[-s] <query> <value> ...]
  *  * -q <query> <new_val>
  *  * -Q <query>
  *  * -g <graftPoint> <newPathTail>
@@ -2282,11 +2282,17 @@ export function urlmodify_js(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-t
             break
 
         case "-s":
-            if (args.length !== 2) {
-                throw new Error("Query setting needs 2 arguments:" + "<query> <value>")
+            if (args.length < 2) {
+                throw new Error("Query setting needs query/value pairs: " + "<query> <value> ...")
             }
-
-            newUrl = UrlUtil.setQueryValue(oldUrl, args[0], args[1])
+            newUrl = oldUrl
+            for (let i = 0; i < args.length; i += 2) {
+                if (i > 0 && args[i] === "-s") i++
+                if (i + 1 >= args.length) {
+                    throw new Error("Query setting needs query/value pairs: " + "<query> <value> ...")
+                }
+                newUrl = UrlUtil.setQueryValue(newUrl, args[i], args[i + 1])
+            }
             break
         case "-q":
             if (args.length !== 2) {
