@@ -12,7 +12,7 @@ class GotoCompletionOption
         this.fuseKeys.push(title)
 
         this.html = html`<tr class="GotoCompletionOption option">
-            <td class="title" style="padding-left: ${level * 4}ch">${title}</td>
+            <td class="title">${Completions.treePrefix(level)}${title}</td>
         </tr>`
     }
 }

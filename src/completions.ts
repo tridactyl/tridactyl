@@ -16,6 +16,10 @@ import { backoff } from "@src/lib/patience"
 import * as config from "@src/lib/config"
 export { decodeUrlForDisplay } from "@src/lib/url_util"
 
+export function treePrefix(level: number) {
+    return `  ${"  ".repeat(Math.max(level - 1, 0))}${level ? "┌─" : ""}· `
+}
+
 export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",
 )
