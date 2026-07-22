@@ -373,6 +373,12 @@ config.getAsync("modeindicator").then(mode => {
         "cleanslate TridactylStatusIndicator " +
         privateMode +
         " TridactylModenormal "
+    // Firefox excludes text displayed by a collapsed select from find.
+    const statusIndicatorText = document.createElement("option")
+    const statusIndicatorSelect = document.createElement("select")
+    statusIndicatorSelect.disabled = true
+    statusIndicatorSelect.appendChild(statusIndicatorText)
+    statusIndicator.appendChild(statusIndicatorSelect)
     if (config.get("modeindicatormodes", "normal") === "false") {
         statusIndicator.classList.add("TridactylInvisible")
     }
@@ -415,15 +421,14 @@ config.getAsync("modeindicator").then(mode => {
         window.addEventListener("mousemove", onMouseOut)
     })
 
+    statusIndicatorText.textContent = contentState.mode || "normal"
     try {
         // On quick loading pages, the document is already loaded
-        statusIndicator.textContent = contentState.mode || "normal"
         document.body.appendChild(statusIndicator)
         document.head.appendChild(style)
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
-            statusIndicator.textContent = contentState.mode || "normal"
             document.body.appendChild(statusIndicator)
             document.head.appendChild(style)
         })
@@ -476,7 +481,7 @@ config.getAsync("modeindicator").then(mode => {
             "config",
             modeindicatorshowkeys,
         )
-        statusIndicator.textContent = result
+        statusIndicatorText.textContent = result
 
         const baseCls = "cleanslate TridactylStatusIndicator"
         const privateCls = browser.extension.inIncognitoContext

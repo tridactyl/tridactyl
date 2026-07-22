@@ -38,6 +38,17 @@
     user-select: none !important;
 }
 
+.TridactylStatusIndicator > select {
+    appearance: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    color: inherit !important;
+    font: inherit !important;
+    padding: 0 !important;
+    pointer-events: none !important;
+    vertical-align: baseline !important;
+}
+
 .TridactylPrivate {
     border: purple solid 1.5px !important;
     background: #f9f5ff !important;
