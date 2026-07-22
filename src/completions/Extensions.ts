@@ -61,12 +61,6 @@ export class ExtensionsCompletionSource extends Completions.CompletionSourceFuse
         return this.updateDisplay()
     }
 
-    select(option: ExtensionsCompletionOption) {
-        this.completion = "extoptions " + option.name
-        option.state = "focused"
-        this.lastFocused = option
-    }
-
     private scoreOptions(options: ExtensionsCompletionOption[]) {
         return options.sort((o1, o2) => o1.name.localeCompare(o2.name))
     }

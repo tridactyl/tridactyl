@@ -59,7 +59,8 @@ export class AutocmdCompletionSource extends Completions.CompletionSourceFuse {
             this.state = "hidden"
             return
         }
-        const is_autocmddelete = /del/.test(prefix)
+        const is_autocmddelete =
+            this.canonicalisePrefix(prefix) === "autocmddelete"
         const filter_defined_autocmds = is_autocmddelete
         const defined_autocmds = config.get("autocmds")
         // Config may contain empty dictionnaries if user deleted all patterns

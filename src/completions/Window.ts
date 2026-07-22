@@ -69,7 +69,7 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        const excludeCurrentWindow = ["tabpush"].includes(prefix.trim())
+        const excludeCurrentWindow = this.canonicalisePrefix(prefix) === "tabpush"
         this.options = (await browserBg.windows.getAll({ populate: true }))
         .filter( win => !(excludeCurrentWindow && win.focused))
         .map(
