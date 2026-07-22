@@ -4941,7 +4941,7 @@ export function autocmddelete(event: string, url: string) {
     if (webrequests.requestEvents.includes(event)) {
         webrequests.unregisterWebRequestAutocmd(event, url)
     }
-    return config.unset("autocmds", event, url)
+    return config.set("autocmds", event, url, null)
 }
 
 /**

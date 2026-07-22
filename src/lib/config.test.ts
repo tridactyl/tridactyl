@@ -66,6 +66,18 @@ test("keymap unbind default", () => {
     expect(exmaps["<Space>"]).toBeUndefined()
 })
 
+test("null removes and exports a default autocmd", async () => {
+    const event = "DocLoad"
+    const url = "^https://github.com/tridactyl/tridactyl/issues/new$"
+
+    expect(get("autocmds", event)[url]).toBe("issue")
+    await tri.config.set("autocmds", event, url, null)
+
+    expect(tri.config.USERCONFIG.autocmds[event][url]).toBeNull()
+    expect(get("autocmds", event)[url]).toBeUndefined()
+    expect(tri.config.parseConfig()).toContain(`autocmddelete ${event} ${url}`)
+})
+
 test("get in modified inherit keymap", () => {
     expect(config["vmaps"]["🕷🕷INHERITS🕷🕷"]).toBe("nmaps")
     expect("q" in config["vmaps"]).toBe(true)

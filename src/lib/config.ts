@@ -2635,8 +2635,11 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                     }
                 } else if (i === "autocmds") {
                     for (const a of Object.keys(pconf[i][e])) {
+                        const value = pconf[i][e][a]
                         parseobj.aucmds.push(
-                            `autocmd ${e} ${a} ${pconf[i][e][a]}`,
+                            value === null
+                                ? `autocmddelete ${e} ${a}`
+                                : `autocmd ${e} ${a} ${value}`,
                         )
                     }
                 } else if (i === "autocontain") {
