@@ -148,7 +148,9 @@ export class Marker {
  */
 export function listenForCounters(
     statsLogger?: StatsLogger,
-): PerformanceObserver {
+): PerformanceObserver | undefined {
+    if (typeof PerformanceObserver === "undefined") return
+
     let callback: (
         list: PerformanceObserverEntryList,
         observer: PerformanceObserver,
