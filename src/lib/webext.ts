@@ -28,20 +28,22 @@ export function inContentScript() {
 }
 
 export function getTriVersion() {
-    const manifest = browser.runtime.getManifest()
+    return browser.runtime.getManifest().version
+}
 
-    // version_name only really exists in Chrome
-    // but we're using it anyway for our own purposes
-    return (
+export function getTriVersionName() {
+    const manifest = browser.runtime.getManifest()
+    const versionName = (
         manifest as browser._manifest.WebExtensionManifest & {
-            version_name: string
+            version_name?: string
         }
     ).version_name
+    return versionName || manifest.version
 }
 
 export function getPrettyTriVersion() {
     const manifest = browser.runtime.getManifest()
-    return manifest.name + " " + getTriVersion()
+    return manifest.name + " " + getTriVersionName()
 }
 
 export function notBackground() {

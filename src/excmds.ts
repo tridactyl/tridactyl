@@ -76,7 +76,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -129,6 +129,7 @@ const logger = new Logging.Logger("excmd")
 
 /** @hidden **/
 const TRI_VERSION = getTriVersion()
+const TRI_VERSION_NAME = getTriVersionName()
 
 //#content_helper
 // {
@@ -3937,7 +3938,7 @@ export async function tgroupabort() {
 
 //#background
 export function version() {
-    return fillcmdline_notrail(TRI_VERSION)
+    return fillcmdline_notrail(TRI_VERSION_NAME)
 }
 
 /**
@@ -6297,7 +6298,7 @@ export async function issue() {
     template = `Firefox version: ${info.vendor} ${info.name} ${info.version}\n` + template
 
     template = template.replace("-   Tridactyl version (`:version`):\n\n", "")
-    template = `Tridactyl version: ${TRI_VERSION}\n` + template
+    template = `Tridactyl version: ${TRI_VERSION_NAME}\n` + template
 
     textarea.value = template
 }

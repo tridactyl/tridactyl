@@ -12,6 +12,22 @@ function bump_version(versionstr, component = 2) {
     return versionarr.join(".")
 }
 
+function release_name(manifest) {
+    return (manifest.version_name || manifest.version)
+        .slice(manifest.version.length)
+        .trim()
+}
+
+function set_release_version(manifest, component, name = "") {
+    if (![0, 1, 2].includes(component)) throw new Error("Version component must be 0, 1 or 2")
+    if (component === 2 && name) throw new Error("Only major and minor releases can be named")
+
+    const nameForRelease =
+        component === 2 ? release_name(manifest) : name.trim()
+    manifest.version = bump_version(manifest.version, component)
+    manifest.version_name = [manifest.version, nameForRelease].filter(Boolean).join(" ")
+}
+
 async function add_beta(versionstr) {
     await fs.promises.mkdir(".build_cache", {recursive: true})
     try {
@@ -82,17 +98,17 @@ function save_manifest(filename, manifest) {
 }
 
 async function main() {
-    let filename, manifest
+    let filename, manifest, releaseName
     switch (process.argv[2]) {
         case "bump": {
             // Load src manifest and bump
             filename = "./src/manifest.json"
             manifest = require("." + filename)
-            manifest.version = bump_version(
-                manifest.version,
+            set_release_version(
+                manifest,
                 Number(process.argv[3]),
+                process.argv.slice(4).join(" "),
             )
-            manifest.version_name = manifest.version
             const changelog = fs.readFileSync("./CHANGELOG.md", "utf8")
             const releaseHeading = `Release ${manifest.version} / Unreleased`
             const releaseNotes = changelog
@@ -131,8 +147,9 @@ async function main() {
         case "beta":
             filename = "./build/manifest.json"
             manifest = require("." + filename)
+            releaseName = release_name(manifest)
             manifest.version = await add_beta(manifest.version)
-            manifest.version_name = manifest.version + "-" + (await get_hash())
+            manifest.version_name = [manifest.version + "-" + (await get_hash()), releaseName].filter(Boolean).join(" ")
             manifest.applications.gecko.update_url =
                 "https://tridactyl.cmcaine.co.uk/betas/updates.json"
 
@@ -154,4 +171,6 @@ async function main() {
     }
 }
 
-main()
+if (require.main === module) main()
+
+module.exports = { set_release_version }
