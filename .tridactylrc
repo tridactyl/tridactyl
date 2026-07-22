@@ -103,6 +103,8 @@
 " 
 " " Julia docs' built in search is bad
 " set searchurls.julia https://www.google.com/search?q=site:http://docs.julialang.org/en/v1%20
+" " Search the current website with `open site [query]`
+" set jsurls.site async q => `https://www.google.com/search?num=100&q=${encodeURIComponent("site:" + new URL((await tri.webext.activeTab()).url).hostname + " " + q)}`
 " 
 " "
 " " Misc settings
