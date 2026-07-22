@@ -448,7 +448,7 @@ export function getSelection(doc = document) {
 export function getSelector(e: HTMLElement) {
     function uniqueSelector(e: HTMLElement) {
         // Only matching alphanumeric selectors because others chars might have special meaning in CSS
-        if (e.id && /^[a-zA-Z0-9]+$/.exec(e.id)) return "#" + e.id
+        if (e.id && /^[a-zA-Z0-9]+$/.exec(e.id)) return `[id="${e.id}"]`
         // If we reached the top of the document
         if (!e.parentElement) return "HTML"
         // Compute the position of the element
