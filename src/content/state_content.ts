@@ -34,9 +34,9 @@ export type ContentStateProperty =
 
 export type ContentStateChangedCallback = (
     property: ContentStateProperty,
+    oldMode: any,
     oldValue: any,
     newValue: any,
-    suffix: any,
 ) => void
 
 const onChangedListeners: ContentStateChangedCallback[] = []

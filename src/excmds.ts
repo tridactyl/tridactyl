@@ -2444,11 +2444,13 @@ if (fullscreenApiIsPrefixed) {
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState") {
+export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState" | "ModeEnter" | "ModeLeave", target?: string) {
     const aucmds = await config.getAsync("autocmds", cmdType)
     if (!aucmds) return
     const ausites = Object.keys(aucmds)
-    const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
+    const matchTarget = target === undefined ? window.document.location.href : target
+    const aukeyarr = ausites.filter(e => matchTarget.search(e) >= 0)
+    if (aukeyarr.length === 0) return
     const owntab = await ownTab()
     const replacements = {
         TRI_FIRED_MOZ_TABID: owntab.id,
@@ -4789,7 +4791,7 @@ export function firefoxsyncpush() {
 
 /** @hidden */
 //#background_helper
-const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState"].concat(webrequests.requestEvents)
+const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState", "ModeEnter", "ModeLeave"].concat(webrequests.requestEvents)
 /** @hidden */
 //#background_helper
 export function getAutocmdEvents() {
@@ -4798,13 +4800,14 @@ export function getAutocmdEvents() {
 /**
  * Set autocmds to run when certain events happen.
  *
- * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'HistoryPushState', 'HistoryReplace', 'UriChange', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
+ * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'HistoryPushState', 'HistoryReplace', 'UriChange', 'ModeEnter', 'ModeLeave', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
  *
  * - DocStart: When a webpage loading. Exactly, when tridactyl is loading in a page.
  * - DocLoad: When the whole html parsed, not including image/css loaded. (Just like jquery $(fn) or the [DOMContentLoaded event](https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event).)
  * - DocEnd: When a webpage unloaded/closed or backward/forward in history. Exactly, the [pagehide event](https://developer.mozilla.org/en-US/docs/Web/API/Window/pagehide_event).
  * - TabEnter: When a tab get focus.
  * - TabLeft: When a tab lost focus or closed.
+ * - ModeLeave and ModeEnter: When Tridactyl's mode changes. ModeLeave runs first against the previous mode, then ModeEnter runs against the new mode.
 
  * - A supported webRequest event (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the corresponding [WebExtension webRequest event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events)
 
@@ -4817,6 +4820,7 @@ export function getAutocmdEvents() {
  * - For most events (DocStart, DocEnd, TabEnter, TabLeft, ...): a JavaScript regex (e.g. `www\.amazon\.co.*`)
  *     - We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search)
  * - For TriStart: regular expression that matches the hostname of the computer the autocmd should be run on. This requires the native messenger to be installed, except for the ".*" regular expression which will always be triggered, even without the native messenger.
+ * - For ModeLeave and ModeEnter: a JavaScript regex that matches the previous or new mode name, respectively.
  * - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
  *
  * @param excmd type depends on the event

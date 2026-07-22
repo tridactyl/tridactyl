@@ -118,6 +118,19 @@ controller.setExCmds({
     text: EditorCmds,
     hint: hinting_content.getHintCommands(),
 })
+let modeAutocmdQueue = Promise.resolve()
+addContentStateChangedListener((property, _mode, oldValue, newValue) => {
+    if (property !== "mode") return
+    modeAutocmdQueue = modeAutocmdQueue
+        .then(async () => {
+            try {
+                await excmds.loadaucmds("ModeLeave", oldValue)
+            } finally {
+                await excmds.loadaucmds("ModeEnter", newValue)
+            }
+        })
+        .catch(error => void logger.error(error))
+})
 messaging.addListener(
     "excmd_content",
     messaging.attributeCaller(excmds_content),

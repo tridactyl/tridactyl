@@ -549,6 +549,12 @@ export class default_config {
             // "emacs.org": "tabclose",
         },
 
+        /** Commands that will be run when a mode is entered. */
+        ModeEnter: {},
+
+        /** Commands that will be run when a mode is left. */
+        ModeLeave: {},
+
         /**
          * Commands that will be run when fullscreen state changes.
          */
