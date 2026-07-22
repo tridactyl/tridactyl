@@ -247,7 +247,11 @@ function isPerfectMatch(input: MinimalKey[], mapEntry: MinimalKey[]): boolean {
     return remaining.every(k => k.optional)
 }
 
-export function parse(keyseq: MinimalKey[], map: KeyMap): ParserResponse {
+export function parse(
+    keyseq: MinimalKey[],
+    map: KeyMap,
+    allowNumericPrefix = true,
+): ParserResponse {
     // Remove bare modifiers
     keyseq = stripOnlyModifiers(keyseq)
 
@@ -255,7 +259,9 @@ export function parse(keyseq: MinimalKey[], map: KeyMap): ParserResponse {
     if (keyseq.length === 0) return { keys: [], isMatch: false }
 
     // Split into numeric prefix and non-numeric suffix
-    const [originalNumericPrefix, originalKeyseq] = splitNumericPrefix(keyseq)
+    const [originalNumericPrefix, originalKeyseq] = allowNumericPrefix
+        ? splitNumericPrefix(keyseq)
+        : [[], keyseq]
     let numericPrefix = originalNumericPrefix
     keyseq = originalKeyseq.slice()
 

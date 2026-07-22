@@ -139,8 +139,8 @@ function* ParserController() {
         [mode_name in ModeName]: (keys: MinimalKey[]) => ParserResponse
     } = {
         normal: keys => generic.parser("nmaps", keys),
-        insert: keys => generic.parser("imaps", keys),
-        input: keys => generic.parser("inputmaps", keys),
+        insert: keys => generic.parser("imaps", keys, false),
+        input: keys => generic.parser("inputmaps", keys, false),
         ignore: keys => generic.parser("ignoremaps", keys),
         hint: hinting.parser,
         gobble: gobblemode.parser,

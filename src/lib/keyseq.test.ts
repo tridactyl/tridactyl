@@ -195,6 +195,13 @@ test("isTrustedKeyboardEvent rejects spoofed objects", () => {
         ],
     ])
 
+    test("numeric prefixes can be disabled", () => {
+        const map = new Map([[mks("qa"), "command"]])
+        const response = ks.parse([mk("2")], map, false)
+        expect(response).toMatchObject({ keys: [], isMatch: false })
+        expect(ks.parse(mks("2qa"), map, false).exstr).toBe("command")
+    })
+
     test("late keyups preserve compatible mappings", () => {
         const rollover = [mk("g"), mk("o"), mk("g", { keyup: true })]
         const ordinary = new Map([[mks("got"), "open"]])
