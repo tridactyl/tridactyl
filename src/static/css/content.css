@@ -18,7 +18,13 @@
     font-family: var(--tridactyl-status-font-family) !important;
     background: var(--tridactyl-status-bg) !important;
     color: var(--tridactyl-status-fg) !important;
-    border: var(--tridactyl-status-border) !important;
+    --tridactyl-container-border: var(--tridactyl-container-color)
+        var(--tridactyl-indicator-border-style, solid)
+        var(--tridactyl-indicator-border-width, 1.5px);
+    border: var(
+        --tridactyl-container-border,
+        var(--tridactyl-status-border)
+    ) !important;
     border-radius: var(--tridactyl-status-border-radius) !important;
     font-size: var(--tridactyl-status-font-size) !important;
     padding: 0.25ex !important;

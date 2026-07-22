@@ -364,7 +364,7 @@ config.getAsync("modeindicator").then(mode => {
         statusIndicator.classList.add("TridactylInvisible")
     }
 
-    // Dynamically sets the border container color.
+    // Expose the container color to themes.
     if (containerIndicator === "true") {
         webext
             .ownTabContainer()
@@ -372,11 +372,9 @@ config.getAsync("modeindicator").then(mode => {
                 webext.browserBg.contextualIdentities.get(ownTab.cookieStoreId),
             )
             .then(container => {
-                statusIndicator.setAttribute(
-                    "style",
-                    `border: ${
-                        container.colorCode
-                    } var(--tridactyl-indicator-border-style, solid) var(--tridactyl-indicator-border-width, 1.5px) !important`,
+                statusIndicator.style.setProperty(
+                    "--tridactyl-container-color",
+                    container.colorCode,
                 )
             })
             .catch(error => {
