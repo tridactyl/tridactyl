@@ -1490,7 +1490,7 @@ export function scrollpage(n = 1, count = 1) {
  *
  *  Argument: A string you want to search for.
  *
- *  This function accepts two flags: `-?` or `--reverse` to search from the bottom rather than the top and `-: n` or `--jump-to n` to jump directly to the nth match.
+ *  This function accepts `-?` or `--reverse` to search from the bottom rather than the top, `-: n` or `--jump-to n` to jump directly to the nth match, and `-s` or `--case-sensitive` and `-i` or `--case-insensitive` to override `findcase`. The case flags cannot be combined.
  *
  *  The behavior of this function is affected by the following setting:
  *
@@ -1507,6 +1507,12 @@ export function find(...args: string[]) {
 
             "--reverse": Boolean,
             "-?": "--reverse",
+
+            "--case-sensitive": Boolean,
+            "-s": "--case-sensitive",
+
+            "--case-insensitive": Boolean,
+            "-i": "--case-insensitive",
         },
         {
             argv: args,
@@ -1514,9 +1520,13 @@ export function find(...args: string[]) {
             splitUnknownArguments: false,
         },
     )
+    if (argOpt["--case-sensitive"] && argOpt["--case-insensitive"])
+        throw new Error("find case flags cannot be combined")
     const option = {}
     option["reverse"] = Boolean(argOpt["--reverse"])
     if ("--jump-to" in argOpt) option["jumpTo"] = argOpt["--jump-to"]
+    if (argOpt["--case-sensitive"] || argOpt["--case-insensitive"])
+        option["caseSensitive"] = Boolean(argOpt["--case-sensitive"])
     const searchQuery = argOpt._.join(" ")
     return finding.jumpToMatch(searchQuery, option)
 }

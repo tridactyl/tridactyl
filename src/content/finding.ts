@@ -242,10 +242,13 @@ export async function jumpToMatch(searchQuery, option) {
         HIGHLIGHT_TIMER = setTimeout(removeHighlighting, timeout)
     }
     // First, search for the query
-    const findcase = config.get("findcase")
-    const sensitive =
-        findcase === "sensitive" ||
-        (findcase === "smart" && /[A-Z]/.test(searchQuery))
+    let sensitive = option["caseSensitive"]
+    if (sensitive === undefined) {
+        const findcase = config.get("findcase")
+        sensitive =
+            findcase === "sensitive" ||
+            (findcase === "smart" && /[A-Z]/.test(searchQuery))
+    }
     const results = await browserBg.find.find(searchQuery, {
         tabId: await activeTabId(),
         caseSensitive: sensitive,
