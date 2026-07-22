@@ -713,6 +713,7 @@ class Hint {
     public readonly outline: HTMLElement | null = null
     public readonly rect: Omit<ClientRect, "x" | "y" | "toJSON"> = null
     public result: any = null
+    private unfilteredName: string
 
     public width = 0
     public height = 0
@@ -726,6 +727,7 @@ class Hint {
         private readonly onSelect: HintSelectedCallback,
         classes?: string[],
     ) {
+        this.unfilteredName = name
         // We need to compute the offset for elements that are in an iframe
         let offsetTop = 0
         let offsetLeft = 0
@@ -821,6 +823,7 @@ class Hint {
     }
 
     setName(n: string) {
+        this.unfilteredName = n
         this.name = n
         this.flag.textContent = ""
         for (const ch of n) {
@@ -828,6 +831,10 @@ class Hint {
             charspan.textContent = ch
             this.flag.appendChild(charspan)
         }
+    }
+
+    restoreName() {
+        if (this.name !== this.unfilteredName) this.setName(this.unfilteredName)
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
@@ -1128,6 +1135,7 @@ function filterHintsVimperator(query: string, reflow = false) {
 
     // Start with all hints
     let active = modeState.hints
+    if (reflow) active.forEach(hint => hint.restoreName())
 
     // Filter down (renaming as required)
     for (const run of partitionquery(query)) {
@@ -1375,7 +1383,10 @@ function selectFocusedHint(delay = false) {
     const focused = modeState.focusedHint
     const selectFocusedHintInternal = () => {
         modeState.filter = ""
-        modeState.hints.forEach(h => (h.hidden = false))
+        modeState.hints.forEach(h => {
+            h.restoreName()
+            h.hidden = false
+        })
         focused.select()
     }
     if (delay) setTimeout(selectFocusedHintInternal, config.get("hintdelay"))
