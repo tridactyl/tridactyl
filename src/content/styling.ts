@@ -18,6 +18,14 @@ function prefixTheme(name) {
     return "TridactylTheme" + capitalise(name)
 }
 
+function removeThemeClasses(element: Element) {
+    for (const className of Array.from(element.classList)) {
+        if (className.startsWith(prefixTheme(""))) {
+            element.classList.remove(className)
+        }
+    }
+}
+
 // At the moment elements are only ever `:root` and so this array and stuff is all a bit overdesigned.
 const THEMED_ELEMENTS = []
 
@@ -35,7 +43,7 @@ const customCss = {
     code: "",
 }
 
-export async function theme(element) {
+export async function theme(element: Element) {
     // Remove any old theme
 
     /**
@@ -45,10 +53,15 @@ export async function theme(element) {
      *
      * Retained for backwards compatibility.
      **/
-    for (const theme of THEMES.map(prefixTheme)) {
-        element.classList.remove(theme)
-    }
+    removeThemeClasses(element)
     // DEPRECATION ENDS
+
+    if (
+        element === document.documentElement &&
+        !THEMED_ELEMENTS.includes(element)
+    ) {
+        THEMED_ELEMENTS.push(element)
+    }
 
     // Insert hint CSS rules according to config - copying how themes are inserted
     if (isMozExtension) {
@@ -142,7 +155,7 @@ export async function theme(element) {
      *
      * Retained for backwards compatibility.
      **/
-    if (newTheme !== "default") {
+    if (config.get("themeprivacy") !== "true") {
         element.classList.add(prefixTheme(newTheme))
     }
     // DEPRECATION ENDS
@@ -170,17 +183,6 @@ export async function theme(element) {
             logger.error("Theme " + newTheme + " couldn't be found.")
         }
     }
-
-    // Record for re-theming
-    // considering only elements :root (page and cmdline_iframe)
-    // TODO:
-    //     - Find ways to check if element is already pushed
-    if (
-        THEMED_ELEMENTS.length < 2 &&
-        element.tagName.toUpperCase() === "HTML"
-    ) {
-        THEMED_ELEMENTS.push(element)
-    }
 }
 
 function retheme() {
@@ -194,6 +196,7 @@ function retheme() {
 }
 
 config.addChangeListener("theme", retheme)
+config.addChangeListener("themeprivacy", retheme)
 config.addChangeListener("hintstyles", retheme)
 
 /**
@@ -203,12 +206,16 @@ config.addChangeListener("hintstyles", retheme)
  *
  * Retained for backwards compatibility.
  **/
-// Sometimes pages will overwrite class names of elements. We use a MutationObserver to make sure that the HTML element always has a TridactylTheme class
+// Sometimes pages overwrite class names. Keep the root element's TridactylTheme classes consistent with themeprivacy.
 // We can't just call theme() because it would first try to remove class names from the element, which would trigger the MutationObserver before we had a chance to add the theme class and thus cause infinite recursion
 const cb = async mutationList => {
     const theme = await config.getAsync("theme")
+    if (config.get("themeprivacy") !== "false") {
+        removeThemeClasses(document.documentElement)
+        return
+    }
     mutationList
-        .filter(m => m.target.className.search(prefixTheme("")) === -1)
+        .filter(m => !m.target.classList.value.includes(prefixTheme("")))
         .forEach(m => m.target.classList.add(prefixTheme(theme)))
 }
 
