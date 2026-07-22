@@ -314,6 +314,7 @@ export class default_config {
         R: "reloadhard",
         x: "stop",
         gi: "focusinput",
+        gI: "hintinput",
         "g?": "rot13",
         "g!": "jumble",
         "g;": "changelistjump -1",

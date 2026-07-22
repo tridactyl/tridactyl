@@ -2616,6 +2616,12 @@ export function focusinput(nth: number | string) {
     }
 }
 
+/** Hint an input and enter input mode. */
+//#content
+export async function hintinput() {
+    if (await hint("-Jc", INPUTTAGS_selectors)) contentState.mode = "input"
+}
+
 /**
  * Focus the tab which contains the last focussed input element. If you're lucky, it will focus the right input, too.
  *
