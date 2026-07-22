@@ -53,6 +53,22 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
+        if (prefix === "unseturl" && !query.includes(" ")) {
+            this.options = Object.keys(config.get("subconfigs"))
+                .filter(pattern => pattern.startsWith(query))
+                .sort()
+                .map(
+                    pattern =>
+                        new SettingsCompletionOption(pattern, {
+                            name: pattern,
+                            value: "",
+                            type: "URL Pattern",
+                            doc: "",
+                        }),
+                )
+            return this.updateChain()
+        }
+
         // Ignoring command-specific arguments
         // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented
         // copy pasting code is fun and good
