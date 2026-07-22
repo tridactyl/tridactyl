@@ -484,7 +484,7 @@ export class default_config {
     leavegithubalone: "true" | "false" = "false"
 
     /**
-     * Which keys to protect from pages that try to override them. Requires [[leavegithubalone]] to be set to false.
+     * Which additional keys to protect from pages that try to override them. `:bind --mode=browser` binds are protected automatically. Requires [[leavegithubalone]] to be set to false.
      */
     blacklistkeys: string[] = ["/"]
 

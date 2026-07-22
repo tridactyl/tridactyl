@@ -509,8 +509,14 @@ window.addEventListener("keydown", protectSlash, {capture: true})
 
 function protectSlash(e) {
     if (!e.isTrusted || leaveGithubAlone ) return
-    const blacklistKeys = config.get("blacklistkeys") || [];
-    if (blacklistKeys.includes(e.key) && contentState.mode === "normal") {
+    const protectedKeys = (config.get("blacklistkeys") || []).concat(
+        Object.keys(config.get("browsermaps") || {}),
+    )
+    const key = keyseq.minimalKeyFromKeyboardEvent(e)
+    if (
+        protectedKeys.some(mapstr => keyseq.mapstrMatchesKey(mapstr, key)) &&
+        contentState.mode === "normal"
+    ) {
         e.cancelBubble = true
         e.stopImmediatePropagation()
         e.stopPropagation()

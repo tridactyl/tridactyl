@@ -559,6 +559,11 @@ export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
     return parseMapstr(mapstr).keyseq
 }
 
+export function mapstrMatchesKey(mapstr: string, key: MinimalKey): boolean {
+    const keyseq = mapstrToKeyseq(mapstr)
+    return keyseq.length === 1 && keyseq[0].match(key) === true
+}
+
 export function canonicaliseMapstr(mapstr: string): string {
     return mapstrToKeyseq(mapstr)
         .filter(k => !k.optional)

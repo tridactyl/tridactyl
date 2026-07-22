@@ -902,6 +902,13 @@ testAllObject(mks, [
     ["<ACM-lt>", mks("<CAM-<>")],
 ])
 
+testAll(ks.mapstrMatchesKey, [
+    [["/", mk("/")], true],
+    [["<C-,>", mk(",", { ctrlKey: true })], true],
+    [["<C-,>", mk(",")], false],
+    [["gg", mk("g")], false],
+])
+
 // {{{ canonicaliseMapstr
 
 testAll(ks.canonicaliseMapstr, [
