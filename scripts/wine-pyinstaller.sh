@@ -20,21 +20,25 @@ export WINEDEBUG="fixme-all"
 # stop wine whining
 export DISPLAY=
 
-PREREQUISITES="tput printf 7z wine"
+PREREQUISITES="tput printf sort 7z wine"
 
 MIN_WINE_VER="4"
 MIN_7ZIP_VER="16"
 
+versionAtLeast() {
+  printf '%s\n' "$1" "$2" | sort -VC
+}
+
 checkRequiredVersions() {
-   if ! 7z | awk '/Version/{print $3}' | grep -q "${MIN_7ZIP_VER}"; then
+   if ! versionAtLeast "${MIN_7ZIP_VER}" "$(7z | awk '/Version/{print $3}')"; then
       colorEcho \
         '[-] p7zip minimum version '"${MIN_7ZIP_VER}"' required\n' \
         "alert"
       exit 1
    fi
 
-   if ! wine --version 2> /dev/null | grep -q "wine-${MIN_WINE_VER}"; then
-      colorecho \
+   if ! versionAtLeast "${MIN_WINE_VER}" "$(wine --version 2> /dev/null | cut -d- -f2-)"; then
+      colorEcho \
         '[-] wine minimum version '"${MIN_WINE_VER}"' required\n' \
         "alert"
       exit 1
