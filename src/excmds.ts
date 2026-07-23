@@ -356,6 +356,8 @@ import { getEditor } from "editor-adapter"
 //#content
 export async function editor() {
     const elem = DOM.getLastUsedInput()
+    if (!elem || !DOM.isTextEditable(elem))
+        throw new Error(":editor requires a previously focused editable element")
     const selector = DOM.getSelector(elem)
     addTridactylEditorClass(selector)
 
@@ -396,8 +398,8 @@ export async function editor() {
     } finally {
         removeTridactylEditorClass(selector)
         window.removeEventListener("beforeunload", beforeUnloadListener)
-        return ans
     }
+    return ans
 }
 
 /**
