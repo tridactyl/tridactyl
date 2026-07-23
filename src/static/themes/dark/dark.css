@@ -270,7 +270,7 @@
     --tridactyl-hint-active-bg: #88ff00;
     --tridactyl-hint-active-outline: 1px solid #000;
 
-    --tridactyl-hint-bg: rgba(13, 31, 54, 0.25);
+    --tridactyl-hint-bg: #0d1f36;
     --tridactyl-hint-outline: 1px solid var(--tridactyl-hintspan-bg);
 
     --tridactyl-highlight-box-bg: var(
