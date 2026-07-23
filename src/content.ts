@@ -348,8 +348,15 @@ if (
 
 // Really bad status indicator
 let statusIndicator
-config.getAsync("modeindicator").then(mode => {
-    if (mode !== "true") return
+function addStatusIndicator() {
+    if (statusIndicator) {
+        statusIndicator.classList.toggle(
+            "TridactylInvisible",
+            config.get("modeindicatormodes", contentState.mode) === "false",
+        )
+        document.documentElement.appendChild(statusIndicator)
+        return
+    }
 
     // Do we want container indicators?
     const containerIndicator = config.get("containerindicator")
@@ -429,7 +436,8 @@ config.getAsync("modeindicator").then(mode => {
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
-            document.documentElement.appendChild(statusIndicator)
+            if (config.get("modeindicator") === "true")
+                addStatusIndicator()
             document.head.appendChild(style)
         })
     }
@@ -497,6 +505,14 @@ config.getAsync("modeindicator").then(mode => {
         statusIndicator.className =
             `${baseCls} ${privateCls} ${modeCls} ${invisibleCls}`
     })
+}
+
+config.getAsync("modeindicator").then(mode => {
+    if (mode === "true") addStatusIndicator()
+})
+config.addChangeListener("modeindicator", (_, newValue) => {
+    if (newValue === "true") addStatusIndicator()
+    else statusIndicator?.remove()
 })
 
 let leaveGithubAlone = false // don't wait for the config before adding the listener
@@ -573,8 +589,7 @@ const checkElemsSurvived = () => {
     if (document.readyState === "complete") {
         commandline_content.ensureIframeExists()
 
-        if (statusIndicator !== undefined)
-            document.documentElement.appendChild(statusIndicator)
+        if (config.get("modeindicator") === "true") addStatusIndicator()
 
         // We only want to check the iframe survived between "interactive" and "complete"
         document.removeEventListener("readystatechange", checkElemsSurvived)
