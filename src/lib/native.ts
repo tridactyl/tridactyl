@@ -771,8 +771,8 @@ export function parsePrefs(prefFileContent: string) {
  *  return a promise for an empty object.
  */
 export async function loadPrefs(filename): Promise<{ [key: string]: string }> {
-    const result = await read(filename)
-    if (result.code !== 0) return {}
+    const result = await read(filename).catch(() => undefined)
+    if (result === undefined || result.code !== 0) return {}
     return parsePrefs(result.content)
 }
 
