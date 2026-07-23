@@ -26,10 +26,12 @@ jobs:
       matrix:
         os: [ubuntu, windows]
         # os: [ubuntu, macos, windows]
-        browser: [firefox, firefoxesr]
+        browser: ${{ fromJSON(github.event_name == 'schedule' && '["latest", "latest-esr", "latest-beta"]' || '["latest", "latest-esr"]') }}
         exclude:
           - os: windows
-            browser: firefoxesr
+            browser: latest-esr
+          - os: windows
+            browser: latest-beta
 
     runs-on: ${{ matrix.os }}-latest
 
@@ -47,7 +49,7 @@ jobs:
     - name: Setup Firefox
       uses: browser-actions/setup-firefox@v1
       with:
-        firefox-version: ${{ matrix.browser == 'firefox' && 'latest' || 'latest-esr' }}
+        firefox-version: ${{ matrix.browser }}
 
     - name: Cache build outputs
       uses: actions/cache@v4
