@@ -5913,16 +5913,17 @@ export async function ttsvoices() {
 }
 
 /**
- * Cancel current reading and clear pending queue
+ * Control the current reading
  *
  * Arguments:
- *   - stop:    cancel current and pending utterances
+ *   - play: resume the current utterance
+ *   - pause: pause the current utterance
+ *   - playpause: toggle between playing and paused
+ *   - stop: cancel current and pending utterances
  */
 //#content
-export async function ttscontrol(action: string) {
-    // only pause seems to be working, so only provide access to that
-    // to avoid exposing users to things that won't work
-    if (action !== "stop") {
+export async function ttscontrol(action: "stop" | "play" | "pause" | "playpause") {
+    if (!["stop", "play", "pause", "playpause"].includes(action)) {
         throw new Error("Unknown text-to-speech action: " + action)
     }
 

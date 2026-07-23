@@ -3,6 +3,7 @@ import * as config from "@src/lib/config"
 
 jest.mock("@src/lib/webext", () => ({
     ...jest.requireActual("@src/lib/webext"),
+    activeTabId: jest.fn().mockResolvedValue(1),
     openInNewTab: jest.fn(),
     activeTabContainerId: jest.fn(),
     queryAndURLwrangler: jest.fn(),
@@ -12,6 +13,9 @@ jest.mock("@src/lib/containers", () => ({
     ...jest.requireActual("@src/lib/containers"),
     fuzzyMatch: jest.fn().mockReturnValue("firefox-container-111"),
 }))
+
+jest.mock("editor-adapter", () => ({ getEditor: jest.fn() }))
+jest.mock("@src/content/commandline_content", () => ({}))
 
 // Missing from jest-webextension-mock.
 const tabEvent = { addListener: jest.fn() }
@@ -26,8 +30,12 @@ Object.defineProperty(browser, "windows", {
         getCurrent: jest.fn().mockReturnValue({ incognito: false }),
     },
 })
+Object.defineProperty(browser, "sessions", {
+    value: { getTabValue: jest.fn(), setTabValue: jest.fn() },
+})
 
 const { set, tabopen, winopen } = require("@src/.excmds_background.generated")
+const { ttscontrol } = require("@src/.excmds_content.generated")
 
 test("`set` preserves deep custom arrays", async () => {
     await config.set("custom", "deep", "array", [0])
@@ -63,4 +71,30 @@ test("`winopen` creates a neutral tab before navigating it", async () => {
         loadReplace: true,
         url: "https://example.com/",
     })
+})
+
+test.each([
+    ["play", "resume", false],
+    ["pause", "pause", false],
+    ["playpause", "pause", false],
+    ["playpause", "resume", true],
+    ["stop", "cancel", false],
+])("`ttscontrol %s` calls %s", async (action, method, paused) => {
+    const speechSynthesis = {
+        cancel: jest.fn(),
+        pause: jest.fn(),
+        paused,
+        resume: jest.fn(),
+    }
+    Object.assign(window, { speechSynthesis })
+
+    await ttscontrol(action)
+
+    expect(speechSynthesis[method]).toHaveBeenCalled()
+})
+
+test("`ttscontrol` rejects unknown actions", async () => {
+    await expect(ttscontrol("invalid")).rejects.toThrow(
+        "Unknown text-to-speech action: invalid",
+    )
 })
