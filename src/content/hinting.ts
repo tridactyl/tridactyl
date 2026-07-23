@@ -402,6 +402,7 @@ class HintState {
                 )
             }
         }
+        this.changeFocusedHintIndex(distance)
 
         // All done!
     }
