@@ -44,4 +44,4 @@ Tridactyl defaults to using `J` to switch to the previous tab and `K` to switch 
 
 ## Normal mode
 
-The tutorial for normal mode starts on the [next page](./2-normal_mode.md). You could try following the link by using hint mode: press `f` (if there is only a single link on the screen, it will be followed; otherwise type the characters that appear above the desired link, in lower case. They are only displayed in upper case for ease of reading).
+The tutorial for normal mode starts on the <a href='./2-normal_mode.md' rel="next">next page</a>. You could try following the link by using hint mode: press `f` (if there is only a single link on the screen, it will be followed; otherwise type the characters that appear above the desired link, in lower case. They are only displayed in upper case for ease of reading).

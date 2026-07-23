@@ -11,4 +11,6 @@ You can add a mark with `markadd [key]` or by using the default keybinding `m[ke
 
 Try marking this position using `mA`. Switch to another tab and press `` `A `` to come back here. Press ` `` ` to go back to where you came from. You can also try setting a local mark using `ma` in the middle of a scrollable page, press `gg` to move to the top and then press `` `a `` to jump to the mark.
 
-The [next](./8-1-i18n.md) of this tutorial is about comfortably using Tridactyl with keyboard layouts that are very different from QWERTY. <a href='./7-native_messenger.md' rel="prev"></a>
+The <a href='./8-1-i18n.md' rel="next">next</a> of this tutorial is about comfortably using Tridactyl with keyboard layouts that are very different from QWERTY.
+
+<a href='./7-native_messenger.md' rel="prev">Previous page</a>

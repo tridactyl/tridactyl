@@ -34,4 +34,6 @@ Settings already persist in Firefox storage. `:source` runs commands from an RC 
 
 Use `:viewconfig --user` to inspect the resulting settings. To trace progress through an RC file, put `fillcmdline_tmp 3000 reached this line` on a line of its own while on a page Tridactyl can access.
 
-The [next page](./6-containers.md) will talk about how to operate firefox containers with tridactyl. <a href='./4-command_mode.md' rel="prev"></a>
+The <a href='./6-containers.md' rel="next">next page</a> will talk about how to operate firefox containers with tridactyl.
+
+<a href='./4-command_mode.md' rel="prev">Previous page</a>

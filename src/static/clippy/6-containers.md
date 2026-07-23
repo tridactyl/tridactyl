@@ -29,4 +29,6 @@ When the mode indicator is enabled, [`containerindicator`](../docs/classes/_src_
 
 Run `:apropos contain` for all related commands and settings, or `:help command-or-setting` for details.
 
-The <a href='./7-native_messenger.md' rel='next'>next page</a> is about the native messenger. <a href='./5-settings.md' rel="prev"></a>
+The <a href='./7-native_messenger.md' rel='next'>next page</a> is about the native messenger.
+
+<a href='./5-settings.md' rel="prev">Previous page</a>
