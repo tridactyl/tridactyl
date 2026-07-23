@@ -4012,25 +4012,27 @@ export async function composite(...cmds: string[]) {
 /**
  * Transform every element of a piped array with an underscore expression.
  * Supports property, integer-index, inclusive-slice, and comparison expressions;
- * short-circuit `&&` and `||`; and `includes`, `startsWith`, and `endsWith`. In exversion 2, non-expression targets map ex
- * commands, and `array .| target` is shorthand for `array | map target`.
+ * short-circuit `&&` and `||`; and `includes`, `startsWith`, and `endsWith`.
  * Example: `js [{url: "one"}, {url: "two"}] | map _.url`.
  */
 //#both
-export function map(...args: string[]): any[] {
-    const values = args.pop() as any
-    return Collections.map(args.join(" "), values)
+export function map(callback: string | Collections.ExExpression, values: any[]): any[] {
+    return Collections.map(Collections.expression(callback), values)
 }
 
 /**
  * Keep elements whose underscore expression is truthy, defaulting to the
- * identity predicate `_.`. `==` and `!=` use strict equality. Example:
+ * identity predicate `_`. `==` and `!=` use strict equality. Example:
  * `js [{x: "ok"}, {}] | filter _.x == 'ok'`.
  */
 //#both
-export function filter(...args: string[]): any[] {
-    const values = args.pop() as any
-    return Collections.filter(args.join(" "), values)
+export function filter(callback: string | Collections.ExExpression | any[], values?: any[]): any[] {
+    if (values === undefined)
+        return Collections.filter(Collections.expression("_"), callback as any[])
+    return Collections.filter(
+        Collections.expression(callback as string | Collections.ExExpression),
+        values,
+    )
 }
 
 /**

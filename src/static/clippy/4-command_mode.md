@@ -38,16 +38,17 @@ echo hello
 # pipes can chain commands
 :echo hello | fillcmdline
 
-# underscore is used to create anonymous functions in map and filter
-# i.e., _.a > 1 is equivalent to javascript x -> (x.a > 1)
+# underscore expressions are evaluated against pipeline input
+# map and filter declare that they accept the same expressions as callbacks
+# i.e. _.a > 1 is equivalent to javascript x -> (x.a > 1)
 :js [{a: 1},{a: 2},{a: 3}] | filter _.a > 1 | fillcmdline
 
-# dot is used for member access. array slices are also supported. the equals sign is used for argument placement
-# =. and _. mean identity
-:js [1, 2, 3] | fillcmdline =[0:-2]
-:js [1, 2, 3] | fillcmdline =.
+# _ is identity, dot is member access, and array slices are supported
+# expressions in ordinary command arguments explicitly place their values
+:js [1, 2, 3] | fillcmdline _[0:-2]
+:js [1, 2, 3] | fillcmdline _
 
-# .| f is syntactic sugar for | map f
+# .| maps the next command, expression, or block over an array
 # bare expressions are allowed in pipes
 :js [{hello: "world"}, {mellow: "yellow"}, {hello: "universe"}] .| _.hello | filter | fillcmdline
 

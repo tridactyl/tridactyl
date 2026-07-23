@@ -3,7 +3,7 @@
 import { excmdsFunctions, paramTypes, convert } from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
-import { selector } from "@src/lib/collections"
+import { ExExpression, expression, isExpression } from "@src/lib/collections"
 import { stripLeadingColons } from "@src/lib/excmd"
 
 const logger = new Logging.Logger("exmode")
@@ -17,22 +17,104 @@ class BoundArgument {
     constructor(public value: any) {}
 }
 
-const isInputReference = (argument: string) =>
-    argument.startsWith("=.") || argument.startsWith("=[")
+class ExpressionArgument {
+    constructor(
+        public source: string,
+        public callback: ExExpression,
+    ) {}
+}
 
-function bindInput(args: string[], input?: PipelineInput) {
-    if (!input) return [args, false]
+const operator = /^(?:==|!=|>=|<=|>|<|&&|\|\|)$/
+
+function startsExpression(args: string[], start: number) {
+    if (isExpression(args[start])) return true
+    if (!args[start].startsWith("(")) return false
+    let depth = 0
+    let quote = ""
+    let continued = false
+    for (let end = start; end < args.length; end++) {
+        for (let index = 0; index < args[end].length; index++) {
+            const character = args[end][index]
+            if (quote) {
+                if (character === "\\") index++
+                else if (character === quote) quote = ""
+            } else if (character === "'" || character === '"') quote = character
+            else if (character === "(") depth++
+            else if (character === ")") depth--
+        }
+        if (depth === 0) {
+            if (isExpression(args.slice(start, end + 1).join(" "))) return true
+            if (operator.test(args[end]) || operator.test(args[end + 1] || "")) {
+                continued = true
+                continue
+            }
+            return continued && isExpression(args.slice(start).join(" "))
+        }
+    }
+    return isExpression(args.slice(start).join(" "))
+}
+
+function expressionArguments(args: string[]) {
+    const parsed: (string | ExpressionArgument)[] = []
+    for (let start = 0; start < args.length; start++) {
+        const argument = args[start]
+        if (argument.startsWith("\\") && isExpression(argument.slice(1))) {
+            parsed.push(argument.slice(1))
+            continue
+        }
+        if (!startsExpression(args, start)) {
+            parsed.push(argument)
+            continue
+        }
+
+        let found: ExpressionArgument | undefined
+        let failure: unknown
+        let end = args.length
+        for (; end > start; end--) {
+            const source = args.slice(start, end).join(" ")
+            try {
+                found = new ExpressionArgument(source, expression(source))
+                break
+            } catch (error) {
+                failure ??= error
+            }
+        }
+        if (!found) throw failure
+        if (operator.test(args[end] || ""))
+            throw new Error(
+                `Invalid expression: ${args.slice(start, end + 1).join(" ")}`,
+            )
+        parsed.push(found)
+        start = end - 1
+    }
+    return parsed
+}
+
+function isExpressionType(type): boolean {
+    if (!type) return false
+    if (type.type === "union") return type.types.some(isExpressionType)
+    return type.type === "reference" && type.name === "ExExpression"
+}
+
+function parameterAt(params, index: number) {
+    if (params[index]) return params[index]
+    const last = params[params.length - 1]
+    return last?.flags?.isRest ? last : undefined
+}
+
+function bindInput(args, params, input?: PipelineInput) {
     let consumed = false
-    const bound = args.map(argument => {
-        if (argument.startsWith("\\") && isInputReference(argument.slice(1)))
-            return argument.slice(1)
-        if (!isInputReference(argument)) return argument
+    const bound = args.map((argument, index) => {
+        if (!(argument instanceof ExpressionArgument)) return argument
+        if (isExpressionType(parameterAt(params, index)?.type))
+            return new BoundArgument(argument.callback)
+        if (!input) return argument.source
         if (!input.piped)
             throw new Error(
-                `Pipeline input reference ${argument} used without pipeline input`,
+                `Input expression ${argument.source} used without pipeline input`,
             )
         consumed = true
-        return new BoundArgument(selector(`_${argument.slice(1)}`)(input.value))
+        return new BoundArgument(argument.callback(input.value))
     })
     return [bound, consumed]
 }
@@ -75,10 +157,19 @@ export function parser(
     all_excmds: any,
     input?: PipelineInput,
 ): any[] {
+    const normalizedExstr = stripLeadingColons(exstr)
     // Expand aliases
-    const expandedExstr = aliases.expandExstr(stripLeadingColons(exstr))
+    const expandedExstr = aliases.expandExstr(normalizedExstr)
+    if (input && isExpression(expandedExstr)) {
+        const callback = expression(expandedExstr)
+        if (!input.piped)
+            throw new Error(
+                `Input expression ${expandedExstr} used without pipeline input`,
+            )
+        return [callback, [input.value], true]
+    }
+
     const [func, ...rawArgs] = expandedExstr.trim().split(/\s+/)
-    const [args, consumed] = bindInput(rawArgs, input) as [any[], boolean]
 
     // Try to find which namespace (ex, text, ...) the command is in
     const dotIndex = func.indexOf(".")
@@ -90,16 +181,26 @@ export function parser(
         throw new Error(`Unknown namespace: ${namespce}.`)
     }
 
+    const fn = namespce == "" ? excmdsFunctions[funcName] : undefined
+    const params = paramTypes(fn)
+    const parsedArgs =
+        input || params.some(param => isExpressionType(param.type))
+            ? expressionArguments(rawArgs)
+            : rawArgs
+    const [args, consumed] = bindInput(parsedArgs, params, input) as [
+        any[],
+        boolean,
+    ]
+
     // Convert arguments, but only for ex commands
     let converted_args
     if (namespce == "" && args.length > 0) {
-        const fn = excmdsFunctions[funcName]
         if (!fn) {
             // user defined functions?
             converted_args = args
         } else {
             try {
-                converted_args = convertArgs(paramTypes(fn), args)
+                converted_args = convertArgs(params, args)
             } catch (e) {
                 logger.error("Error executing or parsing:", exstr, e)
                 throw e

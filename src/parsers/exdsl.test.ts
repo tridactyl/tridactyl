@@ -2,6 +2,7 @@ import { evaluate, ExStructure, parseStructure } from "@src/parsers/exdsl"
 import { EX_CANCELLED, formatExProgram, isExCancelled } from "@src/lib/excmd"
 import { parser as parseExCommand } from "@src/parsers/exmode"
 import { acceptExCmd, setExCmds } from "@src/lib/controller"
+import * as aliases from "@src/lib/aliases"
 
 function shape(source: string, structure = parseStructure(source)): any[] {
     return structure.parts.map(part => [
@@ -193,7 +194,7 @@ test("preserves typed values in ordinary pipes", async () => {
     expect(run.mock.calls[1][2]).toBe(value)
 })
 
-test("binds pipeline input access arguments", () => {
+test("evaluates pipeline input expressions in command arguments", () => {
     const commands = {
         "": {
             echo: jest.fn(),
@@ -205,21 +206,21 @@ test("binds pipeline input access arguments", () => {
     const value = { items: [{ name: "one" }, { name: "two words" }] }
     const parse = (source: string, piped = true) =>
         parseExCommand(source, commands, { piped, value }).slice(1)
-    expect(parse("echo =.items[1].name =")).toEqual([["two words", "="], true])
+    expect(parse("echo _.items[1].name =")).toEqual([["two words", "="], true])
     expect(parse("echo =")).toEqual([["="], false])
-    expect(parse("echo =. =[] =[:]")).toEqual([[value, value, value], true])
-    expect(() => parse("echo =[1]", false)).toThrow(
-        "Pipeline input reference =[1] used without pipeline input",
+    expect(parse("echo _ _.items[0].name")).toEqual([[value, "one"], true])
+    expect(() => parse("echo _[1]", false)).toThrow(
+        "Input expression _[1] used without pipeline input",
     )
-    expect(parse("echo \\=[1]")).toEqual([["=[1]"], false])
-    expect(parse("map _[0]")).toEqual([["_[0]"], false])
+    expect(parse("echo \\_[1]")).toEqual([["_[1]"], false])
+    expect(parse("echo =.items[0]")).toEqual([["=.items[0]"], false])
 })
 
-test("explicit input bindings replace the implicit pipeline argument", () => {
+test("input expressions replace the implicit pipeline argument", () => {
     const sink = jest.fn((...args) => args)
     setExCmds({ "": { source: () => [0, 1, 2], sink, repeat: jest.fn() } })
     return expect(
-        acceptExCmd({ source: "source | sink =[2:0]", exversion: 2 }),
+        acceptExCmd({ source: "source | sink _[2:0]", exversion: 2 }),
     ).resolves.toEqual([[2, 1, 0]])
 })
 
@@ -234,20 +235,58 @@ test.each([
         { item: Promise.resolve({ name: "one" }) },
         "one",
     ],
-])("evaluates bare expression pipeline %s", (source, value, expected) =>
-    expect(
-        evaluate(source, command => {
-            if (command === "value") return value
-            throw new Error(`Unexpected command: ${command}`)
-        }),
-    ).resolves.toBe(expected),
-)
+])("evaluates bare expression pipeline %s", (source, value, expected) => {
+    setExCmds({ "": { value: () => value, repeat: jest.fn() } })
+    return expect(acceptExCmd({ source, exversion: 2 })).resolves.toBe(expected)
+})
+
+test("groups expression arguments by precedence", () => {
+    const commands = { "": { echo: jest.fn(), repeat: jest.fn() } }
+    const parse = (source: string) =>
+        parseExCommand(source, commands, { piped: true, value: 3 }).slice(1)
+    expect(parse("echo _ _")).toEqual([[3, 3], true])
+    expect(parse("echo _ > 2")).toEqual([[true], true])
+    expect(parse("echo _ > 2 && _ < 4 _")).toEqual([[true, 3], true])
+    expect(parse("echo ( _ > 2 )")).toEqual([[true], true])
+    expect(parse("echo (true) && _")).toEqual([[true], true])
+    expect(parse("echo (hello) _")).toEqual([["(hello)", 3], true])
+    expect(parse("echo (hello) > 2")).toEqual([
+        ["(hello)", ">", "2"],
+        false,
+    ])
+    expect(parse("echo _ <C-x>")).toEqual([[3, "<C-x>"], true])
+    expect(parse("echo x > 2")).toEqual([["x", ">", "2"], false])
+    expect(() => parse("echo _ > nope")).toThrow("Invalid expression")
+    expect(() => parse("echo _ > 2 > 1")).toThrow("Invalid expression")
+})
+
+test("compiles callback expressions in legacy parsing", () => {
+    const commands = { "": { map: jest.fn(), repeat: jest.fn() } }
+    const [, [callback], consumed] = parseExCommand("map _.x > 1", commands)
+    expect(callback({ x: 2 })).toBe(true)
+    expect(consumed).toBe(false)
+})
+
+test("expands aliases before detecting expression stages", () => {
+    const expand = jest
+        .spyOn(aliases, "expandExstr")
+        .mockImplementation(source => (source === "project" ? "_.url" : source))
+    try {
+        const [callback, args, consumed] = parseExCommand(
+            "project",
+            { "": { repeat: jest.fn() } },
+            { piped: true, value: { url: "one" } },
+        )
+        expect(callback(...args)).toBe("one")
+        expect(consumed).toBe(true)
+    } finally {
+        expand.mockRestore()
+    }
+})
 
 test.each([
     ["values .| double", "double"],
-    ["values | map double", "double"],
     ["values .| _double", "_double"],
-    ["values | map _double", "_double"],
 ])("maps exactly one command in %s", async (source, target) => {
     const run = jest.fn((command, _piped, input) =>
         command === "values" ? [1, 2, 3] : input * 2,
@@ -261,57 +300,51 @@ test.each([
     ])
 })
 
-test.each(["values .| _.url", "values | map _.url"])(
-    "maps magic selectors through the standard command in %s",
-    async source => {
-        const values = [{ url: "one" }, { url: "two" }]
-        const run = jest.fn((command, _piped, input) => {
-            if (command === "values") return values
-            if (command === "map _.url") return input.map(value => value.url)
-            throw new Error(`Unexpected command: ${command}`)
-        })
-        await expect(evaluate(source, run)).resolves.toEqual(["one", "two"])
-        expect(run.mock.calls.map(call => call[0])).toEqual([
-            "values",
-            "map _.url",
-        ])
-    },
-)
+test("maps expression stages without rewriting them as commands", async () => {
+    const values = [{ url: "one" }, { url: "two" }]
+    const run = jest.fn((command, _piped, input) =>
+        command === "values" ? values : input.url,
+    )
+    await expect(evaluate("values .| _.url", run)).resolves.toEqual([
+        "one",
+        "two",
+    ])
+    expect(run.mock.calls.map(call => call[0])).toEqual([
+        "values",
+        "_.url",
+        "_.url",
+    ])
+})
 
-test.each(["values .| _[0].url", "values | map _[0].url"])(
-    "maps indexed expressions through the standard command in %s",
-    async source => {
-        const values = [[{ url: "one" }], [{ url: "two" }]]
-        const run = jest.fn((command, _piped, input) => {
-            if (command === "values") return values
-            if (command === "map _[0].url")
-                return input.map(value => value[0].url)
-            throw new Error(`Unexpected command: ${command}`)
-        })
-        await expect(evaluate(source, run)).resolves.toEqual(["one", "two"])
-        expect(run.mock.calls.map(call => call[0])).toEqual([
-            "values",
-            "map _[0].url",
-        ])
-    },
-)
+test("evaluates mapped expressions against each item", () => {
+    setExCmds({ "": { source: () => [1, 3], repeat: jest.fn() } })
+    return expect(
+        acceptExCmd({ source: "source .| _ > 1", exversion: 2 }),
+    ).resolves.toEqual([false, true])
+})
 
-test.each(["values .| _.x >= 3", "values | map _.x >= 3"])(
-    "passes full magic expressions to the standard map command in %s",
-    async source => {
-        const values = [{ x: 2 }, { x: 3 }]
-        const run = jest.fn((command, _piped, input) => {
-            if (command === "values") return values
-            if (command === "map _.x >= 3") return [false, true]
-            throw new Error(`Unexpected command: ${command}`)
-        })
-        await expect(evaluate(source, run)).resolves.toEqual([false, true])
-        expect(run.mock.calls.map(call => call[0])).toEqual([
-            "values",
-            "map _.x >= 3",
-        ])
-    },
-)
+test("passes expression callbacks according to parameter metadata", async () => {
+    const map = jest.fn((callback, values) => values.map(callback))
+    const filter = jest.fn((callback, values) => values.filter(callback))
+    const sink = jest.fn((...args) => args)
+    setExCmds({
+        "": {
+            source: () => [{ x: 1 }, { x: 3 }],
+            map,
+            filter,
+            sink,
+            repeat: jest.fn(),
+        },
+    })
+    await expect(
+        acceptExCmd({
+            source: "source | filter _.x > 1 | map _.x | sink _",
+            exversion: 2,
+        }),
+    ).resolves.toEqual([[3]])
+    expect(filter.mock.calls[0][0]).toEqual(expect.any(Function))
+    expect(map.mock.calls[0][0]).toEqual(expect.any(Function))
+})
 
 test("maps a command with arguments and pipes the collected results", async () => {
     const run = jest.fn((command, _piped, input) => {
@@ -319,39 +352,35 @@ test("maps a command with arguments and pipes the collected results", async () =
         if (command === "add 3") return input + 3
         return input.reduce((sum, value) => sum + value, 0)
     })
-    await expect(evaluate("values | map add 3 | sum", run)).resolves.toBe(9)
+    await expect(evaluate("values .| add 3 | sum", run)).resolves.toBe(9)
 })
 
-test.each([
-    "values .| { double | stringify }",
-    "values | map { double | stringify }",
-])("maps a multi-stage block in %s", source =>
+test("maps a multi-stage block", () =>
     expect(
-        evaluate(source, (command, _piped, input) => {
-            if (command === "values") return [1, 2]
-            if (command === "double") return input * 2
-            return String(input)
-        }),
-    ).resolves.toEqual(["2", "4"]),
-)
+        evaluate(
+            "values .| { double | stringify }",
+            (command, _piped, input) => {
+                if (command === "values") return [1, 2]
+                if (command === "double") return input * 2
+                return String(input)
+            },
+        ),
+    ).resolves.toEqual(["2", "4"]))
 
-test.each(["matrix .| map { double }", "matrix | map map { double }"])(
-    "supports nested command and block maps in %s",
-    source =>
-        expect(
-            evaluate(source, (command, _piped, input) =>
-                command === "matrix"
-                    ? [
-                          [1, 2],
-                          [3, 4],
-                      ]
-                    : input * 2,
-            ),
-        ).resolves.toEqual([
-            [2, 4],
-            [6, 8],
-        ]),
-)
+test("supports nested block maps", () =>
+    expect(
+        evaluate("matrix .| { pass .| double }", (command, _piped, input) => {
+            if (command === "matrix")
+                return [
+                    [1, 2],
+                    [3, 4],
+                ]
+            return command === "pass" ? input : input * 2
+        }),
+    ).resolves.toEqual([
+        [2, 4],
+        [6, 8],
+    ]))
 
 test("runs mapped commands concurrently while preserving result order", async () => {
     let active = 0
@@ -385,7 +414,7 @@ test("reports the failed map item while already-started items continue", async (
 test.each(["text", "object"])("rejects %s map input", async command => {
     const value = command === "text" ? "one two" : { one: 1, two: 2 }
     await expect(
-        evaluate(`${command} | map echo`, source =>
+        evaluate(`${command} .| echo`, source =>
             source === command ? value : source,
         ),
     ).rejects.toThrow("map expected an array")
@@ -400,11 +429,17 @@ test("maps an empty array without invoking the target", async () => {
     expect(run).toHaveBeenCalledTimes(1)
 })
 
-test.each(["map target", "values | map"])(
-    "rejects invalid map form %s",
-    source =>
-        expect(evaluate(source, jest.fn())).rejects.toThrow("map requires"),
-)
+test("treats map as an ordinary command", async () => {
+    const values = [1, 2]
+    const run = jest.fn((command, _piped, input) =>
+        command === "values" ? values : input,
+    )
+    await expect(evaluate("values | map target", run)).resolves.toBe(values)
+    expect(run.mock.calls.map(call => call[0])).toEqual([
+        "values",
+        "map target",
+    ])
+})
 
 test("continues incomplete operators across newlines", async () => {
     const run = jest.fn((source, piped, value) =>
