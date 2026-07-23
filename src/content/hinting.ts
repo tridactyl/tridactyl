@@ -34,7 +34,7 @@ import {
     izip,
     map,
 } from "@src/lib/itertools"
-import { contentState } from "@src/content/state_content"
+import { contentState, addContentStateChangedListener } from "@src/content/state_content"
 import * as config from "@src/lib/config"
 import Logger from "@src/lib/logging"
 import * as R from "ramda"
@@ -498,22 +498,24 @@ export function hintPage(
 
     if (!rapid) {
         buildHints(hintableElements, hint => {
-            modeState.cleanUpHints()
+            const state = modeState
+            state.cleanUpHints()
             hint.result = onSelect(hint.target)
-            modeState.selectedHints.push(hint)
-            reset()
+            state.selectedHints.push(hint)
+            if (modeState === state) reset()
         })
     } else {
         buildHints(hintableElements, hint => {
+            const state = modeState
             hint.result = onSelect(hint.target)
-            modeState.selectedHints.push(hint)
+            state.selectedHints.push(hint)
             if (
-                modeState.selectedHints.length > 1 &&
+                state.selectedHints.length > 1 &&
                 config.get("hintshift") === "true"
             ) {
-                modeState.shiftHints()
+                state.shiftHints()
             }
-            removeFilteredCharClass()
+            removeFilteredCharClass(state)
         })
     }
 
@@ -556,9 +558,10 @@ export function hintPage(
     ) {
         // There is just a single link or all the links point to the same
         // place. Select it unless `hintautoselect` is set to `false`.
-        modeState.cleanUpHints()
-        modeState.hints[0].select()
-        reset()
+        const state = modeState
+        state.cleanUpHints()
+        state.hints[0].select()
+        if (modeState === state) reset()
         return
     }
 
@@ -1045,8 +1048,8 @@ function addFilteredCharClass(hint: Hint, fstr: string) {
 
 /** Remove the filtered char class from all hints - for resetting the style when rapid hinting
 @hidden */
-function removeFilteredCharClass() {
-    const pressed = modeState.hintHost.querySelectorAll(".TridactylHintCharPressed");
+function removeFilteredCharClass(state = modeState) {
+    const pressed = state.hintHost.querySelectorAll(".TridactylHintCharPressed");
     for (const el of pressed) {
         el.classList.remove("TridactylHintCharPressed");
     }
@@ -1183,15 +1186,23 @@ function filterHintsVimperator(query: string, reflow = false) {
 /**
  * Remove all hints, reset STATE.
  **/
-function reset() {
-    if (modeState) {
-        modeState.cleanUpHints()
-        modeState.resolveHinting()
-    }
+function cleanup() {
+    const state = modeState
     modeState = undefined
-    contentState.mode = "normal"
+    if (state) state.cleanUpHints()
     window.removeEventListener("scroll", updateHudOffset)
+    return state
 }
+
+function reset() {
+    cleanup()?.resolveHinting()
+    contentState.mode = "normal"
+}
+
+addContentStateChangedListener((property, oldMode) => {
+    const state = property === "mode" && oldMode === "hint" ? cleanup() : undefined
+    if (state) queueMicrotask(() => state.resolveHinting())
+})
 
 function popKey() {
     modeState.filter = modeState.filter.slice(0, -1)
