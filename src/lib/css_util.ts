@@ -53,7 +53,7 @@ export const potentialRules = {
         options: {
             none: `display: none !important;`,
             right: `right: 0; display: inline;`,
-            left: `right: auto; top: auto; left: 0;`,
+            left: `right: auto; top: auto; left: 0; display: inline`,
             "top-left": `top: 2em; z-index: 2; display: inline;`,
             "top-right": `top: 2em; z-index: 2; right: 0; display: inline;`,
         },
