@@ -116,6 +116,7 @@ function handleMove(e, context) {
 function make_drawable(overlaydiv) {
     overlaydiv.style.position = "absolute"
     overlaydiv.style.opacity = "0.8"
+    overlaydiv.style.cursor = "crosshair"
     const c = document.createElement("canvas")
     overlaydiv.appendChild(c)
     const context = c.getContext("2d")
