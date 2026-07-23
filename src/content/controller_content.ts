@@ -201,6 +201,7 @@ function* ParserController() {
                 // to date (March 2018).
                 // https://github.com/tridactyl/tridactyl/issues/311
                 if (
+                    currentMode !== "nmode" &&
                     currentMode !== "ignore" &&
                     currentMode !== "hint" &&
                     currentMode !== "input"
