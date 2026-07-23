@@ -187,13 +187,17 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     constructor(
         prefixes,
         className: string,
-        title?: string,
+        title?: string | HTMLElement,
         options = { trailingSpace: true },
     ) {
         super(prefixes, options)
-        this.node = html`<div class="${className} hidden">
-            <div class="sectionHeader">${title || className}</div>
-        </div>`
+        this.node = html`<div class="${className} hidden"></div>`
+        const header =
+            typeof title === "string" || title === undefined
+                ? html`<div>${title || className}</div>`
+                : title
+        header.classList.add("sectionHeader")
+        this.node.appendChild(header)
         this.node.appendChild(this.optionContainer)
         this.state = "hidden"
     }

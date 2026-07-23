@@ -127,6 +127,9 @@ input:focus {
     font-size: var(--tridactyl-header-font-size);
     font-weight: var(--tridactyl-header-font-weight);
     border-bottom: var(--tridactyl-header-border-bottom);
+}
+
+#completions div.sectionHeader {
     padding-left: 0.5ex;
 }
 
@@ -257,13 +260,13 @@ a.url:hover {
     width: 100%;
 }
 
-.SettingsCompletionOption td.title {
-    padding-left: 0.5em;
+.SettingsCompletionSource td.title {
+    padding-left: 0.5rem;
 }
 
-#completions .SettingsCompletionOption td.title,
-#completions .SettingsCompletionOption td.content,
-#completions .SettingsCompletionOption td.type {
+#completions .SettingsCompletionSource td.title,
+#completions .SettingsCompletionSource td.content,
+#completions .SettingsCompletionSource td.type {
     width: 15%;
     text-overflow: ellipsis;
 }

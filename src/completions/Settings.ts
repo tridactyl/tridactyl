@@ -31,7 +31,14 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
         super(
             ["set", "setnull", "get", "unset", "seturl", "unseturl", "viewconfig"],
             "SettingsCompletionSource",
-            "Settings",
+            html`<table>
+                <tr>
+                    <td class="title">Settings</td>
+                    <td class="content">Current value</td>
+                    <td class="type">Possible values</td>
+                    <td class="doc">Documentation</td>
+                </tr>
+            </table>`,
         )
 
         this._parent.appendChild(this.node)
