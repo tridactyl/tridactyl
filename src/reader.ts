@@ -23,7 +23,14 @@ async function updatePage() {
             encoded = sessionStorage.getItem(hash)
         }
     }
-    const article = JSON.parse(decodeURIComponent(atob(encoded)))
+    const article =
+        encoded == undefined
+            ? {
+                  title: "Reader page expired",
+                  content:
+                      "<p>Return to the original page with <code>:back</code> or by closing this tab, then run <code>:reader</code> again.</p>",
+              }
+            : JSON.parse(decodeURIComponent(atob(encoded)))
     article.content = xss(article.content, { stripIgnoreTag: true })
     const content = document.createElement("template")
     content.innerHTML = article.content
@@ -42,6 +49,7 @@ async function updatePage() {
         const header = document.createElement("header")
         const title = document.createElement("h1")
         if (
+            article.link !== undefined &&
             (await config.getAsync("readerurlintitle")) == "true" &&
             !(article.title ?? "").includes(article.link)
         ) {
