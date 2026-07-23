@@ -1586,13 +1586,21 @@ function history(url_or_num: string, direction: number) {
     isNaN(url_or_num as unknown as number) ? open(url_or_num) : window.history.go(parseInt(url_or_num, 10) * direction)
 }
 
-/** Navigate forward one page in history. */
+/**
+ * Navigate forward one page in history. Pass a count to go forward
+ * that many pages. Add a space after `:forward` to show the tab history tree
+ * for the current tab.
+ */
 //#content
 export function forward(...args: string[]) {
     return history(args.join(" "), 1)
 }
 
-/** Navigate back one page in history. */
+/**
+ * Navigate back one page in history. Pass a count to go back that
+ * many pages. Add a space after `:back` to show the tab history tree for the
+ * current tab.
+ */
 //#content
 export function back(...args: string[]) {
     return history(args.join(" "), -1)
