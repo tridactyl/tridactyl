@@ -36,7 +36,7 @@ span.TridactylHintUppercase, span.TridactylHintUppercase>span {
 
 .TridactylHintElem,
 .TridactylHintActive {
-    animation: none !important;
+    animation-play-state: paused !important;
     transition: unset !important;
 }
 
