@@ -424,12 +424,12 @@ config.getAsync("modeindicator").then(mode => {
     statusIndicatorText.textContent = contentState.mode || "normal"
     try {
         // On quick loading pages, the document is already loaded
-        document.body.appendChild(statusIndicator)
+        document.documentElement.appendChild(statusIndicator)
         document.head.appendChild(style)
     } catch (e) {
         // But on slower pages we wait for the document to load
         window.addEventListener("DOMContentLoaded", () => {
-            document.body.appendChild(statusIndicator)
+            document.documentElement.appendChild(statusIndicator)
             document.head.appendChild(style)
         })
     }
@@ -574,7 +574,7 @@ const checkElemsSurvived = () => {
         commandline_content.ensureIframeExists()
 
         if (statusIndicator !== undefined)
-            document.body.appendChild(statusIndicator)
+            document.documentElement.appendChild(statusIndicator)
 
         // We only want to check the iframe survived between "interactive" and "complete"
         document.removeEventListener("readystatechange", checkElemsSurvived)
