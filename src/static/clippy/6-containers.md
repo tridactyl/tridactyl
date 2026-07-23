@@ -8,7 +8,7 @@ The perceived benefits of this feature are as described by the Firefox Test Pilo
 * **Organization:** For heavy tab users, Containers add a layer of visual organization to the Firefox interface.
 
 ### Container related commands
-* `containercreate name [color] [icon]` Creates a new container. Supplying `name` only will create a container called `name`, a random color and the fingerprint icon.
+* `containercreate [--or-update] name [color] [icon]` Creates a new container. Supplying `name` only will create a container called `name`, a random color and the fingerprint icon. `--or-update` updates a matching container instead of failing.
 * `containerupdate name newname color icon` Updates the container.
 * `containerclose name` Closes all tabs in a specified container.
 * `containerdelete name` Deletes a container, calls `containerclose` before deletion

@@ -3581,20 +3581,21 @@ export async function containerclose(name: string) {
     const containerId = await Container.getId(name)
     return browser.tabs.query({ cookieStoreId: containerId }).then(tabs => browser.tabs.remove(tabs.map(tab => tab.id)))
 }
-/** Creates a new container. Note that container names must be unique and that the checks are case-insensitive.
+/** Creates a new container. Note that container names must be unique and that the checks are case-insensitive. Pass `--or-update` before the name to update a matching container instead.
 
     Further reading https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
 
     Example usage:
         - `:containercreate tridactyl green dollar`
+        - `:containercreate --or-update tridactyl green dollar`
 
-    @param name The container name. Must be unique.
-    @param color The container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
-    @param icon The container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill". If no icon is chosen, it defaults to "fingerprint".
+    @param args The optional `--or-update` flag, container name, color, and icon. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill".
  */
 //#background
-export async function containercreate(name: string, color?: string, icon?: string) {
-    await Container.create(name, color, icon)
+export async function containercreate(...args: string[]) {
+    const orUpdate = args[0] === "--or-update"
+    const [name, color, icon] = args.slice(orUpdate ? 1 : 0)
+    await Container.create(name, color, icon, orUpdate)
 }
 
 /** Delete a container. Closes all tabs associated with that container beforehand. Note: container names are case-insensitive.
