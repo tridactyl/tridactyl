@@ -28,10 +28,19 @@ class AproposCompletionOption extends Completions.CompletionOptionHTML implement
 export class AproposCompletionSource extends Completions.CompletionSourceFuse {
     public options: AproposCompletionOption[]
 
-    constructor(private _parent) {
-        super(["apropos"], "AproposCompletionSource", "Apropos")
+    constructor(
+        private _parent,
+        prefixes = ["apropos"],
+        className = "AproposCompletionSource",
+        title = "Apropos",
+    ) {
+        super(prefixes, className, title)
 
         this._parent.appendChild(this.node)
+    }
+
+    protected createOption(name: string, doc: string, flag: string) {
+        return new AproposCompletionOption(name, doc, flag)
     }
 
     public async filter(exstr: string) {
@@ -74,7 +83,7 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                         .map(alias => {
                             const cmd = aliases.expandExstr(alias)
                             const doc = getDoc(excmdsFunctions[cmd])
-                            return new AproposCompletionOption(
+                            return this.createOption(
                                 alias,
                                 `Alias for \`${cmd}\`. ${doc}`,
                                 "-a",
@@ -91,7 +100,7 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                         )
                         .map(
                             binding =>
-                                new AproposCompletionOption(
+                                this.createOption(
                                     binding,
                                     `Normal mode binding for \`${bindings[binding]}\``,
                                     "-b",
@@ -106,7 +115,7 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                         )
                         .map(
                             ([name, fn]) =>
-                                new AproposCompletionOption(
+                                this.createOption(
                                     name,
                                     `Excmd. ${getDoc(fn)}`,
                                     "-e",
@@ -123,7 +132,7 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                         )
                         .map(setting => {
                             const doc = memberDoc(defaultConfigMembers[setting])
-                            return new AproposCompletionOption(
+                            return this.createOption(
                                 setting,
                                 `Setting. ${doc}`,
                                 "-s",

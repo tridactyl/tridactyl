@@ -1,4 +1,5 @@
 import * as Completions from "@src/completions"
+import { AproposCompletionSource } from "@src/completions/Apropos"
 import {
     excmdsFunctions,
     defaultConfigMembers,
@@ -25,13 +26,15 @@ class HelpCompletionOption extends Completions.CompletionOptionHTML implements C
     }
 }
 
-export class HelpCompletionSource extends Completions.CompletionSourceFuse {
+export class HelpCompletionSource extends AproposCompletionSource {
     public options: HelpCompletionOption[]
 
-    constructor(private _parent) {
-        super(["help"], "HelpCompletionSource", "Help")
+    constructor(_parent) {
+        super(_parent, ["help"], "HelpCompletionSource", "Help")
+    }
 
-        this._parent.appendChild(this.node)
+    protected createOption(name: string, doc: string, flag: string) {
+        return new HelpCompletionOption(name, doc, flag)
     }
 
     public async filter(exstr: string) {
@@ -49,6 +52,7 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
             this.state = "hidden"
             return
         }
+        this.node.querySelector(".sectionHeader").textContent = "Help (prefix matches)"
 
         const settings = config.get()
         const exaliases = settings.exaliases
@@ -125,18 +129,15 @@ export class HelpCompletionSource extends Completions.CompletionSourceFuse {
             )
         }
 
+        if (opts.length === 0) {
+            this.node.querySelector(".sectionHeader").textContent = "Help (prefix match failed, showing :apropos matches)"
+            return super.filter(exstr)
+        }
+
         this.options = opts
         this.options.sort((compopt1, compopt2) =>
             compopt1.name.localeCompare(compopt2.name),
         )
         return this.updateChain()
-    }
-
-    updateChain() {
-        // Options are pre-trimmed to the right length.
-        this.options.forEach(option => (option.state = "normal"))
-
-        // Call concrete class
-        return this.updateDisplay()
     }
 }
