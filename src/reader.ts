@@ -1,6 +1,7 @@
 import * as config from "@src/lib/config"
 import xss from "xss"
 import { isuuidv4 } from "@src/lib/math"
+import readingTime from "reading-time/lib/reading-time"
 import { staticThemes } from "@src/.metadata.generated"
 
 const readerCsp =
@@ -69,6 +70,10 @@ async function updatePage() {
             author.textContent = article.byline
             header.appendChild(author)
         }
+        const {text, words} = readingTime(article.textContent ?? "")
+        const readingtime = document.createElement("p")
+        readingtime.textContent = `${words} words, ${text}`
+        header.appendChild(readingtime)
         headerHtml = header.outerHTML
     }
     const theme = await config.getAsync("theme")
