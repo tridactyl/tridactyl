@@ -3220,8 +3220,7 @@ export async function tabdiscard(index: string) {
 }
 
 /** Restore the most recently closed item.
-    The default behaviour is to restore the most recently closed tab in the
-    current window unless the most recently closed item is a window.
+    The default behaviour is to restore the most recently closed tab or window.
 
     Supplying either "tab" or "window" as an argument will specifically only
     restore an item of the specified type. Supplying "tab_strict" only restores
@@ -3237,11 +3236,11 @@ export async function undo(item = "recent"): Promise<number> {
     const current_win_id: number = (await browser.windows.getCurrent()).id
     const sessions = await browser.sessions.getRecentlyClosed()
 
-    // Pick the first session object that is a window or a tab from this window ("recent"), a tab ("tab"), a tab
+    // Pick the first session object ("recent"), a tab ("tab"), a tab
     // from this window ("tab_strict"), a window ("window") or pick by sessionId.
     const predicate =
         item === "recent"
-            ? s => s.window || (s.tab && s.tab.windowId === current_win_id)
+            ? () => true
             : item === "tab"
               ? s => s.tab
               : item === "tab_strict"
