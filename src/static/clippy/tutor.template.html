@@ -2,14 +2,54 @@
 <html lang="en" class="TridactylOwnNamespace">
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Tridactyl Tutorial</title>
         <link rel="stylesheet" href="../css/newtab.css">
         <link rel="stylesheet" href="../css/content.css">
         <link rel="stylesheet" href="../css/hint.css">
         <link rel="stylesheet" href="../css/viewsource.css">
         <link rel="shortcut icon" href="../logo/Tridactyl_64px.png">
+        <style>
+            .tutorial-nav {
+                position: fixed;
+                inset: 2em auto 2em max(1em, calc(50% - 35em));
+                width: 12em;
+                padding-right: 1em;
+                overflow-y: auto;
+                border-right: 1px solid;
+            }
+            .tutorial-nav ol { padding-left: 1.5em; }
+            .tutorial-nav li { break-inside: avoid; hyphens: none; text-align: left; }
+            .tutorial-nav [aria-current="page"] { font-weight: bold; text-decoration-thickness: 0.15em; }
+            @media screen and (max-width: 70em) {
+                .tutorial-nav {
+                    position: static;
+                    width: auto;
+                    padding: 0 0 1em;
+                    border-right: 0;
+                    border-bottom: 1px solid;
+                }
+                .tutorial-nav ol { columns: 2; }
+            }
+        </style>
     </head>
     <body>
+        <nav class="tutorial-nav" aria-label="Tutorial pages">
+            <strong>Tutorial pages</strong>
+            <ol>
+                <li><a href="./1-tutor.html">Introduction</a></li>
+                <li><a href="./2-normal_mode.html">Normal mode</a></li>
+                <li><a href="./3-hint_mode.html">Hint mode</a></li>
+                <li><a href="./3-1-visual_mode.html">Visual mode</a></li>
+                <li><a href="./4-command_mode.html">Command mode</a></li>
+                <li><a href="./5-settings.html">Settings</a></li>
+                <li><a href="./6-containers.html">Containers</a></li>
+                <li><a href="./7-native_messenger.html">Native messenger</a></li>
+                <li><a href="./8-marks.html">Marks</a></li>
+                <li><a href="./8-1-i18n.html">Internationalisation</a></li>
+                <li><a href="./9-help.html">Getting help</a></li>
+            </ol>
+        </nav>
         REPLACETHIS
     </body>
     <script src="../../content.js"></script>
