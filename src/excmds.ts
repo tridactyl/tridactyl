@@ -1730,18 +1730,6 @@ export async function url2args() {
     return UrlUtil.searchUrlToArgs(document.location.href, await config.getAsync("searchurls"))
 }
 
-/** @hidden */
-//#content_helper
-let sourceElement: Element
-/** @hidden */
-//#content_helper
-function removeSource() {
-    if (sourceElement) {
-        sourceElement.remove()
-        sourceElement = undefined
-    }
-}
-
 /** Display the (HTML) source of the current page.
 
     Behaviour can be changed by the 'viewsource' setting.
@@ -1751,27 +1739,16 @@ function removeSource() {
     Otherwise, the source of the current document will be displayed.
 */
 //#content
-export function viewsource(url = "") {
+export async function viewsource(url = "") {
+    if (window.location.href.includes("static/reader.html?source#")) return tabclose()
     if (url === "") url = window.location.href
     if (config.get("viewsource") === "default") {
         window.location.href = "view-source:" + url
         return
     }
-    if (!sourceElement) {
-        sourceElement = CommandLineContent.executeWithoutCommandLine(() => {
-            const pre = document.createElement("pre")
-            pre.id = "TridactylViewsourceElement"
-            pre.className = "cleanslate " + config.get("theme")
-            pre.innerText = document.documentElement.innerHTML
-            document.documentElement.appendChild(pre)
-            window.addEventListener("popstate", removeSource)
-            return pre
-        })
-    } else {
-        sourceElement.parentNode.removeChild(sourceElement)
-        sourceElement = undefined
-        window.removeEventListener("popstate", removeSource)
-    }
+    const pre = document.createElement("pre")
+    pre.textContent = CommandLineContent.executeWithoutCommandLine(() => document.documentElement.innerHTML)
+    return tabopen(await readerurl({ content: pre.outerHTML, link: url, source: true }))
 }
 
 /**
@@ -6490,11 +6467,13 @@ import { Readability } from "@mozilla/readability"
  * @hidden
  */
 //#content_helper
-export async function readerurl() {
-    document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
-    const article = new Readability(document.cloneNode(true) as any as Document).parse()
-    article["link"] = window.location.href
-    article["favicon"] = (await ownTab()).favIconUrl
+export async function readerurl(article: any = undefined) {
+    if (!article) {
+        document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
+        article = new Readability(document.cloneNode(true) as any as Document).parse()
+        article["link"] = window.location.href
+        article["favicon"] = (await ownTab()).favIconUrl
+    }
     let hash = ""
     const article_encoded = btoa(encodeURIComponent(JSON.stringify(article)))
     if (!(await browserBg.windows.getCurrent()).incognito) {
@@ -6504,7 +6483,7 @@ export async function readerurl() {
     } else {
         hash = article_encoded
     }
-    return browser.runtime.getURL("static/reader.html#" + hash)
+    return browser.runtime.getURL(`static/reader.html${article.source ? "?source" : ""}#${hash}`)
 }
 
 /**

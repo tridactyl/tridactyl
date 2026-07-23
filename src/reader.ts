@@ -78,7 +78,7 @@ async function updatePage() {
             : staticThemes.includes(theme)
               ? `@import url("${browser.runtime.getURL("static/themes/" + theme + "/" + theme + ".css")}");`
               : (await config.getAsync("customthemes", theme)) || ""
-    readerContent.srcdoc = `<!doctype html><html lang="en" class="TridactylOwnNamespace"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="${readerCsp}"><link rel="stylesheet" href="${browser.runtime.getURL("static/css/reader.css")}"><style>${themeCss}</style></head><body id="tridactyl-reader" dir="auto">${headerHtml}<main>${article.content}</main></body></html>`
+    readerContent.srcdoc = `<!doctype html><html lang="en" class="TridactylOwnNamespace"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="${readerCsp}"><link rel="stylesheet" href="${browser.runtime.getURL("static/css/" + (article.source ? "viewsource.css" : "reader.css"))}"><link rel="stylesheet" href="${browser.runtime.getURL("static/css/content.css")}"><style>${themeCss}</style></head><body id="tridactyl-reader" dir="auto">${headerHtml}<main>${article.content}</main></body></html>`
     if (article.link !== undefined) {
         const link =
             (document.getElementById("tricanonlink") as HTMLLinkElement) ??

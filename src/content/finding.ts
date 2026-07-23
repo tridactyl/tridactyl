@@ -49,7 +49,7 @@ class FindHighlight extends HTMLSpanElement {
     }
 
     static fromFindApi(found, allTextNode: Text[]) {
-        const range = document.createRange()
+        const range = allTextNode[0].ownerDocument.createRange()
         range.setStart(allTextNode[found.startTextNodePos], found.startOffset)
         range.setEnd(allTextNode[found.endTextNodePos], found.endOffset)
         if (range.getClientRects().length < 1)
@@ -146,6 +146,7 @@ class FindHighlight extends HTMLSpanElement {
     queryInRange(selector: string): HTMLElement | null {
         const range = this.range
         const rangeEndNode = range.endContainer
+        if (range.startContainer.ownerDocument !== document) return null
 
         // start and end of range is always text node because fromFindApi()
 
@@ -186,6 +187,7 @@ customElements.define("find-highlight", FindHighlight, { extends: "span" })
 const HIGHLIGHT_NAME = "tridactyl-find-highlight"
 const ACTIVE_HIGHLIGHT_NAME = "tridactyl-find-highlight-active"
 let nativeHighlights: { normal: Highlight; active: Highlight }
+let nativeRegistry = CSS.highlights
 
 function isHighlightVisible(highlight: FindHighlight) {
     return DOM.isVisible(nativeHighlights ? highlight.range : highlight)
@@ -199,18 +201,18 @@ function setNativeFocus(range: Range, active: boolean) {
 
 function clearNativeHighlights() {
     if (!nativeHighlights) return
-    if (CSS.highlights.get(HIGHLIGHT_NAME) === nativeHighlights.normal)
-        CSS.highlights.delete(HIGHLIGHT_NAME)
-    if (CSS.highlights.get(ACTIVE_HIGHLIGHT_NAME) === nativeHighlights.active)
-        CSS.highlights.delete(ACTIVE_HIGHLIGHT_NAME)
+    if (nativeRegistry.get(HIGHLIGHT_NAME) === nativeHighlights.normal)
+        nativeRegistry.delete(HIGHLIGHT_NAME)
+    if (nativeRegistry.get(ACTIVE_HIGHLIGHT_NAME) === nativeHighlights.active)
+        nativeRegistry.delete(ACTIVE_HIGHLIGHT_NAME)
     nativeHighlights = undefined
 }
 
 function highlightsDrawn() {
     if (!nativeHighlights) return !!host?.firstChild
     return (
-        CSS.highlights.get(HIGHLIGHT_NAME) === nativeHighlights.normal &&
-        CSS.highlights.get(ACTIVE_HIGHLIGHT_NAME) === nativeHighlights.active &&
+        nativeRegistry.get(HIGHLIGHT_NAME) === nativeHighlights.normal &&
+        nativeRegistry.get(ACTIVE_HIGHLIGHT_NAME) === nativeHighlights.active &&
         nativeHighlights.normal.size + nativeHighlights.active.size ===
             lastHighlights.length
     )
@@ -260,25 +262,25 @@ export async function jumpToMatch(searchQuery, option) {
     lastHighlights = []
     removeHighlighting()
 
-    // We need to grab all text nodes in order to find the corresponding element
-    const walker = document.createTreeWalker(
-        document,
-        NodeFilter.SHOW_TEXT,
-        null,
-    )
-    const nodes = []
-    let node
-    do {
-        node = walker.nextNode()
-        nodes.push(node)
-    } while (node)
+    const documents = [document]
+    for (const frame of DOM.getAllDocumentFrames())
+        if (frame.contentDocument) documents.push(frame.contentDocument)
+    const nodeSets = documents.map(doc => {
+        const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT)
+        const nodes = []
+        while (walker.nextNode()) nodes.push(walker.currentNode)
+        return nodes
+    })
 
     for (let i = 0; i < results.count; ++i) {
         const range = results.rangeData[i]
-        try {
-            const high = FindHighlight.fromFindApi(range, nodes)
-            lastHighlights.push(high)
-        } catch (_) {} // Inaccessible range, eg cross-origin iframe - ignore
+        for (const nodes of nodeSets) {
+            try {
+                const high = FindHighlight.fromFindApi(range, nodes)
+                lastHighlights.push(high)
+                break
+            } catch (_) {} // Inaccessible range, eg cross-origin iframe - ignore
+        }
     }
     if (lastHighlights.length < 1) {
         throw new Error("Pattern not found: " + searchQuery)
@@ -307,13 +309,16 @@ export async function jumpToMatch(searchQuery, option) {
 
 function drawHighlights(highlights) {
     if (NATIVE_HIGHLIGHTS) {
-        const normal = new Highlight()
+        const doc = highlights[0].range.startContainer.ownerDocument
+        const win: any = doc.defaultView
+        const normal = new win.Highlight()
         highlights.forEach(highlight => normal.add(highlight.nativeRange))
-        const active = new Highlight()
+        const active = new win.Highlight()
+        nativeRegistry = win.CSS.highlights
         normal.priority = 2147483646
         active.priority = 2147483647
-        CSS.highlights.set(HIGHLIGHT_NAME, normal)
-        CSS.highlights.set(ACTIVE_HIGHLIGHT_NAME, active)
+        nativeRegistry.set(HIGHLIGHT_NAME, normal)
+        nativeRegistry.set(ACTIVE_HIGHLIGHT_NAME, active)
         nativeHighlights = { normal, active }
         return
     }
