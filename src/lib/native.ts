@@ -31,8 +31,8 @@ interface MessageResp {
     cmd: string
     version: string | null
     content: string | null
-    code: number | null
-    error: string | null
+    code?: number | null
+    error?: string | null
 }
 
 /**
@@ -329,9 +329,17 @@ export async function read(file: string) {
 }
 
 export async function write(file: string, content: string) {
-    return sendNativeMsg("write", { file, content }).catch(e => {
-        throw new Error(`Failed to write '${content}' to '${file}'. ${e}`)
-    })
+    const response = await sendNativeMsg("write", { file, content }).catch(
+        e => {
+            throw new Error(`Failed to write '${content}' to '${file}'. ${e}`)
+        },
+    )
+    if (response.error || (response.code != null && response.code !== 0)) {
+        const error =
+            response.error || `native messenger returned code ${response.code}`
+        throw new Error(`Failed to write to '${file}': ${error}.`)
+    }
+    return response
 }
 
 export async function writerc(file: string, force: boolean, content: string) {
