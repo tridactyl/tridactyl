@@ -670,11 +670,13 @@ export async function getProfileUncached() {
     }
 
     // Still nothing, try to find a profile in use
-    let hacky_profile_finder = `find "${ffDir}" -maxdepth 2 -name lock`
-    if ((await browserBg.runtime.getPlatformInfo()).os === "mac")
-        hacky_profile_finder = `find "${ffDir}" -maxdepth 2 -name .parentlock`
-    const profilecmd = await run(hacky_profile_finder)
-    if (profilecmd.code === 0 && profilecmd.content.length !== 0) {
+    const os = (await browserBg.runtime.getPlatformInfo()).os
+    let profilecmd
+    if (os !== "win") {
+        const lockfile = os === "mac" ? ".parentlock" : "lock"
+        profilecmd = await run(`find "${ffDir}" -maxdepth 2 -name ${lockfile}`)
+    }
+    if (profilecmd?.code === 0 && profilecmd.content.length !== 0) {
         // Remove trailing newline
         profilecmd.content = profilecmd.content.trim()
         // If there's only one profile in use, use that to find the right profile
