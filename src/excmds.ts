@@ -856,6 +856,8 @@ export async function mktridactylrc(...args: string[]) {
  *
  * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactyl/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order. You may use a `_` in place of a leading `.` if you wish, e.g, if you use Windows.
  *
+ * Run `:findrc` to display the path selected by this automatic search.
+ *
  * On Windows, the `~` expands to `%USERPROFILE%`.
  *
  * The `--url` flag will load the RC from the URL. If no url is specified with the `--url` flag, the current page's URL is used to locate the RC file. Ensure the URL you pass (or page you are on) is a "raw" RC file, e.g. https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc and not https://github.com/tridactyl/tridactyl/blob/master/.tridactylrc.

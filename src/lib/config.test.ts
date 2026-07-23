@@ -11,6 +11,13 @@ const config = new default_config()
 // todo: test subconfigs and platform_defaults
 const nmaps = Object.keys(config.nmaps)
 
+test("findrc displays the automatically selected RC path", () => {
+    expect(config.exaliases).toHaveProperty(
+        "findrc",
+        "js tri.native.getrcpath().then(tri.excmds.fillcmdline_notrail)",
+    )
+})
+
 test.each([
     ["next", "Nächste Seite"],
     ["next", "Neuere Beiträge"],

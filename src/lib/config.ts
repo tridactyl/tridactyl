@@ -751,6 +751,7 @@ export class default_config {
         man: "help",
         "!js": "fillcmdline_tmp 3000 !js is deprecated. Please use js instead",
         "!jsb": "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
+        findrc: "js tri.native.getrcpath().then(tri.excmds.fillcmdline_notrail)",
         get_current_url: "js tri.urlutils.decodeUrlForDisplay(document.location.href)",
         current_url: "composite get_current_url | fillcmdline_notrail ",
         stop: "js window.stop()",

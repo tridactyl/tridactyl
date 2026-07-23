@@ -16,6 +16,10 @@ If you have `privacy.resistFingerprinting` set to `true` in `about:config`, Trid
 
 Selecting **Never remember history** in the History section of Firefox's Privacy & Security settings enables permanent private browsing. Tridactyl then treats every window as private and cannot persist state such as command history or global marks. Choose another history setting unless this behaviour is intended.
 
+# RC file issues
+
+If `:source` loads unexpected settings or does not reflect your changes, run `:findrc` to display the local RC file selected when no path is supplied. Check that path for an old or duplicate RC file.
+
 # Native Editor/Messenger issues
 
 If you're having trouble running your editor on OSX, you might be having \$PATH issues: [#684](https://github.com/tridactyl/tridactyl/issues/684). The solution is to specify the absolute path to your editor, like this: `:set editorcmd /usr/local/bin/vimr`.
