@@ -610,7 +610,6 @@ dt {
 /* Use mono font for code elements */
 code,
 pre,
-pre span,
 kbd,
 samp {
     font-family: var(--mono-font);
