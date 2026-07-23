@@ -2,6 +2,17 @@ import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Binding from "@src/lib/binding"
 
+const modeDescriptions = new Map([
+    ["normal", "Default mode"],
+    ["ignore", "Almost all keys passed through to web pages except these binds"],
+    ["insert", "Editing text"],
+    ["input", "Bindings after `gi` focuses a text field"],
+    ["ex", "Command line binds"],
+    ["hint", "Binds accessible during hint mode"],
+    ["visual", "Text selection outside insert mode"],
+    ["browser", "Binds accessible everywhere, including while pages load. NB: some caveats, see :help bind"],
+])
+
 class BindingsCompletionOption extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
@@ -91,7 +102,7 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
                                 options + "--mode=" + name,
                                 {
                                     name,
-                                    value: "",
+                                    value: modeDescriptions.get(name),
                                     mode: "Mode Name",
                                 },
                             ),
