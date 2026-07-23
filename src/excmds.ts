@@ -787,7 +787,7 @@ export async function nativeinstall() {
     const installstr = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
     await yank(installstr)
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
-        done = fillcmdline("# Installation command copied to clipboard. Please paste and run it in cmd.exe (other shells won't work) to install the native messenger.")
+        done = fillcmdline("# Installation command copied to clipboard. Please paste and run it in cmd.exe (other shells won't work) to install the native messenger. If that fails, try opening cmd.exe as Administrator and running the command again.")
     } else {
         done = fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
     }
