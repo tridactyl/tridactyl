@@ -281,7 +281,7 @@
     );
 }
 
-:root.TridactylOwnNamespace input[id^="spoiler"] ~ .spoiler {
+:root.TridactylOwnNamespace #changelog-details > .spoiler {
     border-color: var(--tridactyl-photon-colours-in-content-box-border-color);
 }
 

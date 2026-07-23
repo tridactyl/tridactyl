@@ -9,12 +9,8 @@ body {
     margin: auto;
 }
 
-input[id^="spoiler"] {
-    display: none;
-}
-
 /* Borrowed from https://codepen.io/oloman/pen/odnqy */
-input[id^="spoiler"] + label {
+#changelog-details > summary {
     display: block;
     width: 8em;
     margin: 0 auto;
@@ -27,35 +23,27 @@ input[id^="spoiler"] + label {
     cursor: pointer;
     transition: all 0.6s;
 }
-input[id^="spoiler"]:checked + label {
+#changelog-details[open] > summary {
     color: #333;
     background: #ccc;
 }
-input[id^="spoiler"]:checked + label > #nagbar-changelog,
-input[id^="spoiler"].seen + label > #nagbar-changelog {
+#changelog-details[open] > summary > #nagbar-changelog,
+#changelog-details.seen > summary > #nagbar-changelog {
     display: none;
 }
 #nagbar-changelog {
+    display: block;
     font-size: 8pt;
     background: red;
     line-height: 1.4;
 }
-input[id^="spoiler"] ~ .spoiler {
-    height: 0;
-    overflow: hidden;
-    opacity: 0;
+#changelog-details > .spoiler {
     margin: 10px auto 0;
     padding: 10px;
     background: var(--tridactyl-highlight-box-bg);
     color: var(--tridactyl-highlight-box-fg);
     border: 1px solid #ccc;
     border-radius: 2px;
-    transition: all 0.6s;
-}
-input[id^="spoiler"]:checked + label + .spoiler {
-    height: auto;
-    opacity: 1;
-    padding: 10px;
 }
 
 h1 {
@@ -106,11 +94,11 @@ img {
     code {
         outline: thin solid transparent;
     }
-    input[id^="spoiler"] + label {
+    #changelog-details > summary {
         background: ButtonFace;
         color: ButtonText;
     }
-    input[id^="spoiler"]:checked + label {
+    #changelog-details[open] > summary {
         color: SelectedItemText;
         background: SelectedItem;
     }
