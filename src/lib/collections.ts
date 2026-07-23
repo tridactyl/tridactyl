@@ -1,12 +1,10 @@
 const identifier = "[A-Za-z_$][A-Za-z0-9_$]*"
 const integer = "(?:\\d+|-[1-9]\\d*)"
 const subscript = `\\[(?:${integer}|(?:${integer})?:(?:${integer})?)\\]`
-const selectorSource = `_(?:\\.${identifier}|${subscript})+`
+const selectorSource = `_(?:\\.${identifier}|${subscript})*`
 const selectorPattern = new RegExp(`^${selectorSource}$`)
-const identityPattern = /^_(?:\.|\[\]|\[:\])$/
-const receiverSource = `(?:_|${selectorSource})`
 const methodPattern = new RegExp(
-    `^(${receiverSource})\\.(includes|startsWith|endsWith)\\((.*)\\)$`,
+    `^(${selectorSource})\\.(includes|startsWith|endsWith)\\((.*)\\)$`,
 )
 const comparisons: Record<string, (left: any, right: any) => boolean> = {
     "==": (left, right) => left === right,
@@ -17,10 +15,16 @@ const comparisons: Record<string, (left: any, right: any) => boolean> = {
     "<": (left, right) => left < right,
 }
 
-export const isExpression = (source: string) =>
-    source.trim().startsWith("(") || /^_(?:\.|\[)/.test(source.trim())
+export const isExpression = (source: string) => {
+    const trimmed = source.trim()
+    return (
+        /^_(?:$|[.\s<>=!&|]|\[)/.test(trimmed) ||
+        (trimmed.startsWith("(") &&
+            /(?:^|[\s(])_(?:$|[.\[\s<>=!&|)])/.test(trimmed))
+    )
+}
 
-const identity = (value: any) => value
+export type ExExpression = (value: any) => any
 
 function arrayLength(values: any) {
     if (!Array.isArray(values)) throw new Error("Expected an array")
@@ -54,7 +58,6 @@ function slice(values: any, startSource: string, endSource: string) {
 }
 
 export function selector(source: string): (value: any) => any {
-    if (identityPattern.test(source)) return identity
     if (!selectorPattern.test(source))
         throw new Error(`Invalid selector: ${source}`)
     const path = source
@@ -82,12 +85,11 @@ function operand(source: string): (value: any) => any {
         return compile(source.slice(1, -1))
     const method = methodPattern.exec(source)
     if (method) {
-        const object = method[1] === "_" ? identity : selector(method[1])
+        const object = selector(method[1])
         const argument = compile(method[3])
         return value => call(method[2], object(value), argument(value))
     }
-    if (identityPattern.test(source) || selectorPattern.test(source))
-        return selector(source)
+    if (selectorPattern.test(source)) return selector(source)
     if (source === "true") return () => true
     if (source === "false") return () => false
     if (source === "null") return () => null
@@ -162,7 +164,8 @@ function compile(source: string): (value: any) => any {
     return value => comparisons[operator](left(value), right(value))
 }
 
-export function expression(source: string): (value: any) => any {
+export function expression(source: string | ExExpression): ExExpression {
+    if (typeof source === "function") return source
     if (!isExpression(source)) throw new Error(`Invalid expression: ${source}`)
     return compile(source)
 }
@@ -172,12 +175,12 @@ function array(values: any): any[] {
     return values
 }
 
-export function map(source: string, values: any[]): any[] {
-    return array(values).map(expression(source))
+export function map(callback: ExExpression, values: any[]): any[] {
+    return array(values).map(callback)
 }
 
-export function filter(source: string, values: any[]): any[] {
-    return array(values).filter(expression(source || "_."))
+export function filter(callback: ExExpression, values: any[]): any[] {
+    return array(values).filter(callback)
 }
 
 export function join(source: string, values: any[]): string {

@@ -1,5 +1,4 @@
 import { ExProgram, isExCancelled, stripLeadingColons } from "@src/lib/excmd"
-import { expression, isExpression } from "@src/lib/collections"
 
 const operators = [".|", "|", ";"] as const
 
@@ -282,7 +281,6 @@ export type ExCommandRunner = (
 interface ExStage {
     piped: boolean
     command: string
-    expression?: (value: any) => any
     map?: ExStage[]
     program?: ExProgram
     raw?: string
@@ -319,33 +317,8 @@ function compile(
     let blockCommand = ""
     let raw: string | undefined
 
-    function commandStage(
-        command: string,
-        piped: boolean,
-        raw?: string,
-    ): ExStage {
-        command = stripLeadingColons(command).trimStart()
-        const mapped = /^map(?:\s+(.*))?$/.exec(command)
-        if (!mapped || (mapped[1] && isExpression(mapped[1])))
-            return { command, piped, raw }
-        if (!mapped[1]) throw new Error("map requires a command or block")
-        return mapStage([commandStage(mapped[1], false, raw)], piped)
-    }
-
     const push = (stage: ExStage) => {
-        const receivesInput =
-            stage.piped || (stages.length === 0 && initialPiped)
-        stages.push(
-            mapNext
-                ? stage.raw === undefined && isExpression(stage.command)
-                    ? { ...stage, command: `map ${stage.command}`, piped: true }
-                    : mapStage([stage], true)
-                : receivesInput &&
-                    stage.raw === undefined &&
-                    isExpression(stage.command)
-                  ? { ...stage, expression: expression(stage.command) }
-                  : stage,
-        )
+        stages.push(mapNext ? mapStage([stage], true) : stage)
         mapNext = false
     }
 
@@ -355,23 +328,10 @@ function compile(
         if (block) {
             if (sourceText.trim())
                 throw new Error("Unsupported text after ex block")
-            const mapDepth = /^map(?:\s+map)*$/.test(blockCommand)
-                ? blockCommand.split(/\s+/).length
-                : 0
             const receivesInput =
                 piped || mapNext || (stages.length === 0 && initialPiped)
-            const body = compile(
-                source,
-                block.body,
-                receivesInput || mapDepth > 0,
-            )
-            if (mapDepth > 0) {
-                let stage = mapStage(body)
-                for (let depth = 1; depth < mapDepth; depth++)
-                    stage = mapStage([stage])
-                stage.piped = piped
-                push(stage)
-            } else if (blockCommand) {
+            const body = compile(source, block.body, receivesInput)
+            if (blockCommand) {
                 if (receivesInput)
                     throw new Error(
                         "Unsupported pipeline input with an ex block argument",
@@ -389,7 +349,7 @@ function compile(
             }
         } else {
             const command = stripLeadingColons(sourceText.trim()).trimStart()
-            if (command) push(commandStage(command, piped, raw))
+            if (command) push({ command, piped, raw })
         }
         sourceText = ""
         block = undefined
@@ -460,17 +420,15 @@ async function execute(
                 ? await mapValues(stage.map, run, input)
                 : stage.block !== undefined
                   ? await execute(stage.block, run, piped, input)
-                  : stage.expression
-                    ? await stage.expression(input)
-                    : stage.raw === undefined
-                      ? await run(stage.command, piped, input, stage.program)
-                      : await run(
-                            stage.command,
-                            piped,
-                            input,
-                            stage.program,
-                            stage.raw,
-                        )
+                  : stage.raw === undefined
+                    ? await run(stage.command, piped, input, stage.program)
+                    : await run(
+                          stage.command,
+                          piped,
+                          input,
+                          stage.program,
+                          stage.raw,
+                      )
         } catch (error) {
             while (stages[index + 1]?.piped) index++
             if (index === stages.length - 1) throw error

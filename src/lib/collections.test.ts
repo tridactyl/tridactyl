@@ -11,6 +11,7 @@ test.each([
     ["_[1:1]", [0, 1, 2], [1]],
     ["_[:-2]", [0, 1, 2], [0, 1]],
     ["_[1:]", [0, 1, 2], [1, 2]],
+    ["_[:]", [0, 1, 2], [0, 1, 2]],
     ["_[:2]", [], []],
     ["_[3:4]", [0, 1, 2], []],
     ["_[-5:-4]", [0, 1, 2], []],
@@ -23,16 +24,18 @@ test.each([
     expect(selector(source)(value)).toEqual(expected),
 )
 
-test.each(["_.", "_[]", "_[:]"])("%s is an identity selector", source => {
+test("bare underscore is the identity selector", () => {
     const value = { url: "one" }
-    expect(selector(source)(value)).toBe(value)
-    expect(expression(source)(value)).toBe(value)
+    expect(selector("_")(value)).toBe(value)
+    expect(expression("_")(value)).toBe(value)
 })
 
 test("maps and filters arrays with magic selectors", () => {
     const values = [{ url: "one" }, {}, { url: "two" }]
-    expect(map("_.url", filter("_.url", values))).toEqual(["one", "two"])
-    expect(filter("", [0, 1, false, 2])).toEqual([1, 2])
+    expect(
+        map(expression("_.url"), filter(expression("_.url"), values)),
+    ).toEqual(["one", "two"])
+    expect(filter(expression("_"), [0, 1, false, 2])).toEqual([1, 2])
 })
 
 test("joins arrays with command separators", () => {
@@ -54,12 +57,12 @@ test.each([
     ["_.startsWith('hel')", "hello", true],
     ["_.endsWith('lo')", "hello", true],
     ["_.x == _.y", { x: 1, y: 1 }, true],
-    ["_[:] >= 3", 3, true],
-    ["_[] == null", null, true],
-    ["_. == '3'", 3, false],
+    ["_ >= 3", 3, true],
+    ["_ == null", null, true],
+    ["_ == '3'", 3, false],
     ["_.includes(2)", [1, 2], true],
-    ["_[:] == 'a || b'", "a || b", true],
-    ["_[] || false", "value", true],
+    ["_ == 'a || b'", "a || b", true],
+    ["_ || false", "value", true],
     ["_.x >= 3 && _.x < 5", { x: 4 }, true],
     ["_.a || _.b && _.c", { a: false, b: true, c: false }, false],
     ["_[1].x == 2", [{}, { x: 2 }], true],
@@ -79,8 +82,8 @@ test("maps and filters with full expressions", () => {
         { x: "ok", n: 2 },
         { x: "no", n: 3 },
     ]
-    expect(filter("_.x == 'ok'", values)).toEqual([values[0]])
-    expect(map("_.n >= 3", values)).toEqual([false, true])
+    expect(filter(expression("_.x == 'ok'"), values)).toEqual([values[0]])
+    expect(map(expression("_.n >= 3"), values)).toEqual([false, true])
 })
 
 test("uses direct property access semantics", () =>
@@ -99,7 +102,8 @@ test("does not invoke allowlisted method names on arbitrary objects", () =>
     ))
 
 test.each([
-    "_",
+    "_.",
+    "_[]",
     "url",
     "_.url()",
     "_.0",
@@ -121,6 +125,7 @@ test("slices return new arrays and preserve holes", () => {
     expect(result).toEqual(values)
     expect(result).not.toBe(values)
     expect(0 in result).toBe(false)
+    expect(selector("_[:]")(values)).not.toBe(values)
     values[-1] = "named"
     expect(selector("_[-4]")(values)).toBeUndefined()
     expect(() =>
@@ -133,7 +138,8 @@ test("slices return new arrays and preserve holes", () => {
 })
 
 test.each([
-    "_",
+    "_.",
+    "_[]",
     "_.x === 'ok'",
     "_.x + 1",
     "_.includes()",
@@ -145,7 +151,7 @@ test.each([
 )
 
 test.each(["one two", { one: 1 }])("rejects non-array input", value => {
-    expect(() => map("_", value as any)).toThrow("array")
-    expect(() => filter("_", value as any)).toThrow("array")
+    expect(() => map(expression("_"), value as any)).toThrow("array")
+    expect(() => filter(expression("_"), value as any)).toThrow("array")
     expect(() => join(",", value as any)).toThrow("array")
 })
