@@ -186,7 +186,7 @@ export class default_config {
         "<Space>": "ex.insert_character_or_completion",
         "<C-Space>": "ex.insert_space",
 
-        "<C-o>yy": "ex.execute_ex_on_completion_args clipboard yank",
+        "<C-o>yy": "ex.copy_completion",
         "<C-o>t": "ex.execute_ex_on_completion_args tabopen -b",
         "<C-o>w": "ex.execute_ex_on_completion_args winopen",
         "<C-o>x": "ex.execute_ex_on_all_completions",
