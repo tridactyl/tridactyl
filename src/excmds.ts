@@ -1339,10 +1339,6 @@ export function addJump() {
 //#content_helper
 document.addEventListener("scroll", addJump, { passive: true })
 
-// Try to restore the previous jump position every time a page is loaded
-//#content_helper
-document.addEventListener("load", () => curJumps().then(() => jumpprev(0)))
-
 // Adds a new entry to history tree or updates it if already visited
 /** @hidden */
 //#content_helper
