@@ -191,6 +191,7 @@ listen(window)
 
 type FrameElement = HTMLIFrameElement | HTMLFrameElement
 type IframeRoot = Document | ShadowRoot
+let refreshStatusIndicator: (() => void) | undefined
 const observedIframeRoots = new WeakSet<IframeRoot>()
 const iframeObserver = new MutationObserver(mutations => {
     for (const mutation of mutations) {
@@ -211,7 +212,7 @@ function listenInIframe(frame: FrameElement) {
         doc.addEventListener("selectionchange", selectionChanged)
         observeIframeRoot(doc)
         dom.hijackPageAttachShadow(observeIframeRoot, doc.defaultView)
-        dom.setupFocusHandler(doc)
+        dom.setupFocusHandler(doc, () => refreshStatusIndicator?.())
     } catch (e) {
         logger.warning("Could not hijack iframe due to CSP:", e)
     }
@@ -323,7 +324,7 @@ logger.info("Loaded commandline content?", commandline_content)
 
 try {
     dom.hijackPageAttachShadow(observeIframeRoot)
-    dom.setupFocusHandler()
+    dom.setupFocusHandler(document, () => refreshStatusIndicator?.())
     dom.hijackPageListenerFunctions()
 } catch (e) {
     logger.warning("Could not hijack due to CSP:", e)
@@ -508,7 +509,7 @@ function addStatusIndicator() {
         statusIndicator.className =
             `${baseCls} ${privateCls} ${modeCls} ${invisibleCls}`
     }
-    const refreshStatusIndicator = () =>
+    refreshStatusIndicator = () =>
         updateStatusIndicator("mode", contentState.mode, undefined, contentState.mode)
     addContentStateChangedListener(updateStatusIndicator)
     controller.setExCmdListener(() => {
@@ -518,8 +519,7 @@ function addStatusIndicator() {
     config.addChangeListener("modeindicatorshowlastex", () =>
         void refreshStatusIndicator(),
     )
-    if (config.get("modeindicatorshowlastex") === "true")
-        void refreshStatusIndicator()
+    void refreshStatusIndicator()
 }
 
 config.getAsync("modeindicator").then(mode => {
