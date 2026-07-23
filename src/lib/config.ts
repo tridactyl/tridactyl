@@ -1399,6 +1399,9 @@ export class default_config {
      */
     modeindicatorshowkeys: "true" | "false" = "false"
 
+    /** Show the Ex command that `:repeat` would execute. */
+    modeindicatorshowlastex: "true" | "false" = "false"
+
     /**
      * Whether a trailing slash is appended when we get the parent of a url with
      * gu (or other means).

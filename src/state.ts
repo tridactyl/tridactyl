@@ -89,12 +89,7 @@ const state = new Proxy(overlay, {
     set(target, property: keyof State, value) {
         logger.debug("State changed!", property, value)
         if (notBackground()) {
-            const inIncognitoContext = browser.extension.inIncognitoContext
-            browser.runtime.sendMessage({
-                type: "state",
-                command: "stateUpdate",
-                args: { property, value, inIncognitoContext },
-            })
+            void setAsync(property, value)
             return true
         }
         // Do we need a global storage lock?
@@ -116,6 +111,20 @@ const state = new Proxy(overlay, {
         return true
     },
 })
+
+export async function setAsync<K extends keyof State>(
+    property: K,
+    value: State[K],
+): Promise<void> {
+    if (notBackground()) {
+        const inIncognitoContext = browser.extension.inIncognitoContext
+        await browser.runtime.sendMessage({
+            type: "state",
+            command: "stateUpdate",
+            args: { property, value, inIncognitoContext },
+        })
+    } else state[property] = value
+}
 
 export async function getAsync<K extends keyof State>(
     property: K,

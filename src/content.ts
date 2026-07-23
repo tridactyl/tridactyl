@@ -442,7 +442,7 @@ function addStatusIndicator() {
         })
     }
 
-    addContentStateChangedListener(async (property, oldMode, oldValue, newValue) => {
+    async function updateStatusIndicator(property, oldMode, _oldValue, newValue) {
         let mode = newValue
         let suffix = ""
         let result = ""
@@ -481,6 +481,10 @@ function addStatusIndicator() {
         if (tabGroup) {
             result = result + " | " + tabGroup
         }
+        const modeCls = `TridactylMode${result}`
+        if (config.get("modeindicatorshowlastex") === "true") {
+            result = result + " | " + (await State.getAsync("last_ex_str"))
+        }
 
         logger.debug(
             "statusindicator: ",
@@ -495,7 +499,6 @@ function addStatusIndicator() {
         const privateCls = browser.extension.inIncognitoContext
             ? "TridactylPrivate"
             : ""
-        const modeCls = `TridactylMode${result}`
         const invisibleCls =
             config.get("modeindicator") !== "true" ||
             config.get("modeindicatormodes", mode) === "false"
@@ -504,7 +507,19 @@ function addStatusIndicator() {
 
         statusIndicator.className =
             `${baseCls} ${privateCls} ${modeCls} ${invisibleCls}`
+    }
+    const refreshStatusIndicator = () =>
+        updateStatusIndicator("mode", contentState.mode, undefined, contentState.mode)
+    addContentStateChangedListener(updateStatusIndicator)
+    controller.setExCmdListener(() => {
+        if (config.get("modeindicatorshowlastex") === "true")
+            void refreshStatusIndicator()
     })
+    config.addChangeListener("modeindicatorshowlastex", () =>
+        void refreshStatusIndicator(),
+    )
+    if (config.get("modeindicatorshowlastex") === "true")
+        void refreshStatusIndicator()
 }
 
 config.getAsync("modeindicator").then(mode => {
