@@ -5855,6 +5855,12 @@ function tssReadFromCss(selector: string): void {
  * Read the given text using the browser's text to speech functionality and
  * the settings currently set
  *
+ * To read selected text in visual mode, run e.g.
+ *
+ * `:bind --mode=visual t composite js document.getSelection().toString() | ttsread -t`
+ *
+ * Select the text, then press `t`.
+ *
  * @param mode      the command mode
  *                      -t read the following args as text
  *                      -c read the content of elements matching the selector
