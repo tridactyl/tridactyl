@@ -1,4 +1,5 @@
 import Logger from "@src/lib/logging"
+import * as config from "@src/lib/config"
 import { parser as exmode_parser } from "@src/parsers/exmode"
 import * as State from "@src/state"
 
@@ -43,6 +44,9 @@ export async function acceptExCmd(exstr: string, source?: ExCmdSource): Promise<
         const [func, args] = exmode_parser(exstr, stored_excmds)
         // Don't store repeat, command-line display, update checks, or private-window commands
         if (
+            !config
+                .get("repeatblacklist")
+                .some(excmd => func === stored_excmds[""][excmd]) &&
             func !== stored_excmds[""].repeat &&
             func !== stored_excmds[""].fillcmdline &&
             func !== stored_excmds[""].fillcmdline_notrail &&

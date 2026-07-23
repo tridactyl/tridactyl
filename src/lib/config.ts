@@ -1413,6 +1413,9 @@ export class default_config {
     /** Show the Ex command that `:repeat` would execute. */
     modeindicatorshowlastex: "true" | "false" = "false"
 
+    /** Names of Ex commands that do not replace the command executed by `:repeat`. */
+    repeatblacklist: string[] = []
+
     /**
      * Whether a trailing slash is appended when we get the parent of a url with
      * gu (or other means).
