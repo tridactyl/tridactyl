@@ -24,4 +24,14 @@ There are many other commands related to settings:
 -   `:unbind` unbinds a key sequence
 -   `:setnull` deletes a setting (overwriting the default with an "empty" setting - useful for deleting searchurls, for example)
 
+## RC files
+
+An RC ("run commands") file uses command-mode syntax, with commands separated by newlines; a trailing `\` continues a command on the next line. A line whose first non-whitespace character is `"` or `#` is a comment; inline comments are not supported.
+
+By default, Tridactyl runs `:source` at browser startup. With no path, it loads only the first RC file selected by the native messenger, which prefers the platform config directory (usually `$XDG_CONFIG_HOME/tridactyl/tridactylrc` or `~/.config/tridactyl/tridactylrc`) over `~/.tridactylrc`. Run `:findrc` to see which path a bare `:source` would currently use, and `:source` again after editing. Local files require the native messenger; URL and clipboard sourcing can work without it.
+
+Settings already persist in Firefox storage. `:source` runs commands from an RC file but does not keep it synchronised with browser changes; `:mkt` exports the current user settings. Use `:mkt -f` to overwrite an existing file. Clipboard sourcing and `:mkt --clipboard` do not require the native messenger with the default clipboard settings.
+
+Use `:viewconfig --user` to inspect the resulting settings. To trace progress through an RC file, put `fillcmdline_tmp 3000 reached this line` on a line of its own while on a page Tridactyl can access.
+
 The [next page](./6-containers.md) will talk about how to operate firefox containers with tridactyl. <a href='./4-command_mode.md' rel="prev"></a>

@@ -794,9 +794,11 @@ export async function nativeinstall() {
     return done
 }
 
-/** Writes current config to a file. By default, the config file is "~/.tridactylrc".
+/** Exports the current user config as an RC file. With no path, it targets the file selected by the automatic RC search, falling back to "~/.tridactylrc".
 
     NB: an RC file is not required for your settings to persist: all settings are stored in a local Firefox storage database by default as soon as you set them.
+
+    This is a one-time export: Tridactyl does not update the RC file when settings change. Use [[source]] to run one.
 
     With no arguments supplied the excmd will try to find an appropriate
     config path and write the rc file to there. Any argument given to the
@@ -819,7 +821,7 @@ export async function nativeinstall() {
 
     Available flags:
     - `-f` will overwrite the config file if it exists.
-    - `--clipboard` write config to clipboard - no [[native]] required
+    - `--clipboard` writes config to the clipboard - with the default `yankto` setting, no [[native]] is required
 
     @param args an optional string of arguments to be parsed.
     @returns the parsed config.
@@ -855,9 +857,9 @@ export async function mktridactylrc(...args: string[]) {
  *
  * This function accepts flags: `--url`, `--clipboard` or `--strings`.
  *
- * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactyl/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order. You may use a `_` in place of a leading `.` if you wish, e.g, if you use Windows.
+ * With no argument, it loads only the first file selected by the native messenger. The platform config directory (usually `$XDG_CONFIG_HOME/tridactyl/tridactylrc` or `~/.config/tridactyl/tridactylrc`) takes precedence over `~/.tridactylrc`. Windows also accepts `~/_config/tridactyl/tridactylrc` and `~/_tridactylrc`.
  *
- * Run `:findrc` to display the path selected by this automatic search.
+ * Local files require the [[native]] messenger. With the default configuration, this no-argument form runs once at browser startup. Run `:findrc` to display the path it would currently select or `:source` after editing it.
  *
  * On Windows, the `~` expands to `%USERPROFILE%`.
  *
@@ -865,11 +867,11 @@ export async function mktridactylrc(...args: string[]) {
  *
  * Tridactyl won't run on many raw pages due to a Firefox bug with Content Security Policy, so you may need to use the `source --url [URL]` form.
  *
- * The `--clipboard` flag will load the RC from the clipboard, which is useful for people cannot install the native messenger or do not wish to store their RC online. You can use this with `mktridactylrc --clipboard`.
+ * The `--clipboard` flag will load the RC from the clipboard, which is useful for people who cannot install the native messenger or do not wish to store their RC online. With the default `putfrom` setting, it does not require [[native]]. You can use this with `mktridactylrc --clipboard`.
  *
  * The `--strings` flag will load the RC from rest arguments. It could be useful if you want to execute a batch of commands in js context. Eg: `js tri.excmds.source("--strings", [cmd1, cmd2].join("\n"))`.
  *
- * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage. There's an [example file](https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc) if you want it.
+ * The RC file uses command-mode syntax, with commands separated by newlines; a trailing `\` continues a command on the next line. Lines whose first non-whitespace character is `"` or `#` are comments; inline comments are not supported. Settings persist in local storage, and the RC file is not kept in sync with later changes. Use `:viewconfig --user` to inspect the resulting settings. There's an [example file](https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc) if you want it.
  *
  * @param args the file/URL to open. For files: must be an absolute path, but can contain environment variables and things like ~.
  */
