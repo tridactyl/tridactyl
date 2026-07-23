@@ -28,6 +28,7 @@ import {
     BookmarkFolderCompletionSource,
 } from "@src/completions/Bmark"
 import { CompositeCompletionSource } from "@src/completions/Composite"
+import { ContainerCompletionSource } from "@src/completions/Container"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { ExtensionsCompletionSource } from "@src/completions/Extensions"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
@@ -146,6 +147,7 @@ export function enableCompletions() {
             ThemeCompletionSource,
             TabHistoryCompletionSource,
             CompositeCompletionSource,
+            ContainerCompletionSource,
             FileSystemCompletionSource,
             GotoCompletionSource,
             GuisetCompletionSource,

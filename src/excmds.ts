@@ -3573,8 +3573,8 @@ export async function sidebartoggle() {
   @param name The container name.
  */
 //#background
-export async function containerclose(name: string) {
-    const containerId = await Container.getId(name)
+export async function containerclose(...name: string[]) {
+    const containerId = await Container.getId(name.join(" "))
     return browser.tabs.query({ cookieStoreId: containerId }).then(tabs => browser.tabs.remove(tabs.map(tab => tab.id)))
 }
 /** Creates a new container. Note that container names must be unique and that the checks are case-insensitive. Pass `--or-update` before the name to update a matching container instead.
@@ -3598,10 +3598,10 @@ export async function containercreate(...args: string[]) {
   @param name The container name.
  */
 //#background
-export async function containerdelete(name: string) {
-    if (name == undefined) return
-    await containerclose(name)
-    await Container.remove(name)
+export async function containerdelete(...name: string[]) {
+    if (name.length === 0) return
+    await containerclose(...name)
+    await Container.remove(name.join(" "))
 }
 
 /** Update a container's information. Note that none of the parameters are optional and that container names are case-insensitive.
@@ -3652,11 +3652,11 @@ export async function viewcontainers() {
     @param containerName The container name, fuzzy matched like `-c` on [[tabopen]]. Leave empty to uncontain.
  */
 //#background
-export async function recontain(containerName: string) {
+export async function recontain(...containerName: string[]) {
     const thisTab = await activeTab()
 
     let container
-    await Container.fuzzyMatch(containerName)
+    await Container.fuzzyMatch(containerName.join(" "))
         .then(match => {
             container = match
         })
