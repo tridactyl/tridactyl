@@ -3503,7 +3503,7 @@ export async function winopen(...args: string[]) {
         return nativeopen(firefoxArgs, address)
     }
 
-    createData.url = "https://fix-a-firefox-bug.invalid"
+    createData.url = "about:blank"
 
     return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
 }

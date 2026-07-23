@@ -21,10 +21,13 @@ Object.assign(browser.tabs, {
     onActivated: tabEvent,
 })
 Object.defineProperty(browser, "windows", {
-    value: { getCurrent: jest.fn().mockReturnValue({ incognito: false }) },
+    value: {
+        create: jest.fn().mockResolvedValue({ tabs: [{ id: 42 }] }),
+        getCurrent: jest.fn().mockReturnValue({ incognito: false }),
+    },
 })
 
-const { set, tabopen } = require("@src/.excmds_background.generated")
+const { set, tabopen, winopen } = require("@src/.excmds_background.generated")
 
 test("`set` preserves deep custom arrays", async () => {
     await config.set("custom", "deep", "array", [0])
@@ -51,3 +54,13 @@ test.each(["none", "somecnt"])(
         expect(queryAndURLwrangler).toHaveBeenLastCalledWith([])
     },
 )
+
+test("`winopen` creates a neutral tab before navigating it", async () => {
+    await winopen("https://example.com/")
+
+    expect(browser.windows.create).toHaveBeenCalledWith({ url: "about:blank" })
+    expect(browser.tabs.update).toHaveBeenCalledWith(42, {
+        loadReplace: true,
+        url: "https://example.com/",
+    })
+})
