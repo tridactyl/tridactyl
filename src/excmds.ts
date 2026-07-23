@@ -871,7 +871,7 @@ export async function mktridactylrc(...args: string[]) {
  *
  * The `--strings` flag will load the RC from rest arguments. It could be useful if you want to execute a batch of commands in js context. Eg: `js tri.excmds.source("--strings", [cmd1, cmd2].join("\n"))`.
  *
- * The RC file uses command-mode syntax, with commands separated by newlines; a trailing `\` continues a command on the next line. Lines whose first non-whitespace character is `"` or `#` are comments; inline comments are not supported. Settings persist in local storage, and the RC file is not kept in sync with later changes. Use `:viewconfig --user` to inspect the resulting settings. There's an [example file](https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc) if you want it.
+ * The RC file uses command-mode syntax, with commands separated by newlines; a trailing `\` continues a command on the next line, while `\\` ends a command with a literal `\`. Lines whose first non-whitespace character is `"` or `#` are comments; inline comments are not supported. Settings persist in local storage, and the RC file is not kept in sync with later changes. Use `:viewconfig --user` to inspect the resulting settings. There's an [example file](https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc) if you want it.
  *
  * @param args the file/URL to open. For files: must be an absolute path, but can contain environment variables and things like ~.
  */

@@ -71,10 +71,13 @@ export function rcFileToExCmds(rcText: string): string[] {
             !x.trim().startsWith('"') &&
             !x.trim().startsWith("#"),
     )
-    const res = ex.join("\n")
+    const res = ex.join("\n") + (rcText.endsWith("\n") ? "\n" : "")
 
-    // string-join lines that end with /
-    const joined = res.replace(/\\\n/g, "")
+    // Join lines ending in an unescaped backslash and unescape trailing pairs.
+    const joined = res.replace(/(\\+)\n/g, (_, backslashes: string) => {
+        const escaped = "\\".repeat(Math.floor(backslashes.length / 2))
+        return escaped + (backslashes.length % 2 === 0 ? "\n" : "")
+    })
 
-    return joined.split("\n")
+    return joined.replace(/\n$/, "").split("\n")
 }
