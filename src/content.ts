@@ -515,7 +515,7 @@ function protectSlash(e) {
     const key = keyseq.minimalKeyFromKeyboardEvent(e)
     if (
         protectedKeys.some(mapstr => keyseq.mapstrMatchesKey(mapstr, key)) &&
-        contentState.mode === "normal"
+        contentState.mode !== "ignore"
     ) {
         e.cancelBubble = true
         e.stopImmediatePropagation()
