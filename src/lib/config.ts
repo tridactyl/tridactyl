@@ -1313,6 +1313,9 @@ export class default_config {
         TabAll: {
             autoselect: "true",
         },
+        TabGroup: {
+            autoselect: "true",
+        },
         Rss: {
             autoselect: "true",
         },

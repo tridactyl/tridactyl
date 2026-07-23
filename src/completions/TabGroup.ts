@@ -67,6 +67,7 @@ class TabGroupCompletionOption
 
 export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
     public options: TabGroupCompletionOption[]
+    private shouldSetStateFromScore = true
 
     constructor(private _parent: any) {
         super(
@@ -77,10 +78,16 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
 
         this.updateOptions()
         this._parent.appendChild(this.node)
+        this.shouldSetStateFromScore =
+            config.get("completions", "TabGroup", "autoselect") === "true"
     }
 
     async onInput(exstr) {
         return this.updateOptions(exstr)
+    }
+
+    setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
+        super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
 
     private async updateOptions(exstr = "") {
