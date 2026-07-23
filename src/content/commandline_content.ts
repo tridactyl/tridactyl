@@ -18,24 +18,33 @@ const cmdline_logger = new Logger("cmdline")
 
 // inject the commandline iframe into a content page
 
+let cmdline_host: HTMLElement
 let cmdline_iframe: HTMLIFrameElement
 let iframeReady: Promise<void>
 let resolveIframeReady: () => void
 let iframeGeneration = ""
 export function makeIframe() {
+    cmdline_host?.remove()
     resolveIframeReady?.()
     iframeGeneration = Math.random().toString()
+    cmdline_host = window.document.createElementNS(
+        "http://www.w3.org/1999/xhtml",
+        "span",
+    )
+    cmdline_host.id = "cmdline_iframe"
+    // Preserve the existing command-line focus check in editor.ts.
+    ;(cmdline_host as any).src = browser.runtime.getURL("static/commandline.html")
     cmdline_iframe = window.document.createElementNS(
         "http://www.w3.org/1999/xhtml",
         "iframe",
     ) as HTMLIFrameElement
-    cmdline_iframe.className = "cleanslate"
+    cmdline_iframe.setAttribute("style", "all: initial !important; color-scheme: inherit !important; display: block !important; width: 100% !important; height: 100% !important;")
     cmdline_iframe.setAttribute(
         "src",
         browser.runtime.getURL("static/commandline.html"),
     )
-    cmdline_iframe.setAttribute("id", "cmdline_iframe")
     cmdline_iframe.name = iframeGeneration
+    cmdline_host.attachShadow({ mode: "closed" }).appendChild(cmdline_iframe)
     iframeReady = new Promise(resolve => (resolveIframeReady = resolve))
     hide()
 }
@@ -56,7 +65,7 @@ async function init(onDemand = false) {
     }
 
     if ((noiframe === "false" || (onDemand && noiframe === "lazy")) && notridactyl !== "true" && !enabled) {
-        document.documentElement.appendChild(cmdline_iframe)
+        document.documentElement.appendChild(cmdline_host)
         enabled = true
 
         // Fix #5050: reinsert iframe after React throws a tantrum
@@ -73,7 +82,7 @@ async function init(onDemand = false) {
                             }
                         }
                     })
-                ).observe(cmdline_iframe.parentNode, { childList: true, subtree: true })
+                ).observe(cmdline_host.parentNode, { childList: true, subtree: true })
             }
         })
     }
@@ -86,9 +95,9 @@ export async function reactIsCrap(){
     hammering_react = true
     cmdline_logger.warning("Possible react server-side render failure detected, starting iframe protection loop")
     while(true){
-        if (cmdline_iframe.contentWindow == null) {
+        if (!cmdline_host.isConnected || cmdline_iframe.contentWindow == null) {
             makeIframe()
-            document.documentElement.appendChild(cmdline_iframe)
+            document.documentElement.appendChild(cmdline_host)
         }
         await new Promise(resolve => setTimeout(resolve, 500))
     }
@@ -110,7 +119,7 @@ init().catch(() => {
 export function ensureIframeExists() {
     if (enabled && !cmdline_iframe.isConnected) {
         makeIframe()
-        document.documentElement.appendChild(cmdline_iframe)
+        document.documentElement.appendChild(cmdline_host)
     }
 }
 
@@ -136,10 +145,10 @@ export async function show(hidehover = false, deadline = Date.now() + 5000) {
         }
 
         cmdline_iframe.inert = false;
-        cmdline_iframe.classList.remove("hidden")
+        cmdline_host.classList.remove("hidden")
         const height =
             cmdline_iframe.contentWindow.document.body.offsetHeight + "px"
-        cmdline_iframe.setAttribute("style", `height: ${height} !important;`)
+        cmdline_host.setAttribute("style", `height: ${height} !important;`)
         return true
     } catch (e) {
         // Note: We can't use cmdline_logger.error because it will try to log
@@ -152,8 +161,8 @@ export async function show(hidehover = false, deadline = Date.now() + 5000) {
 export function hide() {
     try {
         cmdline_iframe.inert = true;
-        cmdline_iframe.classList.add("hidden")
-        cmdline_iframe.setAttribute("style", "height: 0px !important;")
+        cmdline_host.classList.add("hidden")
+        cmdline_host.setAttribute("style", "height: 0px !important;")
     } catch (e) {
         // Using cmdline_logger here is OK because cmdline_logger won't try to
         // call hide(), thus we avoid the recursion that happens for show() and
@@ -178,9 +187,9 @@ export function hide_and_blur() {
 
 export function executeWithoutCommandLine(fn) {
     let parent
-    if (cmdline_iframe && cmdline_iframe.isConnected) {
-        parent = cmdline_iframe.parentNode
-        parent.removeChild(cmdline_iframe)
+    if (cmdline_host && cmdline_host.isConnected) {
+        parent = cmdline_host.parentNode
+        parent.removeChild(cmdline_host)
     }
     let result
     try {
@@ -190,7 +199,7 @@ export function executeWithoutCommandLine(fn) {
     }
     if (parent) {
         makeIframe()
-        parent.appendChild(cmdline_iframe)
+        parent.appendChild(cmdline_host)
     }
     return result
 }
