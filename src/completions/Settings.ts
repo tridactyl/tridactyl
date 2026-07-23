@@ -92,8 +92,13 @@ export class SettingsCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        this.options = Object.keys(settings)
-            .filter(x => x.startsWith(query))
+        const settingNames = Object.keys(settings)
+        let matches = settingNames.filter(x => x.startsWith(query))
+        if (matches.length === 0) {
+            matches = settingNames.filter(x => x.includes(query))
+        }
+
+        this.options = matches
             .sort()
             .map(setting => {
                 const md = defaultConfigMembers[setting]
