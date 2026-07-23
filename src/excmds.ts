@@ -2410,6 +2410,20 @@ window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
 window.addEventListener("DOMContentLoaded", () => {
     loadaucmds("DocLoad")
 })
+// activeElement is updated after blur; ignore focus moving to Tridactyl's iframe.
+let commandlineFocused = false
+window.addEventListener("blur", () =>
+    setTimeout(() => {
+        commandlineFocused = document.activeElement?.id === "cmdline_iframe"
+        if (!commandlineFocused) loadaucmds("DocBlur")
+    }),
+)
+window.addEventListener("focus", () =>
+    setTimeout(() => {
+        if (!commandlineFocused) loadaucmds("DocFocus")
+        commandlineFocused = document.activeElement?.id === "cmdline_iframe"
+    }),
+)
 window.addEventListener("HistoryState", () => loadaucmds("HistoryState"))
 
 // Unsupported edge-case: a SPA that doesn't have a UriChange autocmd changes URL to one that does.
@@ -2451,7 +2465,7 @@ if (fullscreenApiIsPrefixed) {
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState" | "ModeEnter" | "ModeLeave", target?: string) {
+export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "DocFocus" | "DocBlur" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState" | "ModeEnter" | "ModeLeave", target?: string) {
     const aucmds = await config.getAsync("autocmds", cmdType)
     if (!aucmds) return
     const ausites = Object.keys(aucmds)
@@ -4835,7 +4849,7 @@ export function firefoxsyncpush() {
 
 /** @hidden */
 //#background_helper
-const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState", "ModeEnter", "ModeLeave"].concat(webrequests.requestEvents)
+const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "DocFocus", "DocBlur", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState", "ModeEnter", "ModeLeave"].concat(webrequests.requestEvents)
 /** @hidden */
 //#background_helper
 export function getAutocmdEvents() {
@@ -4844,11 +4858,13 @@ export function getAutocmdEvents() {
 /**
  * Set autocmds to run when certain events happen.
  *
- * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'HistoryPushState', 'HistoryReplace', 'UriChange', 'ModeEnter', 'ModeLeave', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
+ * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'DocFocus', 'DocBlur', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'HistoryPushState', 'HistoryReplace', 'UriChange', 'ModeEnter', 'ModeLeave', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
  *
  * - DocStart: When a webpage loading. Exactly, when tridactyl is loading in a page.
  * - DocLoad: When the whole html parsed, not including image/css loaded. (Just like jquery $(fn) or the [DOMContentLoaded event](https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event).)
  * - DocEnd: When a webpage unloaded/closed or backward/forward in history. Exactly, the [pagehide event](https://developer.mozilla.org/en-US/docs/Web/API/Window/pagehide_event).
+ * - DocFocus: When a webpage gains focus. Exactly, the [focus event](https://developer.mozilla.org/en-US/docs/Web/API/Window/focus_event).
+ * - DocBlur: When a webpage loses focus. Exactly, the [blur event](https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event).
  * - TabEnter: When a tab get focus.
  * - TabLeft: When a tab lost focus or closed.
  * - ModeLeave and ModeEnter: When Tridactyl's mode changes. ModeLeave runs first against the previous mode, then ModeEnter runs against the new mode.

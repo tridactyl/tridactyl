@@ -494,6 +494,12 @@ export class default_config {
      * Related ex command: `autocmd`.
      */
     autocmds = {
+        /** Commands that will be run when a page gains focus. */
+        DocFocus: {},
+
+        /** Commands that will be run when a page loses focus. */
+        DocBlur: {},
+
         /**
          * Commands that will be run as soon as Tridactyl loads into a page.
          *
