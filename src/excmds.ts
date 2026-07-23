@@ -2965,6 +2965,9 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     }
 
     const maybeURL = await queryAndURLwrangler(query)
+    if (typeof maybeURL === "string" && !ABOUT_WHITELIST.includes(maybeURL) && /^(about|file):.*/.exec(maybeURL)) {
+        return nativeopen(maybeURL) as unknown as browser.tabs.Tab
+    }
     if (typeof maybeURL === "string" && !container) {
         const aucon = new AutoContain()
         if (aucon.autocontainConfigured()) {
