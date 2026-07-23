@@ -198,24 +198,20 @@ export async function getAll(): Promise<any[]> {
  Note: all checks are case insensitive.
 
  @param name The container name
- @returns The cookieStoreId of the first match of the query.
+ @returns The lowest cookieStoreId matching the name.
  */
 export async function getId(name: string): Promise<string> {
-    const containers = await getAll()
-    const res = containers.filter(
-        c => c.name.toLowerCase() === name.toLowerCase(),
-    )
-    if (res.length !== 1) {
+    const id = await getExistingId(name)
+    if (id === undefined) {
         throw new Error(`Container '${name}' does not exist.`)
-    } else {
-        return res[0].cookieStoreId
     }
+    return id
 }
 
 async function getExistingId(name: string): Promise<string> {
-    const container = (await getAll()).find(
-        c => c.name.toLowerCase() === name.toLowerCase(),
-    )
+    const container = (await getAll())
+        .filter(c => c.name.toLowerCase() === name.toLowerCase())
+        .sort((a, b) => a.cookieStoreId.localeCompare(b.cookieStoreId))[0]
     return container?.cookieStoreId
 }
 
