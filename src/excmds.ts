@@ -5835,11 +5835,17 @@ export async function goto(...selector: string[]) {
  * This looks up the next key sequence in the normal mode bindings, executes it, and switches the mode to `ignore`.
  * If the key sequence does not match a binding, it will be silently passed through to Firefox, but it will be counted
  * for the termination condition.
+ *
+ * If the first key event is a keyup, it is ignored because it almost always belongs to the key that entered nmode.
+ * Use `:nmode --strict ...` to accept it.
  */
 //#content
-export async function nmode(mode: string, n: number, ...endexArr: string[]) {
+export async function nmode(...args: string[]) {
+    const strict = args[0] === "--strict"
+    const [mode, count, ...endexArr] = args.slice(strict ? 1 : 0)
     const endex = endexArr.join(" ") || "mode ignore"
-    return nMode.init(endex, mode, n)
+    const n = count === undefined ? undefined : Number(count)
+    return nMode.init(endex, mode, n, strict)
 }
 
 // {{{TEXT TO SPEECH

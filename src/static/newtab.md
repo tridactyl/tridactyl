@@ -4,8 +4,6 @@ Tridactyl has to override your new tab page due to WebExtension limitations. You
 
 -   You can view your current configuration with `:viewconfig`.
 
--   **Breaking change**: user binds to `nmode` have been broken by the new keyup/keydown binds. Fix by explicitly binding to `<D-[key]><U-[key]>` to ensure that the keyup gets consumed before entering nmode
-
 -   Tridactyl funding 👀: [donate via GitHub sponsors here](https://github.com/users/bovine3dom/sponsorship). Please consider starting a recurring donation to bovine3dom (me) if you find Tridactyl useful. As of July 2026, I'm having to withdraw a little more from my savings than I'd like for regular outgoings so any contributions would be gratefully received.
 
 -   All GitHub and Patreon donors get a nice little newsletter every now and then; for people who donate at least 10USD a month I briefly did a "tips & tricks" newsletter roughly once a month ([see an example here](https://github.com/tridactyl/tridactyl/blob/master/doc/newsletters/tips-and-tricks/1-hint-css-selectors.md)) but now I'm open to other ideas for saying thanks. You can also donate via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7JQHV4N2YZCTY), but they charge fairly high fees and you won't get any newsletters. Donations currently aim to ensure that bovine3dom can work one day a week on Tridactyl at minimum wage. Previously the donations have funded an in-person developer retreat.

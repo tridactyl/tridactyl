@@ -202,7 +202,7 @@ export class default_config {
         "<AC-Escape>": "mode normal",
         "<AC-`>": "mode normal",
         "<S-Escape>": "mode normal",
-        "<CD-o><CU-o>": "nmode normal 1 mode ignore",
+        "<C-o>": "nmode normal 1 mode ignore",
     }
 
     /**
@@ -294,7 +294,7 @@ export class default_config {
         "<C-d>": "scrollpage 0.5",
         "<C-f>": "scrollpage 1",
         "<C-b>": "scrollpage -1",
-        "<CD-v><CU-v>": "nmode ignore 1 mode normal",
+        "<C-v>": "nmode ignore 1 mode normal",
         $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
