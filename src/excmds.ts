@@ -3163,10 +3163,10 @@ export async function fullscreen() {
 
 /** Close a tab.
 
-    Known bug: autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL.
+    Autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL. If that annoys you, run `:set completions.Tab.autoselect false`, but this will also change `:tab` etc completions.
 
     @param indexes
-        The 1-based indexes of the tabs to target. indexes < 1 wrap. If omitted, this tab.
+        The 1-based indexes of the tabs to target. indexes < 1 wrap. If omitted, this tab. `--match string` targets every tab completion whose title or URL contains the string literally and case-sensitively.
 */
 //#background
 export async function tabclose(...indexes: string[]) {
@@ -3177,7 +3177,14 @@ export async function tabclose(...indexes: string[]) {
         }
         return tabFromIndex(id)
     }
-    const tabs = await Promise.all(indexes.length > 0 ? indexes.map(maybeWinTabToTab) : [activeTab()])
+    let tabs: browser.tabs.Tab[]
+    if (indexes[0] === "--match") {
+        const match = indexes.slice(1).join(" ")
+        if (!match) throw new Error("tabclose --match requires a string")
+        tabs = (await getSortedTabs()).filter(tab => tab.title.includes(match) || tab.url.includes(match))
+    } else {
+        tabs = await Promise.all(indexes.length > 0 ? indexes.map(maybeWinTabToTab) : [activeTab()])
+    }
     const tabclosepinned = (await config.getAsync("tabclosepinned")) === "true"
     if (!tabclosepinned) {
         // Pinned tabs should not be closed, abort if one of the tabs is pinned

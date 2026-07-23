@@ -14,7 +14,7 @@ class BufferCompletionOption
 
     constructor(
         public value: string,
-        tab: browser.tabs.Tab,
+        public tab: browser.tabs.Tab,
         public isAlternative = false,
         container: browser.contextualIdentities.ContextualIdentity,
         public tabIndex: number,
@@ -232,8 +232,14 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this.lastExstr = exstr
         let [prefix, query] = this.splitOnPrefix(exstr)
         if (prefix) prefix = this.canonicalisePrefix(prefix)
+        const match =
+            prefix === "tabclose"
+                ? /^\s*--match(?:\s+(.*))?$/u.exec(query)
+                : undefined
+        if (match) query = (match[1] || "").trim().split(/\s+/u).join(" ")
         this.shouldSetStateFromScore =
             config.get("completions", "Tab", "autoselect") === "true" &&
+            !match &&
             prefix !== "tabrename" &&
             !(prefix === "tabmove" && /^[+-][0-9]+$/.test(query)) &&
             !(prefix === "tabdiscard" && /^\s*--all(?:\s|$)/u.test(query))
@@ -253,7 +259,18 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         this.completion = undefined
 
         /* console.log('updateOptions', this.optionContainer) */
-        if (query && query.trim().length > 0) {
+        if (match) {
+            const scored = query
+                ? this.options
+                      .filter(
+                          option =>
+                              option.tab.title.includes(query) ||
+                              option.tab.url.includes(query),
+                      )
+                      .map(option => ({ option, score: 0 }))
+                : []
+            this.setStateFromScore(scored)
+        } else if (query && query.trim().length > 0) {
             this.setStateFromScore(this.scoredOptions(query))
         } else {
             this.options.forEach(option => (option.state = "normal"))
@@ -266,18 +283,22 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
      * the appropriate option.
      */
     private async reactToTabChanges(): Promise<void> {
-        const lastFocusedTabId = (this.lastFocused as BufferCompletionOption)?.tabId
-        const oldIndex = (this.lastFocused as BufferCompletionOption)?.tabIndex
+        const lastFocused = this.lastFocused as BufferCompletionOption
+        const lastFocusedTabId = lastFocused?.tabId
+        const oldIndex = lastFocused?.tabIndex
+        const wasFocused = lastFocused?.state === "focused"
         await this.updateOptions(this.lastExstr)
         if (!this.options || this.options.length === 0) return
         const stillExists = this.options.find(
             o => o.tabId === lastFocusedTabId && o.state !== "hidden",
         )
-        if (lastFocusedTabId !== undefined) {
+        if (wasFocused) {
             this.deselect()
             const option =
                 stillExists ||
-                this.getTheNextTabOption({ tabIndex: oldIndex } as any)
+                (this.shouldSetStateFromScore
+                    ? this.getTheNextTabOption({ tabIndex: oldIndex } as any)
+                    : undefined)
             if (option) this.select(option)
         }
         if (!this.node.isConnected || this.state === "hidden") return
