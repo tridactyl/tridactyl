@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { exec } = require("child_process")
+const { exec, execFileSync } = require("child_process")
 const fs = require("fs")
 
 function bump_version(versionstr, component = 2) {
@@ -84,7 +84,7 @@ function save_manifest(filename, manifest) {
 async function main() {
     let filename, manifest
     switch (process.argv[2]) {
-        case "bump":
+        case "bump": {
             // Load src manifest and bump
             filename = "./src/manifest.json"
             manifest = require("." + filename)
@@ -93,17 +93,41 @@ async function main() {
                 Number(process.argv[3]),
             )
             manifest.version_name = manifest.version
-            save_manifest(filename, manifest)
-            exec(
-                `git add ${filename} && git commit -m 'release ${
-                    manifest.version
-                }' && git tag ${manifest.version}`,
+            const changelog = fs.readFileSync("./CHANGELOG.md", "utf8")
+            const releaseHeading = `Release ${manifest.version} / Unreleased`
+            const releaseNotes = changelog
+                .split(/(?=^#+ Release )/m)
+                .find(notes =>
+                    notes.split("\n", 1)[0].trimEnd().endsWith(releaseHeading),
+                )
+            if (!releaseNotes) {
+                throw new Error(`No ${releaseHeading} changelog entry`)
+            }
+            const datedReleaseNotes = releaseNotes.replace(
+                "Unreleased",
+                new Date().toISOString().slice(0, 10),
             )
+            fs.writeFileSync(
+                "./CHANGELOG.md",
+                changelog.replace(releaseNotes, () => datedReleaseNotes),
+            )
+            save_manifest(filename, manifest)
+            execFileSync("git", ["add", filename, "./CHANGELOG.md"])
+            execFileSync("git", [
+                "commit",
+                "--cleanup=verbatim",
+                "-m",
+                `release ${manifest.version}`,
+                "-m",
+                datedReleaseNotes.trim(),
+            ])
+            execFileSync("git", ["tag", manifest.version])
             console.log(
                 `Make sure you use the release checklist before committing this.`,
             )
             console.log(`https://github.com/tridactyl/tridactyl/issues/714`)
             break
+        }
         case "beta":
             filename = "./build/manifest.json"
             manifest = require("." + filename)
