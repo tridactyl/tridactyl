@@ -2295,7 +2295,7 @@ export async function save() {
     When adding updaters, don't forget to set("configversion", newversionnumber)!
     @hidden
  */
-export async function update() {
+export async function update(useCurrentConfig = false) {
     const set = (...args) => setDeepProperty(USERCONFIG, args.pop(), args)
     const unset = (...target) => {
         const key = target.pop()
@@ -2509,9 +2509,9 @@ export async function update() {
                     : sync?.storageloc !== undefined
                       ? sync.storageloc
                       : "sync"
-            if (current_storageloc == "sync") {
+            if (!useCurrentConfig && current_storageloc == "sync") {
                 USERCONFIG = sync || o({})
-            } else if (current_storageloc != "local") {
+            } else if (!useCurrentConfig && current_storageloc != "local") {
                 throw new Error(
                     "storageloc was set to something weird: " +
                         current_storageloc +

@@ -1,4 +1,5 @@
 import * as controller from "@src/lib/controller"
+import * as config from "@src/lib/config"
 import * as Native from "@src/lib/native"
 
 export async function source(filename = "auto") {
@@ -55,6 +56,8 @@ export async function runRc(rc: string) {
     for (const cmd of rcFileToExCmds(rc)) {
         await controller.acceptExCmd(cmd)
     }
+    // Sourced commands have already been saved to the current local config.
+    await config.update(true)
 }
 
 export function rcFileToExCmds(rcText: string): string[] {
