@@ -41,9 +41,14 @@ export async function acceptExCmd(exstr: string, source?: ExCmdSource): Promise<
     // TODO: Errors should go to CommandLine.
     try {
         const [func, args] = exmode_parser(exstr, stored_excmds)
-        // Stop the repeat excmd from recursing and don't store private window commands
+        // Don't store repeat, command-line display, update checks, or private-window commands
         if (
             func !== stored_excmds[""].repeat &&
+            func !== stored_excmds[""].fillcmdline &&
+            func !== stored_excmds[""].fillcmdline_notrail &&
+            func !== stored_excmds[""].fillcmdline_tmp &&
+            func !== stored_excmds[""].fillcmdline_nofocus &&
+            func !== stored_excmds[""].updatecheck &&
             exstr.search("winopen -private") < 0
         ) {
             lastExUpdate = State.getAsync("last_ex_str").then(last_ex_str => {
