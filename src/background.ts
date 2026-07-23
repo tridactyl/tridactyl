@@ -8,6 +8,7 @@ import { omniscient_controller } from "@src/lib/omniscient_controller"
 import * as perf from "@src/perf"
 import { listenForCounters } from "@src/perf"
 import * as messaging from "@src/lib/messaging"
+import { messageTabChanges } from "@src/background/tab_changes"
 import * as excmds_background from "@src/.excmds_background.generated"
 import { CmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds } from "@src/background/editor"
@@ -99,29 +100,19 @@ browser.proxy.onRequest.addListener(Proxy.onRequestListener, {
 /**
  * Declare Tab Event Listeners
  */
-browser.tabs.onRemoved.addListener(tabId => {
-    messaging.messageAllTabs("tab_changes", "tab_close", [tabId])
-})
+const tabChangeListener = (command: string) => (...args) =>
+    messageTabChanges(command, args)
+browser.tabs.onRemoved.addListener(tabChangeListener("tab_close"))
 // Fired when a tab is attached to a window, for example because it was moved between windows.
-browser.tabs.onAttached.addListener(tabId => {
-    messaging.messageAllTabs("tab_changes", "tab_attached", [tabId])
-})
+browser.tabs.onAttached.addListener(tabChangeListener("tab_attached"))
 // Fired when a tab is created. Note that the tab's URL may not be set at the time this event fired.
-browser.tabs.onCreated.addListener(tabId => {
-    messaging.messageAllTabs("tab_changes", "tab_created", [tabId])
-})
+browser.tabs.onCreated.addListener(tabChangeListener("tab_created"))
 // Fired when a tab is detached from a window, for example because it is being moved between windows.
-browser.tabs.onDetached.addListener(tabId => {
-    messaging.messageAllTabs("tab_changes", "tab_detached", [tabId])
-})
+browser.tabs.onDetached.addListener(tabChangeListener("tab_detached"))
 // Fired when a tab is moved within a window.
-browser.tabs.onMoved.addListener(tabId => {
-    messaging.messageAllTabs("tab_changes", "tab_moved", [tabId])
-})
+browser.tabs.onMoved.addListener(tabChangeListener("tab_moved"))
 browser.tabs.onUpdated.addListener(
-    tabId => {
-        messaging.messageAllTabs("tab_changes", "tab_updated", [tabId])
-    },
+    tabChangeListener("tab_updated"),
     {
         properties: [
             "audible",
@@ -135,9 +126,7 @@ browser.tabs.onUpdated.addListener(
         ],
     },
 )
-browser.tabs.onActivated.addListener(({ tabId }) => {
-    messaging.messageAllTabs("tab_changes", "tab_activated", [tabId])
-})
+browser.tabs.onActivated.addListener(tabChangeListener("tab_activated"))
 
 // Update on navigation too (but remember that sometimes people open tabs in the background :) )
 browser.webNavigation.onDOMContentLoaded.addListener(() => {
