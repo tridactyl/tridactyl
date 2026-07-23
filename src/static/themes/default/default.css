@@ -19,6 +19,7 @@
 
     /* Search highlight */
     --tridactyl-search-highlight-color: yellow;
+    --tridactyl-search-highlight-active-color: rgb(255 127 255);
 
     /* Hinting */
 

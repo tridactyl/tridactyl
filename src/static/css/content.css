@@ -88,7 +88,7 @@
 ::highlight(tridactyl-find-highlight-active) {
     color: black !important;
     -webkit-text-fill-color: currentColor !important;
-    background-color: rgb(255 127 255) !important;
+    background-color: var(--tridactyl-search-highlight-active-color) !important;
 }
 
 @media (forced-colors: active) {

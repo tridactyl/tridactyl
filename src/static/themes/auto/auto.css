@@ -5,7 +5,7 @@
     :root {
         --tridactyl-bg: Canvas;
         --tridactyl-fg: CanvasText;
-        --tridactyl-search-highlight-color: Highlight; /* currently ignored due to shadow dom issue */
+        --tridactyl-search-highlight-color: Highlight;
         --tridactyl-hintspan-fg: SelectedItemText;
         --tridactyl-hintspan-bg: SelectedItem;
         --tridactyl-hint-active-fg: inherit;

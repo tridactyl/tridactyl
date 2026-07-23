@@ -29,7 +29,7 @@ const NATIVE_HIGHLIGHTS = typeof Highlight === "function" && "highlights" in CSS
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
     public nativeRange: Range
-    private background = `rgba(127,255,255,0.5)`
+    private background = `var(--tridactyl-search-highlight-color)`
 
     constructor(public range: Range) {
         super()
@@ -85,6 +85,7 @@ class FindHighlight extends HTMLSpanElement {
             highlight.style.height = `${rect.bottom - rect.top}px`
             highlight.style.zIndex = "2147483645"
             highlight.style.pointerEvents = "none"
+            highlight.style.opacity = "0.5"
             highlight.style.background = this.background
         }
         while (this.children.length > rects.length)
@@ -99,7 +100,7 @@ class FindHighlight extends HTMLSpanElement {
     }
     unfocus() {
         setNativeFocus(this.nativeRange, false)
-        this.background = `rgba(127,255,255,0.5)`
+        this.background = `var(--tridactyl-search-highlight-color)`
         for (const node of this.children) {
             ;(node as HTMLElement).style.background = this.background
         }
@@ -136,7 +137,7 @@ class FindHighlight extends HTMLSpanElement {
         if (focusable) focusable.focus()
 
         setNativeFocus(this.nativeRange, true)
-        this.background = `rgba(255,127,255,0.5)`
+        this.background = `var(--tridactyl-search-highlight-active-color)`
         for (const node of this.children) {
             const element = node as HTMLElement
             element.style.background = this.background
