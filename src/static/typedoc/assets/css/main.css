@@ -2969,6 +2969,18 @@ code {
     list-style: unset;
 }
 
+.TridactylHelpNavigation {
+    margin-bottom: 1rem;
+}
+
+.TridactylHelpNavigation h3 {
+    margin: 0 0 0.5rem;
+}
+
+.TridactylHelpNavigation ul {
+    list-style: none;
+}
+
 html.minimal .tsd-navigation {
     top: 0px;
 }

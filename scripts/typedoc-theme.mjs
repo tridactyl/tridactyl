@@ -283,6 +283,10 @@ class TridactylTheme extends DefaultTheme {
         this.defaultLayoutTemplate = (page, template) => {
             const context = this.getRenderContext(page)
             const content = template(page)
+            const helpLink = (label, href) =>
+                h("li", null, h("a", { href }, label))
+            const docLink = (label, url) =>
+                helpLink(label, context.relativeURL(url))
             return h(
                 "html",
                 { class: "minimal no-js TridactylOwnNamespace" },
@@ -318,6 +322,37 @@ class TridactylTheme extends DefaultTheme {
                     h(
                         "nav",
                         { class: "tsd-navigation secondary scroller" },
+                        h(
+                            "section",
+                            { class: "TridactylHelpNavigation" },
+                            h("h3", null, "Help Pages"),
+                            h(
+                                "ul",
+                                null,
+                                docLink("Commands", "modules/_src_excmds_.html"),
+                                docLink(
+                                    "Settings",
+                                    "classes/_src_lib_config_.default_config.html",
+                                ),
+                                docLink("Tutorial", "../clippy/1-tutor.html"),
+                                docLink(
+                                    "Editor Functions",
+                                    "modules/_src_lib_editor_.html",
+                                ),
+                                docLink(
+                                    "Command-Line Functions",
+                                    "modules/_src_commandline_frame_.html",
+                                ),
+                                docLink(
+                                    "Hint Mode Commands",
+                                    "modules/_src_content_hinting_.html",
+                                ),
+                                helpLink(
+                                    "Wiki",
+                                    "https://github.com/tridactyl/tridactyl/wiki",
+                                ),
+                            ),
+                        ),
                         context.pageNavigation(page),
                     ),
                     h(
