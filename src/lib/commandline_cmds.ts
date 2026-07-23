@@ -39,14 +39,14 @@ export function getCommandlineFns(cmdline_state: {
         /**
          * Selects the next completion.
          */
-        next_completion: async () => {
+        next_completion: async (increment = "1") => {
+            const count = Number(increment)
             await awaitProxyEq(
                 contentState,
                 "current_cmdline",
                 "cmdline_filter",
             )
-            if (cmdline_state.activeCompletions)
-                cmdline_state.activeCompletions.forEach(comp => comp.next())
+            cmdline_state.activeCompletions?.forEach(comp => comp.next(count))
         },
 
         /** Selects the next completion, or history line if none is selected. */
@@ -58,14 +58,14 @@ export function getCommandlineFns(cmdline_state: {
         /**
          * Selects the previous completion.
          */
-        prev_completion: async () => {
+        prev_completion: async (increment = "1") => {
+            const count = Number(increment)
             await awaitProxyEq(
                 contentState,
                 "current_cmdline",
                 "cmdline_filter",
             )
-            if (cmdline_state.activeCompletions)
-                cmdline_state.activeCompletions.forEach(comp => comp.prev())
+            cmdline_state.activeCompletions?.forEach(comp => comp.prev(count))
         },
 
         /** Selects the previous completion, or history line if none is selected. */

@@ -335,7 +335,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
                 this.deselect()
                 // visopts.length + 1 because we want an empty completion at the end
                 const max = visopts.length + 1
-                const opt = visopts[(currind + inc + max) % max]
+                const opt = visopts[((currind + inc) % max + max) % max]
                 if (opt) this.select(opt)
                 return true
             })
