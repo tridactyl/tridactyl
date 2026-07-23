@@ -270,12 +270,18 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         const oldIndex = (this.lastFocused as BufferCompletionOption)?.tabIndex
         await this.updateOptions(this.lastExstr)
         if (!this.options || this.options.length === 0) return
-            const stillExists = this.options.find(o => o.tabId === lastFocusedTabId)
-            if (stillExists) {
-                this.select(stillExists)
-            } else if (lastFocusedTabId !== undefined) {
-                this.select(this.getTheNextTabOption({ tabIndex: oldIndex } as any))
-            }
+        const stillExists = this.options.find(
+            o => o.tabId === lastFocusedTabId && o.state !== "hidden",
+        )
+        if (lastFocusedTabId !== undefined) {
+            this.deselect()
+            const option =
+                stillExists ||
+                this.getTheNextTabOption({ tabIndex: oldIndex } as any)
+            if (option) this.select(option)
+        }
+        if (!this.node.isConnected || this.state === "hidden") return
+        await Messaging.messageOwnTab("commandline_content", "show")
     }
 
     /**
@@ -283,7 +289,9 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
      * that this BufferCompletionSource length has been reduced by 1
      */
     private getTheNextTabOption(option: BufferCompletionOption) {
-        const physicallySorted = [...this.options].sort((a, b) => a.tabIndex - b.tabIndex)
+        const physicallySorted = this.options
+            .filter(o => o.state !== "hidden")
+            .sort((a, b) => a.tabIndex - b.tabIndex)
         const nextTab = physicallySorted.find(o => o.tabIndex >= option.tabIndex)
         return nextTab || physicallySorted[physicallySorted.length - 1]
     }

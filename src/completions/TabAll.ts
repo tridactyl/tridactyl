@@ -135,10 +135,22 @@ export class TabAllCompletionSource extends Completions.CompletionSourceFuse {
         const lastFocused = this.lastFocused as TabAllCompletionOption
         const lastFocusedTabId =
             lastFocused?.state === "focused" ? lastFocused.tabId : undefined
+        const oldIndex = (this.options || [])
+            .filter(o => o.state !== "hidden")
+            .indexOf(lastFocused)
         await this.updateOptions(this.lastExstr)
-        const option = this.options?.find(o => o.tabId === lastFocusedTabId)
-        if (option) this.lastFocused.state = "normal"
-        if (option) this.select(option)
+        if (lastFocusedTabId !== undefined) {
+            const visibleOptions = this.options.filter(o => o.state !== "hidden")
+            const option =
+                visibleOptions.find(o => o.tabId === lastFocusedTabId) ||
+                visibleOptions[Math.min(oldIndex, visibleOptions.length - 1)]
+            if (option) {
+                this.deselect()
+                this.select(option)
+            }
+        }
+        if (!this.node.isConnected) return
+        await Messaging.messageOwnTab("commandline_content", "show")
     }
 
     /**
