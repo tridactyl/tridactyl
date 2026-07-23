@@ -2364,7 +2364,7 @@ export async function geturlsforlinks(reltype = "rel", rel: string) {
 //#background
 export async function zoom(level = 0, rel = "false", tabId = "auto") {
     level = Math.abs(level) > 5 ? level / 100 : level
-    if (rel === "false" && (level > 5 || level < 0.3)) {
+    if (rel === "false" && level !== 0 && (level > 5 || level < 0.3)) {
         throw new Error(`[zoom] level out of range: ${level}`)
     }
     if (rel === "true") {

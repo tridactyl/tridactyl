@@ -413,7 +413,7 @@ export class default_config {
         zr: "zoom -0.5 true",
         zM: "zoom 0.5 true",
         zR: "zoom -0.5 true",
-        zz: "zoom 1",
+        zz: "zoom 0",
         zI: "zoom 3",
         zO: "zoom 0.3",
         ".": "repeat",
