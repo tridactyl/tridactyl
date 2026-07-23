@@ -1308,6 +1308,11 @@ export class default_config {
              */
             autoselect: "true",
             /**
+             * Initially position and navigate from the active tab for physical
+             * ordering, or first tab for MRU. "active" and "top" force either.
+             */
+            initialposition: "auto" as "auto" | "active" | "top",
+            /**
              * Whether to use unicode symbols to display tab statuses
              */
             statusstylepretty: "false",

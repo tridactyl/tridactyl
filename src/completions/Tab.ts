@@ -80,6 +80,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     public options: BufferCompletionOption[]
     private shouldSetStateFromScore = true
     private removeTabChangesListener: () => void
+    private navigationAnchorTabId: number
 
     // TODO:
     //     - store the exstr and trigger redraws on user or data input without
@@ -127,6 +128,20 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     async filter(exstr) {
         this.lastExstr = exstr
         return this.onInput(exstr)
+    }
+
+    async next(inc = 1) {
+        if (inc && this.navigationAnchorTabId !== undefined) {
+            const anchor = this.options.find(
+                option => option.tabId === this.navigationAnchorTabId,
+            )
+            this.navigationAnchorTabId = undefined
+            if (anchor) {
+                anchor.state = "focused"
+                this.lastFocused = anchor
+            }
+        }
+        return super.next(inc)
     }
 
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
@@ -228,8 +243,9 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
     // Eslint doesn't like this decorator but there's nothing we can do about it
     // eslint-disable-next-line @typescript-eslint/member-ordering
     @Perf.measuredAsync
-    private async updateOptions(exstr = "") {
+    private async updateOptions(exstr = "", setInitialPosition = true) {
         this.lastExstr = exstr
+        if (setInitialPosition) this.navigationAnchorTabId = undefined
         let [prefix, query] = this.splitOnPrefix(exstr)
         if (prefix) prefix = this.canonicalisePrefix(prefix)
         const match =
@@ -275,7 +291,23 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         } else {
             this.options.forEach(option => (option.state = "normal"))
         }
-        return this.updateDisplay()
+        this.updateDisplay()
+        if (!setInitialPosition) return
+        if (match || query.trim()) return
+        const initialPosition = config.get(
+            "completions",
+            "Tab",
+            "initialposition",
+        )
+        if (
+            initialPosition === "active" ||
+            (initialPosition === "auto" &&
+                (prefix === "tabmove" || config.get("tabsort") !== "mru"))
+        ) {
+            const active = this.options.find(option => option.tab.active)
+            this.navigationAnchorTabId = active?.tabId
+            active?.html.scrollIntoView({ block: "center" })
+        }
     }
 
     /**
@@ -287,7 +319,7 @@ export class BufferCompletionSource extends Completions.CompletionSourceFuse {
         const lastFocusedTabId = lastFocused?.tabId
         const oldIndex = lastFocused?.tabIndex
         const wasFocused = lastFocused?.state === "focused"
-        await this.updateOptions(this.lastExstr)
+        await this.updateOptions(this.lastExstr, false)
         if (!this.options || this.options.length === 0) return
         const stillExists = this.options.find(
             o => o.tabId === lastFocusedTabId && o.state !== "hidden",
