@@ -4728,7 +4728,8 @@ function validateSetArgs(key: string, values: string[]) {
         logger.warning("Could not fetch setting metadata. Falling back to type of current value.")
         const currentValue = config.get(...target)
         if (Array.isArray(currentValue)) {
-            // Do nothing
+            value = JSON.parse(values.join(" "))
+            if (!Array.isArray(value)) throw new Error("Value must be an array!")
         } else if (currentValue === undefined || typeof currentValue === "string") {
             value = values.join(" ")
         } else {
