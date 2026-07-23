@@ -5440,7 +5440,7 @@ const KILL_STACK: Element[] = []
  * - -wp open in new private window
  * - -z scroll an element to the top of the viewport
  * - `-pipe selector key` e.g, `-pipe a href` returns the URL of the chosen link on a page. Only makes sense with `composite`, e.g, `composite hint -pipe .some-class>a textContent | yank`. If you don't select a hint (i.e. press `<Esc>`), will return an empty string. Most useful when used like `-c` to do things other than opening links. NB: the query selector cannot contain any spaces.
- * - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W mpvsafe` to open YouTube videos. NB: appending to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to to it safely. If you need to use a query selector, use `-pipe` instead.
+ * - `-W excmd...` pass hint href as the final argument to excmd and execute, e.g, `hint -W mpvsafe` to open YouTube videos. NB: passing it to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to do it safely. The usual [[composite]] caveats for `;` and `|` in URLs apply. If you need to use a query selector, use `-pipe` instead.
  * - -F [callback] - run a custom callback on the selected hint, e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
  *
  * Element selection flags:
@@ -5513,6 +5513,7 @@ export async function hint(...args: string[]): Promise<any> {
     // Parse configuration and print parsing warnings
     const config = hint_util.HintConfig.parse(args)
     config.printWarnings(logger)
+    const excmd = config.excmd ? controller.resolveExCmd(config.excmd) : null
 
     const hintTabOpen = async (href, active = !config.rapid) => {
         const containerId = await activeTabContainerId()
@@ -5543,11 +5544,10 @@ export async function hint(...args: string[]): Promise<any> {
                       return elem[config.pipeAttribute]
                   }
 
-                  if (config.excmd) {
+                  if (excmd) {
                       // We have an excmd to run. By spec, we append the element's href
                       if (elem.href) {
-                          // /!\ RACY RACY RACY!
-                          run_exstr(config.excmd + " " + elem.href)
+                          excmd(elem.href)
                           return elem
                       }
 

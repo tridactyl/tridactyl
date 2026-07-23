@@ -17,6 +17,18 @@ export function getCurrentExCmdSource() {
     return currentExCmdSource
 }
 
+/** Resolve an ExCmd for direct invocation without changing repeat state. */
+export function resolveExCmd(exstr: string) {
+    const [func, args] = exmode_parser(exstr, stored_excmds)
+    return async (...extraArgs: any[]) => {
+        try {
+            return await func(...args, ...extraArgs)
+        } catch (e) {
+            logger.error("controller in excmd: ", e)
+        }
+    }
+}
+
 /** Parse and execute ExCmds */
 export async function acceptExCmd(exstr: string, source?: ExCmdSource): Promise<any> {
     const previousExCmdSource = currentExCmdSource
