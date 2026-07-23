@@ -1253,7 +1253,16 @@ export async function hintables(
     includeInvisible = false,
 ) {
     if (withjs) DOM.pruneHintworthyJSElems()
-    const jsElems = withjs ? Array.from(DOM.hintworthy_js_elems) : []
+    const jsElems = withjs
+        ? Array.from(
+              new Set([
+                  ...DOM.hintworthy_js_elems,
+                  ...DOM.getElemsBySelector("*", [
+                      el => Boolean((el as HTMLElement).onclick),
+                  ]),
+              ]),
+          )
+        : []
     const visibleJSElems = withjs && !includeInvisible
         ? DOM.getVisibleElemsBySelector(null, [], jsElems)
         : jsElems
