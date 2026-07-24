@@ -5800,6 +5800,219 @@ export async function gobble(numKeysOrTerminator: string, endCmd: string, ...arg
 
 // }}}
 
+const cacheCompletionsCustom = {
+  fn: null,
+  context: null,
+  cmd: null,
+  callback: null,
+  clear() {
+    const c = this
+    c.fn = c.context = c.cmd = c.callback = null
+  },
+}
+
+/**
+ * Setup completions for the next command so user can choose from them.
+ * Similar to a CLI tool [fzf](https://github.com/junegunn/fzf/) .
+ *
+ * `completionsetup` will open the fill command line with `comp` command,
+ * and show up the passed completion options. After the user choose one,
+ * the excmd (`-x`) or js function (`-F`) will execute with the chosen value.
+ *
+ * `completionsetup` can run as an ex-command or JS function.
+ * In ex-cmd form, user have to escape the special character like space.
+ * In js form, user can pass string directly and share variables in callback
+ * function or promise object.
+ *
+ *  @returns A dict with `promise` property which resolve to the choosen value
+ *
+ * Excmd Usage:
+ *
+ *     `completionsetup -x EXCMD -d value1 -p preview1 -d value2 ...`
+ *
+ *     `completionsetup -F JS_CALLBACK -d value1 -p preview1 ...`
+ *
+ *     `completionsetup -j JS_COMPLETION_FUNCTION`
+ *
+ *   - options
+ *     - `-x EXCMD` The ex-command to execute after user chooses a completion, it should be url-encoded (encodeURIComponent). The chosen completion will append to it with a space.
+ *     - `-F JS_CALLBACK` The js callback function to execute with the chosen completion. It should be url-encoded too. E.g. `comp=>alert(comp)`
+ *     - `-d|--data VALUE` A url-encoded completion value so it can contain space.
+ *     - `-p|--preview DISPLAY` Optional. The display text for the completion value. The number of `-p` parameter must equal to the `-d` parameter.
+ *     - `-j JS_CALLBACK` The function take full controll of the completion generation. The arguments and return values is same to the `completionscustom.*` config.
+ *
+ * Excmd Example:
+ *
+ * ```
+ * completionsetup -x set%20allowautofocus -d true -p allow%20auto%20focus -d false -p prevent%20auto%20focus
+ *
+ * completionsetup -F n=>fillcmdline(document[n]) -d location -p show%20url -d title -p show%20title -d charset -p show%20charset
+ * ```
+ *
+ * JS Usage:
+ *
+ *   `var ret = await tri.excmds.completionsetup({value, preview, callback})`
+ *
+ *  - options:
+ *    - `value`: An array of completion values
+ *    - `preview`: Display text array
+ *    - `callback`: Optional callback function
+ *    - `ret.promise`: A promise resolve to the choosen value or the
+ *      return value of the callback function.
+ *
+ * JS Example:
+ *
+ * ```
+ * js const ids = Array.from(document.querySelectorAll('[id]')); \
+ *    completionsetup({ \
+ *      value: ids.map((e,i) => i), \
+ *      preview: ids.map(e => e.textContent), \
+ *      callback: i => yank(location.href + '#' + ids[i].id)
+ *    })
+ * ```
+ *
+ */
+export function completionsetup(...args) {
+    let o
+    if (args[0] && typeof args[0] == 'object') o = args[0]
+    else {
+        o = {}
+        const opt = arg.lib({
+            "-x": String,
+            "-F": String,
+            "-j": String, // generate completion
+            "--data": [String],
+            "-d": "--data",
+            "--preview": [String],
+            "-p": "--preview",
+            "--no-fillcmdline": Boolean,
+        }, {argv: args})
+        o.value = (opt["--data"] || []).map(s => tryDecodeUrl(s))
+        if (opt["--preview"]) {
+            o.preview = opt["--preview"].map(s => tryDecodeUrl(s))
+        }
+        if (opt["-x"]) o.excmd = tryDecodeUrl(opt["-x"])
+        if (opt["-F"]) o.callback = tryDecodeUrl(opt["-F"])
+        if (opt["-j"]) o.compFn = eval(tryDecodeUrl(opt["-j"]))
+        o.nofillcmdline = opt["--no-fillcmdline"]
+    }
+    const enc = s => encodeURIComponent(s).replace(/^-/, '%2D')
+
+    let prefix = 'comp '
+    if (o.excmd) prefix += `-x ${enc(o.excmd)} `
+    else if (typeof o.callback == 'string') prefix += `-F ${enc(o.callback)} `
+    else prefix += '-n '
+
+    const compFull = o.value.map(d => enc(d))
+    const c = cacheCompletionsCustom
+    c.clear()
+    c.cmd = "comp"
+    c.context = {}
+    if (o.compFn) {
+        c.fn = (argv, ctx, option) => {
+            option.prefix = prefix
+            c.fn = o.compFn
+            return c.fn(argv, ctx, option)
+        }
+    }
+    else {
+        c.fn = (argv, ctx, option) => {
+            if (ctx.a) return
+            option.prefix = prefix
+            if (o.preview) ctx.a = compFull.map((d, i) => [d, o.preview[i]])
+            else ctx.a = compFull.map((d,i) => [d, o.value[i]])
+            return ctx.a
+        }
+    }
+    const p = new Promise(ok => {
+        if (typeof o.callback == 'function') c.callback = v => {
+            const ret = o.callback(v)
+            ok(ret)
+            return ret
+        }
+        else c.callback = v => ok(v)
+    })
+    const ret = {promise: p}
+    if (o.nofillcmdline) return Promise.resolve(ret)
+    return fillcmdline_notrail(prefix).then(() => ret)
+}
+
+/**
+ * Accept the completion value after the `completionsetup` command.
+ * User can input arbitrary value except the pre-defined completions.
+ * This command is only meaningful with the completionsetup command.
+ *
+ *  @returns The return value of the excmd or the js callback in completionsetup
+ *
+ *   - options
+ *     - `-x EXCMD` The ex-command to execute, as same as the completionsetup.
+ *     - `-F JS_CALLBACK` String type callback function, as same as the completionsetup.
+ *     - `-n` Do not execute excmd or js. Just execute the function type
+ *       callback function if defined (the `completionsetup({callback:()=>{}})` 
+ *     - The function type callback (-n) will be cleared after execute,
+ *       but not the `-x` and `-F` .
+ *
+ */
+export function comp(...args) {
+    const option = arg.lib({
+        "-x": String,
+        "-F": String,
+        "-n": Boolean,
+    }, {argv: args})
+    const compValue = tryDecodeUrl(option._.join(" "))
+    const c = cacheCompletionsCustom
+    const {callback} = c
+    if (!c.cmd) fillcmdline_nofocus('Warning: call comp out of context')
+    c.clear()
+    if (option["-n"]) return callback && callback(compValue)
+    if (option["-F"]) {
+        const fn = eval(tryDecodeUrl(option["-F"]))
+        const ret = fn(compValue)
+        if (callback) callback(ret)
+        return ret
+    }
+    const exstr = tryDecodeUrl(option["-x"]) + " " + compValue
+    const [excmdfn, arg2] = excmd_parser.parser(exstr, ALL_EXCMDS)
+    return excmdfn.apply({}, arg2)
+}
+
+function tryDecodeUrl(s: string) {
+    try {
+        return decodeURIComponent(s)
+    }
+    catch (err) { return s }
+}
+function completionsCustomExpand(k) {
+    let v = k
+    const d = config.get('completionscustom')
+    while (true) {
+        if (v && d[v]) v = d[v]
+        else return v
+    }
+}
+
+export async function getCompletionsCustom(argv: string[], detail: object, option: object): Promise<Array<any>> {
+    const cmd = argv[0]
+    const c = cacheCompletionsCustom
+    if (!cmd) return c.clear()
+    if (c.cmd != cmd) {
+        c.clear()
+        const jsCode = completionsCustomExpand(cmd)
+        c.cmd = cmd
+        c.fn = eval(jsCode)
+        c.context = {}
+    }
+    const {fn, context} = c
+    Object.assign(context, detail)
+    let ret = fn(argv, context, option)
+    if (ret && ret.then) ret = await ret
+    if (option.callback) {
+        c.callback = option.callback
+        option.callback = null
+    }
+    return [ret, option]
+}
+
 /** @hidden
  * This function is used by goto completions.
  */

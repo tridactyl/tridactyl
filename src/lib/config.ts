@@ -794,6 +794,50 @@ export class default_config {
     }
 
     /**
+     * Custom completion functions.
+     *
+     *   - Key: The custom command name
+     *   - Value: String which eval to the callback function to generate completions
+     *     - function: `var ret = callback(argv, context, option)`
+     *     - argv: Current ex string array, which trimed and split with space (`/\s+/`)
+     *     - context: An object where callback function can store variables in. It live till the next excmd.
+     *     - `context.exstr`: The raw ex string, containing trailing spaces.
+     *     - `ret`: `undefined|Array` , optional wrap in a promise.
+     *       - undefined: do nothing; just keep the existing completions.
+     *       - Array: update the completions according to array contents.
+     *       - `ret[i]`: value string or `[value: string, display: string]`.
+     *
+     *     - `option.prefix`: Set this value to improve the fuzzy match in completion.
+     *       Default value is `argv[0] + ' '` .
+     *
+     *       `option.prefix + ret[i]` is the full ex string
+     *
+     *       E.g. `option.prefix = 'tabopen -b '`
+     *
+     *     - `option.callback`: Define the command as an alias of `comp -n`
+     *       and set this property to execute arbitrary js callback function.
+     *
+     *   Example:
+     *
+     *   ```
+     *   alias mygoto comp -n
+     *   set completionscustom.mygoto (argv,ctx,opt)=>{ \
+     *       if(ctx.hl) return; \
+     *       const hl = Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,h6')); \
+     *       ctx.hl = hl; \
+     *       opt.callback = i=>alert(`choose ${ctx.hl[i].textContent}`); \
+     *       return hl.map((e,i)=>[i, e.textContent]); \
+     *   }
+     *   ```
+     *
+     *   ```
+     *   alias allowautofocuschange set allowautofocus
+     *   set completionscustom.allowautofocuschange argv=>[['true', 'allow'], ['false', 'disallow']]
+     *   ```
+     */
+    completionscustom = {}
+
+    /**
      * The default search engine used by `open search`. If empty string, your browser's default search engine will be used. If set to something, Tridactyl will first look at your [[searchurls]] and then at the search engines for which you have defined a keyword on `about:preferences#search`.
      */
     searchengine = ""
