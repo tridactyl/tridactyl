@@ -21,7 +21,7 @@ Tridactyl uses a similar notation to Vim for keys with modifiers: `<C-x>` means 
     -   `t` in a new tab
     -   Using a capital letter in place of any of the previous commands opens the command with the current URL pasted into it, i.e, `W`,`O`,`T`
     -   `s` lets you easily start a search with your default search engine in the current tab and `S` does so in a new tab.
-    -   in general, you can search many search engines straight from these prompts by simply starting your query with the search engine, such as `bing` `duckduckgo` or `scholar`
+    -   To use another search engine from these prompts, prefix your query with its keyword. For example, `:open bing emacs` searches Bing for emacs; other keywords include `duckduckgo` and `scholar`.
 -   Navigate history with `H` and `L`
 -   `yy` copies the current URL to your clipboard
 -   `p` opens the clipboard contents as a web page, or searches for it, in the current tab. `P` opens it in a new tab
