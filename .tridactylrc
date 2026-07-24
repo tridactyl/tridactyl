@@ -105,8 +105,8 @@
 " bind gr reader
 " bind gR reader --tab
 "
-" " Suspend / "discard" all tabs - handy for stretching out battery life
-" command discardall jsb browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t=>t.id)))
+" " Suspend / "discard" all tabs - handy for stretching out battery life. Now a default command, aliased here for my muscle memory
+" command discardall tabdiscard --all
 " 
 " " Julia docs' built in search is bad
 " set searchurls.julia https://www.google.com/search?q=site:http://docs.julialang.org/en/v1%20
