@@ -8,6 +8,8 @@
         --tridactyl-search-highlight-color: Highlight;
         --tridactyl-hintspan-fg: SelectedItemText;
         --tridactyl-hintspan-bg: SelectedItem;
+        --tridactyl-hintspan-active-fg: CanvasText;
+        --tridactyl-hintspan-active-bg: Canvas;
         --tridactyl-hint-active-fg: inherit;
         --tridactyl-hint-active-bg: Highlight; /*use Mark when supported https://bugzilla.mozilla.org/show_bug.cgi?id=1638052 */
         --tridactyl-cmdl-bg: Field;
