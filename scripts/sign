@@ -4,7 +4,7 @@ set -e
 
 sign_and_submit() {
     # Don't trust the return value of web-ext sign.
-    (source AMOKEYS && (yarn run web-ext sign -s build --api-key "$AMOKEY" --api-secret "$AMOSECRET" "$@" || true))
+    (set +x; source AMOKEYS && (yarn run web-ext sign -s build --api-key "$AMOKEY" --api-secret "$AMOSECRET" "$@" || true))
 }
 
 publish_beta_nonewtab() {
