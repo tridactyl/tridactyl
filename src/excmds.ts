@@ -3224,10 +3224,10 @@ export async function tabcloseallto(side: string) {
 }
 
 /**
- * Discard a tab without closing it to free up memory.
+ * Discard a tab without closing it to free up memory. Active tabs cannot be discarded.
  *
  * @param index
- *        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab. Magic argument `--all` will discard all tabs
+ *        The 1-based index of the tab to target. index < 1 wraps. An argument is required. `%` targets the active tab and will not be discarded. Magic argument `--all` discards all discardable tabs.
  */
 //#background
 export async function tabdiscard(index: string) {
@@ -3235,7 +3235,7 @@ export async function tabdiscard(index: string) {
     if (index === "--all") {
         return browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t => t.id)))
     } else if (index === undefined) {
-        id = (await activeTab()).id
+        throw new Error("tabdiscard requires a tab index or --all")
     } else {
         id = await idFromIndex(index)
     }
