@@ -1509,7 +1509,7 @@ export function scrollpage(n = 1, count = 1) {
  */
 //#content
 export function find(...args: string[]) {
-    const argOpt = arg.lib(
+    const parsed = arg.lib(
         {
             "--jump-to": Number,
             "-:": "--jump-to",
@@ -1529,13 +1529,14 @@ export function find(...args: string[]) {
             splitUnknownArguments: false,
         },
     )
+    const argOpt = arg.withDefaults(parsed, { "--reverse": false, "--case-sensitive": false, "--case-insensitive": false })
     if (argOpt["--case-sensitive"] && argOpt["--case-insensitive"])
         throw new Error("find case flags cannot be combined")
     const option = {}
-    option["reverse"] = Boolean(argOpt["--reverse"])
+    option["reverse"] = argOpt["--reverse"]
     if ("--jump-to" in argOpt) option["jumpTo"] = argOpt["--jump-to"]
     if (argOpt["--case-sensitive"] || argOpt["--case-insensitive"])
-        option["caseSensitive"] = Boolean(argOpt["--case-sensitive"])
+        option["caseSensitive"] = argOpt["--case-sensitive"]
     const searchQuery = argOpt._.join(" ")
     return finding.jumpToMatch(searchQuery, option)
 }
@@ -1552,7 +1553,7 @@ export function find(...args: string[]) {
 //#content
 export function findnext(...args: string[]) {
     let n = 1
-    const option = arg.lib(
+    const parsed = arg.lib(
         {
             "--search-from-view": Boolean,
             "-f": "--search-from-view",
@@ -1565,9 +1566,10 @@ export function findnext(...args: string[]) {
             allowNegativePositional: true,
         },
     )
+    const option = arg.withDefaults(parsed, { "--search-from-view": false, "--reverse": false })
     if (option._.length > 0) n = Number(option._[0])
     if (option["--reverse"]) n = -n
-    return finding.jumpToNextMatch(n, Boolean(option["--search-from-view"]))
+    return finding.jumpToNextMatch(n, option["--search-from-view"])
 }
 
 //#content
@@ -2756,17 +2758,18 @@ export async function tabprev(...args: string[]) {
             splitUnknownArguments: false,
         },
     )
-    const option = {}
-    option["nowrap"] = Boolean(argOpt["--nowrap"])
-    option["noisy"] = Boolean(argOpt["--noisy"])
-    option["reverse"] = Boolean(argOpt["--reverse"])
-    option["skip-discarded"] = Boolean(argOpt["--skip-discarded"])
-    const increment = (parseInt(argOpt._.join(" "), 10) || 1) * (option["reverse"] ? -1 : 1)
+    const option = arg.withDefaults(argOpt, {
+        "--nowrap": false,
+        "--noisy": false,
+        "--reverse": false,
+        "--skip-discarded": false,
+    })
+    const increment = (parseInt(argOpt._.join(" "), 10) || 1) * (option["--reverse"] ? -1 : 1)
     return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
-        if (option["skip-discarded"]) tabs = tabs.filter(tab => !tab.discarded)
+        if (option["--skip-discarded"]) tabs = tabs.filter(tab => !tab.discarded)
         tabs.sort((t1, t2) => t1.index - t2.index)
         const curTab = tabs.findIndex(t => t.active)
-        const prevTab = !option["nowrap"] ? (curTab - increment + tabs.length) % tabs.length : Math.min(Math.max(curTab - increment, 0), tabs.length - 1)
+        const prevTab = !option["--nowrap"] ? (curTab - increment + tabs.length) % tabs.length : Math.min(Math.max(curTab - increment, 0), tabs.length - 1)
         // TODO: add fillcmdline_tmp with details here for --noisy (expect it to show on the wrong tab unless you await it correctly)
         return browser.tabs.update(tabs[prevTab].id, { active: true })
     })
@@ -6444,9 +6447,10 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
  */
 //#content
 export async function keyfeed(...args: string[]) {
-    const option = arg.lib({ "--page": Boolean, "--type": String }, { argv: args })
+    const parsed = arg.lib({ "--page": Boolean, "--type": String }, { argv: args })
+    const option = arg.withDefaults(parsed, { "--page": false, "--type": "keydown" })
     const usePage = option["--page"]
-    const eventType = option["--type"] || "keydown"
+    const eventType = option["--type"]
     const mapstr = option._.join(" ")
     const keyseq = mapstrToKeyseq(mapstr)
 
