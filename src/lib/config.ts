@@ -1079,7 +1079,7 @@ export class default_config {
      *
      * Example values:
      * - linux: `xterm -e vim`
-     * - windows: `start cmd.exe /c \"vim\"`.
+     * - windows: `start /wait cmd.exe /c \"vim\"`.
      *
      * Also see [:editor](/static/docs/modules/_src_excmds_.html#editor).
      */
