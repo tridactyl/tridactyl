@@ -45,7 +45,7 @@ Object.defineProperty(browser, "sessions", {
 })
 
 const backgroundExcmds = require("@src/.excmds_background.generated")
-const { nativeopen, set, tabopen, winopen } = backgroundExcmds
+const { nativeopen, quickmarkremove, set, tabopen, winopen } = backgroundExcmds
 const { followpage, ttscontrol } = require("@src/.excmds_content.generated")
 
 test.each([
@@ -128,6 +128,20 @@ test("`nativeopen` targets the running macOS Firefox application", async () => {
     expect(Native.run).toHaveBeenCalledWith(
         `osascript -e 'on run argv' -e 'tell application "Firefox Nightly" to open location item 1 of argv' -e 'end run' 'https://example.com/'`,
     )
+})
+
+test("`quickmarkremove` unbinds every quickmark mapping", async () => {
+    const bindings = ["gnq", "goq", "gwq", "gpq"]
+    for (const binding of bindings) await config.set("nmaps", binding, "open")
+
+    await quickmarkremove("q")
+
+    const maps = config.get("nmaps")
+    expect(bindings.every(binding => maps[binding] === undefined)).toBe(true)
+})
+
+test.each([undefined, "", "qq"])("`quickmarkremove` rejects %p", async key => {
+    await expect(quickmarkremove(key)).rejects.toThrow("quickmarkremove syntax")
 })
 
 test.each([

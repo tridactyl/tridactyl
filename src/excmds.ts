@@ -5308,6 +5308,8 @@ export async function sanitise(...args: string[]) {
     Afterwards use go[key], gn[key], gw[ley], or gp[key] to [[open]], [[tabopen]], [[winopen]],
     or [[winopen]] privately the URL respectively.
 
+    Remove a quickmark with [[quickmarkremove]].
+
     Example:
     - `quickmark m https://mail.google.com/mail/u/0/#inbox`
 
@@ -5341,6 +5343,17 @@ export async function quickmark(key: string, ...addressarr: string[]) {
         await sleep(50)
         await bind("gp" + key, "composite winopen -private", compstringwinp)
     }
+}
+
+/** Remove a quickmark from a single-character key, unbinding its `gn`, `go`, `gw`, and `gp` mappings.
+
+    Example: `quickmarkremove m`
+    See also [[quickmark]].
+*/
+//#background
+export async function quickmarkremove(key: string) {
+    if (key?.length !== 1) throw new Error("quickmarkremove syntax: `quickmarkremove key`")
+    for (const prefix of ["gn", "go", "gw", "gp"]) await unbind(prefix + key)
 }
 
 /** Puts the contents of config value with keys `keys` into the commandline and the background page console
