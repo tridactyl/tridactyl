@@ -1191,6 +1191,7 @@ function cleanup() {
     const state = modeState
     modeState = undefined
     if (state) state.cleanUpHints()
+    contentState.suffix = ""
     window.removeEventListener("scroll", updateHudOffset)
     return state
 }
@@ -1208,6 +1209,7 @@ addContentStateChangedListener((property, oldMode) => {
 function popKey() {
     modeState.filter = modeState.filter.slice(0, -1)
     modeState.filterFunc(modeState.filter)
+    contentState.suffix = modeState?.filter || ""
 }
 
 /** Add key to filtstr and filter */
@@ -1222,6 +1224,7 @@ function pushKey(key) {
         modeState.filter = originalFilter
         modeState.filterFunc(modeState.filter)
     }
+    contentState.suffix = modeState?.filter || ""
 }
 
 /** Covert to char and pushKey(). This is needed because ex commands ignore whitespace. */
@@ -1403,6 +1406,7 @@ function selectFocusedHint(delay = false) {
     const focused = modeState.focusedHint
     const selectFocusedHintInternal = () => {
         modeState.filter = ""
+        contentState.suffix = ""
         modeState.hints.forEach(h => {
             h.restoreName()
             h.hidden = false
