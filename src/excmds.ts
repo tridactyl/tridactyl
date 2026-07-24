@@ -680,8 +680,9 @@ export async function nativeopen(...args: string[]) {
                 if ((await browser.windows.getCurrent()).incognito) {
                     throw new Error("nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
                 }
-                const osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
-                await Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
+                const appName = /(?:^|\/)([^/]+)\.app\/Contents\/MacOS\//.exec((await Native.ff_cmdline().catch(() => [])).join(" "))?.[1] ?? "Firefox"
+                const osascriptArgs = ["on run argv", `tell application "${appName.replace(/["\\]/g, "\\$&")}" to open location item 1 of argv`, "end run"].map(script => `-e ${escape.sh(script)}`)
+                await Native.run(`osascript ${osascriptArgs.join(" ")} ${escape.sh(url)}`)
             } else {
                 const os = (await browser.runtime.getPlatformInfo()).os
                 if (firefoxArgs.length === 0) {

@@ -1,12 +1,21 @@
 import { queryAndURLwrangler } from "@src/lib/webext"
 import * as config from "@src/lib/config"
+import * as Native from "@src/lib/native"
 
 jest.mock("@src/lib/webext", () => ({
     ...jest.requireActual("@src/lib/webext"),
+    activeTab: jest.fn().mockResolvedValue({ index: 0 }),
     activeTabId: jest.fn().mockResolvedValue(1),
     openInNewTab: jest.fn(),
     activeTabContainerId: jest.fn(),
     queryAndURLwrangler: jest.fn(),
+}))
+
+jest.mock("@src/lib/native", () => ({
+    ...jest.requireActual("@src/lib/native"),
+    ff_cmdline: jest.fn(),
+    nativegate: jest.fn(),
+    run: jest.fn(),
 }))
 
 jest.mock("@src/lib/containers", () => ({
@@ -24,6 +33,7 @@ Object.assign(browser.tabs, {
     onAttached: tabEvent,
     onActivated: tabEvent,
 })
+Object.assign(browser.runtime, { getPlatformInfo: jest.fn() })
 Object.defineProperty(browser, "windows", {
     value: {
         create: jest.fn().mockResolvedValue({ tabs: [{ id: 42 }] }),
@@ -34,7 +44,8 @@ Object.defineProperty(browser, "sessions", {
     value: { getTabValue: jest.fn(), setTabValue: jest.fn() },
 })
 
-const { set, tabopen, winopen } = require("@src/.excmds_background.generated")
+const backgroundExcmds = require("@src/.excmds_background.generated")
+const { nativeopen, set, tabopen, winopen } = backgroundExcmds
 const { ttscontrol } = require("@src/.excmds_content.generated")
 
 test("`set` preserves deep custom arrays", async () => {
@@ -71,6 +82,24 @@ test("`winopen` creates a neutral tab before navigating it", async () => {
         loadReplace: true,
         url: "https://example.com/",
     })
+})
+
+test("`nativeopen` targets the running macOS Firefox application", async () => {
+    jest.mocked(browser.runtime.getPlatformInfo).mockResolvedValue({
+        arch: "x86-64",
+        os: "mac",
+    })
+    jest.mocked(Native.nativegate).mockResolvedValue(true)
+    jest.mocked(Native.ff_cmdline).mockResolvedValue([
+        "/Applications/Firefox",
+        "Nightly.app/Contents/MacOS/firefox",
+    ])
+
+    await nativeopen("https://example.com/")
+
+    expect(Native.run).toHaveBeenCalledWith(
+        `osascript -e 'on run argv' -e 'tell application "Firefox Nightly" to open location item 1 of argv' -e 'end run' 'https://example.com/'`,
+    )
 })
 
 test.each([
