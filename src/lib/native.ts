@@ -54,7 +54,7 @@ export async function sendNativeMsg(
     } catch (e) {
         if (!quiet) {
             throw new Error(
-                "Failed to send message to native messenger. If it is correctly installed (run `:native`), please report this bug on https://github.com/tridactyl/tridactyl/issues .",
+                "Failed to send message to native messenger. If it is correctly installed (run `:native`), please report this bug on https://github.com/tridactyl/tridactyl/issues . " + e,
             )
         }
     }
