@@ -2505,14 +2505,16 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "D
         TRI_FIRED_URL: owntab.url,
     }
     for (const aukey of aukeyarr) {
-        for (const [k, v] of Object.entries(replacements)) {
-            aucmds[aukey] = aucmds[aukey].replace(k, v)
-        }
-        try {
-            autocmd_logger.debug(`${cmdType} matched ${aukey}: ${aucmds[aukey]}`)
-            await controller.acceptExCmd(aucmds[aukey])
-        } catch (e) {
-            autocmd_logger.error((e as Error).toString())
+        for (let aucmd of [aucmds[aukey]].flat()) {
+            for (const [k, v] of Object.entries(replacements)) {
+                aucmd = aucmd.replace(k, v)
+            }
+            try {
+                autocmd_logger.debug(`${cmdType} matched ${aukey}: ${aucmd}`)
+                await controller.acceptExCmd(aucmd)
+            } catch (e) {
+                autocmd_logger.error((e as Error).toString())
+            }
         }
     }
 }
@@ -4942,6 +4944,7 @@ export function getAutocmdEvents() {
  * - `TRI_FIRED_URL`: The URL of the document that the tab is displaying.
 
  * For debugging, use `:set logging.autocmds debug` and check the Firefox web console. `WebRequest` events have no logging.
+ * Running `:autocmd [event] [match] [commmand]` repeatedly will add multiple listeners for the same event, provided `command` is distinct. To remove listeners, see [[autocmddelete]].
  *
  */
 //#background
@@ -4950,10 +4953,10 @@ export async function autocmd(event: string, url: string, ...excmd: string[]) {
     if (!getAutocmdEvents().includes(event)) {
         throw new Error(event + " is not a supported event.")
     }
-    if (webrequests.requestEvents.includes(event)) {
-        await webrequests.registerWebRequestAutocmd(event, url, excmd.join(" "))
-    }
-    return config.set("autocmds", event, url, excmd.join(" "))
+    const commands = [...new Set([config.USERCONFIG.autocmds?.[event]?.[url] ?? [], excmd.join(" ")].flat())]
+    if (webrequests.requestEvents.includes(event))
+        webrequests.registerWebRequestAutocmd(event, url, commands)
+    return config.set("autocmds", event, url, commands)
 }
 
 /**
@@ -5042,14 +5045,25 @@ export function proxyremove(name: string) {
  @param event An event from [[autocmd]]
 
  @param url Exactly the "url" you entered when you made the [[autocmd]] you wish to delete. See `:viewconfig autocmds` if you have forgotten.
+ @param excmd The exact command to delete. Omit it to delete every command for the event and URL.
 */
 //#background
-export function autocmddelete(event: string, url: string) {
+export async function autocmddelete(event: string, url: string, ...excmd: string[]) {
     if (!getAutocmdEvents().includes(event)) throw new Error(`${event} is not a supported event.`)
-    if (webrequests.requestEvents.includes(event)) {
-        webrequests.unregisterWebRequestAutocmd(event, url)
+    const command = excmd.join(" ")
+    let commands
+    if (command) {
+        const stored = config.USERCONFIG.autocmds?.[event]?.[url]
+        commands = [stored === undefined ? config.DEFAULTS.autocmds?.[event]?.[url] ?? [] : stored ?? []].flat()
+        if (!commands.includes(command)) return
+        commands = commands.filter(candidate => candidate !== command)
     }
-    return config.set("autocmds", event, url, null)
+    if (webrequests.requestEvents.includes(event)) {
+        if (commands?.length)
+            webrequests.registerWebRequestAutocmd(event, url, commands)
+        else webrequests.unregisterWebRequestAutocmd(event, url)
+    }
+    return config.set("autocmds", event, url, commands?.length ? commands : null)
 }
 
 /**

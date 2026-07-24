@@ -128,7 +128,7 @@ export class AutocmdCompletionSource extends Completions.CompletionSourceFuse {
                     // for `autocmd` itself.
                     let description = ""
                     if (is_autocmddelete) {
-                        description = command
+                        description = [command].flat().join(" | ")
                     }
                     const opt = new AutocmdCompletionOption(
                         pattern,

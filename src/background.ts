@@ -141,20 +141,18 @@ const autocmd_logger = new Logging.Logger("autocmds")
 browser.runtime.onStartup.addListener(() => {
     config.getAsync("autocmds", "TriStart").then(aucmds => {
         const hosts = Object.keys(aucmds)
+        const run = async host => {
+            autocmd_logger.debug(`TriStart matched ${host}: ${aucmds[host]}`)
+            for (const command of [aucmds[host]].flat()) await controller.acceptExCmd(command)
+        }
         // If there's only one rule and it's "all", no need to check the hostname
         if (hosts.length === 1 && hosts[0] === ".*") {
-            autocmd_logger.debug(
-                `TriStart matched ${hosts[0]}: ${aucmds[hosts[0]]}`,
-            )
-            controller.acceptExCmd(aucmds[hosts[0]])
+            run(hosts[0])
         } else {
             native.run("hostname").then(hostname => {
                 for (const host of hosts) {
                     if (new RegExp(host).exec(hostname.content)) {
-                        autocmd_logger.debug(
-                            `TriStart matched ${host}: ${aucmds[host]}`,
-                        )
-                        controller.acceptExCmd(aucmds[host])
+                        run(host)
                     }
                 }
             })
@@ -198,7 +196,9 @@ for (const requestEvent of webrequests.requestEvents) {
     config.getAsync("autocmds", requestEvent).then(aucmds => {
         if (!aucmds) return
         const patterns = Object.keys(aucmds)
-        patterns.forEach(pattern =>
+        // Async isolates invalid persisted patterns from the rest.
+        // eslint-disable-next-line @typescript-eslint/require-await
+        patterns.forEach(async pattern =>
             webrequests.registerWebRequestAutocmd(
                 requestEvent,
                 pattern,
