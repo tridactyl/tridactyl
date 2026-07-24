@@ -939,9 +939,8 @@ export async function updatenative(interactive = true) {
         return
     } else {
         await Native.runAsync(update_command)
+        if (interactive) await fillcmdline("# Native messenger update started. Please wait a few seconds, then run `:native` to check whether it succeeded.")
     }
-
-    if (interactive) native()
 }
 
 /**
