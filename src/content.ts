@@ -351,13 +351,19 @@ if (
 
 // Really bad status indicator
 let statusIndicator
+function mountStatusIndicator() {
+    if (statusIndicator.parentNode === document.documentElement) return
+    if (config.get("modeindicator") === "true")
+        document.documentElement.appendChild(statusIndicator)
+}
+
 function addStatusIndicator() {
     if (statusIndicator) {
         statusIndicator.classList.toggle(
             "TridactylInvisible",
             config.get("modeindicatormodes", contentState.mode) === "false",
         )
-        document.documentElement.appendChild(statusIndicator)
+        dom.afterPageLoad(mountStatusIndicator)
         return
     }
 
@@ -432,18 +438,10 @@ function addStatusIndicator() {
     })
 
     statusIndicatorText.textContent = contentState.mode || "normal"
-    try {
-        // On quick loading pages, the document is already loaded
-        document.documentElement.appendChild(statusIndicator)
-        document.head.appendChild(style)
-    } catch (e) {
-        // But on slower pages we wait for the document to load
-        window.addEventListener("DOMContentLoaded", () => {
-            if (config.get("modeindicator") === "true")
-                addStatusIndicator()
-            document.head.appendChild(style)
-        })
-    }
+    dom.afterPageLoad(() => {
+        document.head?.appendChild(style)
+        mountStatusIndicator()
+    })
 
     async function updateStatusIndicator(property, oldMode, _oldValue, newValue) {
         let mode = newValue

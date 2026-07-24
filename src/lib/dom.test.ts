@@ -1,4 +1,9 @@
-import { getSelector, isTextEditable, setupFocusHandler } from "@src/lib/dom"
+import {
+    afterPageLoad,
+    getSelector,
+    isTextEditable,
+    setupFocusHandler,
+} from "@src/lib/dom"
 
 test("getSelector handles numeric ancestor IDs", () => {
     document.body.innerHTML = '<div id="40796595"><textarea></textarea></div>'
@@ -44,4 +49,28 @@ test("setupFocusHandler reports focus leaving and returning to an editable eleme
     document.querySelector("button").focus()
     await new Promise(resolve => setTimeout(resolve))
     expect(listener).toHaveBeenCalledTimes(2)
+})
+
+test("afterPageLoad leaves page initialization untouched", () => {
+    jest.useFakeTimers()
+    const readyState = jest
+        .spyOn(document, "readyState", "get")
+        .mockReturnValue("loading")
+    const indicator = document.createElement("span")
+    const pageSawIndicator = jest.fn()
+    afterPageLoad(() => document.documentElement.appendChild(indicator))
+    window.addEventListener(
+        "load",
+        () => pageSawIndicator(indicator.isConnected),
+        { once: true },
+    )
+
+    window.dispatchEvent(new Event("load"))
+    expect(pageSawIndicator).toHaveBeenCalledWith(false)
+    jest.runOnlyPendingTimers()
+    expect(indicator.parentElement).toBe(document.documentElement)
+
+    indicator.remove()
+    readyState.mockRestore()
+    jest.useRealTimers()
 })

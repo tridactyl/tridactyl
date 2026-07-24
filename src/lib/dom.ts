@@ -11,6 +11,14 @@ import {
 } from "@src/lib/webext"
 const logger = new Logging.Logger("dom")
 
+export function afterPageLoad(action: () => void) {
+    const run = () =>
+        window.requestIdleCallback?.(action, { timeout: 1000 }) ??
+        setTimeout(action)
+    if (document.readyState === "complete") run()
+    else window.addEventListener("load", run, { once: true })
+}
+
 // From saka-key lib/dom.js, under Apachev2
 
 /**
