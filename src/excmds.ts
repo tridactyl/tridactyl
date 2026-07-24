@@ -2055,21 +2055,28 @@ export function mouse_mode() {
 }
 
 /** @hidden */
-// Find clickable next-page/previous-page links whose text matches the supplied pattern,
-// and return the last such link.
+// Find clickable next-page/previous-page links whose text matches the supplied patterns.
+// String patterns return the last match; array patterns are tried in order and respect direction.
 //
-// If no matching link is found, return undefined.
+// If no matching link is found, return null.
 //
-// We return the last link that matches because next/prev buttons tend to be at the end of the page
-// whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
 //#content_helper
-function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
+function findRelLink(patterns: string | string[], rel: "next" | "prev"): HTMLAnchorElement | null {
     // querySelectorAll returns a "non-live NodeList" which is just a shit array without working reverse() or find() calls, so convert it.
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const links = Array.from(document.querySelectorAll("a") as NodeListOf<HTMLAnchorElement>)
 
-    // Find the last link that matches the test
-    return links.reverse().find(link => pattern.test(link.innerText))
+    if (typeof patterns === "string") {
+        const pattern = new RegExp(patterns, "i")
+        return links.reverse().find(link => pattern.test(link.innerText)) || null
+    }
+
+    if (rel === "prev") links.reverse()
+    for (const pattern of patterns) {
+        const link = links.find(link => new RegExp(pattern, "i").test(link.innerText))
+        if (link) return link
+    }
+    return null
 
     // Note:
     // `innerText` gives better (i.e. less surprising) results than `textContent`
@@ -2090,14 +2097,14 @@ function selectLast(selector: string): HTMLElement | null {
 
     If a link or anchor element with rel=rel exists, use that, otherwise fall back to:
 
-        1) find the last anchor on the page with innerText matching the appropriate `followpagepattern`.
+        1) for string settings, find the last matching anchor; for arrays, try each pattern in order and choose the first matching anchor for "next", or the last for "prev".
         2) call [[urlincrement]] with 1 or -1
 
     If you want to support e.g. French:
 
     ```
-    set followpagepatterns.next ^(next|newer|prochain)\b|»|>>
-    set followpagepatterns.prev ^(prev(ious)?|older|précédent)\b|«|<<
+    set followpagepatterns.next ["^(next|newer|prochain)\\b","›|>","»","more"]
+    set followpagepatterns.prev ["^(prev(ious)?|older|précédent)\\b","‹|<","«"]
     ```
 
     @param rel   the relation of the target page to the current page: "next" or "prev"
@@ -2111,7 +2118,7 @@ export function followpage(rel: "next" | "prev" = "next") {
         return
     }
 
-    const anchor = (selectLast(`a[rel~=${rel}][href]`) || findRelLink(new RegExp(config.get("followpagepatterns", rel), "i"))) as HTMLAnchorElement
+    const anchor = (selectLast(`a[rel~=${rel}][href]`) || findRelLink(config.get("followpagepatterns", rel), rel)) as HTMLAnchorElement
 
     if (anchor) {
         DOM.mouseEvent(anchor, "click")
@@ -4736,9 +4743,18 @@ function validateSetArgs(key: string, values: string[]) {
     const target: any[] = key.split(".")
 
     let value
+    const strval = values.join(" ")
     const md = defaultConfigMembers[target[0]]
-    if (md !== undefined) {
-        const strval = values.join(" ")
+    if (/^followpagepatterns\.(next|prev)$/.test(key)) {
+        try {
+            const parsed = JSON.parse(strval)
+            value = Array.isArray(parsed) ? parsed : strval
+        } catch {
+            value = strval
+        }
+        if (Array.isArray(value) && value.some(pattern => typeof pattern !== "string"))
+            throw new Error("Followpage patterns must be strings!")
+    } else if (md !== undefined) {
         const t = memberType(md)
         // Note: the conversion will throw if strval can't be converted to the right type
         if (typeKind(t) === "object" && target.length > 1) {
@@ -4751,10 +4767,10 @@ function validateSetArgs(key: string, values: string[]) {
         logger.warning("Could not fetch setting metadata. Falling back to type of current value.")
         const currentValue = config.get(...target)
         if (Array.isArray(currentValue)) {
-            value = JSON.parse(values.join(" "))
+            value = JSON.parse(strval)
             if (!Array.isArray(value)) throw new Error("Value must be an array!")
         } else if (currentValue === undefined || typeof currentValue === "string") {
-            value = values.join(" ")
+            value = strval
         } else {
             throw new Error("Unsupported setting type!")
         }

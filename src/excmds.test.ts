@@ -46,7 +46,35 @@ Object.defineProperty(browser, "sessions", {
 
 const backgroundExcmds = require("@src/.excmds_background.generated")
 const { nativeopen, set, tabopen, winopen } = backgroundExcmds
-const { ttscontrol } = require("@src/.excmds_content.generated")
+const { followpage, ttscontrol } = require("@src/.excmds_content.generated")
+
+test.each([
+    ["next", ["READ MORE", ">", ">>"], ["^next\\b", ">", "more"], 1],
+    ["prev", ["<<", "<", "READ OLDER"], ["^prev\\b", "<", "older"], 1],
+    ["next", ["READ MORE", ">", ">>"], ">|more", 2],
+] as const)(
+    "`followpage %s` selects the expected text match",
+    async (rel, texts, patterns, expected) => {
+        await config.set("followpagepatterns", rel, patterns)
+        document.body.innerHTML = "<a></a><a></a><a></a>"
+        const anchors = Array.from(document.querySelectorAll("a"))
+        anchors.forEach((anchor, index) => (anchor.innerText = texts[index]))
+        const click = jest.fn()
+        anchors[expected].addEventListener("click", click)
+
+        followpage(rel)
+
+        expect(click).toHaveBeenCalled()
+    },
+)
+
+test("`set` parses string and array followpage patterns", async () => {
+    await set("followpagepatterns.next", '["next", ">"]')
+    expect(config.get("followpagepatterns", "next")).toEqual(["next", ">"])
+    await set("followpagepatterns.next", "[Nn]ext")
+    expect(config.get("followpagepatterns", "next")).toBe("[Nn]ext")
+    expect(() => set("followpagepatterns.next", "[1]")).toThrow()
+})
 
 test("`set` preserves deep custom arrays", async () => {
     await config.set("custom", "deep", "array", [0])

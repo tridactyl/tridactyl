@@ -37,9 +37,17 @@ test.each([
     ["prev", "Atrás"],
 ] as const)("default %s-page pattern matches %s", (direction, text) => {
     const opposite = direction === "next" ? "prev" : "next"
-    expect(text).toMatch(new RegExp(config.followpagepatterns[direction], "i"))
+    expect(text).toMatch(
+        new RegExp(
+            (config.followpagepatterns[direction] as string[]).join("|"),
+            "i",
+        ),
+    )
     expect(text).not.toMatch(
-        new RegExp(config.followpagepatterns[opposite], "i"),
+        new RegExp(
+            (config.followpagepatterns[opposite] as string[]).join("|"),
+            "i",
+        ),
     )
 })
 
@@ -56,7 +64,7 @@ test("getURL in keymap and config", () => {
     expect(nmaps.f).toBe("hint -c [tabindex]:not(.two)>div,a")
 
     const google = "https://www.google.com/"
-    expect(getURL(google, ["followpagepatterns", "prev"])).toBe("Previous")
+    expect(getURL(google, ["followpagepatterns", "prev"])).toEqual(["Previous"])
 })
 
 test("getURL in keymap and config in mock mode", () => {
@@ -65,7 +73,7 @@ test("getURL in keymap and config in mock mode", () => {
         expect(nmaps.f).toBe("hint -c [tabindex]:not(.two)>div,a")
     })
     mockUrl("https://www.google.com/", () => {
-        expect(get("followpagepatterns", "prev")).toBe("Previous")
+        expect(get("followpagepatterns", "prev")).toEqual(["Previous"])
     })
 })
 
@@ -74,6 +82,12 @@ test("merge deep should keep null", () => {
     const b = { n: null }
     const c = tri.config.mergeDeep({}, { n: null })
     expect(c).toEqual({ n: null })
+})
+
+test("null removes default arrays", async () => {
+    await tri.config.set("followpagepatterns", "next", null)
+    expect(get("followpagepatterns", "next")).toEqual([])
+    await tri.config.unset("followpagepatterns")
 })
 
 test("get in default inherit keymap", () => {
@@ -168,24 +182,26 @@ test("merge object when default undefined", () => {
 test("merge object when user config undefined", () => {
     const u = "youtube"
     const obj = "followpagepatterns"
-    const val = "go-next"
+    const val = ["go-next"]
     const prev = tri.config.get(obj, "prev")
-    expect(typeof tri.config.get(obj, "next")).toBe("string")
     const orig = tri.config.get(obj, "next")
-    expect(tri.config.DEFAULTS[obj]["next"]).toBe(orig)
+    expect(tri.config.DEFAULTS[obj]["next"]).toEqual(orig)
     expect(tri.config.USERCONFIG[obj]).toBeUndefined()
 
     tri.config.setURL(u, obj, "next", val)
-    expect(tri.config.get(obj, "next")).toBe(orig)
-    expect(tri.config.DEFAULTS[obj].next).toBe(orig)
+    expect(tri.config.get(obj, "next")).toEqual(orig)
+    expect(tri.config.DEFAULTS[obj].next).toEqual(orig)
     expect(tri.config.USERCONFIG[obj]).toBeUndefined()
 
     mockUrl(u, () => {
-        expect(tri.config.get(obj, "next")).toBe(val)
+        expect(tri.config.get(obj, "next")).toEqual(val)
         expect(tri.config.get(obj)).toEqual({ next: val, prev: prev })
     })
 
     expect(tri.config.USERCONFIG.subconfigs[u][obj]).toEqual({ next: val })
+    expect(tri.config.parseConfig()).toContain(
+        `seturl ${u} ${obj}.next ${JSON.stringify(val)}`,
+    )
 })
 
 test("config-only clear preserves persisted state", async () => {

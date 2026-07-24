@@ -112,8 +112,8 @@ export class default_config {
     subconfigs: { [key: string]: DeepPartial<default_config> } = {
         "www.google.com": {
             followpagepatterns: {
-                next: "Next",
-                prev: "Previous",
+                next: ["Next"],
+                prev: ["Previous"],
             },
             nmaps: {
                 gi: "composite focusinput -l ; text.end_of_line", // Fix #4706
@@ -786,13 +786,26 @@ export class default_config {
     abbreviations: { [abbreviation: string]: string } = {}
 
     /**
-     * Used by `]]` and `[[` to look for links containing these words.
+     * Used by `]]` and `[[` to look for links containing these patterns.
+     * Arrays are tried in order; strings retain the legacy single-regex behaviour.
      *
      * Edit these if you want to add, e.g. other language support.
      */
-    followpagepatterns = {
-        next: "^(next|newer|neuer(e[mnrs]?)?|nächst(e[mnrs]?)?|weiter(e[mnrs]?)?|suivante?s?|prochaine?s?|successiv[oaie]|seguent[ei]|avanti|siguientes?|próxim[oa]s?)\\b|»|>>|more",
-        prev: "^(prev(ious)?|older|vorherig(e[mnrs]?)?|älter(e[mnrs]?)?|zurück|précédente?s?|precedent[ei]|indietro|anterior(es)?|atrás)\\b|«|<<",
+    followpagepatterns: {
+        next: string | string[]
+        prev: string | string[]
+    } = {
+        next: [
+            "^(next|newer|neuer(e[mnrs]?)?|nächst(e[mnrs]?)?|weiter(e[mnrs]?)?|suivante?s?|prochaine?s?|successiv[oaie]|seguent[ei]|avanti|siguientes?|próxim[oa]s?)\\b",
+            "›|>",
+            "»",
+            "more",
+        ],
+        prev: [
+            "^(prev(ious)?|older|vorherig(e[mnrs]?)?|älter(e[mnrs]?)?|zurück|précédente?s?|precedent[ei]|indietro|anterior(es)?|atrás)\\b",
+            "‹|<",
+            "«",
+        ],
     }
 
     /**
@@ -2053,6 +2066,10 @@ function setDeepProperty(obj, value, target) {
  * Merges two objects and any child objects they may have
  */
 export function mergeDeep(o1, o2) {
+    if (o2 === undefined && (o1 === null || typeof o1 !== "object")) return o1
+    if (Array.isArray(o1) && o2 === null) return []
+    if (Array.isArray(o2)) return o2.slice()
+    if (o2 !== null && o2 !== undefined && typeof o2 !== "object") return o2
     if (o1 === null) return o(o2)
     const r = Array.isArray(o1) ? o1.slice() : o({})
     Object.assign(r, o1, o2)
@@ -2675,16 +2692,17 @@ export function parseConfig(): string {
 
 const parseConfigHelper = (pconf, parseobj, prefix = []) => {
     for (const i of Object.keys(pconf)) {
-        if (typeof pconf[i] !== "object") {
+        if (typeof pconf[i] !== "object" || Array.isArray(pconf[i])) {
+            const value = Array.isArray(pconf[i]) ? JSON.stringify(pconf[i]) : pconf[i]
             if (prefix[0] === "subconfigs") {
                 const pattern = prefix[1]
                 const subconf = [...prefix.slice(2), i].join(".")
                 parseobj.subconfigs.push(
-                    `seturl ${pattern} ${subconf} ${pconf[i]}`,
+                    `seturl ${pattern} ${subconf} ${value}`,
                 )
             } else {
                 parseobj.conf.push(
-                    `set ${[...prefix, i].join(".")} ${pconf[i]}`,
+                    `set ${[...prefix, i].join(".")} ${value}`,
                 )
             }
         } else if (pconf[i] === null) {
