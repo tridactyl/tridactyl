@@ -110,7 +110,7 @@ function stringLiteral(source: string): string | undefined {
     return undefined
 }
 
-function split(source: string, operators: readonly string[]) {
+function splitExpression(source: string, operators: readonly string[]) {
     let quote = ""
     let depth = 0
     for (let index = 0; index < source.length; index++) {
@@ -148,7 +148,8 @@ function call(method: string, object: any, argument: any) {
 
 function compile(source: string): (value: any) => any {
     source = source.trim()
-    const logical = split(source, ["||"]) || split(source, ["&&"])
+    const logical =
+        splitExpression(source, ["||"]) || splitExpression(source, ["&&"])
     if (logical) {
         const left = compile(logical[0])
         const right = compile(logical[2])
@@ -156,7 +157,7 @@ function compile(source: string): (value: any) => any {
             ? value => Boolean(left(value)) || Boolean(right(value))
             : value => Boolean(left(value)) && Boolean(right(value))
     }
-    const parts = split(source, Object.keys(comparisons))
+    const parts = splitExpression(source, Object.keys(comparisons))
     if (!parts) return operand(source)
     const [leftSource, operator, rightSource] = parts
     const left = operand(leftSource)
@@ -175,10 +176,6 @@ function array(values: any): any[] {
     return values
 }
 
-export function map(callback: ExExpression, values: any[]): any[] {
-    return array(values).map(callback)
-}
-
 export function filter(callback: ExExpression, values: any[]): any[] {
     return array(values).filter(callback)
 }
@@ -193,4 +190,13 @@ export function join(source: string, values: any[]): string {
         list,
         separator === undefined ? source : separator,
     )
+}
+
+export function split(source: string, value: any): string[] {
+    if (typeof value !== "string") throw new Error("Expected a string")
+    if (!source) return value.split(" ")
+    const delimiter = stringLiteral(source)
+    if (delimiter === undefined && /^['"]/.test(source))
+        throw new Error(`Invalid delimiter: ${source}`)
+    return value.split(delimiter === undefined ? source : delimiter)
 }

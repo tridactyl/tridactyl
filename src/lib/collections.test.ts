@@ -1,4 +1,10 @@
-import { expression, filter, join, map, selector } from "@src/lib/collections"
+import {
+    expression,
+    filter,
+    join,
+    selector,
+    split,
+} from "@src/lib/collections"
 
 test.each([
     ["_.url", { url: "one" }, "one"],
@@ -30,11 +36,9 @@ test("bare underscore is the identity selector", () => {
     expect(expression("_")(value)).toBe(value)
 })
 
-test("maps and filters arrays with magic selectors", () => {
+test("filters arrays with magic selectors", () => {
     const values = [{ url: "one" }, {}, { url: "two" }]
-    expect(
-        map(expression("_.url"), filter(expression("_.url"), values)),
-    ).toEqual(["one", "two"])
+    expect(filter(expression("_.url"), values)).toEqual([values[0], values[2]])
     expect(filter(expression("_"), [0, 1, false, 2])).toEqual([1, 2])
 })
 
@@ -77,13 +81,25 @@ test.each([
     expect(expression(source)(value)).toBe(expected),
 )
 
-test("maps and filters with full expressions", () => {
-    const values = [
-        { x: "ok", n: 2 },
-        { x: "no", n: 3 },
-    ]
+test("filters with full expressions", () => {
+    const values = [{ x: "ok" }, { x: "no" }]
     expect(filter(expression("_.x == 'ok'"), values)).toEqual([values[0]])
-    expect(map(expression("_.n >= 3"), values)).toEqual([false, true])
+})
+
+test.each([
+    ["", "one two", ["one", "two"]],
+    ["", "one  two", ["one", "", "two"]],
+    ["", "one\ttwo", ["one\ttwo"]],
+    [",", "one,two", ["one", "two"]],
+    ['" "', "one two", ["one", "two"]],
+    ['""', "one", ["o", "n", "e"]],
+])("splits %p with delimiter %p", (source, value, expected) =>
+    expect(split(source as string, value as string)).toEqual(expected),
+)
+
+test("rejects invalid split input", () => {
+    expect(() => split("'", "one")).toThrow("delimiter")
+    expect(() => split("", [] as any)).toThrow("string")
 })
 
 test("uses direct property access semantics", () =>
@@ -151,7 +167,6 @@ test.each([
 )
 
 test.each(["one two", { one: 1 }])("rejects non-array input", value => {
-    expect(() => map(expression("_"), value as any)).toThrow("array")
     expect(() => filter(expression("_"), value as any)).toThrow("array")
     expect(() => join(",", value as any)).toThrow("array")
 })

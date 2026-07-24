@@ -296,7 +296,7 @@ const mapStage = (map: ExStage[], piped = false): ExStage => ({
 function mapError(index: number, cause: unknown) {
     return Object.assign(
         new Error(
-            `map item ${index}: ${
+            `mapped item ${index}: ${
                 cause instanceof Error ? cause.message : String(cause)
             }`,
         ),
@@ -391,7 +391,7 @@ function compile(
 }
 
 async function mapValues(stages: ExStage[], run: ExCommandRunner, input: any) {
-    if (!Array.isArray(input)) throw new Error("map expected an array")
+    if (!Array.isArray(input)) throw new Error(".| expected an array")
     const values = await Promise.all(
         input.map((item, index) =>
             execute(stages, run, true, item).catch(error => {
@@ -415,7 +415,7 @@ async function execute(
         const input = piped ? value : undefined
         try {
             if (stage.map && !piped)
-                throw new Error("map requires pipeline input")
+                throw new Error(".| requires pipeline input")
             value = stage.map
                 ? await mapValues(stage.map, run, input)
                 : stage.block !== undefined

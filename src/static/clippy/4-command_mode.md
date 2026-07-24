@@ -40,8 +40,11 @@ echo hello
 # pipes can chain commands
 :echo hello | fillcmdline
 
+# split converts strings to arrays; join converts arrays to strings
+:echo one two | split | join - | fillcmdline
+
 # underscore expressions are evaluated against pipeline input
-# map and filter declare that they accept the same expressions as callbacks
+# filter declares that it accepts the same expressions as callbacks
 # i.e. _.a > 1 is equivalent to javascript x -> (x.a > 1)
 :js [{a: 1},{a: 2},{a: 3}] | filter _.a > 1 | fillcmdline
 

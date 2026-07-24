@@ -4161,17 +4161,6 @@ export async function composite(...cmds: string[]) {
 }
 
 /**
- * Transform every element of a piped array with an underscore expression.
- * Supports property, integer-index, inclusive-slice, and comparison expressions;
- * short-circuit `&&` and `||`; and `includes`, `startsWith`, and `endsWith`.
- * Example: `js [{url: "one"}, {url: "two"}] | map _.url`.
- */
-//#both
-export function map(callback: string | Collections.ExExpression, values: any[]): any[] {
-    return Collections.map(Collections.expression(callback), values)
-}
-
-/**
  * Keep elements whose underscore expression is truthy, defaulting to the
  * identity predicate `_`. `==` and `!=` use strict equality. Example:
  * `js [{x: "ok"}, {}] | filter _.x == 'ok'`.
@@ -4188,12 +4177,23 @@ export function filter(callback: string | Collections.ExExpression | any[], valu
 
 /**
  * Join the elements of a piped array. The separator defaults to `,` and may be
- * a quoted string. Example: `js [{name: "one"}, {name: "two"}] | map _.name | join " "`.
+ * a quoted string. Example: `js [{name: "one"}, {name: "two"}] .| _.name | join " "`.
  */
 //#both
 export function join(...args: string[]): string {
     const values = args.pop() as any
     return Collections.join(args.join(" "), values)
+}
+
+/**
+ * Split a piped string on a single space or the supplied delimiter.
+ * Quoted delimiters are parsed like [[join]]; `split ""` splits into characters.
+ * Example: `echo one,two | split ,`.
+ */
+//#both
+export function split(...args: string[]): string[] {
+    const value = args.pop() as any
+    return Collections.split(args.join(" "), value)
 }
 
 /**

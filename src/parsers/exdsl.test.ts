@@ -3,6 +3,7 @@ import { EX_CANCELLED, formatExProgram, isExCancelled } from "@src/lib/excmd"
 import { parser as parseExCommand } from "@src/parsers/exmode"
 import { acceptExCmd, setExCmds } from "@src/lib/controller"
 import * as aliases from "@src/lib/aliases"
+import { excmdsFunctions } from "@src/.metadata.generated"
 
 function shape(source: string, structure = parseStructure(source)): any[] {
     return structure.parts.map(part => [
@@ -152,13 +153,15 @@ test("ignores leading colons on every command", async () => {
     ])
 })
 
-test("leading colons work with map and preserve heredoc bodies", async () => {
+test("leading colons work with callbacks and preserve heredoc bodies", async () => {
     const values = [{ id: 1 }, { id: 2 }]
-    const mapRun = jest.fn(source => (source === "values" ? values : source))
-    await evaluate("values | :map _.id", mapRun)
-    expect(mapRun.mock.calls.map(call => call[0])).toEqual([
+    const callbackRun = jest.fn(source =>
+        source === "values" ? values : source,
+    )
+    await evaluate("values | :filter _.id", callbackRun)
+    expect(callbackRun.mock.calls.map(call => call[0])).toEqual([
         "values",
-        "map _.id",
+        "filter _.id",
     ])
 
     const run = jest.fn()
@@ -198,7 +201,6 @@ test("evaluates pipeline input expressions in command arguments", () => {
     const commands = {
         "": {
             echo: jest.fn(),
-            map: jest.fn(),
             repeat: jest.fn(),
             version: jest.fn(),
         },
@@ -261,8 +263,8 @@ test("groups expression arguments by precedence", () => {
 })
 
 test("compiles callback expressions in legacy parsing", () => {
-    const commands = { "": { map: jest.fn(), repeat: jest.fn() } }
-    const [, [callback], consumed] = parseExCommand("map _.x > 1", commands)
+    const commands = { "": { filter: jest.fn(), repeat: jest.fn() } }
+    const [, [callback], consumed] = parseExCommand("filter _.x > 1", commands)
     expect(callback({ x: 2 })).toBe(true)
     expect(consumed).toBe(false)
 })
@@ -324,13 +326,11 @@ test("evaluates mapped expressions against each item", () => {
 })
 
 test("passes expression callbacks according to parameter metadata", async () => {
-    const map = jest.fn((callback, values) => values.map(callback))
     const filter = jest.fn((callback, values) => values.filter(callback))
     const sink = jest.fn((...args) => args)
     setExCmds({
         "": {
             source: () => [{ x: 1 }, { x: 3 }],
-            map,
             filter,
             sink,
             repeat: jest.fn(),
@@ -338,12 +338,11 @@ test("passes expression callbacks according to parameter metadata", async () => 
     })
     await expect(
         acceptExCmd({
-            source: "source | filter _.x > 1 | map _.x | sink _",
+            source: "source | filter _.x > 1 | sink _",
             exversion: 2,
         }),
-    ).resolves.toEqual([[3]])
+    ).resolves.toEqual([[{ x: 3 }]])
     expect(filter.mock.calls[0][0]).toEqual(expect.any(Function))
-    expect(map.mock.calls[0][0]).toEqual(expect.any(Function))
 })
 
 test("maps a command with arguments and pipes the collected results", async () => {
@@ -396,7 +395,7 @@ test("runs mapped commands concurrently while preserving result order", async ()
     expect(maximumActive).toBe(3)
 })
 
-test("reports the failed map item while already-started items continue", async () => {
+test("reports the failed mapped item while started items continue", async () => {
     const started: number[] = []
     const error = await evaluate("values .| work", (command, _piped, input) => {
         if (command === "values") return [0, 1, 2]
@@ -405,19 +404,19 @@ test("reports the failed map item while already-started items continue", async (
         return input
     }).catch(error => error)
     expect(error).toEqual(
-        expect.objectContaining({ message: "map item 1: boom" }),
+        expect.objectContaining({ message: "mapped item 1: boom" }),
     )
     expect(error.cause).toEqual(expect.objectContaining({ message: "boom" }))
     expect(started).toEqual([0, 1, 2])
 })
 
-test.each(["text", "object"])("rejects %s map input", async command => {
+test.each(["text", "object"])("rejects mapped %s input", async command => {
     const value = command === "text" ? "one two" : { one: 1, two: 2 }
     await expect(
         evaluate(`${command} .| echo`, source =>
             source === command ? value : source,
         ),
-    ).rejects.toThrow("map expected an array")
+    ).rejects.toThrow(".| expected an array")
 })
 
 test("maps an empty array without invoking the target", async () => {
@@ -429,16 +428,23 @@ test("maps an empty array without invoking the target", async () => {
     expect(run).toHaveBeenCalledTimes(1)
 })
 
-test("treats map as an ordinary command", async () => {
-    const values = [1, 2]
-    const run = jest.fn((command, _piped, input) =>
-        command === "values" ? values : input,
-    )
-    await expect(evaluate("values | map target", run)).resolves.toBe(values)
-    expect(run.mock.calls.map(call => call[0])).toEqual([
-        "values",
-        "map target",
-    ])
+test("registers split but not map", () => {
+    expect(excmdsFunctions.split).toBeDefined()
+    expect(excmdsFunctions.map).toBeUndefined()
+})
+
+test("passes implicit and explicit pipeline input to split", async () => {
+    const split = jest.fn((...args) => args)
+    setExCmds({ "": { source: () => "one,two", split, repeat: jest.fn() } })
+    await expect(
+        acceptExCmd({ source: "source | split", exversion: 2 }),
+    ).resolves.toEqual(["one,two"])
+    await expect(
+        acceptExCmd({ source: "source | split ,", exversion: 2 }),
+    ).resolves.toEqual([",", "one,two"])
+    await expect(
+        acceptExCmd({ source: "source | split , _", exversion: 2 }),
+    ).resolves.toEqual([",", "one,two"])
 })
 
 test("continues incomplete operators across newlines", async () => {
@@ -481,7 +487,7 @@ test.each(["a | cancel | b ; c", "a | { cancel | b } ; c"])(
     },
 )
 
-test("cancellation in a map stops its parent program", async () => {
+test("cancellation in a mapped stage stops its parent program", async () => {
     const run = jest.fn((command, _piped, input) => {
         if (command === "values") return [0, 1, 2]
         if (command === "work") return input === 1 ? EX_CANCELLED : input
