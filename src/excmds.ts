@@ -5670,6 +5670,8 @@ export async function hint(...args: string[]): Promise<any> {
 
                       switch (config.openMode) {
                           case OpenMode.Default:
+                              const href = typeof elem.href === "string" ? elem.href : elem.href.animVal
+                              if (href.startsWith("file:")) return open(href)
                               DOM.simulateClick(elem)
                               break
                           case OpenMode.Tab:
