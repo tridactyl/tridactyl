@@ -165,6 +165,7 @@ function listen(elem: Window | HTMLElement | HTMLFrameElement) {
         keyseq.guarded(ContentController.canceller.cancelKeyUp),
         true,
     )
+    elem.removeEventListener("keydown", keyseq.guarded(protectSlash), true)
     elem.addEventListener(
         "keydown",
         keyseq.guarded(ContentController.acceptKey),
@@ -185,6 +186,7 @@ function listen(elem: Window | HTMLElement | HTMLFrameElement) {
         keyseq.guarded(ContentController.canceller.cancelKeyUp),
         true,
     )
+    elem.addEventListener("keydown", keyseq.guarded(protectSlash), true)
 }
 
 listen(window)
@@ -534,10 +536,6 @@ let leaveGithubAlone = false // don't wait for the config before adding the list
 config.getAsync("leavegithubalone").then(v => {
     leaveGithubAlone = v === "true"
 });
-// attach to window instead of document as it's available earlier
-// capture: true prevents bubbling before we have had a chance to cancel it
-window.addEventListener("keydown", protectSlash, {capture: true})
-
 function protectSlash(e) {
     if (!e.isTrusted || leaveGithubAlone ) return
     const protectedKeys = (config.get("blacklistkeys") || []).concat(
