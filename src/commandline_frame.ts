@@ -252,10 +252,7 @@ let history_called = false
 /** @hidden **/
 let prev_cmd_called_history = false
 
-// Save programmer time by generating an immediately resolved promise
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const QUEUE: Promise<void>[] = [(async () => {})()]
-let commandSession = { pending: 0 }
+let commandSession = { pending: 0, queue: [Promise.resolve()] }
 const nativeInsertFallbacks = new Map<object, () => boolean>()
 
 /** @hidden **/
@@ -309,8 +306,8 @@ commandline_state.clInput.addEventListener(
             if (funcname) {
                 session.pending++
 
-                QUEUE[QUEUE.length - 1].then(() => {
-                    QUEUE.push(
+                session.queue[session.queue.length - 1].then(() => {
+                    session.queue.push(
                         // Abuse async to wrap non-promises in a promise
                         // eslint-disable-next-line @typescript-eslint/require-await
                         (async () => session === commandSession && command(commandArgument))()
@@ -396,7 +393,7 @@ let cmdline_history_current = ""
  *  Otherwise, no need to pass an argument.
  */
 export function clear(evlistener = false) {
-    if (evlistener) commandSession = { pending: 0 }
+    if (evlistener) commandSession = { pending: 0, queue: [Promise.resolve()] }
     if (evlistener) prev_cmd_called_history = false
     if (evlistener)
         commandline_state.clInput.removeEventListener("blur", noblur)
