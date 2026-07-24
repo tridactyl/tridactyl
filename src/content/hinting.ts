@@ -38,6 +38,7 @@ import { contentState, addContentStateChangedListener } from "@src/content/state
 import * as config from "@src/lib/config"
 import Logger from "@src/lib/logging"
 import * as R from "ramda"
+import * as Perf from "@src/perf"
 
 /** @hidden */
 const logger = new Logger("hinting")
@@ -1062,6 +1063,7 @@ type HintFilter = (s: string) => void
 /** Show only hints prefixed by fstr. Focus first match
 @hidden */
 function filterHintsSimple(fstr) {
+    const perfMarker = new Perf.Marker("Hinting", "filterHintsSimple").start()
     const active: Hint[] = []
     let foundMatch
 
@@ -1088,6 +1090,7 @@ function filterHintsSimple(fstr) {
     if (active.length === 1 && config.get("hintautoselect") === "true") {
         selectFocusedHint()
     }
+    perfMarker.end()
 }
 
 /** Partition the filter string into hintchars and content filter strings.
@@ -1102,6 +1105,7 @@ function filterHintsSimple(fstr) {
     @hidden
 */
 function filterHintsVimperator(query: string, reflow = false) {
+    const perfMarker = new Perf.Marker("Hinting", "filterHintsVimperator").start()
     /** Partition a query into a tagged array of substrings */
     function partitionquery(
         query,
@@ -1182,6 +1186,7 @@ function filterHintsVimperator(query: string, reflow = false) {
     if (active.length === 1 && config.get("hintautoselect") === "true") {
         selectFocusedHint(true)
     }
+    perfMarker.end()
 }
 
 /**
