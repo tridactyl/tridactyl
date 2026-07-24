@@ -9,7 +9,7 @@
 import SemverCompare from "semver-compare"
 import * as Config from "@src/lib/config"
 import * as Logging from "@src/lib/logging"
-import { getTriVersion } from "@src/lib/webext"
+import { getTriVersion, getTriVersionName } from "@src/lib/webext"
 
 const logger = new Logging.Logger("updates")
 
@@ -83,22 +83,10 @@ export function updateLatestNaggedVersion(version: TriVersionFeedItem) {
 }
 
 export function getInstalledPatchVersion() {
-    // We're currently numbering our releases as
-    // maj.min.patch-numcommits-githash,
-    // e.g. 1.14.9-138-gaab4355. Even more problematically, our
-    // prereleases have maj.min.patch the same as the _preceding
-    // release_, not the _next_ release - 1.14.9-138 actually
-    // _follows_ 1.14.9. As a result, if we used TRI_VERSION directly,
-    // all of our beta users would be incorrectly notified for stable
-    // releases of code that they're well past.
-    //
-    // To address this, we ignore our git version, depend on firefox
-    // to automatically update us if we're on the beta channel, and
-    // disregard the pre-release information entirely when doing our
-    // own update check.
-    return TRI_VERSION.replace(/pre.*/, "")
+    // Beta versions use a fourth component for Firefox's updater.
+    return TRI_VERSION.split(".", 3).join(".")
 }
 
 export function getInstalledVersion() {
-    return TRI_VERSION
+    return getTriVersionName()
 }

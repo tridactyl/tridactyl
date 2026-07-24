@@ -1,4 +1,4 @@
-const { set_release_version } = require("./version")
+const { set_beta_version, set_release_version } = require("./version")
 
 test("manages major and minor release names", () => {
     const manifest = { version: "1.24.6", version_name: "1.24.6" }
@@ -15,4 +15,8 @@ test("manages major and minor release names", () => {
     expect(() =>
         set_release_version({ version: "1.25.0" }, 2, "Carpenter"),
     ).toThrow()
+
+    set_beta_version(manifest, "7685", "1ac287cf")
+    expect(manifest.version).toBe("2.0.0.7685")
+    expect(manifest.version_name).toBe("2.0.0pre7685-1ac287cf Joiner")
 })

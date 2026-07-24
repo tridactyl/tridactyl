@@ -130,6 +130,7 @@ const logger = new Logging.Logger("excmd")
 /** @hidden **/
 const TRI_VERSION = getTriVersion()
 const TRI_VERSION_NAME = getTriVersionName()
+const IS_BETA = browser.runtime.getManifest().applications?.gecko?.id?.includes(".betas") || false
 
 //#content_helper
 // {
@@ -783,7 +784,7 @@ export async function native() {
  */
 //#background
 export async function nativeinstall() {
-    const tag = TRI_VERSION.includes("pre") ? "master" : TRI_VERSION
+    const tag = IS_BETA ? "master" : TRI_VERSION
     let done
     const installstr = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
     await yank(installstr)
@@ -922,7 +923,7 @@ export async function updatenative(interactive = true) {
         return
     }
 
-    const tag = TRI_VERSION.includes("pre") ? "master" : TRI_VERSION
+    const tag = IS_BETA ? "master" : TRI_VERSION
     const update_command = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
     const native_version = await Native.getNativeMessengerVersion()
 

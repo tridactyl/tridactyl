@@ -18,6 +18,16 @@ function release_name(manifest) {
         .trim()
 }
 
+function validate_release_version(manifest) {
+    if (!/^\d+\.\d+\.\d+$/.test(manifest.version) || manifest.version_name !== [manifest.version, release_name(manifest)].filter(Boolean).join(" ")) {
+        throw new Error("Manifest version_name must be the version followed by an optional release name")
+    }
+}
+
+function tagged(version) {
+    return fs.existsSync(".git") && execFileSync("git", ["tag", "--list", version]).toString().trim() !== ""
+}
+
 function set_release_version(manifest, component, name = "") {
     if (![0, 1, 2].includes(component)) throw new Error("Version component must be 0, 1 or 2")
     if (component === 2 && name) throw new Error("Only major and minor releases can be named")
@@ -28,7 +38,7 @@ function set_release_version(manifest, component, name = "") {
     manifest.version_name = [manifest.version, nameForRelease].filter(Boolean).join(" ")
 }
 
-async function add_beta(versionstr) {
+async function beta_number() {
     await fs.promises.mkdir(".build_cache", {recursive: true})
     try {
         await fs.promises.access(".git")
@@ -42,7 +52,7 @@ async function add_beta(versionstr) {
     catch {
         ; // Not in a git directory - don't do anything
     }
-    return versionstr + "pre" + (await fs.promises.readFile(".build_cache/count", {encoding: "utf8"})).trim()
+    return (await fs.promises.readFile(".build_cache/count", {encoding: "utf8"})).trim()
 }
 
 async function get_hash() {
@@ -97,18 +107,36 @@ function save_manifest(filename, manifest) {
     fs.writeFileSync(filename, JSON.stringify(manifest, null, 4))
 }
 
+function set_beta_version(manifest, number, hash) {
+    const version = manifest.version
+    const name = release_name(manifest)
+    manifest.version = `${version}.${number}`
+    manifest.version_name = [`${version}pre${number}-${hash}`, name].filter(Boolean).join(" ")
+}
+
 async function main() {
-    let filename, manifest, releaseName
+    let filename, manifest
     switch (process.argv[2]) {
-        case "bump": {
-            // Load src manifest and bump
+        case "next": {
             filename = "./src/manifest.json"
             manifest = require("." + filename)
+            if (!tagged(manifest.version)) throw new Error(`Version ${manifest.version} is not tagged`)
             set_release_version(
                 manifest,
                 Number(process.argv[3]),
                 process.argv.slice(4).join(" "),
             )
+            validate_release_version(manifest)
+            if (tagged(manifest.version)) throw new Error(`Version ${manifest.version} is already tagged`)
+            save_manifest(filename, manifest)
+            break
+        }
+        case "release": {
+            filename = "./src/manifest.json"
+            manifest = require("." + filename)
+            validate_release_version(manifest)
+            if (tagged(manifest.version)) throw new Error(`Version ${manifest.version} is already tagged`)
+            if (execFileSync("git", ["status", "--porcelain"]).toString().trim()) throw new Error("Release requires a clean worktree")
             const changelog = fs.readFileSync("./CHANGELOG.md", "utf8")
             const releaseHeading = `Release ${manifest.version} / Unreleased`
             const releaseNotes = changelog
@@ -127,8 +155,7 @@ async function main() {
                 "./CHANGELOG.md",
                 changelog.replace(releaseNotes, () => datedReleaseNotes),
             )
-            save_manifest(filename, manifest)
-            execFileSync("git", ["add", filename, "./CHANGELOG.md"])
+            execFileSync("git", ["add", "./CHANGELOG.md"])
             execFileSync("git", [
                 "commit",
                 "--cleanup=verbatim",
@@ -147,9 +174,9 @@ async function main() {
         case "beta":
             filename = "./build/manifest.json"
             manifest = require("." + filename)
-            releaseName = release_name(manifest)
-            manifest.version = await add_beta(manifest.version)
-            manifest.version_name = [manifest.version + "-" + (await get_hash()), releaseName].filter(Boolean).join(" ")
+            validate_release_version(manifest)
+            if (tagged(manifest.version)) throw new Error(`Version ${manifest.version} is already tagged`)
+            set_beta_version(manifest, await beta_number(), await get_hash())
             manifest.applications.gecko.update_url =
                 "https://tridactyl.cmcaine.co.uk/betas/updates.json"
 
@@ -173,4 +200,4 @@ async function main() {
 
 if (require.main === module) main()
 
-module.exports = { set_release_version }
+module.exports = { set_beta_version, set_release_version }

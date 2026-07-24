@@ -349,6 +349,8 @@ If you want to build a signed copy (e.g. for the non-developer release), you can
 
 You can build unsigned copies with `scripts/sign nosign{stable,beta}`. NB: The `stable` versus `beta` part of the argument tells our build process which extension ID to use (and therefore which settings to use). If you want a stable build, make sure you are on the latest tag, i.e. `git checkout $(git tag | grep '^[0-9]\+\.[0-9]\+\.[0-9]\+$' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1)`.
 
+Maintainers create the next release after fetching tags with `scripts/version.js next {0,1,2} [release name]` and committing the changed manifest. Beta builds use that version while retaining the release name in their displayed version. Once its changelog entry is ready, `scripts/version.js release` dates the entry, commits it, and tags the version already in `src/manifest.json`.
+
 If you are on a distribution which builds Firefox with `--with-unsigned-addon-scopes=` set to `app` and/or `system` (which is most of them by users: Arch, Debian, Ubuntu), you can install your unsigned copy of Tridactyl with `scripts/install.sh [directory]`. If you're on Arch, the correct directory is probably selected by default; on other distributions you might have to go hunting, but it probably looks like `/usr/lib/firefox/browser/extensions`.
 
 ### Building on Windows
