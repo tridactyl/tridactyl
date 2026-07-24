@@ -132,6 +132,7 @@ export function mouseEvent(
         const event = new MouseEvent(type, {
             bubbles: true,
             cancelable: true,
+            composed: type === "click",
             view: window,
             detail: 1, // usually the click count
             ...modifierKeys,
@@ -963,7 +964,7 @@ const tabTargetToModifierKey = {
     [TabTarget.NewWindow]: { shiftKey: true },
 }
 
-/** if `target === _blank` clicking the link is treated as opening a popup and is blocked. Use webext API to avoid that. */
+/** Run page handlers before using the webext API for popup-blocked `_blank`/`_new` links. */
 export function simulateClick(
     target: HTMLElement,
     tabTarget: TabTarget = TabTarget.CurrentTab,
@@ -976,9 +977,11 @@ export function simulateClick(
     let usePopupBlockerWorkaround =
         (target as HTMLAnchorElement).target === "_blank" ||
         (target as HTMLAnchorElement).target === "_new"
-    const href = (target instanceof SVGAElement)
-        ? target.href.animVal
-        : (target as HTMLAnchorElement).href;
+    const getHref = () =>
+        target instanceof SVGAElement
+            ? target.href.animVal
+            : (target as HTMLAnchorElement).href
+    let href = getHref()
     if (href?.startsWith("file:")) {
         // file URLS cannot be opend with browser.tabs.create
         // see https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/create#url
@@ -989,6 +992,22 @@ export function simulateClick(
         usePopupBlockerWorkaround = false
     }
     if (usePopupBlockerWorkaround) {
+        let pagePreventedDefault: boolean
+        const interceptClick = (event: MouseEvent) => {
+            if (!event.composedPath().includes(target)) return
+            pagePreventedDefault = event.defaultPrevented
+            href = getHref()
+            usePopupBlockerWorkaround =
+                !href?.startsWith("file:") &&
+                ((target as HTMLAnchorElement).target === "_blank" ||
+                    (target as HTMLAnchorElement).target === "_new")
+            if (usePopupBlockerWorkaround) event.preventDefault()
+        }
+        const eventWindow = target.ownerDocument.defaultView
+        eventWindow?.addEventListener("click", interceptClick)
+        mouseEvent(target, "click", tabTargetToModifierKey[tabTarget])
+        eventWindow?.removeEventListener("click", interceptClick)
+        if (pagePreventedDefault !== false || !usePopupBlockerWorkaround) return
         // Try to open the new tab in the same container as the current one.
         activeTabContainerId().then(containerId => {
             if (containerId)
