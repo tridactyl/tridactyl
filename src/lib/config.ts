@@ -701,6 +701,7 @@ export class default_config {
         blacklistremove: "autocmddelete DocStart",
         b: "tab",
         clsh: "clearsearchhighlight",
+        downloads: "tabopen about:downloads",
         nohlsearch: "clearsearchhighlight",
         noh: "clearsearchhighlight",
         o: "open",
