@@ -4564,6 +4564,8 @@ export function unabbreviate(abbreviation: string) {
         - `bind j scrollline 20`
         - `bind F hint -b`
 
+    To create a dynamic keybinding that passes subsequent keypresses as arguments, bind to [[gobble]]. See its documentation for a JavaScript example.
+
     You can view binds by omitting the command line:
 
         - `bind j`
@@ -5845,8 +5847,20 @@ export function run_exstr(...commands: string[]) {
     If numKeysOrTerminator is a number, it will read the provided amount of keys;
     If numKeysOrTerminator is a key or key combination like 'k', '<CR>' or '<C-j>';
     it will read keys until the provided key is pressed.
-    Then it will append the keypresses to `endCmd` and execute that string,
-    also appending arguments if provided.
+    It then executes `endCmd capturedKeys args`, so captured keys are inserted
+    before any extra `args`. Thus `bind a gobble 1 js -p alert(JS_ARG)` does not
+    work: after pressing `b`, it starts `js b -p ...`.
+
+    Wrap commands whose options or code must precede the captured keys in a
+    [[command]] alias. For example, this dynamic keybinding alerts the key
+    pressed after `a`:
+
+    ```
+    command alertkey js -d@ window.alert(JS_ARGS[1])@
+    bind a gobble 1 alertkey
+    ```
+
+    Pressing `ab` alerts `b`. See also [[bind]] and [[js]].
 */
 //#content
 export async function gobble(numKeysOrTerminator: string, endCmd: string, ...args: string[]) {
