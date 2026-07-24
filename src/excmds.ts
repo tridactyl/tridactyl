@@ -448,6 +448,8 @@ export async function guiset_quiet(rule: string, option: string) {
  *
  * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
  *
+ * If your Firefox profile cannot be found automatically on Windows, go to `about:support`, copy the `Profile Directory` path, then run `:set profiledir PROFILEDIRECTORY`, replacing `PROFILEDIRECTORY` with the copied path.
+ *
  * Some of the available options:
  *
  * - gui
