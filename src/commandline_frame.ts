@@ -29,6 +29,7 @@ import {
 } from "@src/completions/Bmark"
 import { CompositeCompletionSource } from "@src/completions/Composite"
 import { ContainerCompletionSource } from "@src/completions/Container"
+import { DialogCompletionSource } from "@src/completions/Dialog"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { ExtensionsCompletionSource } from "@src/completions/Extensions"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
@@ -148,6 +149,7 @@ export function enableCompletions() {
             TabHistoryCompletionSource,
             CompositeCompletionSource,
             ContainerCompletionSource,
+            DialogCompletionSource,
             FileSystemCompletionSource,
             GotoCompletionSource,
             GuisetCompletionSource,

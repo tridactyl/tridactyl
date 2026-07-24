@@ -700,6 +700,7 @@ export class default_config {
         audelete: "autocmddelete",
         blacklistremove: "autocmddelete DocStart",
         b: "tab",
+        d: "dialog",
         clsh: "clearsearchhighlight",
         downloads: "tabopen about:downloads",
         nohlsearch: "clearsearchhighlight",

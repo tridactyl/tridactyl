@@ -101,6 +101,7 @@ import * as arg from "@src/lib/arg_util"
 import * as R from "ramda"
 import * as treestyletab from "@src/interop/tst"
 import { uuidv4 } from "@src/lib/math"
+import { ABOUT_PAGES } from "@src/lib/about_pages"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -725,6 +726,18 @@ export async function nativeopen(...args: string[]) {
             throw e
         }
     }
+}
+
+/** Opens a supported Firefox internal page. */
+//#background
+export async function dialog(...nameArgs: string[]) {
+    let name = nameArgs.join(" ")
+    if (name === "preference") name = "preferences"
+    if (!Object.prototype.hasOwnProperty.call(ABOUT_PAGES, name))
+        throw new Error(`Unknown dialog: ${name}`)
+    if (!(await Native.nativegate("0", false)))
+        throw new Error("The native messenger is required to open Firefox dialogs")
+    return nativeopen(`about:${name}`)
 }
 
 /**
