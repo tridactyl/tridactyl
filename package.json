@@ -52,7 +52,7 @@
     "jest-environment-jsdom": "29.7.0",
     "jest-jasmine2": "29.7.0",
     "jest-webextension-mock": "^4.0.0",
-    "marked": "^12.0.1",
+    "marked": "^15.0.7",
     "prettier": "^3.4.2",
     "selenium-webdriver": "^4.7.1",
     "ts-jest": "29.4.11",
