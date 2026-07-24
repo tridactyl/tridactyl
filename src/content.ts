@@ -380,14 +380,14 @@ function addStatusIndicator() {
     statusIndicator.className =
         "cleanslate TridactylStatusIndicator " +
         privateMode +
-        " TridactylModenormal "
+        ` TridactylMode${contentState.mode || "normal"} `
     // Firefox excludes text displayed by a collapsed select from find.
     const statusIndicatorText = document.createElement("option")
     const statusIndicatorSelect = document.createElement("select")
     statusIndicatorSelect.disabled = true
     statusIndicatorSelect.appendChild(statusIndicatorText)
     statusIndicator.appendChild(statusIndicatorSelect)
-    if (config.get("modeindicatormodes", "normal") === "false") {
+    if (config.get("modeindicatormodes", contentState.mode) === "false") {
         statusIndicator.classList.add("TridactylInvisible")
     }
 
