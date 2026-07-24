@@ -34,6 +34,13 @@
 " " get it in the browser, or just restart.
 " 
 " " If you're bovine3dom run sed 's|^" ||' .tridactylrc > ~/.config/tridactyl/tridactylrc
+"
+" "
+" " Cleanup (requires Tridactyl 1.25.0+)
+" "
+" santisise tridactylconfig
+" set configversion 2.0
+"
 " 
 " 
 " "

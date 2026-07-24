@@ -2274,16 +2274,20 @@ export async function unset(...target) {
     return save()
 }
 
-export async function clear() {
+export async function clear(scope: "local" | "config" = "local") {
     if (!IN_BACKGROUND) {
         USERCONFIG = o({})
-        return mutateInBackground("clear", [])
+        return mutateInBackground("clear", [scope])
     }
     if (EXCLUSIVE_PENDING) await EXCLUSIVE_QUEUE
     if (!INITIALISED) await getAsync()
     const old = USERCONFIG
     USERCONFIG = o({})
-    await store(() => browser.storage.local.clear())
+    await store(() =>
+        scope === "config"
+            ? browser.storage.local.remove([CONFIGNAME, CONFIG_WRITE])
+            : browser.storage.local.clear(),
+    )
     notifyChangeListeners(old, USERCONFIG)
 }
 

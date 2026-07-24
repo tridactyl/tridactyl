@@ -187,3 +187,14 @@ test("merge object when user config undefined", () => {
 
     expect(tri.config.USERCONFIG.subconfigs[u][obj]).toEqual({ next: val })
 })
+
+test("config-only clear preserves persisted state", async () => {
+    const state = { cmdHistory: ["echo retained"] }
+    await browser.storage.local.set({ state })
+    await tri.config.set("editorcmd", "issue-5472")
+
+    await tri.config.clear("config")
+
+    expect(tri.config.get("editorcmd")).toBe("auto")
+    expect(await browser.storage.local.get()).toEqual({ state })
+})

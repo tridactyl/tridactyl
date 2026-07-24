@@ -5176,9 +5176,9 @@ export async function reseturl(pattern: string, mode: string, key: string) {
     https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/browsingData/DataTypeSet
 
     Additional Tridactyl-specific arguments are:
-    - `commandline`: Removes the in-memory commandline history.
-    - `tridactyllocal`: Removes all tridactyl storage local to this machine. Use it with
-        commandline if you want to delete your commandline history.
+    - `commandline`: Removes the in-memory and stored commandline history.
+    - `tridactylconfig`: Removes locally stored user configuration without removing other local Tridactyl data, such as commandline history.
+    - `tridactyllocal`: Removes all tridactyl storage local to this machine.
     - `tridactylsync`: Removes all tridactyl storage associated with your Firefox Account (i.e, all user configuration, by default).
     These arguments aren't affected by the timespan parameter.
 
@@ -5235,6 +5235,7 @@ export async function sanitise(...args: string[]) {
         serviceWorkers: false,
         // These are Tridactyl-specific
         commandline: false,
+        tridactylconfig: false,
         tridactyllocal: false,
         tridactylsync: false,
         /* When this one is activated, a lot of errors seem to pop up in
@@ -5260,6 +5261,9 @@ export async function sanitise(...args: string[]) {
     // Tridactyl-specific items
     if (dts.commandline === true) state.cmdHistory = []
     delete dts.commandline
+    if (dts.tridactylconfig === true && dts.tridactyllocal === false)
+        await config.clear("config")
+    delete dts.tridactylconfig
     if (dts.tridactyllocal === true) await config.clear()
     delete dts.tridactyllocal
     if (dts.tridactylsync === true) await browser.storage.sync.clear()
