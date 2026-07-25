@@ -2,6 +2,7 @@
 
 import { excmdsFunctions, paramTypes, convert } from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
+import * as config from "@src/lib/config"
 import * as Logging from "@src/lib/logging"
 
 const logger = new Logging.Logger("exmode")
@@ -22,10 +23,36 @@ function convertArgs(params, argv) {
 // Simplistic Ex command line parser.
 // TODO: Quoting arguments
 // TODO: Pipe to separate commands
-// TODO: Abbreviated commands
 export function parser(exstr: string, all_excmds: any): any[] {
+    const exaliases = config.get("exaliases")
+    const [unexpandedFunc] = exstr.trim().split(/\s+/)
+    const builtinExcmds = all_excmds[""] || {}
+    let expandedExstr = exstr
+
+    if (
+        unexpandedFunc &&
+        !unexpandedFunc.includes(".") &&
+        exaliases[unexpandedFunc] === undefined &&
+        builtinExcmds[unexpandedFunc] === undefined
+    ) {
+        const matches = Object.keys({ ...excmdsFunctions, ...exaliases })
+            .filter(
+                name =>
+                    name.startsWith(unexpandedFunc) &&
+                    (exaliases[name] !== undefined ||
+                        builtinExcmds[name] !== undefined),
+            )
+            .sort()
+        if (matches.length > 1)
+            throw new Error(
+                `Ambiguous excmd: ${unexpandedFunc}. Possible matches: ${matches.join(", ")}`,
+            )
+        if (matches.length === 1)
+            expandedExstr = exstr.replace(unexpandedFunc, matches[0])
+    }
+
     // Expand aliases
-    const expandedExstr = aliases.expandExstr(exstr)
+    expandedExstr = aliases.expandExstr(expandedExstr, exaliases)
     const [func, ...args] = expandedExstr.trim().split(/\s+/)
 
     // Try to find which namespace (ex, text, ...) the command is in
