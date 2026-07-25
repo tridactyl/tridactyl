@@ -35,6 +35,9 @@ export function makeIframe() {
         browser.runtime.getURL("static/commandline.html"),
     )
     cmdline_iframe.setAttribute("id", "cmdline_iframe")
+    cmdline_iframe.addEventListener("load", () => {
+        resolveIframeReady()
+    })
     cmdline_iframe.name = iframeGeneration
     iframeReady = new Promise(resolve => (resolveIframeReady = resolve))
     hide()
