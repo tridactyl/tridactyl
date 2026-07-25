@@ -167,6 +167,13 @@ export const potentialRules = {
             show: ``,
         },
     },
+    sidebar: {
+        name: `#sidebar-main`,
+        options: {
+            hide: `display: none !important;`,
+            show: ``,
+        },
+    },
     padwhenmaximised: {
         name: `#main-window[sizemode="maximized"] #content-deck`,
         options: {
@@ -210,6 +217,7 @@ export const metaRules = {
             tabs: "always",
             navbar: "always",
             menubar: "default",
+            sidebar: "show",
             padwhenmaximised: "none",
         },
     },
