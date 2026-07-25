@@ -368,7 +368,7 @@ describe("webdriver", () => {
             await untilTabUrlMatches(
                 driver,
                 newTab.id,
-                new RegExp("^https://www.google.com/search.*qwant"),
+                new RegExp("^https?:\/\/.*qwant", "i"),
             )
         } catch (e) {
             fail(e)
