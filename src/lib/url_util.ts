@@ -439,14 +439,13 @@ export function searchUrlToArgs(
  * If the URL pattern contains "%s", the query is interpolated there. If not,
  * it is appended to the end of the pattern.
  *
- * If the interpolation point is in the query string of the URL, it is
- * percent encoded, otherwise it is is inserted verbatim.
+ * The search item is percent encoded before it is inserted.
  *
  * @param urlPattern        a URL to interpolate/append a query to
  * @param query             a query to interpolate/append into the URL
  *
- * @return                  the URL with the query encoded (if needed) and
- *                          inserted at the relevant point
+ * @return                  the URL with the query encoded and inserted at the
+ *                          relevant point
  */
 export function interpolateSearchItem(urlPattern: URL, query: string): URL {
     const hasInterpolationPoint = urlPattern.href.includes("%s")

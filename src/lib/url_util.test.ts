@@ -346,18 +346,18 @@ function test_url_graft_path() {
 
 function test_url_query_interpolation() {
     let cases = [
-        ["http://example.com/%s000", "a/query", "http://example.com/a/query000"],
+        ["http://example.com/%s000", "a/query", "http://example.com/a%2Fquery000"],
         [
-            // not percent-encoded and appended
+            // appended to the path
             "http://example.com",
             "a/query",
-            "http://example.com/a/query",
+            "http://example.com/a%2Fquery",
         ],
         [
-            // not percent-encoded and interpolated
+            // interpolated into the path
             "http://example.com/%s/path",
             "a/query",
-            "http://example.com/a/query/path",
+            "http://example.com/a%2Fquery/path",
         ],
         [
             // percent-encoded and appended
