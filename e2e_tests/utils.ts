@@ -33,7 +33,8 @@ export async function getNewestFileIn(directory: string): Promise<string> {
 }
 
 export async function iframeLoaded(driver: Driver) {
-    return driver.wait(Until.elementLocated(By.id("cmdline_iframe")))
+    const host = await driver.wait(Until.elementLocated(By.id("cmdline_iframe")))
+    return (await host.getShadowRoot()).findElement(By.css("iframe"))
 }
 
 export async function getDriver() {

@@ -1,6 +1,7 @@
 @import url("../themes/auto/auto.css");
 
 #cmdline_iframe {
+    all: initial !important;
     position: fixed !important;
     bottom: 0 !important;
     z-index: 2147483647 !important;
