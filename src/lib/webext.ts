@@ -7,6 +7,7 @@ import * as R from "ramda"
 
 export async function getSortedTabs(
     forceSort?: "mru" | "default",
+    allWindows = false,
 ): Promise<browser.tabs.Tab[]> {
     const sortAlg = forceSort ?? config.get("tabsort")
     const comp =
@@ -15,12 +16,13 @@ export async function getSortedTabs(
                   +a.active || -b.active || b.lastAccessed - a.lastAccessed
             : (a, b) => a.index - b.index
     const hiddenVal = config.get("tabshowhidden") === "true" ? undefined : false
-    return browserBg.tabs
-        .query({
-            currentWindow: true,
-            hidden: hiddenVal,
-        })
-        .then(tabs => tabs.sort(comp))
+    const query: Parameters<typeof browser.tabs.query>[0] = {
+        hidden: hiddenVal,
+    }
+    if (!allWindows) {
+        query.currentWindow = true
+    }
+    return browserBg.tabs.query(query).then(tabs => tabs.sort(comp))
 }
 
 export function inContentScript() {
