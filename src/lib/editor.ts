@@ -335,6 +335,25 @@ export const backward_kill_word = wrap_input(
     }),
 )
 
+/** Deletes back to the previous sequence of letters, or deletes the selection. */
+export const unix_word_rubout = wrap_input(
+    needs_text((text, selectionStart, selectionEnd) => {
+        if (selectionEnd === 0) return [null, selectionStart, null]
+        let deletionStart =
+            selectionStart === selectionEnd
+                ? text
+                      .substring(0, selectionStart)
+                      .search(/[a-zA-Z]+[^a-zA-Z]*$/)
+                : selectionStart
+        if (deletionStart === -1) deletionStart = 0
+        return [
+            text.substring(0, deletionStart) + text.substring(selectionEnd),
+            deletionStart,
+            null,
+        ]
+    }),
+)
+
 /**
  * Behaves like readline's [beginning_of_line](http://web.mit.edu/gnu/doc/html/rlman_1.html#SEC12). Moves the caret to the right of the first newline character found at the left of the caret. If no newline can be found, move the caret to the beginning of the text.
  **/
