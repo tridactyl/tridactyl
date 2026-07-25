@@ -465,7 +465,11 @@ export async function clipboard(
     } else if (action === "set") {
         const required_version = "0.1.7"
         if (await nativegate(required_version, false)) {
-            const result = await run(`${clipcmd} -i`, str)
+            const nullDevice =
+                (await browserBg.runtime.getPlatformInfo()).os === "win"
+                    ? "NUL"
+                    : "/dev/null"
+            const result = await run(`${clipcmd} -i >${nullDevice} 2>&1`, str)
             if (result.code !== 0)
                 throw new Error(
                     `External command failed with code ${result.code}: ${clipcmd}`,
