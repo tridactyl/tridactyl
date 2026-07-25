@@ -1276,9 +1276,12 @@ export class default_config {
     tabshowhidden: "true" | "false" = "false"
 
     /**
-     * Number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
+     * Number of most recent results to ask Firefox for. The displayed subset is ordered by historysort.
      */
     historyresults = 50
+
+    /** Sort history by visit count ("frequency"), last visit ("recent"), or visit count inversely decayed after 90 days ("frecency"). */
+    historysort: "frequency" | "recent" | "frecency" = "frequency"
 
     /**
      * Whether bookmarks are included in :open, :tabopen and :winopen completions.

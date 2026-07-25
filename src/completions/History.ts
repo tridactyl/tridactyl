@@ -156,7 +156,10 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
     updateChain() {}
 
     private async scoreOptions(query: string, n: number) {
-        if (!query || config.get("historyresults") === 0) {
+        if (
+            (!query && config.get("historysort") === "frequency") ||
+            config.get("historyresults") === 0
+        ) {
             return (await providers.getTopSites()).slice(0, n)
         } else {
             return (await providers.getCombinedHistoryBmarks(query)).slice(0, n)
