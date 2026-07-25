@@ -59,6 +59,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
 
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
+        this.node.querySelector(".sectionHeader").textContent = "ex commands"
 
         // Add all excmds that start with exstr and that tridactyl has metadata about to completions
         this.options = this.scoreOptions(
@@ -107,6 +108,27 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
                 ),
         )
         this.options = this.options.concat(partial_options)
+
+        const [command] = exstr.trim().split(/\s+/)
+        if (
+            this.options.length === 0 &&
+            command &&
+            !excmdsFunctions[command] &&
+            exaliasesConfig[command] === undefined
+        ) {
+            const query = exstr.toLowerCase()
+            this.node.querySelector(".sectionHeader").textContent = "ex commands (no matches, falling back to doc search)"
+            this.options = this.scoreOptions(
+                Object.entries(excmdsFunctions)
+                    .filter(([, fn]) =>
+                        getDoc(fn).toLowerCase().includes(query),
+                    )
+                    .map(
+                        ([name, fn]) =>
+                            new ExcmdCompletionOption(name, getDoc(fn)),
+                    ),
+            )
+        }
 
         this.options.forEach(o => (o.state = "normal"))
         return this.updateChain()
