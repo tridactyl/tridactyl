@@ -2,6 +2,7 @@ import { queryAndURLwrangler } from "@src/lib/webext"
 import * as webext from "@src/lib/webext"
 import * as config from "@src/lib/config"
 import * as Native from "@src/lib/native"
+import state from "@src/state"
 
 jest.mock("@src/lib/webext", () => ({
     ...jest.requireActual("@src/lib/webext"),
@@ -9,6 +10,7 @@ jest.mock("@src/lib/webext", () => ({
     activeTabId: jest.fn().mockResolvedValue(1),
     openInNewTab: jest.fn(),
     activeTabContainerId: jest.fn(),
+    notBackground: jest.fn().mockReturnValue(false),
     queryAndURLwrangler: jest.fn(),
 }))
 
@@ -157,6 +159,22 @@ test("`getLastAudibleTab` prioritises current audio, falls back, and forgets clo
     jest.mocked(browser.tabs.get).mockClear()
     await webext.getLastAudibleTab()
     expect(browser.tabs.get).not.toHaveBeenCalled()
+})
+
+test("`changelistjump` skips closed tabs", async () => {
+    state.prevInputs = [
+        { inputId: "open", tab: 1 },
+        { inputId: "closed", tab: 2 },
+    ]
+    const update = jest.mocked(browser.tabs.update)
+    update.mockClear().mockRejectedValueOnce(new Error("Invalid tab ID"))
+
+    await backgroundExcmds.changelistjump()
+
+    expect(update.mock.calls).toEqual([
+        [2, { active: true }],
+        [1, { active: true }],
+    ])
 })
 
 test("`nativeopen` targets the running macOS Firefox application", async () => {

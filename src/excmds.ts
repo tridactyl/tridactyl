@@ -2672,13 +2672,19 @@ export async function hintinput() {
 //#background
 export async function changelistjump() {
     const tail = state.prevInputs[state.prevInputs.length - 1]
-    const jumppos = tail.jumppos ? tail.jumppos : state.prevInputs.length - 1
-    const input = state.prevInputs[jumppos]
-    await browser.tabs.update(input.tab, { active: true })
-    const id = input.inputId
-    // Not all elements have an ID, so this will do for now.
-    if (id) focusbyid(input.inputId)
-    else focusinput("-l")
+    const jumppos = tail.jumppos ?? state.prevInputs.length - 1
+    for (let i = jumppos; i >= 0; i--) {
+        const input = state.prevInputs[i]
+        try {
+            await browser.tabs.update(input.tab, { active: true })
+        } catch {
+            continue
+        }
+        // Not all elements have an ID, so this will do for now.
+        if (input.inputId) focusbyid(input.inputId)
+        else focusinput("-l")
+        return
+    }
 
     // Really want to bin the input we just focussed ^ and edit the real last input to tell us where to jump to next.
     // It doesn't work in practice as the focus events get added after we try to delete them.
