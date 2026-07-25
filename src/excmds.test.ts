@@ -11,6 +11,9 @@ jest.mock("@src/lib/webext", () => ({
     queryAndURLwrangler: jest.fn(),
 }))
 
+jest.mock("@src/lib/messaging")
+jest.mock("@src/background/config_rc")
+
 jest.mock("@src/lib/native", () => ({
     ...jest.requireActual("@src/lib/native"),
     ff_cmdline: jest.fn(),
@@ -152,6 +155,37 @@ test("`nativeopen` targets the running macOS Firefox application", async () => {
         `osascript -e 'on run argv' -e 'tell application "Firefox Nightly" to open location item 1 of argv' -e 'end run' 'https://example.com/'`,
     )
 })
+
+test.each(["mktridactylrc", "source"])(
+    "`%s` rejects without native",
+    async command => {
+        jest.mocked(Native.nativegate).mockResolvedValue(false)
+
+        await expect(backgroundExcmds[command]()).rejects.toThrow(
+            new RegExp(`:nativeinstall.*:${command} --clipboard`),
+        )
+    },
+)
+
+test("`source_quiet` suppresses missing-native errors", async () => {
+    jest.mocked(Native.nativegate).mockResolvedValue(false)
+
+    await expect(backgroundExcmds.source_quiet()).resolves.toBeUndefined()
+})
+
+test.each(["mktridactylrc", "source"])(
+    "`%s --clipboard` does not require native",
+    async command => {
+        jest.mocked(Native.nativegate).mockClear()
+        Object.assign(navigator, {
+            clipboard: { readText: jest.fn(), writeText: jest.fn() },
+        })
+
+        await backgroundExcmds[command]("--clipboard")
+
+        expect(Native.nativegate).not.toHaveBeenCalled()
+    },
+)
 
 test("`quickmarkremove` unbinds every quickmark mapping", async () => {
     const bindings = ["gnq", "goq", "gwq", "gpq"]

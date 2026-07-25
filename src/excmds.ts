@@ -865,7 +865,8 @@ export async function mktridactylrc(...args: string[]) {
         setclip(conf)
         return fillcmdline_tmp(3000, "# RC copied to clipboard")
     }
-    if ((await Native.nativegate("0.1.11")) && !(await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
+    if (!(await Native.nativegate("0.1.11", false))) throw new Error("`:mktridactylrc` requires the native messenger. Run `:nativeinstall` or use `:mktridactylrc --clipboard`.")
+    if (!(await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
 
     return conf
 }
@@ -907,7 +908,8 @@ export async function source(...args: string[]) {
         await rc.runRc(text)
     } else {
         const file = args.join(" ") || undefined
-        if ((await Native.nativegate("0.1.3")) && !(await rc.source(file))) {
+        if (!(await Native.nativegate("0.1.3", false))) throw new Error("`:source` requires the native messenger for local files. Run `:nativeinstall` or use `:source --clipboard`.")
+        if (!(await rc.source(file))) {
             logger.error("Could not find RC file")
         }
     }
