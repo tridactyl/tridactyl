@@ -54,9 +54,8 @@
     background: #f9f5ff !important;
 }
 
-.TridactylInvisible {
-    opacity: 0 !important;
-    pointer-events: none !important;
+.TridactylStatusIndicator.TridactylInvisible {
+    display: none !important;
 }
 
 .TridactylEditing {
