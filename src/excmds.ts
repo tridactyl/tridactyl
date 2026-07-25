@@ -6151,6 +6151,8 @@ export function echo(...str: string[]) {
     return str.join(" ")
 }
 
+const jsRcCache = new Map<string, string>()
+
 /** helper function for js and jsb
  *
  * -p to take a single extra argument located at the end of str[]
@@ -6168,6 +6170,7 @@ async function js_helper(str: string[]) {
 
     let doSource = false
     let fromRC = false
+    let cacheSource = false
     let separator = null
 
     while (true) {
@@ -6188,9 +6191,10 @@ async function js_helper(str: string[]) {
             continue
         }
 
-        if (flag == "-r") {
+        if (flag == "-r" || flag == "-rc") {
             doSource = true
             fromRC = true
+            cacheSource ||= flag == "-rc"
             str.shift()
             continue
         }
@@ -6224,9 +6228,14 @@ async function js_helper(str: string[]) {
             const rcPath = (await Native.getrcpath("unix")).split(sep).slice(0, -1)
             sourcePath = [...rcPath, sourcePath].join(sep)
         }
-        const file = await Native.read(sourcePath)
-        if (file.code !== 0) throw new Error("Couldn't read js file " + sourcePath)
-        jsContent = file.content
+        let source = cacheSource ? jsRcCache.get(sourcePath) : undefined
+        if (source === undefined) {
+            const file = await Native.read(sourcePath)
+            if (file.code !== 0) throw new Error("Couldn't read js file " + sourcePath)
+            source = file.content
+            if (cacheSource) jsRcCache.set(sourcePath, source)
+        }
+        jsContent = source
     }
 
     return eval(jsContent)
@@ -6245,11 +6254,11 @@ async function js_helper(str: string[]) {
  *
  *     `js -p javascript code ... arg`
  *
- *     `js [-s|-r] javascript_filename`
+ *     `js [-s|-r|-rc] javascript_filename`
  *
- *     `js -p [-s|-r] javascript_filename arg`
+ *     `js -p [-s|-r|-rc] javascript_filename arg`
  *
- *     `js -d³ [-s|-r] javascript_filename³ arg1 arg2 ...`
+ *     `js -d³ [-s|-r|-rc] javascript_filename³ arg1 arg2 ...`
  *     (where `³` is any char  that you can guarantee won't appear in your JS code)
  *
  *   - options
@@ -6257,6 +6266,7 @@ async function js_helper(str: string[]) {
  *     - `-d[delimiter character]` to take a space-separated array of arguments after the delimiter, stored in the magic variable `JS_ARGS` (array) - see below for example usage.
  *     - `-s` load the js source from a Javascript file.
  *     - `-r` load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
+ *     - `-rc` is the same as `-r`, but caches the source until the page (`js`) or background context (`jsb`) is unloaded. `-r` bypasses but does not update the cache.
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
  * `tri.bg` is an object enabling access to the background script's context. It works similarly to the `tri.tabs` objects documented in the [[jsb]] documentation.

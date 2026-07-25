@@ -14,7 +14,9 @@ jest.mock("@src/lib/webext", () => ({
 jest.mock("@src/lib/native", () => ({
     ...jest.requireActual("@src/lib/native"),
     ff_cmdline: jest.fn(),
+    getrcpath: jest.fn(),
     nativegate: jest.fn(),
+    read: jest.fn(),
     run: jest.fn(),
 }))
 
@@ -45,8 +47,9 @@ Object.defineProperty(browser, "sessions", {
 })
 
 const backgroundExcmds = require("@src/.excmds_background.generated")
-const { nativeopen, quickmarkremove, set, tabopen, winopen } = backgroundExcmds
-const { followpage, ttscontrol } = require("@src/.excmds_content.generated")
+const { jsb, nativeopen, quickmarkremove, set, tabopen, winopen } =
+    backgroundExcmds
+const { followpage, js, ttscontrol } = require("@src/.excmds_content.generated")
 
 test.each([
     ["next", ["READ MORE", ">", ">>"], ["^next\\b", ">", "more"], 1],
@@ -101,6 +104,26 @@ test.each(["none", "somecnt"])(
         expect(queryAndURLwrangler).toHaveBeenLastCalledWith([])
     },
 )
+
+test.each([
+    ["js", js],
+    ["jsb", jsb],
+])("`%s -rc` caches RC-relative source", async (name, command) => {
+    const filename = `${name}.js`
+    jest.mocked(Native.getrcpath).mockResolvedValue("/config/tridactylrc")
+    const read = jest.mocked(Native.read)
+    read.mockClear().mockResolvedValue({
+        cmd: "read",
+        version: null,
+        content: "null",
+        code: 0,
+    })
+
+    for (const flag of ["-rc", "-rc", "-r", "-r"]) await command(flag, filename)
+
+    expect(read).toHaveBeenCalledTimes(3)
+    expect(read).toHaveBeenCalledWith(`/config/${filename}`)
+})
 
 test("`winopen` creates a neutral tab before navigating it", async () => {
     await winopen("https://example.com/")
