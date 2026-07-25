@@ -28,6 +28,7 @@ import * as omnibox from "@src/background/omnibox"
 import * as R from "ramda"
 import * as webrequests from "@src/background/webrequests"
 import * as commands from "@src/background/commands"
+import * as browser_action from "@src/background/browser_action"
 import * as meta from "@src/background/meta"
 import * as Logging from "@src/lib/logging"
 import * as Proxy from "@src/lib/proxy"
@@ -244,6 +245,10 @@ browser.tabs.onCreated.addListener(aucon.tabCreatedListener)
 // An object to collect all of our statistics in one place.
 const statsLogger: perf.StatsLogger = new perf.StatsLogger()
 const messages = {
+    browser_action_background: {
+        getState: browser_action.getState,
+        toggle: browser_action.toggle,
+    },
     config_background: {
         clear: config.clear,
         pull: config.pull,
@@ -288,6 +293,7 @@ omnibox.init()
 // }}}
 
 commands.updateListener()
+browser_action.init()
 
 // {{{ Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800
 

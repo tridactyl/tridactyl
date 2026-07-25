@@ -20,6 +20,7 @@ export type TabMessageType =
     | "commandline_frame_ready_to_receive_messages"
 
 export type NonTabMessageType =
+    | "browser_action_background"
     | "owntab_background"
     | "excmd_background"
     | "controller_background"

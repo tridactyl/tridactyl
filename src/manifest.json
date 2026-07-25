@@ -13,6 +13,12 @@
             "background.js"
         ]
     },
+    "browser_action": {
+        "default_area": "navbar",
+        "default_icon": "static/logo/Tridactyl_32px.png",
+        "default_popup": "static/browser_action_popup.html",
+        "default_title": "Tridactyl controls"
+    },
     "chrome_url_overrides": {
         "newtab": "static/newtab.html"
     },
