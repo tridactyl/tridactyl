@@ -72,6 +72,27 @@ export function getContext() {
 // Make this library work for both content and background.
 export const browserBg = inContentScript() ? browserProxy : browser
 
+let lastAudibleTabId: number | undefined
+
+export function initLastAudibleTabTracking() {
+    browser.tabs.onUpdated.addListener(
+        (tabId, changeInfo) => {
+            if (changeInfo.audible === false) lastAudibleTabId = tabId
+        },
+        { properties: ["audible"] },
+    )
+    browser.tabs.onRemoved.addListener(tabId => {
+        if (tabId === lastAudibleTabId) lastAudibleTabId = undefined
+    })
+}
+if (getContext() === "background") initLastAudibleTabTracking()
+/** Return a currently audible tab, or the one that most recently stopped. */
+export async function getLastAudibleTab() {
+    const [tab] = await browserBg.tabs.query({ audible: true })
+    if (tab || lastAudibleTabId === undefined) return tab
+    return browserBg.tabs.get(lastAudibleTabId).catch(() => undefined)
+}
+
 /** The first active tab in the currentWindow.
  *
  * TODO: Highlander theory: Can there ever be more than one?

@@ -1,4 +1,5 @@
 import { queryAndURLwrangler } from "@src/lib/webext"
+import * as webext from "@src/lib/webext"
 import * as config from "@src/lib/config"
 import * as Native from "@src/lib/native"
 
@@ -49,6 +50,7 @@ Object.defineProperty(browser, "sessions", {
     value: { getTabValue: jest.fn(), setTabValue: jest.fn() },
 })
 
+webext.initLastAudibleTabTracking()
 const backgroundExcmds = require("@src/.excmds_background.generated")
 const { jsb, nativeopen, quickmarkremove, set, tabopen, winopen } =
     backgroundExcmds
@@ -136,6 +138,25 @@ test("`winopen` creates a neutral tab before navigating it", async () => {
         loadReplace: true,
         url: "https://example.com/",
     })
+})
+
+test("`getLastAudibleTab` prioritises current audio, falls back, and forgets closed tabs", async () => {
+    const currentTab = { id: 1, windowId: 10 } as browser.tabs.Tab
+    const previousTab = { id: 2, windowId: 20 } as browser.tabs.Tab
+    const onUpdated = browser.tabs.onUpdated.addListener as jest.Mock
+    const onRemoved = browser.tabs.onRemoved.addListener as jest.Mock
+    onUpdated.mock.calls[0][0](previousTab.id, { audible: false }, previousTab)
+    jest.mocked(browser.tabs.query).mockResolvedValue([])
+    jest.mocked(browser.tabs.query).mockResolvedValueOnce([currentTab])
+    await expect(webext.getLastAudibleTab()).resolves.toBe(currentTab)
+    jest.mocked(browser.tabs.get).mockResolvedValueOnce(previousTab)
+    await expect(webext.getLastAudibleTab()).resolves.toBe(previousTab)
+    jest.mocked(browser.tabs.get).mockRejectedValueOnce(new Error())
+    await expect(webext.getLastAudibleTab()).resolves.toBeUndefined()
+    onRemoved.mock.calls[0][0](previousTab.id)
+    jest.mocked(browser.tabs.get).mockClear()
+    await webext.getLastAudibleTab()
+    expect(browser.tabs.get).not.toHaveBeenCalled()
 })
 
 test("`nativeopen` targets the running macOS Firefox application", async () => {

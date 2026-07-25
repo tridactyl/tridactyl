@@ -76,7 +76,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab, getLastAudibleTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -2821,13 +2821,13 @@ export async function tabpush(windowId?: number) {
     }
 }
 
-/** Switch to the tab currently playing audio, if any. */
+/** Switch to a tab playing audio, or the one that most recently stopped. */
 //#background
 export async function tabaudio() {
-    const tabs = await browser.tabs.query({ audible: true })
-    if (tabs.length > 0) {
-        await browser.windows.update(tabs[0].windowId, { focused: true })
-        return browser.tabs.update(tabs[0].id, { active: true })
+    const tab = await getLastAudibleTab()
+    if (tab) {
+        await browser.windows.update(tab.windowId, { focused: true })
+        return browser.tabs.update(tab.id, { active: true })
     }
 }
 
