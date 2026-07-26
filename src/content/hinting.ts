@@ -1172,9 +1172,9 @@ function filterHintsVimperator(query: string, reflow = false) {
         }
     }
 
-    // Focus first hint
+    // Focus exact name or first hint
     if (active.length) {
-        modeState.focusedHint = active[0]
+        modeState.focusedHint = active.find(h => h.name === query) || active[0]
         modeState.focusedHint.focused = true
     }
 
