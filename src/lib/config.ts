@@ -1241,8 +1241,9 @@ export class default_config {
      * Profile directory used by native messenger commands such as `guiset` and [[nativeopen]].
      *
      * `auto` tries to detect the current Firefox profile. If detection chooses the
-     * wrong profile, set this to the absolute profile directory shown in `about:support`. Values are used
-     * literally: `~` and environment variables such as `$HOME` are not expanded.
+     * wrong profile, set this to the absolute profile directory shown in `about:support`. Do not surround
+     * the path with quotes: use `:set profiledir /path/to/profile`, not `:set profiledir "/path/to/profile"`.
+     * Values are used literally: `~` and environment variables such as `$HOME` are not expanded.
      *
      * Launching Firefox with `-P <name>` or `--profile <path>` makes `auto` work better.
      */
