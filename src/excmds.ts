@@ -5190,6 +5190,8 @@ export async function reseturl(pattern: string, mode: string, key: string) {
 
 /** Deletes various bits of Firefox or Tridactyl data
 
+    When used in a tridactylrc, persisted settings may briefly apply at startup before the file is sourced.
+
     The list of possible arguments can be found here:
     https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/browsingData/DataTypeSet
 

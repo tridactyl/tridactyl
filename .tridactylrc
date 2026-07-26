@@ -37,8 +37,9 @@
 "
 " "
 " " Cleanup (requires Tridactyl 1.25.0+)
+" " Persisted settings may briefly apply at startup before this file is sourced.
 " "
-" santisise tridactylconfig
+" sanitise tridactylconfig
 " set configversion 2.0
 "
 " 
