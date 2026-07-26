@@ -1,6 +1,6 @@
 import * as config from "@src/lib/config"
 import * as DOM from "@src/lib/dom"
-import { browserBg, activeTabId } from "@src/lib/webext"
+import { browserBg, ownTabId } from "@src/lib/webext"
 import state from "@src/state"
 import * as State from "@src/state"
 import { compute as scrollCompute } from "compute-scroll-into-view"
@@ -126,16 +126,20 @@ class FindHighlight extends HTMLSpanElement {
 
         const actions = scrollCompute(fakeNode as HTMLElement, option)
         for (const { el: element, top, left } of actions) {
+            if (preview && !preview.scrolls.has(element))
+                preview.scrolls.set(element, [
+                    element.scrollLeft,
+                    element.scrollTop,
+                ])
             element.scrollTo({ top, left, behavior: "instant" })
         }
     }
-    focus() {
-        if (!isHighlightVisible(this)) {
+    focusMatch(focusElement = true, scroll = true) {
+        if (scroll && !isHighlightVisible(this)) {
             this.scrollIntoView({ block: "center", inline: "center" })
         }
         const focusable = this.queryInRange("a,input,button,details")
-        if (focusable) focusable.focus()
-
+        if (focusElement && focusable) focusable.focus()
         setNativeFocus(this.nativeRange, true)
         this.background = `var(--tridactyl-search-highlight-active-color)`
         for (const node of this.children) {
@@ -222,10 +226,18 @@ function highlightsDrawn() {
 let lastHighlights
 // Which element of `lastSearch` was last selected
 let selected = 0
+let preview
+let searchGeneration = 0
 
 let HIGHLIGHT_TIMER
 let REPOSITION_TIMER
 const POSITION_OBSERVER = new MutationObserver(scheduleReposition)
+
+function resetHighlightTimer() {
+    clearTimeout(HIGHLIGHT_TIMER)
+    const timeout = config.get("findhighlighttimeout")
+    if (timeout > 0) HIGHLIGHT_TIMER = setTimeout(removeHighlighting, timeout)
+}
 
 function scheduleReposition() {
     if (!host?.firstChild) return
@@ -239,11 +251,11 @@ window.addEventListener("resize", scheduleReposition)
 window.addEventListener("scroll", scheduleReposition, true)
 
 export async function jumpToMatch(searchQuery, option) {
-    const timeout = config.get("findhighlighttimeout")
-    if (timeout > 0) {
-        clearTimeout(HIGHLIGHT_TIMER)
-        HIGHLIGHT_TIMER = setTimeout(removeHighlighting, timeout)
-    }
+    const previewing = option["preview"] === true
+    const generation = ++searchGeneration
+    if (!previewing) preview = undefined
+    if (previewing) clearTimeout(HIGHLIGHT_TIMER)
+    else resetHighlightTimer()
     // First, search for the query
     const literal = option["regex"] && searchQuery.match(/^\/(.*)\/([^/]*)$/s)
     let [source, flags] = literal ? literal.slice(1) : [searchQuery, ""]
@@ -260,15 +272,18 @@ export async function jumpToMatch(searchQuery, option) {
     let results: any = { count: 0 }
     if (!regex)
         results = await browserBg.find.find(searchQuery, {
-            tabId: await activeTabId(),
+            tabId: await ownTabId(),
             caseSensitive: sensitive,
             entireWord: false,
             includeRangeData: true,
         })
-    state.lastSearchQuery = searchQuery
-    state.lastSearchRegex = regex?.flags
+    if (generation !== searchGeneration) return
+    if (!previewing) {
+        state.lastSearchQuery = searchQuery
+        state.lastSearchRegex = regex?.flags
+    }
     lastHighlights = []
-    removeHighlighting()
+    clearHighlighting()
 
     const documents = [document]
     if (!regex)
@@ -321,14 +336,14 @@ export async function jumpToMatch(searchQuery, option) {
     if ("jumpTo" in option) {
         selected =
             (option["jumpTo"] + lastHighlights.length) % lastHighlights.length
-        focusHighlight(selected)
+        focusHighlight(selected, !previewing)
         return
     }
 
     // Just reuse the code to find the first match in the view
     selected = 0
     if (isHighlightVisible(lastHighlights[selected])) {
-        focusHighlight(selected)
+        focusHighlight(selected, !previewing)
     } else {
         const searchFromView = true
         await jumpToNextMatch(1, searchFromView)
@@ -354,15 +369,67 @@ function drawHighlights(highlights) {
     highlights.forEach(elem => host.appendChild(elem))
 }
 
-export function removeHighlighting() {
+function clearHighlighting() {
     POSITION_OBSERVER.disconnect()
     clearTimeout(REPOSITION_TIMER)
     clearNativeHighlights()
     while (host?.firstChild) host.removeChild(host.firstChild)
 }
 
-export function focusHighlight(index) {
-    lastHighlights[index].focus()
+function restorePreviewScrolls(snapshot = preview) {
+    for (const [element, [left, top]] of snapshot?.scrolls || [])
+        element.scrollTo({ left, top, behavior: "instant" })
+}
+
+export async function previewMatch(session: number, searchQuery, option) {
+    if (preview?.session !== session) {
+        if (preview) cancelPreview(preview.session)
+        preview = {
+            session,
+            highlights: lastHighlights,
+            selected,
+            drawn: highlightsDrawn(),
+            scrolls: new Map(),
+        }
+    }
+    restorePreviewScrolls()
+    const generation = searchGeneration + 1
+    try {
+        await jumpToMatch(searchQuery, { ...option, preview: true })
+    } catch (_) {
+        if (preview?.session === session && generation === searchGeneration) {
+            clearHighlighting()
+            lastHighlights = []
+            restorePreviewScrolls()
+        }
+    }
+}
+
+export function cancelPreview(session: number) {
+    if (preview?.session !== session) return
+    ++searchGeneration
+    clearHighlighting()
+    const snapshot = preview
+    preview = undefined
+    lastHighlights = snapshot.highlights
+    selected = snapshot.selected
+    if (snapshot.drawn && lastHighlights?.length) {
+        drawHighlights(lastHighlights)
+        focusHighlight(selected, false, false)
+        resetHighlightTimer()
+    }
+    restorePreviewScrolls(snapshot)
+}
+
+export function removeHighlighting() {
+    if (preview) cancelPreview(preview.session)
+    else ++searchGeneration
+    clearTimeout(HIGHLIGHT_TIMER)
+    clearHighlighting()
+}
+
+export function focusHighlight(index, focusElement = true, scroll = true) {
+    lastHighlights[index].focusMatch(focusElement, scroll)
     if (nativeHighlights) return
     repositionHighlight()
     POSITION_OBSERVER.observe(document, {
@@ -380,25 +447,25 @@ export function repositionHighlight() {
 }
 
 export async function jumpToNextMatch(n: number, searchFromView = false) {
+    const generation = searchGeneration
     const lastSearchQuery = await State.getAsync("lastSearchQuery")
     const lastRegex = await State.getAsync("lastSearchRegex")
+    if (generation !== searchGeneration) return
     if (!lastSearchQuery) return
     if (!lastHighlights) {
+        const rebuildGeneration = searchGeneration + 1
         await jumpToMatch(lastSearchQuery, {
             reverse: n < 0,
             regex: !!lastRegex,
             caseSensitive: lastRegex ? !lastRegex.includes("i") : undefined,
         })
+        if (rebuildGeneration !== searchGeneration) return
         if (Math.abs(n) === 1) return
         n = n - n / Math.abs(n)
         searchFromView = false
     }
     if (!highlightsDrawn()) {
-        const timeout = config.get("findhighlighttimeout")
-        if (timeout > 0) {
-            clearTimeout(HIGHLIGHT_TIMER)
-            HIGHLIGHT_TIMER = setTimeout(removeHighlighting, timeout)
-        }
+        resetHighlightTimer()
         drawHighlights(lastHighlights)
     }
     if (lastHighlights[selected] === undefined) {
@@ -431,7 +498,7 @@ export async function jumpToNextMatch(n: number, searchFromView = false) {
         }
     }
 
-    focusHighlight(selected)
+    focusHighlight(selected, !preview)
 }
 
 export function currentMatchRange(): Range {

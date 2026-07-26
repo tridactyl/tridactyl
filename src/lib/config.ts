@@ -1387,13 +1387,11 @@ export class default_config {
     findhighlighttimeout = 0
 
     /**
-     * Whether Tridactyl should jump to the first match when using `:find`
+     * Whether Tridactyl should preview matches while typing `:find`
      */
-    incsearch: "true" | "false" = "false"
+    incsearch: "true" | "false" = "true"
 
-    /**
-     * How many characters should be typed before triggering incsearch/completions
-     */
+    /** @deprecated Retained for compatibility; this setting has no effect. */
     minincsearchlen = 3
 
     /**

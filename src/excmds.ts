@@ -1505,7 +1505,7 @@ export function scrollpage(n = 1, count = 1) {
 }
 
 /**
- *  Rudimentary find mode, left unbound by default as we don't currently support `incsearch`. Suggested binds:
+ *  Find mode is left unbound by default. Suggested binds:
  *
  * ```text
  * bind / fillcmdline find
@@ -1529,6 +1529,9 @@ export function scrollpage(n = 1, count = 1) {
  */
 //#content
 export function find(...args: string[]) {
+    // Completion previews pass session metadata as a non-user argument.
+    const preview =
+        typeof (args[0] as any) === "object" ? (args.shift() as any) : undefined
     const parsed = arg.lib(
         {
             "--jump-to": Number,
@@ -1561,6 +1564,13 @@ export function find(...args: string[]) {
         option["caseSensitive"] = argOpt["--case-sensitive"]
     option["regex"] = argOpt["--regex"]
     const searchQuery = argOpt._.join(" ")
+    if (preview) {
+        const { session } = preview
+        if (preview.cancel) return finding.cancelPreview(session)
+        if (config.get("incsearch") === "true" && searchQuery.length > 0)
+            return finding.previewMatch(session, searchQuery, option)
+        return finding.cancelPreview(session)
+    }
     return finding.jumpToMatch(searchQuery, option)
 }
 

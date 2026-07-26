@@ -153,7 +153,7 @@ export function getCommandlineFns(cmdline_state: {
         },
 
         /** Hide the command line and cmdline_state.clear its content without executing it. **/
-        hide_and_clear: () => {
+        hide_and_clear: async () => {
             cmdline_state.clear(true)
             cmdline_state.keyEvents = []
 
@@ -162,14 +162,13 @@ export function getCommandlineFns(cmdline_state: {
             messageOwnTab("commandline_content", "blur")
             // Delete all completion sources - I don't think this is required, but this
             // way if there is a transient bug in completions it shouldn't persist.
-            if (cmdline_state.activeCompletions)
-                cmdline_state.activeCompletions.forEach(comp => {
-                    comp.destroy?.()
-                    cmdline_state.completionsDiv.removeChild(comp.node)
-                })
+            const completions = cmdline_state.activeCompletions || []
             cmdline_state.activeCompletions = undefined
+            const destroying = Promise.all(completions.map(comp => comp.destroy?.()))
+            completions.forEach(comp => comp.node.remove())
             cmdline_state.isVisible = false
             cmdline_state.resolveCloseWaiters?.()
+            await destroying
         },
 
         /**
@@ -223,7 +222,7 @@ export function getCommandlineFns(cmdline_state: {
             const command =
                 cmdline_state.getCompletion() || cmdline_state.clInput.value
 
-            cmdline_state.fns.hide_and_clear()
+            await cmdline_state.fns.hide_and_clear()
 
             if (cmdline_state.fns.is_valid_commandline(command) === false)
                 return
@@ -250,9 +249,9 @@ export function getCommandlineFns(cmdline_state: {
         execute_ex_on_all_completions: (excmd: string) =>
             execute_ex_on_all(cmdline_state, excmd),
 
-        copy_completion: () => {
+        copy_completion: async () => {
             const command = cmdline_state.getCompletion()
-            cmdline_state.fns.hide_and_clear()
+            await cmdline_state.fns.hide_and_clear()
             return messageOwnTab("controller_content", "acceptExCmd", [
                 "clipboard yank " + command,
             ])
