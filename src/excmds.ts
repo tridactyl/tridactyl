@@ -1080,15 +1080,14 @@ export async function saveJumps(jumps) {
 /** @hidden */
 //#content_helper
 export async function saveTabHistory(history) {
-    return browserBg.sessions.setTabValue(await activeTabId(), "history", history)
+    return browserBg.sessions.setTabValue((await ownTab()).id, "history", history)
 }
 
 /** Returns a promise for an object with history list, index of a current, previous and next pages */
 /** @hidden */
 //#content_helper
 export async function curTabHistory() {
-    const tabid = await activeTabId()
-    return await browserBg.sessions.getTabValue(tabid, "history")
+    return browserBg.sessions.getTabValue((await ownTab()).id, "history")
 }
 
 /** Returns a promise for an object containing the jumplist of all pages accessed in the current tab.
@@ -4913,7 +4912,7 @@ export function getAutocmdEvents() {
 /**
  * Set autocmds to run when certain events happen.
  *
- * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'DocFocus', 'DocBlur', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'HistoryPushState', 'HistoryReplace', 'UriChange', 'ModeEnter', 'ModeLeave', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
+ * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'DocFocus', 'DocBlur', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'UriChange', 'ModeEnter', 'ModeLeave', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
  *
  * - DocStart: When a webpage loading. Exactly, when tridactyl is loading in a page.
  * - DocLoad: When the whole html parsed, not including image/css loaded. (Just like jquery $(fn) or the [DOMContentLoaded event](https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event).)
@@ -4926,8 +4925,7 @@ export function getAutocmdEvents() {
 
  * - A supported webRequest event (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the corresponding [WebExtension webRequest event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events)
 
- * - The 'HistoryState' event is triggered when a page uses the web history API to change the page location / URI. It should be used in preference to 'UriChange' below since it will use almost no resources. The 'UriChange' event may work on websites where 'HistoryState' does not.
- * - The 'HistoryPushState' is triggered only when a page calls 'history.pushState' to change URI, and 'HistoryReplace' is for 'history.replace'. By the way, the HistoryPopState is not implemented.
+ * - The 'HistoryState' event is triggered when same-document navigation changes the page location / URI. It should be used in preference to 'UriChange' below since it will use almost no resources. The 'UriChange' event may work on websites where 'HistoryState' does not.
  * - The 'UriChange' event is for "single page applications" which change their URIs without triggering DocStart or DocLoad events. It uses a timer to check whether the URI has changed, which has a small impact on battery life on pages matching the `url` parameter. We suggest using it sparingly.
  *
  * @param url type depends on the event

@@ -10,6 +10,7 @@ jest.mock("@src/lib/webext", () => ({
     ...jest.requireActual("@src/lib/webext"),
     activeTab: jest.fn().mockResolvedValue({ index: 0 }),
     activeTabId: jest.fn().mockResolvedValue(1),
+    ownTab: jest.fn().mockResolvedValue({ id: 1 }),
     openInNewTab: jest.fn(),
     activeTabContainerId: jest.fn(),
     notBackground: jest.fn().mockReturnValue(false),

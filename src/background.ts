@@ -133,6 +133,12 @@ browser.tabs.onActivated.addListener(tabChangeListener("tab_activated"))
 browser.webNavigation.onDOMContentLoaded.addListener(() => {
     updateContentLocation()
 })
+const messageHistoryState = (details: { frameId: number; tabId: number }) => {
+    if (details.frameId !== 0) return
+    messaging.messageTab(details.tabId, "history_state").catch(() => undefined)
+}
+browser.webNavigation.onHistoryStateUpdated.addListener(messageHistoryState)
+browser.webNavigation.onReferenceFragmentUpdated.addListener(messageHistoryState)
 updateContentLocation()
 
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290

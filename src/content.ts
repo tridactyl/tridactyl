@@ -41,47 +41,6 @@ config.getAsync("superignore").then(async TRI_DISABLE => {
 
 if (TRI_DISABLE === "true") return
 
-try {
-
-    // Add cheap location change event
-    // Adapted from: https://stackoverflow.com/questions/6390341/how-to-detect-if-url-has-changed-after-hash-in-javascript
-    //
-    // Broken atm - on https://github.com/tridactyl/tridactyl/pull/3938 clicking onto issues doesn't do anything and we get "permission denied to access object"
-
-    const realwindow = window["wrappedJSObject"] ?? window // wrappedJSObject not defined on extension pages
-
-    const triPushState = (hist => (
-        (...args) => {
-            const ret = hist(...args)
-            realwindow.dispatchEvent(new Event("HistoryPushState"))
-            realwindow.dispatchEvent(new Event("HistoryState"))
-            return ret
-        })
-    )(realwindow.history.pushState.bind(realwindow.history))
-
-    const triReplaceState = (hist => (
-        (...args) => {
-            const ret = hist(...args)
-            realwindow.dispatchEvent(new Event("HistoryReplaceState"))
-            realwindow.dispatchEvent(new Event("HistoryState"))
-            return ret
-        })
-    )(realwindow.history.replaceState.bind(realwindow.history))
-
-    realwindow.addEventListener("popstate", () => {
-        realwindow.dispatchEvent(new Event("HistoryState"))
-    })
-
-    history.replaceState = triReplaceState
-    history.pushState = triPushState
-
-    typeof(exportFunction) == "function" && exportFunction(triReplaceState, history, {defineAs: "replaceState"})
-    typeof(exportFunction) == "function" && exportFunction(triPushState, history, {defineAs: "pushState"})
-
-} catch (e) {
-    console.error(e)
-}
-
 const controller = await import("@src/lib/controller")
 const { omniscient_controller } = await import("@src/lib/omniscient_controller")
 const excmds_content = await import("@src/.excmds_content.generated")
@@ -139,6 +98,9 @@ messaging.addListener(
     "controller_content",
     messaging.attributeCaller(controller),
 )
+messaging.addListener("history_state", () => {
+    window.dispatchEvent(new Event("HistoryState"))
+})
 messaging.addListener("omniscient_content", messaging.attributeCaller(omniscient_controller))
 
 // eslint-disable-next-line @typescript-eslint/require-await

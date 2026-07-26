@@ -15,6 +15,7 @@ export type TabMessageType =
     | "state"
     | "lock"
     | "alive"
+    | "history_state"
     | "tab_changes"
     | "stop_buffering_page_keys"
     | "commandline_frame_ready_to_receive_messages"
