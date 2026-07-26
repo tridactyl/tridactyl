@@ -19,6 +19,7 @@ const logger = new Logger("state")
 
 class State {
     lastSearchQuery: string = undefined
+    lastInputSelector: string = undefined
     cmdHistory: string[] = []
     prevInputs: Array<{ inputId: string; tab: number; jumppos?: number }> = [
         {

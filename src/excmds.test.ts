@@ -3,6 +3,7 @@ import * as webext from "@src/lib/webext"
 import * as config from "@src/lib/config"
 import * as Native from "@src/lib/native"
 import * as Messaging from "@src/lib/messaging"
+import * as DOM from "@src/lib/dom"
 import state from "@src/state"
 
 jest.mock("@src/lib/webext", () => ({
@@ -62,6 +63,7 @@ const backgroundExcmds = require("@src/.excmds_background.generated")
 const { jsb, nativeopen, quickmarkremove, set, tabopen, winopen } =
     backgroundExcmds
 const { followpage, js, ttscontrol } = require("@src/.excmds_content.generated")
+const { focusinput } = require("@src/.excmds_content.generated")
 
 test.each([
     ["next", ["READ MORE", ">", ">>"], ["^next\\b", ">", "more"], 1],
@@ -82,6 +84,18 @@ test.each([
         expect(click).toHaveBeenCalled()
     },
 )
+
+test("`focusinput -l` restores the shared input selector", async () => {
+    document.body.innerHTML =
+        '<textarea id="fallback"></textarea><textarea id="remembered"></textarea>'
+    state.lastInputSelector = '[id="remembered"]'
+    const isSubstantial = jest.spyOn(DOM, "isSubstantial").mockReturnValue(true)
+
+    await focusinput("-l")
+
+    expect(document.activeElement.id).toBe("remembered")
+    isSubstantial.mockRestore()
+})
 
 test("`set` parses string and array followpage patterns", async () => {
     await set("followpagepatterns.next", '["next", ">"]')

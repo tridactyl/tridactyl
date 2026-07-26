@@ -33,7 +33,8 @@ test("setupFocusHandler reports focus leaving and returning to an editable eleme
         { id: 1 } as browser.tabs.Tab,
     ])
     jest.mocked(browser.runtime.sendMessage).mockResolvedValue([])
-    document.body.innerHTML = "<textarea></textarea><button></button>"
+    document.body.innerHTML =
+        '<textarea id="remembered"></textarea><button></button>'
     const listener = jest.fn()
     setupFocusHandler(document, listener)
     listener.mockClear()
@@ -43,6 +44,14 @@ test("setupFocusHandler reports focus leaving and returning to an editable eleme
     textarea.blur()
     await new Promise(resolve => setTimeout(resolve))
     expect(listener).toHaveBeenCalledTimes(2)
+    expect(browser.runtime.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+            args: expect.objectContaining({
+                property: "lastInputSelector",
+                value: '[id="remembered"]',
+            }),
+        }),
+    )
 
     listener.mockClear()
     textarea.focus()

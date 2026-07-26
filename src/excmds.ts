@@ -2573,25 +2573,21 @@ input[type='password']
  *                  "-b": biggest input field
  */
 //#content
-export function focusinput(nth: number | string) {
+export async function focusinput(nth: number | string) {
     let inputToFocus: HTMLElement = null
 
     // set to false to avoid falling back on the first available input
     // if a special finder fails
     let fallbackToNumeric = true
 
-    // nth = "-l" -> use the last used input for this page
+    // nth = "-l" -> use the last used input
     if (nth === "-l" || !nth) {
-        // try to recover the last used input stored as a
-        // DOM node, which should be exactly the one used before (or null)
-        if (DOM.getLastUsedInput()) {
-            inputToFocus = DOM.getLastUsedInput()
-        } else {
-            // Pick the first input in the DOM.
-            inputToFocus = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial])[0] as HTMLElement
-
-            // We could try to save the last used element on page exit, but
-            // that seems like a lot of faff for little gain.
+        inputToFocus = DOM.getLastUsedInput()
+        if (!inputToFocus?.isConnected) {
+            const selector = await State.getAsync("lastInputSelector")
+            if (selector) {
+                inputToFocus = DOM.getElemsBySelector(selector, [DOM.isTextEditable, DOM.isSubstantial])[0] as HTMLElement
+            }
         }
     } else if (nth === "-n" || nth === "-N") {
         // attempt to find next/previous input
