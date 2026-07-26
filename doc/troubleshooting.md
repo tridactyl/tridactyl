@@ -16,6 +16,10 @@ If you have `privacy.resistFingerprinting` set to `true` in `about:config`, Trid
 
 Selecting **Never remember history** in the History section of Firefox's Privacy & Security settings enables permanent private browsing. Tridactyl then treats every window as private and cannot persist state such as command history or global marks. Choose another history setting unless this behaviour is intended.
 
+# Keyboard layout issues
+
+Tridactyl's completion-aware `<Space>` binding can interfere with dead-key composition in the command line. Run `:unbind --mode=ex <Space>` to let Firefox handle Space normally, then `:bind --mode=ex <S-Space> ex.insert_character_or_completion` to move completion to Shift-Space. [#5061](https://github.com/tridactyl/tridactyl/issues/5061)
+
 # RC file issues
 
 If `:source` loads unexpected settings or does not reflect your changes, run `:findrc` to display the local RC file selected when no path is supplied. Check that path for an old or duplicate RC file.
