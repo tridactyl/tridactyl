@@ -63,7 +63,7 @@ const backgroundExcmds = require("@src/.excmds_background.generated")
 const { jsb, nativeopen, quickmarkremove, set, tabopen, winopen } =
     backgroundExcmds
 const { followpage, js, ttscontrol } = require("@src/.excmds_content.generated")
-const { focusinput } = require("@src/.excmds_content.generated")
+const { focusinput, setmode } = require("@src/.excmds_content.generated")
 
 test.each([
     ["next", ["READ MORE", ">", ">>"], ["^next\\b", ">", "more"], 1],
@@ -120,6 +120,16 @@ test("`autocontaindelete` removes only the matching rule", async () => {
     expect(config.get("autocontain", pattern)).toBeUndefined()
     expect(config.get("autocontain", "two.example")).toBe("personal")
 })
+
+test.each(["insert", "input", "ignore"])(
+    "`setmode` can enable count awareness in %s mode",
+    async mode => {
+        await setmode(mode, "countaware", "true")
+        expect(config.get("modesubconfigs", mode, "countaware")).toBe("true")
+        await config.unset("modesubconfigs", mode, "countaware")
+        expect(config.get("modesubconfigs", mode, "countaware")).toBe("false")
+    },
+)
 
 test.each(["invalid", "{}"])(
     "`set` rejects non-array custom array value %s",

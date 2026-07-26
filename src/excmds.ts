@@ -4816,6 +4816,7 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
  *
  * Currently this command is only supported for the following settings:
  * - [[allowautofocus]]
+ * - [[countaware]]
  *
  * Example:
  * - `setmode ignore allowautofocus true`
@@ -4825,7 +4826,8 @@ export function setmode(mode: string, key: string, ...values: string[]) {
     if (!mode || !key || !values.length) {
         throw new Error("seturl syntax: mode key value")
     }
-    if (key !== "allowautofocus") throw new Error("Setting '" + key + "' not supported with setmode")
+    if (!["allowautofocus", "countaware"].includes(key))
+        throw new Error("Setting '" + key + "' not supported with setmode")
 
     return config.set("modesubconfigs", mode, ...validateSetArgs(key, values))
 }

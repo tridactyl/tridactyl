@@ -142,9 +142,9 @@ export class default_config {
      */
     modesubconfigs: { [key: string]: DeepPartial<default_config> } = {
         normal: {},
-        insert: {},
-        input: {},
-        ignore: {},
+        insert: { countaware: "false" },
+        input: { countaware: "false" },
+        ignore: { countaware: "false" },
         ex: {},
         hint: {},
         visual: {},
@@ -613,6 +613,11 @@ export class default_config {
      * and [[keyboardlayoutoverrides]].
      */
     usekeytranslatemap: "true" | "false" = "true"
+
+    /**
+     * Whether digits typed before bindings are interpreted as counts, e.g. whether `2gt` should run `:tabnext_gt 2` or just `:tabnext_gt`. Defaults to false in insert, input, and ignore modes. You can control it per mode with [[setmode]] or per site with [[seturl]]
+     */
+    countaware: "true" | "false" = "true"
 
     /**
      * Instead of fetching actual character which depends on selected layout,

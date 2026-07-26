@@ -27,6 +27,13 @@ function mapstrsForMode(mode: string) {
     return Object.keys(maps || {})
 }
 
+function isCountAware() {
+    return (
+        config.get("modesubconfigs", contentState.mode, "countaware") ??
+        config.get("countaware")
+    ) === "true"
+}
+
 /**
  * KeyCanceller: keep track of keys that have been cancelled in the keydown
  * handler (which takes care of dispatching ex commands) and also cancel them
@@ -138,13 +145,13 @@ function* ParserController() {
     const parsers: {
         [mode_name in ModeName]: (keys: MinimalKey[]) => ParserResponse
     } = {
-        normal: keys => generic.parser("nmaps", keys),
-        insert: keys => generic.parser("imaps", keys, false),
-        input: keys => generic.parser("inputmaps", keys, false),
-        ignore: keys => generic.parser("ignoremaps", keys, false),
+        normal: keys => generic.parser("nmaps", keys, isCountAware()),
+        insert: keys => generic.parser("imaps", keys, isCountAware()),
+        input: keys => generic.parser("inputmaps", keys, isCountAware()),
+        ignore: keys => generic.parser("ignoremaps", keys, isCountAware()),
         hint: hinting.parser,
         gobble: gobblemode.parser,
-        visual: keys => generic.parser("vmaps", keys),
+        visual: keys => generic.parser("vmaps", keys, isCountAware()),
         nmode: nmode.parser,
     }
 
@@ -225,7 +232,7 @@ function* ParserController() {
 
                 const response = (
                     parsers[contentState.mode] ||
-                    (keys => generic.parser(contentState.mode + "maps", keys))
+                    (keys => generic.parser(contentState.mode + "maps", keys, isCountAware()))
                 )(keyEvents)
                 logger.debug(
                     currentMode,
