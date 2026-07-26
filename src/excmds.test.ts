@@ -42,6 +42,7 @@ Object.assign(browser.tabs, {
     onActivated: tabEvent,
 })
 Object.assign(browser.runtime, { getPlatformInfo: jest.fn() })
+Object.defineProperty(globalThis, "CSS", { value: {} })
 Object.defineProperty(browser, "windows", {
     value: {
         create: jest.fn().mockResolvedValue({ tabs: [{ id: 42 }] }),
