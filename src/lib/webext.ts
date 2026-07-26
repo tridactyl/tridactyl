@@ -242,6 +242,7 @@ export async function openInNewTab(
     const thisTab = await activeTab()
     const options: Parameters<typeof browser.tabs.create>[0] = {
         active: kwargs.bypassFocusHack,
+        windowId: thisTab.windowId,
         url,
         cookieStoreId: kwargs.cookieStoreId,
         discarded: kwargs.discarded,
