@@ -6280,10 +6280,11 @@ async function js_helper(str: string[]) {
  *
  *  You can use `-d` to make your own ex-commands:
  *
- *      `command loudecho js -d€ window.alert(JS_ARGS.join(" "))€`
- *      And use it like: `loudecho this is a message!`
+ *  `command loudecho js -d€ window.alert(JS_ARGS.join(" "))€`
  *
- *      Everything after `€` will be available in `JS_ARGS`, starting at index 1 (the first item is usually an empty string).
+ *  And use it like: `loudecho this is a message!`
+ *
+ *  Everything after `€` will be available in `JS_ARGS`, starting at index 1 (the first item is usually an empty string).
  *
  */
 /* tslint:disable:no-identical-functions */
