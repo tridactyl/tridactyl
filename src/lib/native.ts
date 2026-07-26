@@ -690,7 +690,10 @@ export async function getProfileUncached() {
     let profilecmd
     if (os !== "win") {
         const lockfile = os === "mac" ? ".parentlock" : "lock"
-        profilecmd = await run(`find "${ffDir}" -maxdepth 2 -name ${lockfile}`)
+        const maxdepth = os === "mac" ? 3 : 2
+        profilecmd = await run(
+            `find "${ffDir}" -maxdepth ${maxdepth} -name ${lockfile}`,
+        )
     }
     if (profilecmd?.code === 0 && profilecmd.content.length !== 0) {
         // Remove trailing newline
