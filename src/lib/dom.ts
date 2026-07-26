@@ -342,6 +342,7 @@ export function isVisible(thing: Element | Range) {
 /** More accurate element visibility checking than isVisible.
  */
 export async function getVisibleElemsBySelector(selector: string | null = "*", filters: ElementFilter[] = [], elements: Element[] = []): Promise<HTMLElement[]> {
+    const hideObscured = config.get("hinthideobscured") === "true"
     // Get frames with an accessible ItersectionObserver constructor (including top window)
     const frameWins = [window as any].concat(
         ...getAllDocumentFrames()
@@ -413,9 +414,39 @@ export async function getVisibleElemsBySelector(selector: string | null = "*", f
         intersectingElems
             .flat()
             .filter(el => isPainted(el as HTMLElement) &&
+                (!hideObscured || isUnobscured(el as Element)) &&
                 filters.every(filter => filter(el as HTMLElement))
             ) as HTMLElement[]
     )
+}
+
+export function isUnobscured(element: Element) {
+    const win = element.ownerDocument.defaultView
+    if (!win) return true
+    const targetAtPoint = (x: number, y: number) => {
+        let target = element
+        while (true) {
+            const root = target.getRootNode() as Document | ShadowRoot
+            const hit = root.elementFromPoint(x, y)
+            const svgAncestor = hit instanceof win.SVGElement && hit.contains(target)
+            if (!target.contains(hit) && !svgAncestor) return false
+            if (root === element.ownerDocument) return true
+            target = (root as ShadowRoot).host
+        }
+    }
+    const samplePoints = [0.5, 0.25, 0.75]
+    return Array.from(element.getClientRects()).some(rect => {
+        const left = Math.max(0, rect.left)
+        const right = Math.min(win.innerWidth, rect.right)
+        const top = Math.max(0, rect.top)
+        const bottom = Math.min(win.innerHeight, rect.bottom)
+        const width = right - left
+        const height = bottom - top
+        if (width <= 0 || height <= 0) return false
+        return samplePoints.some(x =>
+            samplePoints.some(y => targetAtPoint(left + width * x, top + height * y)),
+        )
+    })
 }
 
 // Like isVisible with no rect checks

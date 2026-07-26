@@ -1273,14 +1273,16 @@ export async function hintables(
     const elems = changeHintablesToLargestChild(
         includeInvisible
             ? DOM.getElemsBySelector(selectors, [])
-            : ((await DOM.getVisibleElemsBySelector(selectors)))
+            : ((await DOM.getVisibleElemsBySelector(selectors))),
+        includeInvisible,
     )
     const hintables: Hintables[] = [{ elements: elems }]
     if (withjs) {
         hintables.push({
             elements: changeHintablesToLargestChild(
-                (await visibleJSElems).filter(el => !elems.includes(el)),
-            ),
+                await visibleJSElems,
+                includeInvisible,
+            ).filter(el => !elems.includes(el)),
             hintclasses: ["TridactylJSHint"],
         })
     }
@@ -1292,7 +1294,8 @@ export async function hintables(
  * if it is larger than the element in the array.
  * @hidden
  */
-function changeHintablesToLargestChild(elements: Element[]): Element[] {
+function changeHintablesToLargestChild(elements: Element[], includeInvisible: boolean): Element[] {
+    const hideObscured = config.get("hinthideobscured") === "true"
     elements.forEach((element, index) => {
         if (element.childNodes.length === 0) return
         let largestChild: Element
@@ -1307,11 +1310,16 @@ function changeHintablesToLargestChild(elements: Element[]): Element[] {
             }
         })
         // Change element if child is larger
-        if (isElementLargerThan(largestChild, element)) {
+        if (
+            isElementLargerThan(largestChild, element) &&
+            (includeInvisible ||
+                (DOM.isPainted(largestChild as HTMLElement) &&
+                    (!hideObscured || DOM.isUnobscured(largestChild))))
+        ) {
             elements[index] = largestChild
         }
     })
-    return elements
+    return Array.from(new Set(elements))
 }
 
 /**

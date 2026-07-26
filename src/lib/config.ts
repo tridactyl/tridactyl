@@ -927,6 +927,9 @@ export class default_config {
      */
     hintautoselect: "true" | "false" = "true"
 
+    /** Whether to hide hints for elements obscured by other elements. */
+    hinthideobscured: "true" | "false" = "false"
+
     /**
      * Controls whether the page can focus elements for you via js
      *
