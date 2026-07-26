@@ -221,6 +221,7 @@ export class default_config {
         "<AC-Escape>": "mode normal",
         "<AC-`>": "mode normal",
         "<S-Escape>": "mode ignore",
+        "<C-o>": "nmode normal 1 mode ignore",
     }
 
     /**
