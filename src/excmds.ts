@@ -415,7 +415,7 @@ export async function guiset_quiet(rule: string, option: string) {
     // Could potentially fall back to sending minimal example to clipboard if native not installed
 
     // Check for native messenger and make sure we have a plausible profile directory
-    if (!(await Native.nativegate("0.1.1"))) return
+    if (!(await Native.nativegate("0.1.1", false))) return
     const profile_dir = await Native.getProfileDir()
     await setpref("toolkit.legacyUserProfileCustomizations.stylesheets", "true")
 
@@ -766,7 +766,7 @@ export async function exclaim(...str: string[]) {
 //#background
 export async function exclaim_quiet(...str: string[]) {
     let result = ""
-    if (await Native.nativegate()) {
+    if (await Native.nativegate("0", false)) {
         result = (await Native.run(str.join(" "))).content
     }
     return result
@@ -779,7 +779,12 @@ export async function exclaim_quiet(...str: string[]) {
  */
 //#background
 export async function native() {
-    const version = await Native.getNativeMessengerVersion(true)
+    let version
+    try {
+        version = await Native.getNativeMessengerVersion()
+    } catch (e) {
+        return fillcmdline("# Native messenger not found. Please run `:nativeinstall` and follow the instructions. " + e)
+    }
     let done
     if (version !== undefined) {
         done = fillcmdline("# Native messenger is correctly installed, version " + version)

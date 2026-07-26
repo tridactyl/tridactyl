@@ -2,6 +2,7 @@ import { queryAndURLwrangler } from "@src/lib/webext"
 import * as webext from "@src/lib/webext"
 import * as config from "@src/lib/config"
 import * as Native from "@src/lib/native"
+import * as Messaging from "@src/lib/messaging"
 import state from "@src/state"
 
 jest.mock("@src/lib/webext", () => ({
@@ -41,7 +42,10 @@ Object.assign(browser.tabs, {
     onAttached: tabEvent,
     onActivated: tabEvent,
 })
-Object.assign(browser.runtime, { getPlatformInfo: jest.fn() })
+Object.assign(browser.runtime, {
+    getPlatformInfo: jest.fn(),
+    sendNativeMessage: jest.fn(),
+})
 Object.defineProperty(globalThis, "CSS", { value: {} })
 Object.defineProperty(browser, "windows", {
     value: {
@@ -196,6 +200,20 @@ test("`nativeopen` targets the running macOS Firefox application", async () => {
     )
 })
 
+test("`:native` reports native messaging errors", async () => {
+    jest.mocked(browser.runtime.sendNativeMessage).mockRejectedValueOnce(
+        new Error("native_main.py does not exist, or is not executable"),
+    )
+
+    await backgroundExcmds.native()
+
+    expect(Messaging.messageActiveTab).toHaveBeenCalledWith(
+        "excmd_content",
+        "fillcmdline",
+        [expect.stringMatching(/nativeinstall.*native_main\.py/)],
+    )
+})
+
 test.each(["mktridactylrc", "source"])(
     "`%s` rejects without native",
     async command => {
@@ -207,10 +225,15 @@ test.each(["mktridactylrc", "source"])(
     },
 )
 
-test("`source_quiet` suppresses missing-native errors", async () => {
-    jest.mocked(Native.nativegate).mockResolvedValue(false)
+test.each([
+    ["guiset_quiet", ["gui", "none"], "0.1.1"],
+    ["exclaim_quiet", [], "0"],
+    ["source_quiet", [], "0.1.3"],
+])("`%s` suppresses missing-native errors", async (command, args, version) => {
+    jest.mocked(Native.nativegate).mockClear().mockResolvedValue(false)
 
-    await expect(backgroundExcmds.source_quiet()).resolves.toBeUndefined()
+    await backgroundExcmds[command](...args)
+    expect(Native.nativegate).toHaveBeenCalledWith(version, false)
 })
 
 test.each(["mktridactylrc", "source"])(

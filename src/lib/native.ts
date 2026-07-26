@@ -277,6 +277,7 @@ export async function nativegate(
         if (interactive)
             logger.error(
                 "# Native messenger not found. Please run `:installnative` and follow the instructions.",
+                e,
             )
         return false
     }
