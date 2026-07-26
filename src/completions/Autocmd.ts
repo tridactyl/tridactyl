@@ -25,7 +25,7 @@ export class AutocmdCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["autocmd", "autocmddelete"],
+            ["autocmd", "autocmddelete", "autocontaindelete"],
             "AutocmdCompletionSource",
             "Autocommands",
         )
@@ -59,8 +59,16 @@ export class AutocmdCompletionSource extends Completions.CompletionSourceFuse {
             this.state = "hidden"
             return
         }
-        const is_autocmddelete =
-            this.canonicalisePrefix(prefix) === "autocmddelete"
+        const command = this.canonicalisePrefix(prefix)
+        if (command === "autocontaindelete") {
+            this.options = Object.entries(config.get("autocontain"))
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([pattern, container]) =>
+                    new AutocmdCompletionOption(pattern, container, `-u ${pattern}`),
+                )
+            return this.updateChain()
+        }
+        const is_autocmddelete = command === "autocmddelete"
         const filter_defined_autocmds = is_autocmddelete
         const defined_autocmds = config.get("autocmds")
         // Config may contain empty dictionnaries if user deleted all patterns

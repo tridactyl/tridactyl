@@ -4987,6 +4987,15 @@ export async function autocmd(event: string, url: string, ...excmd: string[]) {
     return config.set("autocmds", event, url, excmd.join(" "))
 }
 
+/** @hidden */
+//#background_helper
+function autocontainPattern(args: string[]) {
+    const mode = ["-u", "-s"].includes(args[0]) ? args.shift() : ""
+    const pattern = args.shift()
+    if (mode === "-u") return pattern
+    return mode === "-s" ? `^https?://([^/]*\\.|)${pattern}/` : `^https?://[^/]*${pattern}/`
+}
+
 /**
  * Automatically open a domain and all its subdomains in a specified container.
  *
@@ -5018,22 +5027,26 @@ export async function autocmd(event: string, url: string, ...excmd: string[]) {
 export function autocontain(...args: string[]) {
     if (args.length === 0) throw new Error("Invalid autocontain arguments.")
 
-    const urlMode = args[0] === "-u"
-    const saneMode = args[0] === "-s"
-    if (urlMode || saneMode) {
-        args.splice(0, 1)
-    }
-    if (args.length < 2) throw new Error("syntax: autocontain [-{u,s}] pattern container proxy1 proxy2")
+    const pattern = autocontainPattern(args)
+    if (args.length < 1) throw new Error("syntax: autocontain [-{u,s}] pattern container proxy1 proxy2")
 
-    let [pattern, container, ...proxies] = args
-
-    if (!urlMode) {
-        pattern = saneMode ? `^https?://([^/]*\\.|)${pattern}/` : `^https?://[^/]*${pattern}/`
-    }
+    const [container, ...proxies] = args
 
     proxies.length && Proxy.exists(proxies)
 
     return config.set("autocontain", pattern, proxies.length ? [container, proxies.join(",")].join("+") : container)
+}
+
+/** Remove an [[autocontain]] rule.
+ *
+ * @param args an optional -s or -u flag followed by the pattern used to create the rule.
+ */
+//#background
+export function autocontaindelete(...args: string[]) {
+    if (args.length === 0) throw new Error("Invalid autocontaindelete arguments.")
+    const pattern = autocontainPattern(args)
+    if (!pattern || args.length) throw new Error("syntax: autocontaindelete [-{u,s}] pattern")
+    return config.unset("autocontain", pattern)
 }
 
 /** Add a proxy for use with [[autocontain]] or `:set proxy`

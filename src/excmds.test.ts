@@ -112,6 +112,15 @@ test("`set` preserves deep custom arrays", async () => {
     expect(config.getDynamic("custom", "deep", "array")).toEqual([1, 2])
 })
 
+test("`autocontaindelete` removes only the matching rule", async () => {
+    const pattern = "^https?://([^/]*\\.|)one\\.example/"
+    await config.set("autocontain", pattern, "work")
+    await config.set("autocontain", "two.example", "personal")
+    await backgroundExcmds.autocontaindelete("-s", "one\\.example")
+    expect(config.get("autocontain", pattern)).toBeUndefined()
+    expect(config.get("autocontain", "two.example")).toBe("personal")
+})
+
 test.each(["invalid", "{}"])(
     "`set` rejects non-array custom array value %s",
     async value => {
