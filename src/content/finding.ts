@@ -245,26 +245,35 @@ export async function jumpToMatch(searchQuery, option) {
         HIGHLIGHT_TIMER = setTimeout(removeHighlighting, timeout)
     }
     // First, search for the query
+    const literal = option["regex"] && searchQuery.match(/^\/(.*)\/([^/]*)$/s)
+    let [source, flags] = literal ? literal.slice(1) : [searchQuery, ""]
     let sensitive = option["caseSensitive"]
     if (sensitive === undefined) {
         const findcase = config.get("findcase")
         sensitive =
-            findcase === "sensitive" ||
-            (findcase === "smart" && /[A-Z]/.test(searchQuery))
+            !flags.includes("i") &&
+            (findcase === "sensitive" ||
+                (findcase === "smart" && /[A-Z]/.test(source)))
     }
-    const results = await browserBg.find.find(searchQuery, {
-        tabId: await activeTabId(),
-        caseSensitive: sensitive,
-        entireWord: false,
-        includeRangeData: true,
-    })
+    flags = flags.replace(/[gi]/g, "") + "g" + (sensitive ? "" : "i")
+    const regex = option["regex"] && new RegExp(source, flags)
+    let results: any = { count: 0 }
+    if (!regex)
+        results = await browserBg.find.find(searchQuery, {
+            tabId: await activeTabId(),
+            caseSensitive: sensitive,
+            entireWord: false,
+            includeRangeData: true,
+        })
     state.lastSearchQuery = searchQuery
+    state.lastSearchRegex = regex?.flags
     lastHighlights = []
     removeHighlighting()
 
     const documents = [document]
-    for (const frame of DOM.getAllDocumentFrames())
-        if (frame.contentDocument) documents.push(frame.contentDocument)
+    if (!regex)
+        for (const frame of DOM.getAllDocumentFrames())
+            if (frame.contentDocument) documents.push(frame.contentDocument)
     const nodeSets = documents.map(doc => {
         const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT)
         const nodes = []
@@ -272,6 +281,25 @@ export async function jumpToMatch(searchQuery, option) {
         return nodes
     })
 
+    if (regex) {
+        const nodes = nodeSets[0].filter(n => DOM.isPainted(n.parentElement))
+        let nodeIndex = 0
+        let nodeOffset = 0
+        const text = nodes.map(node => node.data).join("")
+        for (const match of text.matchAll(regex)) {
+            if (!match[0]) continue
+            const end = match.index + match[0].length
+            while (match.index >= nodeOffset + nodes[nodeIndex].length)
+                nodeOffset += nodes[nodeIndex++].length
+            const range = nodes[0].ownerDocument.createRange()
+            range.setStart(nodes[nodeIndex], match.index - nodeOffset)
+            while (end > nodeOffset + nodes[nodeIndex].length)
+                nodeOffset += nodes[nodeIndex++].length
+            range.setEnd(nodes[nodeIndex], end - nodeOffset)
+            if (range.getClientRects().length)
+                lastHighlights.push(new FindHighlight(range))
+        }
+    }
     for (let i = 0; i < results.count; ++i) {
         const range = results.rangeData[i]
         for (const nodes of nodeSets) {
@@ -353,9 +381,14 @@ export function repositionHighlight() {
 
 export async function jumpToNextMatch(n: number, searchFromView = false) {
     const lastSearchQuery = await State.getAsync("lastSearchQuery")
+    const lastRegex = await State.getAsync("lastSearchRegex")
     if (!lastSearchQuery) return
     if (!lastHighlights) {
-        await jumpToMatch(lastSearchQuery, { reverse: n < 0 })
+        await jumpToMatch(lastSearchQuery, {
+            reverse: n < 0,
+            regex: !!lastRegex,
+            caseSensitive: lastRegex ? !lastRegex.includes("i") : undefined,
+        })
         if (Math.abs(n) === 1) return
         n = n - n / Math.abs(n)
         searchFromView = false
