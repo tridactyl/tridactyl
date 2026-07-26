@@ -237,6 +237,7 @@ browser.webRequest.onBeforeRequest.addListener(
 )
 
 browser.tabs.onCreated.addListener(aucon.tabCreatedListener)
+browser.tabs.onRemoved.addListener(aucon.tabRemovedListener)
 
 // }}}
 

@@ -218,6 +218,7 @@ export async function openInNewTab(
         bypassFocusHack?
         discarded?
         pinned?
+        beforeNavigate?: (tabId: number) => void
     } = {
         active: true,
         related: false,
@@ -240,10 +241,11 @@ export async function openInNewTab(
     })
 
     const thisTab = await activeTab()
+    const delayedUrl = kwargs.beforeNavigate && !kwargs.discarded && url
     const options: Parameters<typeof browser.tabs.create>[0] = {
         active: kwargs.bypassFocusHack,
         windowId: thisTab.windowId,
-        url,
+        url: delayedUrl ? "about:blank" : url,
         cookieStoreId: kwargs.cookieStoreId,
         discarded: kwargs.discarded,
         pinned: kwargs.pinned,
@@ -278,14 +280,17 @@ export async function openInNewTab(
 
     const tabCreateWrapper = async options => {
         const tab = await browserBg.tabs.create(options)
+        let result = tab
+        let listener
         const answer: Promise<browser.tabs.Tab> = new Promise(resolve => {
             // This can't run in content scripts, obviously
             // surely we never call this from a content script?
             if (waitForDOM) {
-                const listener = (message, sender) => {
+                listener = (message, sender) => {
                     if (
                         message === "dom_loaded_background" &&
-                        sender?.tab?.id === tab.id
+                        sender?.tab?.id === tab.id &&
+                        (!delayedUrl || sender?.url !== "about:blank")
                     ) {
                         browserBg.runtime.onMessage.removeListener(listener)
                         resolve(tab)
@@ -296,14 +301,24 @@ export async function openInNewTab(
                 resolve(tab)
             }
         })
+        if (kwargs.beforeNavigate) {
+            kwargs.beforeNavigate(tab.id)
+            if (delayedUrl)
+                result = await browserBg.tabs.update(tab.id, {
+                    url: delayedUrl,
+                    loadReplace: true,
+                })
+        }
         // Return on slow- / extremely quick- loading pages anyway
-        return Promise.race([
+        await Promise.race([
             answer,
             (async () => {
                 await sleep(750)
+                if (listener) browserBg.runtime.onMessage.removeListener(listener)
                 return tab
             })(),
         ])
+        return result
     }
     if (kwargs.active === false) {
         // load in background

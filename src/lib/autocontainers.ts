@@ -28,6 +28,9 @@ import * as Logging from "@src/lib/logging"
 import * as ExtensionInfo from "@src/lib/extension_info"
 
 const logger = new Logging.Logger("containers")
+const explicitlyContainedTabs = new Set<number>()
+
+export const markExplicitContainerTab = (tabId: number) => explicitlyContainedTabs.add(tabId)
 
 interface ICancelledRequest {
     requestIds: any
@@ -54,6 +57,8 @@ export class AutoContain implements IAutoContain {
         this.lastCreatedTab = tab
     }
 
+    tabRemovedListener = tabId => explicitlyContainedTabs.delete(tabId)
+
     completedRequestListener = details => {
         if (this.getCancelledRequest(details.tabId)) {
             this.clearCancelledRequests(details.tabId)
@@ -69,6 +74,10 @@ export class AutoContain implements IAutoContain {
     autoContain = async (
         details,
     ): Promise<browser.webRequest.BlockingResponse> => {
+        const explicitlyContained =
+            details.url.search("^https?://") >= 0 &&
+            explicitlyContainedTabs.delete(details.tabId)
+
         if (!this.autocontainConfigured()) return { cancel: false }
 
         // Only handle in strict mode.
@@ -94,6 +103,12 @@ export class AutoContain implements IAutoContain {
 
         // Do not handle private tabs.
         if (tab.incognito) return { cancel: false }
+
+        if (explicitlyContained) {
+            const patterns = Object.keys(Config.get("autocontain"))
+            if (!patterns.some(pattern => details.url.search(pattern) >= 0))
+                return { cancel: false }
+        }
 
         // Silently return if we're already in the correct container.
         if (tab.cookieStoreId === cookieStoreId) return { cancel: false }
