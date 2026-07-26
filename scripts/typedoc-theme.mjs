@@ -155,6 +155,12 @@ function restoreObjectLiteral(context, reflection) {
     context.project.mergeReflections(inferred.declaration, reflection)
 }
 
+function restoreCommandlineFns(context) {
+    const commandline = context.project.getChildByName("commandline_frame")
+    const functions = commandline?.getChildByName("commandlineFns")
+    if (functions) context.project.mergeReflections(functions, commandline)
+}
+
 class LegacySlugger extends Slugger {
     serialize(value) {
         return value.startsWith("\0") ? value.slice(1) : super.serialize(value)
@@ -367,6 +373,7 @@ class TridactylTheme extends DefaultTheme {
 }
 
 export function load(app) {
+    app.converter.on(Converter.EVENT_RESOLVE_BEGIN, restoreCommandlineFns)
     app.converter.on(Converter.EVENT_RESOLVE_END, restoreWikiLinks, 100)
     app.converter.on(
         Converter.EVENT_CREATE_DECLARATION,

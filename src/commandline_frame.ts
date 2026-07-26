@@ -498,7 +498,9 @@ export function editor_function(fn_name: keyof typeof tri_editor, ...args) {
 Messaging.addListener("commandline_frame", Messaging.attributeCaller(SELF))
 logger.debug("Added commandline_frame message listener")
 
-commandline_state.fns = getCommandlineFns(commandline_state)
+/** @namespace */
+export const commandlineFns = getCommandlineFns(commandline_state)
+commandline_state.fns = commandlineFns
 nativeInsertFallbacks.set(
     commandline_state.fns.insert_character_or_completion,
     () => {

@@ -16,5 +16,8 @@ fi
     --includeHierarchySummary false \
     --exclude "src/**/?(test_utils|*.test).ts" \
     --out "$dest" src
+for command in next_completion prev_history accept_line; do
+    grep -q "id=\"$command\"" "$dest/modules/_src_commandline_frame_.html"
+done
 rm -rf build/static/docs
 cp -r "$dest" build/static/
