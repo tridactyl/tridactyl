@@ -338,20 +338,28 @@ commandline_state.clInput.addEventListener(
     true,
 )
 
+let refreshQueue: Promise<unknown> = Promise.resolve()
 export function refresh_completions(exstr) {
+    const result = refreshQueue.then(() => refreshCompletions(exstr))
+    refreshQueue = result.catch(() => undefined)
+    return result
+}
+
+function refreshCompletions(exstr) {
     if (!commandline_state.activeCompletions) enableCompletions()
+    // We can't use the regular logging mechanism because the user is using the command line.
     return Promise.all(
         commandline_state.activeCompletions.map(comp =>
-            comp.filter(exstr).then(() => {
-                if (comp.shouldRefresh()) {
-                    return resizeArea()
-                }
-            }),
+            comp
+                .filter(exstr)
+                .then(() => {
+                    if (comp.shouldRefresh()) {
+                        return resizeArea()
+                    }
+                })
+                .catch(err => console.error(err)),
         ),
-    ).catch(err => {
-        console.error(err)
-        return []
-    }) // We can't use the regular logging mechanism because the user is using the command line.
+    )
 }
 
 /** @hidden **/
