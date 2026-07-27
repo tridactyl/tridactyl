@@ -86,7 +86,7 @@
 " " bindurl ^https://duckduckgo.com F hint -Jbc [data-testid="result-title-a"]
 
 " " Make `gi` on GitHub take you to the search box
-" bindurl ^https://github.com gi hint -!Vc [aria-label^='search' i]
+" bindurl ^https://github.com gi hint -!Jc [aria-label*="Search"]
 " 
 " " Allow Ctrl-a to select all in the commandline
 " unbind --mode=ex <C-a>
