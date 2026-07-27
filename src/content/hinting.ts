@@ -617,7 +617,7 @@ function defaultHintChars() {
         return "1234567890"
     }
     if (config.get("hintnames") === "words") {
-        return "abcdefghijklmnopqrstuvwxyz"
+        return "abcdefghijklmnopqrstuvwxyz" // protect users from changing hintchars and not being able to type the words
     }
     return config.get("hintchars")
 }
