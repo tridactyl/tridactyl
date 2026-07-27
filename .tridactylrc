@@ -42,6 +42,8 @@
 " sanitise tridactylconfig
 " set configversion 2.0
 "
+" colours quakelight
+" set tabsort mru
 " 
 " 
 " "
@@ -113,8 +115,9 @@
 " bind <C-g> findnext --search-from-view
 " bind N findnext --search-from-view --reverse
 " bind <C-G> findnext --search-from-view --reverse
-" bind gn findselect
-" bind gN composite findnext --search-from-view --reverse; findselect
+" bind gN findselect
+" " conflicts with quickmarks
+" " bind gN composite findnext --search-from-view --reverse; findselect
 " bind ,<Space> nohlsearch
 "
 " " Suspend / "discard" all tabs - handy for stretching out battery life. Now a default command, aliased here for my muscle memory
