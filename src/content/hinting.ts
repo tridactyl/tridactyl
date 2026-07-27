@@ -762,6 +762,15 @@ function* hintnames_words(n: number): IterableIterator<string> {
     )
 }
 
+/** Randomly shuffled lexicographic hintnames.
+ * Shuffles standard hints so that nearby DOM elements get different first characters,
+ * making typed filtering more effective. See #3880.
+ * @hidden */
+function* hintnames_random(n: number, hintchars = defaultHintChars()): IterableIterator<string> {
+    const hints = [...islice(hintnames_simple(hintchars), n)]
+    yield* shuffleArray(hints)
+}
+
 /** @hidden */
 function* hintnames(
     n: number,
@@ -774,6 +783,8 @@ function* hintnames(
             yield* hintnames_uniform(n, hintchars)
         case "words":
             yield* hintnames_words(n)
+        case "random":
+            yield* hintnames_random(n, hintchars)
         default:
             yield* hintnames_short(n, hintchars)
     }
