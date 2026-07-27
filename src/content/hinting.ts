@@ -753,10 +753,13 @@ function shuffleArray<T>(arr: T[]): T[] {
 /** Random hintnames from a built-in word list.
  * @hidden */
 function* hintnames_words(n: number): IterableIterator<string> {
-    const shuffled = shuffleArray(RANDOM_HINT_WORDS)
-    for (let i = 0; i < n; i++) {
-        yield shuffled[i % shuffled.length]
-    }
+    const shuffled = shuffleArray(HINT_WORDS)
+    const wordCount = Math.max(1, Math.ceil(log(n, shuffled.length)))
+    yield* map(
+        islice(permutationsWithReplacement(shuffled, wordCount), n),
+        // Keep neighbouring hints from sharing the same first word.
+        words => words.reverse().join(""),
+    )
 }
 
 /** @hidden */
