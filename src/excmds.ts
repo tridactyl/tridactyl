@@ -4604,11 +4604,8 @@ export function unabbreviate(abbreviation: string) {
 */
 //#background
 export async function bind(...args: string[]) {
-    if (args.includes("--recursive")) {
-        throw new Error("`--recursive` can only be called on unbind.")
-    }
-
     const args_obj = parse_bind_args(...args)
+    if (args_obj.isRecursive || args_obj.mode === "*") throw new Error("`--recursive` and `--mode=*` can only be called on unbind.")
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
         if (args_obj.mode === "browser" && parseMapstr(args_obj.key).hasExplicitDirection)
@@ -5116,7 +5113,11 @@ export function blacklistadd(url: string) {
 /**
    Unbind a sequence of keys so that they do nothing at all.
 
-   Accepts the flag `--recursive` to unbind all binds that start with the specified key sequence, e.g. `:unbind --recursive ;` unbinds all the binds like `;f` `;F` `;;` etc.
+   `--recursive` unbinds every bind starting with the key sequence.
+
+   `--all` unbinds every key in a mode (by default, normal mode). NB: "every key" really means "every key". You should probably immediately add a bind to `mode normal` for that mode so you can leave it again.
+
+   `--mode=*` applies the operation to every mode.
 
     See also:
 
@@ -5125,32 +5126,28 @@ export function blacklistadd(url: string) {
 */
 //#background
 export async function unbind(...args: string[]) {
-    const args_obj = parse_bind_args(...args)
-
-    if (args_obj.isRecursive) {
-        const prefix = args_obj.key
-        const maps = config.get(args_obj.configName as keyof config.default_config)
-        for (const binding in maps) {
-            if (binding.startsWith(prefix)) {
-                config.set(args_obj.configName, binding, null)
-            }
-        }
+    const isAll = args.includes("--all")
+    const args_obj = parse_bind_args(...(isAll ? args.filter(arg => arg !== "--all").concat("") : args))
+    if (args_obj.excmd !== "" || (isAll && (args_obj.key !== "" || args_obj.isRecursive))) throw new Error("unbind syntax: `unbind [--mode=mode|*] [--recursive key|--all|key]`")
+    await config.getAsync()
+    const maps = args_obj.mode === "*" ? [...new Set([...modeMaps, ...Object.keys(config.USERCONFIG).filter(map => map.endsWith("maps") && config.USERCONFIG[map] !== null && typeof config.USERCONFIG[map] === "object")])] : [args_obj.configName]
+    const matches = key => isAll || (args_obj.isRecursive ? key.startsWith(args_obj.key) : key === args_obj.key)
+    const inherits = "🕷🕷INHERITS🕷🕷"
+    const getBindings = map => {
+        const bindings = { ...config.DEFAULTS[map], ...config.USERCONFIG[map] }
+        return bindings[inherits] ? { ...getBindings(bindings[inherits]), ...bindings } : bindings
     }
-
-    if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
-    if (args_obj.mode == "browser") {
-        const commands = await browser.commands.getAll()
-
-        const command = commands.filter(c => mozMapToMinimalKey(c.shortcut).toMapstr() == args_obj.key)[0]
-
-        // Fail quietly if bind doesn't exist so people can safely run it in their RC files
-        if (command !== undefined) {
-            await browser.commands.update({ name: command.name, shortcut: "" })
-            await commandsHelper.updateListener()
-        }
+    if (maps.includes("browsermaps")) {
+        const commands = (await browser.commands.getAll()).filter(command => command.shortcut && matches(mozMapToMinimalKey(command.shortcut).toMapstr()))
+        for (const command of commands) await browser.commands.update({ name: command.name, shortcut: "" })
+        if (commands.length) await commandsHelper.updateListener()
     }
-
-    return config.set(args_obj.configName, args_obj.key, null)
+    for (const map of maps) {
+        const unbound = { ...config.USERCONFIG[map] }
+        const keys = isAll || args_obj.isRecursive ? Object.keys(getBindings(map)) : [args_obj.key]
+        for (const key of keys) if (key !== inherits && matches(key)) unbound[key] = null
+        await config.set(map, unbound)
+    }
 }
 
 /**

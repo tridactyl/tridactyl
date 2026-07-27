@@ -48,6 +48,7 @@ Object.assign(browser.runtime, {
     getPlatformInfo: jest.fn(),
     sendNativeMessage: jest.fn(),
 })
+Object.assign(browser.commands, { update: jest.fn() })
 Object.defineProperty(globalThis, "CSS", { value: {} })
 Object.defineProperty(browser, "windows", {
     value: {
@@ -61,7 +62,7 @@ Object.defineProperty(browser, "sessions", {
 
 webext.initLastAudibleTabTracking()
 const backgroundExcmds = require("@src/.excmds_background.generated")
-const { jsb, nativeopen, quickmarkremove, set, tabopen, winopen } =
+const { jsb, nativeopen, quickmarkremove, set, tabopen, unbind, winopen } =
     backgroundExcmds
 const { followpage, js, ttscontrol } = require("@src/.excmds_content.generated")
 const { focusinput, setmode } = require("@src/.excmds_content.generated")
@@ -296,6 +297,30 @@ test("`quickmarkremove` unbinds every quickmark mapping", async () => {
 
 test.each([undefined, "", "qq"])("`quickmarkremove` rejects %p", async key => {
     await expect(quickmarkremove(key)).rejects.toThrow("quickmarkremove syntax")
+})
+
+test("`unbind` bulk flags select prefixes, bindings and modes", async () => {
+    const getAsync = jest.spyOn(config, "getAsync").mockResolvedValue(undefined)
+    await config.set("nmaps", "z", "nop")
+    await config.set("nmaps", "zz", "nop")
+    await backgroundExcmds.bind("x", "tabdiscard", "--all")
+    await config.set("imaps", "z", "nop")
+    await unbind("--recursive", "--mode=normal", "z")
+    const maps = config.get("nmaps")
+    expect([maps.z, maps.zz]).toEqual([undefined, undefined])
+    expect(maps.x).toBe("tabdiscard --all")
+    expect(config.get("imaps", "z")).toBe("nop")
+    jest.mocked(browser.commands.getAll).mockResolvedValue([
+        { name: "command_1", shortcut: "Ctrl+6" },
+    ])
+    await config.set("nmaps", "z", "nop")
+    await unbind("--recursive", "--mode=*", "z")
+    expect(config.get("nmaps").z).toBeUndefined()
+    expect(config.get("imaps").z).toBeUndefined()
+    await unbind("--all", "--mode=*")
+    expect(Object.keys(config.get("nmaps"))).toHaveLength(0)
+    expect(browser.commands.update).toHaveBeenCalled()
+    getAsync.mockRestore()
 })
 
 test.each([
