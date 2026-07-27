@@ -616,6 +616,9 @@ function defaultHintChars() {
     if (config.get("hintnames") === "numeric") {
         return "1234567890"
     }
+    if (config.get("hintnames") === "words") {
+        return "abcdefghijklmnopqrstuvwxyz" // protect users from changing hintchars and not being able to type the words
+    }
     return config.get("hintchars")
 }
 
@@ -691,6 +694,74 @@ function* hintnames_numeric(n: number): IterableIterator<string> {
     }
 }
 
+/** Common short English words for word hint names.
+ * @hidden */
+const HINT_WORDS = [
+    "ace", "age", "ago", "aid", "aim", "air", "all", "and", "ant", "any",
+    "ape", "arc", "ark", "arm", "art", "ash", "ask", "ate", "axe", "bad",
+    "bag", "ban", "bar", "bat", "bay", "bed", "bee", "bet", "big", "bin",
+    "bit", "bow", "box", "boy", "bud", "bug", "bun", "bus", "but", "cab",
+    "can", "cap", "car", "cat", "cop", "cow", "cry", "cub", "cup", "cur",
+    "cut", "dab", "dad", "dam", "day", "den", "dew", "did", "dig", "dim",
+    "dip", "dog", "dot", "dry", "dub", "dud", "due", "dug", "dye", "ear",
+    "eat", "eel", "egg", "ego", "elm", "emu", "end", "era", "eve", "ewe",
+    "eye", "fad", "fan", "far", "fat", "fax", "fed", "fee", "fen", "few",
+    "fig", "fin", "fir", "fit", "fix", "fly", "fob", "foe", "fog", "fop",
+    "for", "fox", "fry", "fun", "fur", "gag", "gap", "gas", "gay", "gel",
+    "gem", "get", "gin", "gnu", "god", "got", "gum", "gun", "gut", "guy",
+    "gym", "had", "ham", "has", "hat", "hay", "hen", "her", "hew", "hex",
+    "hid", "him", "hip", "his", "hit", "hob", "hog", "hop", "hot", "how",
+    "hub", "hue", "hug", "hum", "hut", "ice", "icy", "ill", "imp", "ink",
+    "inn", "ion", "ire", "irk", "ivy", "jab", "jag", "jam", "jar", "jaw",
+    "jay", "jet", "jig", "job", "jog", "jot", "joy", "jug", "jut", "keg",
+    "ken", "key", "kid", "kin", "kit", "lab", "lad", "lag", "lap", "law",
+    "lay", "lea", "led", "leg", "let", "lid", "lie", "lip", "lit", "log",
+    "lot", "low", "lug", "mad", "man", "map", "mar", "mat", "maw", "max",
+    "may", "men", "met", "mid", "mix", "mob", "mod", "mom", "mop", "mow",
+    "mud", "mug", "nab", "nag", "nap", "net", "new", "nil", "nip", "nit",
+    "nod", "nor", "not", "now", "nun", "nut", "oak", "oar", "oat", "odd",
+    "ode", "off", "oft", "oil", "old", "one", "opt", "orb", "ore", "our",
+    "out", "owe", "owl", "own", "pad", "pal", "pan", "pap", "par", "pat",
+    "paw", "pay", "pea", "peg", "pen", "pep", "per", "pet", "pie", "pig",
+    "pin", "pit", "ply", "pod", "pop", "pot", "pow", "pro", "pry", "pub",
+    "pug", "pun", "pup", "pus", "put", "rag", "ram", "ran", "rap", "rat",
+    "raw", "ray", "red", "ref", "rib", "rid", "rig", "rim", "rip", "rob",
+    "rod", "roe", "rot", "row", "rub", "rug", "rum", "run", "rut", "rye",
+    "sac", "sad", "sag", "sap", "sat", "saw", "say", "sea", "set", "sew",
+    "she", "shy", "sin", "sip", "sir", "sis", "sit", "six", "ski", "sky",
+    "sly", "sob", "sod", "son", "sop", "sot", "sow", "soy", "spa", "spy",
+    "sty", "sub", "sue", "sum", "sun", "sup", "tab", "tad", "tag", "tan",
+    "tap", "tar", "tat", "tax", "tea", "ten", "the", "thy", "tie", "tin",
+    "tip", "toe", "ton", "too", "top", "tot", "tow", "toy", "try", "tub",
+    "tug", "tun", "two", "urn", "use", "van", "vat", "vet", "vex", "via",
+    "vie", "vim", "vow", "wad", "wag", "war", "was", "wax", "way", "web",
+    "wed", "wet", "who", "why", "wig", "win", "wit", "woe", "wok", "won",
+    "woo", "wow", "yak", "yam", "yap", "yaw", "yea", "yes", "yet", "yew",
+    "yin", "you", "zap", "zed", "zen", "zig", "zip", "zoo",
+]
+
+/** Fisher-Yates shuffle an array (copy). @hidden */
+function shuffleArray<T>(arr: T[]): T[] {
+    const a = arr.slice()
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[a[i], a[j]] = [a[j], a[i]]
+    }
+    return a
+}
+
+/** Random hintnames from a built-in word list.
+ * @hidden */
+function* hintnames_words(n: number): IterableIterator<string> {
+    const shuffled = shuffleArray(HINT_WORDS)
+    const wordCount = Math.max(1, Math.ceil(log(n, shuffled.length)))
+    yield* map(
+        islice(permutationsWithReplacement(shuffled, wordCount), n),
+        // Keep neighbouring hints from sharing the same first word.
+        words => words.reverse().join(""),
+    )
+}
+
 /** @hidden */
 function* hintnames(
     n: number,
@@ -701,6 +772,8 @@ function* hintnames(
             yield* hintnames_numeric(n)
         case "uniform":
             yield* hintnames_uniform(n, hintchars)
+        case "words":
+            yield* hintnames_words(n)
         default:
             yield* hintnames_short(n, hintchars)
     }

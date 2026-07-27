@@ -897,9 +897,9 @@ export class default_config {
     hintfiltermode: "simple" | "vimperator" | "vimperator-reflow" = "simple"
 
     /**
-     * Whether to optimise for the shortest possible names for each hint, or to use a simple numerical ordering. If set to `numeric`, overrides `hintchars` setting.
+     * Whether to optimise for the shortest possible names for each hint, or to use a simple numerical ordering. If set to `numeric` or `words`, overrides `hintchars` setting. `words` uses random three letter English words (and therefore works badly with hintfiltermode vimperator*)
      */
-    hintnames: "short" | "numeric" | "uniform" = "short"
+    hintnames: "short" | "numeric" | "uniform" | "words" = "short"
 
     /**
      * Whether to display the names for hints in uppercase.
