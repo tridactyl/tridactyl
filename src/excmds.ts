@@ -1519,7 +1519,7 @@ export function scrollpage(n = 1, count = 1) {
  *
  *  Argument: A string you want to search for.
  *
- *  This function accepts `-?` or `--reverse` to search from the bottom rather than the top, `-: n` or `--jump-to n` to jump directly to the nth match, and `-s` or `--case-sensitive` and `-i` or `--case-insensitive` to override `findcase`. The case flags cannot be combined. `-r` or `--regex` accepts [JavaScript regular expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions) or `/pattern/flags`; `g` is added automatically. The case options override `i`, while `findcase` applies when `i` is absent. Regex matches visible raw DOM text in the current document, may span text nodes, and ignores empty matches.
+ *  This function accepts `-?` or `--reverse` to search from the bottom rather than the top, `-: n` or `--jump-to n` to jump directly to the nth match, and `-s` or `--case-sensitive` and `-i` or `--case-insensitive` to override `findcase`. The case flags cannot be combined. `-r` or `--regex` accepts [JavaScript regular expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions) or `/pattern/flags`; `g` is added automatically.
  *
  *  The behavior of this function is affected by the following setting:
  *
