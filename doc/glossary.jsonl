@@ -1,3 +1,44 @@
 {"word": "mozilla", "definition": "The foundation that controls Firefox and Thunderbird."}
 {"word": "bovine3dom", "definition": "The esteemed maintainer of Tridactyl and author of this glossary."}
 {"word": "vimperator", "definition": "A now defunct Firefox extension that was the main inspiration for Tridactyl."}
+{"word": "commandline", "definition": "A text-based interface to Tridactyl for running commands interactively and selecting from completion options, also called ex-mode. By default, bound to `:`"}
+{"word": "completion", "definition": "An object that can be selected from the commandline to complete a partially typed command, such as a URL for `:open` or a tab for `:tab`"}
+{"word": "keybind", "definition": "A relationship between a key press or series of key presses and a command"}
+{"word": "keysequence", "definition": "A series of key presses or key combinations that are descibed using a special language where, e.g. `<C-j>` represents `ctrl + j`"}
+{"word": "keydown", "definition": "An event triggered when a key is first pressed, represented in keysequeences as `<D-[character]>`"}
+{"word": "keyup", "definition": "The event triggered when a key is released, represented in keysequences as `<U-[character]>`"}
+{"word": "keypress", "definition": "An event triggered when a key is pressed and periodically while it is held down, represented in keysequences as `[character]`"}
+{"word": "pentadactyl", "definition": "A now defunct fork of Vimperator and one of the key inspirations for Tridactyl."}
+{"word": "treestyletabs", "definition": "A popular Firefox extension that adds a vertical tree of tabs to the user interface"}
+{"word": "tridactyl", "definition": "The best Firefox extension on the planet and the one you are using right now. Accept no imitations!"}
+{"word": "userchrome", "definition": "A semi-secret file that Firefox reads, if the preferences are set correctly, and allows you to edit the GUI. Tridactyl has a helper function for this called `:guiset`"}
+{"word": "tridactylrc", "definition": "A 'run commands' file that simply runs a series of commands at startup. Many users use these files to 'store' their settings, but it is important to remember that it really is just a bunch of commands to run at startup. See `:source`, `:mkt` and `:native`"}
+{"word": "xclip", "definition": "A command line utility that allows you to manipulate the clipboard under Linux and X11. See `:help yankto` and `:help putfrom`"}
+{"word": "xsel", "definition": "A command line utility that allows you to manipulate the clipboard under Linux and X11. See `:help yankto` and `:help putfrom`"}
+{"word": "sandboxed", "definition": "A security feature that prevents processes such as Firefox from accessing the file system, which breaks most of `:native` without some extra fiddling and whitelisting. 'snap' and 'flatpak' are common forms of sandboxing."}
+{"word": "github", "definition": "A popular code hosting site (aka 'forge') that allows you to store, share and discuss code with other users. At the time of writing, it's where Tridactyl was mostly hosted, although it's important to remember that `git` is decentralised and so really Tridactyl is hosted by developer who has ever cloned it"}
+{"word": "mappings", "definition": "Another word for keybinds"}
+{"word": "rebind", "definition": "To change the keybind a command is associated with"}
+{"word": "gitter", "definition": "A now mostly dead chat service that has been replaced by Matrix, but still works"}
+{"word": "deprecated", "definition": "A command or setting that will eventually be removed from Tridactyl, but works for now"}
+{"word": "emacs", "definition": "An operating system that only lacks a decent text editor. Inexplicably popular despite the fact that `nano` and `notepad.exe` are superior and pre-installed on most machines"}
+{"word": "popup", "definition": "A small window that appears in the middle of the screen, usually without consent to display something that the website wishes to annoy you with. Thankfully, web browsers block them universally, and so now they appear within webpages instead in the form of newsletter signups and 'cookie consent' dialogs, which is vastly better than having easily detectable new windows created because ... there's got to be a reason, right? Anyway, don't use the internet without an adblocker like uBlock Origin installed, kids"}
+{"word": "javascript", "definition": "Brendan Eich's long-running joke played on humanity. Tragically, it is also the language in which we are forced to write Tridactyl."}
+{"word": "firefox", "definition": "The web browser you're almost certainly using right now"}
+{"word": "vim", "definition": "The best text editor in the universe, second only to 'ex'"}
+{"word": "libera", "definition": "An IRC network that became popular after Freenode imploded. Come talk with us on #tridactyl like it's 2002"}
+{"word": "wiki", "definition": "Tridactyl's largely unmoderated and well hidden wiki, stored on GitHub"}
+{"word": "layout", "definition": "Which button inserts which character on a keyboard. You can change this in software."}
+{"word": "rc", "definition": "Shorthand for 'tridactylrc'"}
+{"word": "sidebar", "definition": "Part of the Firefox UI that appears on the left and extensions can put things in. We mostly use it for `:escapehatch` to get focus back onto the page, but `:sidebaropen` exists and has some enthusiastic users"}
+{"word": "addon", "definition": "A Firefox extension such as Tridactyl"}
+{"word": "matrix", "definition": "A chat network"}
+{"word": "pipe", "definition": "A way of sending data between commands, usually represented by `|`"}
+{"word": "messenger", "definition": "A small program that runs in userland and makes `:native` work for various tasks such as opening URLs Mozilla thinks are dangerous, starting system utilities like `xclip` or restarting the browser"}
+{"word": "ex", "definition": "The original line-based text editor upon which Vim was initially based. The commandline is called 'ex mode' in honour of this, commands are called 'ex commands' and we sometimes call series of ex commands 'ex scripts'"}
+{"word": "marks", "definition": "A way of remembering a position or URL"}
+{"word": "issue", "definition": "A bug report, feature request or question on GitHub. We often talk about 'filing' issues to mean creating them"}
+{"word": "recently", "definition": "Anything within the last decade"}
+{"word": "control", "definition": "The key marked 'ctrl' on your keyboard. Unlike many other programs, we really do mean the key marked 'ctrl', and not the splat key on MacOS, which we call 'meta'"}
+{"word": "jumplist", "definition": "A kind of history of bits of pages you have been on, accessible with `<C-o>` and `<C-i>`, and `g;` for text fields you have edited"}
+{"word": "sponsor", "definition": "Someone who gives money to bovine3dom so he can keep working on Tridactyl and spend his time writing definitions for the glossary like he is doing right now"}
