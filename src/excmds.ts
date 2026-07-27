@@ -88,7 +88,7 @@ import * as Logging from "@src/lib/logging"
 import { AutoContain, markExplicitContainerTab } from "@src/lib/autocontainers"
 import * as CSS from "css"
 import * as Perf from "@src/perf"
-import { staticThemes, defaultConfigMembers, memberType, typeKind, convert, convertMember } from "@src/.metadata.generated"
+import { staticThemes, excmdsFunctions, defaultConfigMembers, memberType, typeKind, convert, convertMember } from "@src/.metadata.generated"
 import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
@@ -102,6 +102,7 @@ import * as R from "ramda"
 import * as treestyletab from "@src/interop/tst"
 import { uuidv4 } from "@src/lib/math"
 import { ABOUT_PAGES } from "@src/lib/about_pages"
+import glossary from "@src/.glossary.generated.json"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -1806,11 +1807,11 @@ export function home(all: "false" | "true" = "false") {
 
 /** Show this page.
 
-    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd, a binding or a setting.
+    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd, a binding, a setting or a glossary term.
 
     On the ex command page, the "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
 
-    If there's a conflict (e.g. you have a "go" binding that does something, a "go" excmd that does something else and a "go" setting that does a third thing), the binding is chosen first, then the setting, then the excmd. In such situations, if you want to let Tridactyl know you're looking for something specfic, you can specify the following flags:
+    If there's a conflict, bindings are chosen first, then settings, aliases, ex commands and finally glossary terms. You can select a category explicitly with the following flags:
 
     `-a`: look for an alias
 
@@ -1819,6 +1820,8 @@ export function home(all: "false" | "true" = "false") {
     `-e`: look for an ex command
 
     `-s`: look for a setting
+
+    `-g`: look in the glossary
 
     `-B`: open the help page in a background tab
 
@@ -1840,6 +1843,7 @@ export async function help(...args: string[]) {
             "-b": Boolean,
             "-e": Boolean,
             "-s": Boolean,
+            "-g": Boolean,
             "-B": Boolean,
             "-o": Boolean,
             "-t": Boolean,
@@ -1848,7 +1852,10 @@ export async function help(...args: string[]) {
         { argv: args, allowNegativePositional: true },
     )
 
-    const openInCurrentWindow = option["-o"] || ((await activeTab()).url.startsWith(browser.runtime.getURL("static/docs/")) && !(option["-B"] || option["-t"] || option["-w"]))
+    const glossaryPage = browser.runtime.getURL("static/clippy/glossary.html")
+    const excmdPage = browser.runtime.getURL("static/docs/modules/_src_excmds_.html")
+    const activeUrl = (await activeTab()).url
+    const openInCurrentWindow = option["-o"] || ((activeUrl.startsWith(browser.runtime.getURL("static/docs/")) || activeUrl.startsWith(glossaryPage)) && !(option["-B"] || option["-t"] || option["-w"]))
     const subject = option._.join(" ")
     const settings = await config.getAsync()
     let url = ""
@@ -1866,7 +1873,7 @@ export async function help(...args: string[]) {
                 if (resolved.includes(helpItem)) break
             }
             if (resolved.length > 0) {
-                return browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+                return excmdPage + "#" + helpItem
             }
             return ""
         },
@@ -1880,12 +1887,16 @@ export async function help(...args: string[]) {
                 if (helpItem in bindings) {
                     helpItem = bindings[helpItem].split(" ")
                     helpItem = ["composite", "fillcmdline"].includes(helpItem[0]) ? helpItem[1] : helpItem[0]
-                    return browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+                    return excmdPage + "#" + helpItem
                 }
             }
             return ""
         },
-        excmd: (helpItem: string) => browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem,
+        excmd: (helpItem: string) => Object.prototype.hasOwnProperty.call(excmdsFunctions, helpItem) ? excmdPage + "#" + helpItem : "",
+        glossary: (helpItem: string) => {
+            const entry = glossary.find(entry => entry.word === helpItem)
+            return entry ? glossaryPage + "#" + encodeURIComponent(entry.anchor) : ""
+        },
         setting: (helpItem: string) => {
             let subSettings = settings
             const settingNames = helpItem.split(".")
@@ -1905,22 +1916,27 @@ export async function help(...args: string[]) {
     }
 
     if (subject === "") {
-        url = browser.runtime.getURL("static/docs/modules/_src_excmds_.html")
+        url = option["-g"] ? glossaryPage : excmdPage
     } else {
+        const categoryFlags = ["-a", "-b", "-e", "-s", "-g"].filter(flag => option[flag])
+        if (categoryFlags.length > 1) throw new Error("Only one help category may be selected")
         // If the user did specify what they wanted, specifically look for it
         if (option["-a"]) url = strategies.alias(subject)
         else if (option["-b"]) url = strategies.binding(subject)
         else if (option["-e"]) url = strategies.excmd(subject)
         else if (option["-s"]) url = strategies.setting(subject)
+        else if (option["-g"]) url = strategies.glossary(subject)
 
         // Otherwise or if it couldn't be found, try all possible items
-        if (url === "") {
-            const priority = [strategies.binding, strategies.setting, strategies.alias, strategies.excmd]
+        if (url === "" && categoryFlags.length === 0) {
+            const priority = [strategies.binding, strategies.setting, strategies.alias, strategies.excmd, strategies.glossary]
             for (const strategy of priority) {
                 url = strategy(subject)
                 if (url !== "") break
             }
         }
+        if (url === "" && categoryFlags.length) throw new Error(`No ${categoryFlags[0]} help found for ${subject}`)
+        if (url === "") url = excmdPage + "#" + subject
     }
 
     let done
@@ -1935,6 +1951,12 @@ export async function help(...args: string[]) {
         done = tabopen(url)
     }
     return done.then(() => undefined)
+}
+
+/** Look up a term in the glossary. */
+//#background
+export async function define(...words: string[]) {
+    return help("-g", ...words)
 }
 
 /**

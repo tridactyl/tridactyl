@@ -42,6 +42,7 @@ mkdir -p build
 mkdir -p build/static
 mkdir -p generated/static
 mkdir -p generated/static/clippy
+node scripts/make_glossary.js
 
 if [ "$(isWindowsMinGW)" = "True" ]; then
   $WIN_PYTHON scripts/excmds_macros.py

@@ -35,6 +35,7 @@ import { ExtensionsCompletionSource } from "@src/completions/Extensions"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
 import { GotoCompletionSource } from "@src/completions/Goto"
 import { GuisetCompletionSource } from "@src/completions/Guiset"
+import { GlossaryCompletionSource } from "@src/completions/Glossary"
 import { HelpCompletionSource } from "@src/completions/Help"
 import { HistoryCompletionSource } from "@src/completions/History"
 import { PreferenceCompletionSource } from "@src/completions/Preferences"
@@ -153,6 +154,7 @@ export function enableCompletions() {
             FileSystemCompletionSource,
             GotoCompletionSource,
             GuisetCompletionSource,
+            GlossaryCompletionSource,
             HelpCompletionSource,
             AproposCompletionSource,
             HistoryCompletionSource,

@@ -748,6 +748,7 @@ export class default_config {
         sanitize: "sanitise",
         "saveas!": "saveas --cleanup --overwrite",
         tutorial: "tutor",
+        glossary: "define",
         h: "help",
         unmute: "mute unmute",
         authors: "credits",

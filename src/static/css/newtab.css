@@ -82,6 +82,37 @@ code {
     hyphens: none;
 }
 
+.glossary-list {
+    margin: 2em 0 0;
+}
+
+.glossary-entry {
+    padding: 1em 0.5em 1.1em;
+    border-bottom: 1px solid var(--tridactyl-highlight-box-bg);
+    scroll-margin-top: 1em;
+}
+
+.glossary-entry:first-child {
+    border-top: 1px solid var(--tridactyl-highlight-box-bg);
+}
+
+.glossary-entry:target {
+    background: var(--tridactyl-highlight-box-bg);
+}
+
+.glossary-entry dt {
+    font-weight: bold;
+}
+
+.glossary-entry dt code {
+    font-size: 1em;
+}
+
+.glossary-entry dd {
+    margin: 0.4em 0 0;
+    line-height: 140%;
+}
+
 img {
     max-width: 100%;
     display: block;

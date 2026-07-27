@@ -8,6 +8,7 @@ import {
 } from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as config from "@src/lib/config"
+import { glossaryOptions } from "@src/completions/Glossary"
 
 class HelpCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
@@ -115,6 +116,10 @@ export class HelpCompletionSource extends AproposCompletionSource {
                                 "-s",
                             )
                         }),
+                ),
+            "-g": (options, query) =>
+                options.concat(
+                    glossaryOptions(this.createOption.bind(this), query, true),
                 ),
         }
 

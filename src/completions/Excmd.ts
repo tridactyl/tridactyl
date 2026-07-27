@@ -10,7 +10,7 @@ export class ExcmdCompletionOption extends Completions.CompletionOptionHTML impl
         public documentation = "",
     ) {
         super()
-        this.fuseKeys.push(this.value)
+        this.fuseKeys.push(this.value, this.documentation)
 
         // Create HTMLElement
         this.html = html`<tr class="ExcmdCompletionOption option">
