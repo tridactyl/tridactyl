@@ -46,7 +46,9 @@ export function getCommandlineFns(cmdline_state: {
                 "current_cmdline",
                 "cmdline_filter",
             )
-            cmdline_state.activeCompletions?.forEach(comp => comp.next(count))
+            await Promise.all(
+                cmdline_state.activeCompletions?.map(comp => comp.next(count)) || [],
+            )
         },
 
         /** Selects the next completion, or history line if none is selected. */
@@ -65,7 +67,9 @@ export function getCommandlineFns(cmdline_state: {
                 "current_cmdline",
                 "cmdline_filter",
             )
-            cmdline_state.activeCompletions?.forEach(comp => comp.prev(count))
+            await Promise.all(
+                cmdline_state.activeCompletions?.map(comp => comp.prev(count)) || [],
+            )
         },
 
         /** Selects the previous completion, or history line if none is selected. */

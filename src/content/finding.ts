@@ -28,12 +28,10 @@ const NATIVE_HIGHLIGHTS = typeof Highlight === "function" && "highlights" in CSS
 
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
-    public nativeRange: Range
     private background = `var(--tridactyl-search-highlight-color)`
 
     constructor(public range: Range) {
         super()
-        this.nativeRange = NATIVE_HIGHLIGHTS ? range.cloneRange() : range
         {
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1716685
             const proto = FindHighlight.prototype
@@ -44,7 +42,9 @@ class FindHighlight extends HTMLSpanElement {
         this.style.position = "absolute"
         this.style.top = "0px"
         this.style.left = "0px"
-        this.updateRectsPosition()
+        const rects = this.getClientRects()
+        if (!rects.length) throw new Error("Range has no rects")
+        this.updateRectsPosition(rects)
         ;(this as any).unfocus()
     }
 
@@ -52,17 +52,15 @@ class FindHighlight extends HTMLSpanElement {
         const range = allTextNode[0].ownerDocument.createRange()
         range.setStart(allTextNode[found.startTextNodePos], found.startOffset)
         range.setEnd(allTextNode[found.endTextNodePos], found.endOffset)
-        if (range.getClientRects().length < 1)
-            throw new Error("Range has no rects")
         return new this(range)
     }
 
-    updateRectsPosition() {
+    updateRectsPosition(rects = this.getClientRects()) {
         if (NATIVE_HIGHLIGHTS) {
-            this.top = this.getBoundingClientRect().top + window.pageYOffset
+            this.top = Array.from(rects).reduce((top, rect) =>
+                rect.width || rect.height ? Math.min(top, rect.top) : top, Infinity) + window.pageYOffset
             return
         }
-        const rects = this.getClientRects()
         this.top = Infinity
         const windowTop = window.pageYOffset
         const windowLeft = window.pageXOffset
@@ -99,7 +97,7 @@ class FindHighlight extends HTMLSpanElement {
         return this.range.getClientRects()
     }
     unfocus() {
-        setNativeFocus(this.nativeRange, false)
+        setNativeFocus(this.range, false)
         this.background = `var(--tridactyl-search-highlight-color)`
         for (const node of this.children) {
             ;(node as HTMLElement).style.background = this.background
@@ -140,7 +138,7 @@ class FindHighlight extends HTMLSpanElement {
         }
         const focusable = this.queryInRange("a,input,button,details")
         if (focusElement && focusable) focusable.focus()
-        setNativeFocus(this.nativeRange, true)
+        setNativeFocus(this.range, true)
         this.background = `var(--tridactyl-search-highlight-active-color)`
         for (const node of this.children) {
             const element = node as HTMLElement
@@ -228,6 +226,8 @@ let lastHighlights
 let selected = 0
 let preview
 let searchGeneration = 0
+let regexSnapshots
+let regexSnapshotObservers: MutationObserver[] = []
 
 let HIGHLIGHT_TIMER
 let REPOSITION_TIMER
@@ -248,14 +248,71 @@ function scheduleReposition() {
 }
 
 window.addEventListener("resize", scheduleReposition)
+window.addEventListener("resize", clearRegexSnapshots)
 window.addEventListener("scroll", scheduleReposition, true)
+
+function clearRegexSnapshots() {
+    regexSnapshots = undefined
+    regexSnapshotObservers.splice(0).forEach(observer => observer.disconnect())
+}
+
+async function yieldFind(generation) {
+    await new Promise(resolve => setTimeout(resolve))
+    return generation !== searchGeneration
+}
+
+function getRegexSnapshots(documents, cache: boolean) {
+    if (cache && regexSnapshots?.length === documents.length &&
+        regexSnapshots.every((snapshot, index) => snapshot.doc === documents[index])) return regexSnapshots
+    if (!NATIVE_HIGHLIGHTS) getFindHost()
+    const snapshots = documents.map(doc => {
+        if (!doc) return { doc, nodes: [], lengths: [], text: "" }
+        const painted = new WeakMap<HTMLElement, boolean>()
+        const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT)
+        const nodes = []
+        const lengths = []
+        const parts = []
+        while (walker.nextNode()) {
+            const node = walker.currentNode as Text
+            const parent = node.parentElement
+            if (!painted.has(parent)) painted.set(parent, DOM.isPainted(parent))
+            if (painted.get(parent)) {
+                nodes.push(node)
+                lengths.push(node.length)
+                parts.push(node.data)
+            }
+        }
+        return { doc, nodes, lengths, text: parts.join("") }
+    })
+    if (cache) {
+        clearRegexSnapshots()
+        regexSnapshots = snapshots
+        regexSnapshotObservers = documents.filter(Boolean).map(doc => {
+            const observer = new MutationObserver(changes => {
+                if (changes.some(({ target }) =>
+                    !(target as Element).closest?.("#cmdline_iframe,#TridactylFindHost")))
+                    clearRegexSnapshots()
+            })
+            observer.observe(doc, {
+                attributes: true,
+                childList: true,
+                characterData: true,
+                subtree: true,
+            })
+            return observer
+        })
+    }
+    return snapshots
+}
 
 export async function jumpToMatch(searchQuery, option) {
     const previewing = option["preview"] === true
     const generation = ++searchGeneration
-    if (!previewing) preview = undefined
-    if (previewing) clearTimeout(HIGHLIGHT_TIMER)
-    else resetHighlightTimer()
+    if (!previewing) {
+        preview = undefined
+        clearRegexSnapshots()
+    }
+    clearTimeout(HIGHLIGHT_TIMER)
     // First, search for the query
     const literal = option["regex"] && searchQuery.match(/^\/(.*)\/([^/]*)$/s)
     let [source, flags] = literal ? literal.slice(1) : [searchQuery, ""]
@@ -285,35 +342,40 @@ export async function jumpToMatch(searchQuery, option) {
     lastHighlights = []
     clearHighlighting()
 
-    const documents = [document]
-    for (const frame of DOM.getAllDocumentFrames())
-        if (frame.contentDocument) documents.push(frame.contentDocument)
-    const nodeSets = documents.map(doc => {
+    const documents = [document, ...DOM.getAllDocumentFrames().map(frame => frame.contentDocument)]
+    const snapshots = regex && getRegexSnapshots(documents, previewing)
+    const nodeSets = regex ? [] : documents.map(doc => {
+        if (!doc) return []
         const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT)
         const nodes = []
         while (walker.nextNode()) nodes.push(walker.currentNode)
-        return regex ? nodes.filter(n => DOM.isPainted(n.parentElement)) : nodes
+        return nodes
     })
 
     if (regex) {
-        for (const nodes of nodeSets) {
+        const found = []
+        let converted = 0
+        for (const { nodes, lengths, text } of snapshots) {
             let nodeIndex = 0
             let nodeOffset = 0
-            const text = nodes.map(node => node.data).join("")
             for (const match of text.matchAll(regex)) {
+                if (++converted % 100 === 0 && await yieldFind(generation)) return
                 if (!match[0]) continue
-                const end = match.index + match[0].length
-                while (match.index >= nodeOffset + nodes[nodeIndex].length)
-                    nodeOffset += nodes[nodeIndex++].length
-                const range = nodes[0].ownerDocument.createRange()
-                range.setStart(nodes[nodeIndex], match.index - nodeOffset)
-                while (end > nodeOffset + nodes[nodeIndex].length)
-                    nodeOffset += nodes[nodeIndex++].length
-                range.setEnd(nodes[nodeIndex], end - nodeOffset)
-                if (range.getClientRects().length)
-                    lastHighlights.push(new FindHighlight(range))
+                try {
+                    const end = match.index + match[0].length
+                    while (match.index >= nodeOffset + lengths[nodeIndex])
+                        nodeOffset += lengths[nodeIndex++]
+                    const range = nodes[0].ownerDocument.createRange()
+                    range.setStart(nodes[nodeIndex], match.index - nodeOffset)
+                    while (end > nodeOffset + lengths[nodeIndex])
+                        nodeOffset += lengths[nodeIndex++]
+                    range.setEnd(nodes[nodeIndex], end - nodeOffset)
+                    if (range.toString() !== match[0]) continue
+                    found.push(new FindHighlight(range))
+                } catch (_) {}
             }
         }
+        lastHighlights = found
     }
     for (let i = 0; i < results.count; ++i) {
         const range = results.rangeData[i]
@@ -329,6 +391,7 @@ export async function jumpToMatch(searchQuery, option) {
         throw new Error("Pattern not found: " + searchQuery)
     }
     drawHighlights(lastHighlights)
+    if (!previewing) resetHighlightTimer()
     lastHighlights.sort(
         option["reverse"] ? (a, b) => b.top - a.top : (a, b) => a.top - b.top,
     )
@@ -355,7 +418,7 @@ function drawHighlights(highlights) {
         const doc = highlights[0].range.startContainer.ownerDocument
         const win: any = doc.defaultView
         const normal = new win.Highlight()
-        highlights.forEach(highlight => normal.add(highlight.nativeRange))
+        highlights.forEach(highlight => normal.add(highlight.range))
         const active = new win.Highlight()
         nativeRegistry = win.CSS.highlights
         normal.priority = 2147483646
@@ -381,7 +444,103 @@ function restorePreviewScrolls(snapshot = preview) {
         element.scrollTo({ left, top, behavior: "instant" })
 }
 
-export async function previewMatch(session: number, searchQuery, option) {
+function truncateFindContext(text: string, length: number, before: boolean) {
+    if (length < 1 || text.length <= length) return text.slice(0, length)
+    if (before) {
+        let start = text.length - length
+        while (start > 0 && !/[\s.]/.test(text[start - 1])) --start
+        return text.slice(start)
+    }
+    let end = length
+    while (end < text.length && !/[\s.]/.test(text[end])) ++end
+    if (text[end] === ".") ++end
+    return text.slice(0, end)
+}
+
+async function findCompletionMatches(generation) {
+    const limit = config.get("findresults")
+    const contextLength = Math.max(0, config.get("findcontextlen"))
+    const highlights =
+        limit < 0 ? lastHighlights : lastHighlights.slice(0, limit)
+    const matches = []
+    const headingIndexes = new Map()
+    for (let index = 0; index < highlights.length; ++index) {
+        const highlight = highlights[index]
+        const range = highlight.range
+        const doc: Document = range.startContainer.ownerDocument
+        const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT)
+        walker.currentNode = range.startContainer
+        let precontext = (range.startContainer as Text).data.slice(
+            0,
+            range.startOffset,
+        )
+        while (precontext.length < contextLength && walker.previousNode())
+            precontext = (walker.currentNode as Text).data + precontext
+        const preTruncated =
+            contextLength > 0 &&
+            (precontext.length > contextLength || !!walker.previousNode())
+        walker.currentNode = range.endContainer
+        let postcontext = (range.endContainer as Text).data.slice(
+            range.endOffset,
+        )
+        while (postcontext.length < contextLength && walker.nextNode())
+            postcontext += (walker.currentNode as Text).data
+        const postTruncated =
+            contextLength > 0 &&
+            (postcontext.length > contextLength || !!walker.nextNode())
+        precontext = truncateFindContext(precontext, contextLength, true)
+        postcontext = truncateFindContext(postcontext, contextLength, false)
+        let headingIndex = headingIndexes.get(doc)
+        if (!headingIndex) {
+            const headings = Array.from(doc.querySelectorAll("h1,h2,h3,h4,h5,h6"))
+            const hierarchy = []
+            const breadcrumbs = new Map()
+            for (const heading of headings) {
+                hierarchy.length = Number(heading.tagName[1]) - 1
+                hierarchy.push(heading.textContent?.replace(/\s+/g, " ").trim())
+                breadcrumbs.set(heading, hierarchy.filter(Boolean).join(" > "))
+            }
+            headingIndex = { headings, breadcrumbs }
+            headingIndexes.set(doc, headingIndex)
+        }
+        const parent = (range.startContainer as Text).parentElement
+        let heading = parent.closest("h1,h2,h3,h4,h5,h6")
+        let start = 0
+        let end = headingIndex.headings.length
+        while (!heading && start < end) {
+            const middle = Math.floor((start + end) / 2)
+            if (
+                headingIndex.headings[middle].compareDocumentPosition(
+                    range.startContainer,
+                ) === Node.DOCUMENT_POSITION_FOLLOWING
+            )
+                start = middle + 1
+            else end = middle
+        }
+        heading ||= headingIndex.headings[start - 1]
+        const root = doc.scrollingElement || doc.documentElement
+        const top = range.getBoundingClientRect().top + doc.defaultView.scrollY
+        const percent = Math.round((top / Math.max(1, root.scrollHeight)) * 100)
+        matches.push({
+            index,
+            text: range.toString(),
+            precontext: (preTruncated ? "..." : "") + precontext,
+            postcontext: postcontext + (postTruncated ? "..." : ""),
+            breadcrumbs: headingIndex.breadcrumbs.get(heading) || "",
+            position: `${Math.min(100, Math.max(0, percent))}%`,
+        })
+        if (index % 100 === 99 && await yieldFind(generation)) return []
+    }
+    return matches
+}
+
+export async function previewMatch(
+    session: number,
+    searchQuery,
+    option,
+    completions = true,
+    keepScroll = false,
+) {
     if (preview?.session !== session) {
         if (preview) cancelPreview(preview.session)
         preview = {
@@ -392,22 +551,32 @@ export async function previewMatch(session: number, searchQuery, option) {
             scrolls: new Map(),
         }
     }
-    restorePreviewScrolls()
+    if (keepScroll && lastHighlights?.length && "jumpTo" in option) {
+        lastHighlights[selected].unfocus()
+        selected = (option["jumpTo"] + lastHighlights.length) % lastHighlights.length
+        return focusHighlight(selected, false)
+    }
+    if (!keepScroll) restorePreviewScrolls()
     const generation = searchGeneration + 1
     try {
         await jumpToMatch(searchQuery, { ...option, preview: true })
+        if (preview?.session !== session || generation !== searchGeneration)
+            return []
+        return completions ? await findCompletionMatches(generation) : []
     } catch (_) {
         if (preview?.session === session && generation === searchGeneration) {
             clearHighlighting()
             lastHighlights = []
             restorePreviewScrolls()
         }
+        return []
     }
 }
 
 export function cancelPreview(session: number) {
     if (preview?.session !== session) return
     ++searchGeneration
+    clearRegexSnapshots()
     clearHighlighting()
     const snapshot = preview
     preview = undefined
@@ -502,5 +671,5 @@ export async function jumpToNextMatch(n: number, searchFromView = false) {
 }
 
 export function currentMatchRange(): Range {
-    return lastHighlights[selected].range
+    return lastHighlights[selected].range.cloneRange()
 }

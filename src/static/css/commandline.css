@@ -164,6 +164,18 @@ a.url:hover {
     font-weight: bold;
 }
 
+.FindCompletionSource .breadcrumbs {
+    width: 25%;
+    padding: 0 0.75em;
+    text-overflow: ellipsis;
+}
+
+.FindCompletionSource .position {
+    width: 6em;
+    padding-right: 0.75em;
+    text-align: right;
+}
+
 .hidden {
     display: none;
 }

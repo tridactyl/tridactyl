@@ -1524,6 +1524,8 @@ export function scrollpage(n = 1, count = 1) {
  *  The behavior of this function is affected by the following setting:
  *
  *  `findcase`: either "smart", "sensitive" or "insensitive". If "smart", find will be case-sensitive if the pattern contains uppercase letters.
+ *  `findresults`: maximum completion rows to show; `-1` is unlimited and `0` disables them.
+ *  `findcontextlen`: number of context characters to show around each completion.
  *
  *  Known bugs: find will currently happily jump to a non-visible element, and pressing n or N without having searched for anything will cause an error.
  */
@@ -1567,8 +1569,9 @@ export function find(...args: string[]) {
     if (preview) {
         const { session } = preview
         if (preview.cancel) return finding.cancelPreview(session)
+        const completions = preview.completions !== false && config.get("findresults") !== 0
         if (config.get("incsearch") === "true" && searchQuery.length > 0)
-            return finding.previewMatch(session, searchQuery, option)
+            return finding.previewMatch(session, searchQuery, option, completions, preview.selected === true)
         return finding.cancelPreview(session)
     }
     return finding.jumpToMatch(searchQuery, option)

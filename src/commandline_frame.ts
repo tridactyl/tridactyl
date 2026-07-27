@@ -114,6 +114,7 @@ function resizeArea() {
         focus()
     }
 }
+window.addEventListener("tridactyl-refresh-completions", resizeArea)
 
 /** @hidden
  * This is a bit loosely defined at the moment.
