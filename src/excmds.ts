@@ -1831,7 +1831,7 @@ export function home(all: "false" | "true" = "false") {
 
     `-w`: open the help page in a new window
 
-    If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline. You will be able to see the whole pipeline by hovering your mouse over the alias in the "exaliases" list. Unfortunately there currently is no way to display these HTML tooltips from the keyboard.
+    If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline.
 
     e.g. `:help bind`
 */
