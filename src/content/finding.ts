@@ -26,11 +26,30 @@ function getFindHost() {
 
 const NATIVE_HIGHLIGHTS = typeof Highlight === "function" && "highlights" in CSS
 
+// Too many live Ranges cause slowdown
+// StaticRanges don't, but also don't have clientRects
+// Use this one Range and set its start/end to get clientRects
+const reuseRange = document.createRange()
+
+function setReuseRange(staticRange: StaticRange) {
+    reuseRange.setStart(staticRange.startContainer, staticRange.startOffset)
+    reuseRange.setEnd(staticRange.endContainer, staticRange.endOffset)
+    return reuseRange
+}
+
+function staticRangeBoundingRect(staticRange: StaticRange) {
+    return setReuseRange(staticRange).getBoundingClientRect()
+}
+
+function staticRangeClientRects(staticRange: StaticRange) {
+    return setReuseRange(staticRange).getClientRects()
+}
+
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
     private background = `var(--tridactyl-search-highlight-color)`
 
-    constructor(public range: Range) {
+    constructor(public range: StaticRange) {
         super()
         {
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1716685
@@ -49,10 +68,12 @@ class FindHighlight extends HTMLSpanElement {
     }
 
     static fromFindApi(found, allTextNode: Text[]) {
-        const range = allTextNode[0].ownerDocument.createRange()
-        range.setStart(allTextNode[found.startTextNodePos], found.startOffset)
-        range.setEnd(allTextNode[found.endTextNodePos], found.endOffset)
-        return new this(range)
+        return new this(new StaticRange({
+            startContainer: allTextNode[found.startTextNodePos],
+            startOffset: found.startOffset,
+            endContainer: allTextNode[found.endTextNodePos],
+            endOffset: found.endOffset,
+        }))
     }
 
     updateRectsPosition(rects = this.getClientRects()) {
@@ -91,10 +112,10 @@ class FindHighlight extends HTMLSpanElement {
     }
 
     getBoundingClientRect() {
-        return this.range.getBoundingClientRect()
+        return staticRangeBoundingRect(this.range)
     }
     getClientRects() {
-        return this.range.getClientRects()
+        return staticRangeClientRects(this.range)
     }
     unfocus() {
         setNativeFocus(this.range, false)
@@ -116,7 +137,7 @@ class FindHighlight extends HTMLSpanElement {
             getBoundingClientRect: () => this.getBoundingClientRect(),
             parentElement: null,
         }
-        let parent = this.range.commonAncestorContainer
+        let parent = setReuseRange(this.range).commonAncestorContainer
         if (parent.nodeType !== Node.ELEMENT_NODE) {
             parent = parent.parentElement
         }
@@ -192,10 +213,10 @@ let nativeHighlights: { normal: Highlight; active: Highlight }
 let nativeRegistry = CSS.highlights
 
 function isHighlightVisible(highlight: FindHighlight) {
-    return DOM.isVisible(nativeHighlights ? highlight.range : highlight)
+    return DOM.isVisible(nativeHighlights ? setReuseRange(highlight.range) : highlight)
 }
 
-function setNativeFocus(range: Range, active: boolean) {
+function setNativeFocus(range: StaticRange, active: boolean) {
     if (!nativeHighlights) return
     nativeHighlights.normal[active ? "delete" : "add"](range)
     nativeHighlights.active[active ? "add" : "delete"](range)
@@ -365,13 +386,12 @@ export async function jumpToMatch(searchQuery, option) {
                     const end = match.index + match[0].length
                     while (match.index >= nodeOffset + lengths[nodeIndex])
                         nodeOffset += lengths[nodeIndex++]
-                    const range = nodes[0].ownerDocument.createRange()
-                    range.setStart(nodes[nodeIndex], match.index - nodeOffset)
+                    reuseRange.setStart(nodes[nodeIndex], match.index - nodeOffset)
                     while (end > nodeOffset + lengths[nodeIndex])
                         nodeOffset += lengths[nodeIndex++]
-                    range.setEnd(nodes[nodeIndex], end - nodeOffset)
-                    if (range.toString() !== match[0]) continue
-                    found.push(new FindHighlight(range))
+                    reuseRange.setEnd(nodes[nodeIndex], end - nodeOffset)
+                    if (reuseRange.toString() !== match[0]) continue
+                    found.push(new FindHighlight(new StaticRange(reuseRange)))
                 } catch (_) {}
             }
         }
