@@ -616,7 +616,7 @@ function defaultHintChars() {
     if (config.get("hintnames") === "numeric") {
         return "1234567890"
     }
-    if (config.get("hintnames") === "random") {
+    if (config.get("hintnames") === "words") {
         return "abcdefghijklmnopqrstuvwxyz"
     }
     return config.get("hintchars")
@@ -694,9 +694,9 @@ function* hintnames_numeric(n: number): IterableIterator<string> {
     }
 }
 
-/** Common short English words for random hint names.
+/** Common short English words for word hint names.
  * @hidden */
-const RANDOM_HINT_WORDS = [
+const HINT_WORDS = [
     "ace", "age", "ago", "aid", "aim", "air", "all", "and", "ant", "any",
     "ape", "arc", "ark", "arm", "art", "ash", "ask", "ate", "axe", "bad",
     "bag", "ban", "bar", "bat", "bay", "bed", "bee", "bet", "big", "bin",
@@ -752,7 +752,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 /** Random hintnames from a built-in word list.
  * @hidden */
-function* hintnames_random(n: number): IterableIterator<string> {
+function* hintnames_words(n: number): IterableIterator<string> {
     const shuffled = shuffleArray(RANDOM_HINT_WORDS)
     for (let i = 0; i < n; i++) {
         yield shuffled[i % shuffled.length]
@@ -769,8 +769,8 @@ function* hintnames(
             yield* hintnames_numeric(n)
         case "uniform":
             yield* hintnames_uniform(n, hintchars)
-        case "random":
-            yield* hintnames_random(n)
+        case "words":
+            yield* hintnames_words(n)
         default:
             yield* hintnames_short(n, hintchars)
     }
