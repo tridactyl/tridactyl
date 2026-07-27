@@ -1374,7 +1374,7 @@ export class default_config {
     /**
      * Number of characters to use as context for the matches shown in completions
      */
-    findcontextlen = 100
+    findcontextlen = 50
 
     /**
      * Whether find should be case-sensitive
