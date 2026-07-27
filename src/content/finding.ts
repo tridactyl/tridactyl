@@ -286,33 +286,33 @@ export async function jumpToMatch(searchQuery, option) {
     clearHighlighting()
 
     const documents = [document]
-    if (!regex)
-        for (const frame of DOM.getAllDocumentFrames())
-            if (frame.contentDocument) documents.push(frame.contentDocument)
+    for (const frame of DOM.getAllDocumentFrames())
+        if (frame.contentDocument) documents.push(frame.contentDocument)
     const nodeSets = documents.map(doc => {
         const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT)
         const nodes = []
         while (walker.nextNode()) nodes.push(walker.currentNode)
-        return nodes
+        return regex ? nodes.filter(n => DOM.isPainted(n.parentElement)) : nodes
     })
 
     if (regex) {
-        const nodes = nodeSets[0].filter(n => DOM.isPainted(n.parentElement))
-        let nodeIndex = 0
-        let nodeOffset = 0
-        const text = nodes.map(node => node.data).join("")
-        for (const match of text.matchAll(regex)) {
-            if (!match[0]) continue
-            const end = match.index + match[0].length
-            while (match.index >= nodeOffset + nodes[nodeIndex].length)
-                nodeOffset += nodes[nodeIndex++].length
-            const range = nodes[0].ownerDocument.createRange()
-            range.setStart(nodes[nodeIndex], match.index - nodeOffset)
-            while (end > nodeOffset + nodes[nodeIndex].length)
-                nodeOffset += nodes[nodeIndex++].length
-            range.setEnd(nodes[nodeIndex], end - nodeOffset)
-            if (range.getClientRects().length)
-                lastHighlights.push(new FindHighlight(range))
+        for (const nodes of nodeSets) {
+            let nodeIndex = 0
+            let nodeOffset = 0
+            const text = nodes.map(node => node.data).join("")
+            for (const match of text.matchAll(regex)) {
+                if (!match[0]) continue
+                const end = match.index + match[0].length
+                while (match.index >= nodeOffset + nodes[nodeIndex].length)
+                    nodeOffset += nodes[nodeIndex++].length
+                const range = nodes[0].ownerDocument.createRange()
+                range.setStart(nodes[nodeIndex], match.index - nodeOffset)
+                while (end > nodeOffset + nodes[nodeIndex].length)
+                    nodeOffset += nodes[nodeIndex++].length
+                range.setEnd(nodes[nodeIndex], end - nodeOffset)
+                if (range.getClientRects().length)
+                    lastHighlights.push(new FindHighlight(range))
+            }
         }
     }
     for (let i = 0; i < results.count; ++i) {
