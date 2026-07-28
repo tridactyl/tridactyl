@@ -106,6 +106,11 @@ export class TabAllCompletionSource extends TabCompletionSource {
         return this.updateOptions(exstr)
     }
 
+    async filter(exstr) {
+        this.lastExstr = exstr
+        return this.onInput(exstr)
+    }
+
     setStateFromScore(scoredOpts: Completions.ScoredOption[]) {
         super.setStateFromScore(scoredOpts, this.shouldSetStateFromScore)
     }
