@@ -9,19 +9,27 @@ export function messageTabChanges(command: string) {
         )
             ? PRIORITY_PENDING
             : UPDATE_PENDING
-    sendingTabChanges ||=
-        new Promise<void>(resolve => setTimeout(resolve, 0)).then(async () => {
-            while (tabChanges) {
-                const changes = tabChanges
-                tabChanges = 0
-                await browser.runtime
-                    .sendMessage({
-                        type: "tab_changes",
-                        command:
-                            changes & PRIORITY_PENDING ? "priority" : "updated",
-                    })
-                    .catch(() => undefined)
-            }
-            sendingTabChanges = undefined
-        })
+    sendingTabChanges ||= new Promise<void>(resolve =>
+        setTimeout(resolve, 0),
+    ).then(async () => {
+        while (tabChanges) {
+            const changes = tabChanges
+            tabChanges = 0
+            const priority = changes & PRIORITY_PENDING
+            const tabs = await browser.tabs
+                .query({ active: true })
+                .catch(() => [])
+            await Promise.all(
+                tabs.map(tab =>
+                    browser.tabs
+                        .sendMessage(tab.id, {
+                            type: "tab_changes",
+                            command: priority ? "priority" : "updated",
+                        })
+                        .catch(() => undefined),
+                ),
+            )
+        }
+        sendingTabChanges = undefined
+    })
 }
