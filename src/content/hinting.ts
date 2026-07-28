@@ -767,7 +767,7 @@ function* hintnames_words(n: number): IterableIterator<string> {
  * making typed filtering more effective. See #3880.
  * @hidden */
 function* hintnames_reverse(n: number, hintchars = defaultHintChars()): IterableIterator<string> {
-    const hints = [...islice(hintnames_simple(hintchars), n)]
+    const hints = [...islice(hintnames_uniform(n, hintchars), n)]
     yield* hints.map(hint => hint.split("").reverse().join(""))
 }
 
