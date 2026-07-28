@@ -52,11 +52,7 @@ export abstract class TabCompletionSource extends Completions.CompletionSourceFu
 
     private queueTabChanges(message: Messaging.Message) {
         if (this.state === "hidden") return
-        const priority = (message.args?.[0] || []).some(([command]) =>
-            /^tab_(?:close|created|moved|activated|attached|detached)$/u.test(
-                command,
-            ),
-        )
+        const priority = message.command === "priority"
         if (this.tabChangesTimer === undefined || priority) {
             this.trailingTabChanges = priority
             void this.reactToTabChanges()

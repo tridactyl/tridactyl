@@ -101,8 +101,7 @@ browser.proxy.onRequest.addListener(Proxy.onRequestListener, {
 /**
  * Declare Tab Event Listeners
  */
-const tabChangeListener = (command: string) => (...args) =>
-    messageTabChanges(command, args)
+const tabChangeListener = (command: string) => () => messageTabChanges(command)
 browser.tabs.onRemoved.addListener(tabChangeListener("tab_close"))
 // Fired when a tab is attached to a window, for example because it was moved between windows.
 browser.tabs.onAttached.addListener(tabChangeListener("tab_attached"))
