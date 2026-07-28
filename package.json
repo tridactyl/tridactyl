@@ -70,6 +70,7 @@
     "make-zip": "web-ext build --source-dir build --overwrite-dest",
     "pretty": "bash scripts/pretty.sh",
     "run": "web-ext run -s build/ -u 'paste.to'",
+    "runwithprofile": "node scripts/runwithprofile.js",
     "test": "yarn run build && web-ext build --source-dir ./build --overwrite-dest && jest --silent",
     "update-buildsystem": "rm -rf src/node_modules; yarn run clean",
     "watch": "echo 'watch is broken, use build instead'; exit 0;",
