@@ -26,30 +26,37 @@ function getFindHost() {
 
 const NATIVE_HIGHLIGHTS = typeof Highlight === "function" && "highlights" in CSS
 
-// Too many live Ranges cause slowdown
-// StaticRanges don't, but also don't have clientRects
-// Use this one Range and set its start/end to get clientRects
-const reuseRange = document.createRange()
+const createRangeProxy = (() => {
+    const sharedRange = document.createRange()
 
-function setReuseRange(staticRange: StaticRange) {
-    reuseRange.setStart(staticRange.startContainer, staticRange.startOffset)
-    reuseRange.setEnd(staticRange.endContainer, staticRange.endOffset)
-    return reuseRange
-}
-
-function staticRangeBoundingRect(staticRange: StaticRange) {
-    return setReuseRange(staticRange).getBoundingClientRect()
-}
-
-function staticRangeClientRects(staticRange: StaticRange) {
-    return setReuseRange(staticRange).getClientRects()
-}
+    return function(rangeSpec: {
+        startContainer: Node,
+        startOffset: number,
+        endContainer: Node,
+        endOffset: number,
+    }): Range & { ["range"]: StaticRange } {
+        return new Proxy(new StaticRange(rangeSpec), {
+            get(target, prop) {
+                if (prop === "range") return target
+                if (prop !== "toString" && prop in target) return target[prop]
+                if (prop in sharedRange) {
+                    return (...args: any[]) => {
+                        sharedRange.setStart(target.startContainer, target.startOffset)
+                        sharedRange.setEnd(target.endContainer,target.endOffset)
+                        return (sharedRange as any)[prop](...args)
+                    }
+                }
+                return undefined
+            }
+        }) as Range & { ["range"]: StaticRange }
+    }
+})()
 
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
     private background = `var(--tridactyl-search-highlight-color)`
 
-    constructor(public range: StaticRange) {
+    constructor(public range: Range) {
         super()
         {
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1716685
@@ -68,12 +75,14 @@ class FindHighlight extends HTMLSpanElement {
     }
 
     static fromFindApi(found, allTextNode: Text[]) {
-        return new this(new StaticRange({
-            startContainer: allTextNode[found.startTextNodePos],
-            startOffset: found.startOffset,
-            endContainer: allTextNode[found.endTextNodePos],
-            endOffset: found.endOffset,
-        }))
+        return new this(
+            createRangeProxy({
+                startContainer: allTextNode[found.startTextNodePos],
+                startOffset: found.startOffset,
+                endContainer: allTextNode[found.endTextNodePos],
+                endOffset: found.endOffset,
+            })
+        )
     }
 
     updateRectsPosition(rects = this.getClientRects()) {
@@ -112,13 +121,13 @@ class FindHighlight extends HTMLSpanElement {
     }
 
     getBoundingClientRect() {
-        return staticRangeBoundingRect(this.range)
+        return this.range.getBoundingClientRect()
     }
     getClientRects() {
-        return staticRangeClientRects(this.range)
+        return this.range.getClientRects()
     }
     unfocus() {
-        setNativeFocus(this.range, false)
+        setNativeFocus(this.range["range"], false)
         this.background = `var(--tridactyl-search-highlight-color)`
         for (const node of this.children) {
             ;(node as HTMLElement).style.background = this.background
@@ -137,7 +146,7 @@ class FindHighlight extends HTMLSpanElement {
             getBoundingClientRect: () => this.getBoundingClientRect(),
             parentElement: null,
         }
-        let parent = setReuseRange(this.range).commonAncestorContainer
+        let parent = this.range.commonAncestorContainer
         if (parent.nodeType !== Node.ELEMENT_NODE) {
             parent = parent.parentElement
         }
@@ -159,7 +168,7 @@ class FindHighlight extends HTMLSpanElement {
         }
         const focusable = this.queryInRange("a,input,button,details")
         if (focusElement && focusable) focusable.focus()
-        setNativeFocus(this.range, true)
+        setNativeFocus(this.range["range"], true)
         this.background = `var(--tridactyl-search-highlight-active-color)`
         for (const node of this.children) {
             const element = node as HTMLElement
@@ -213,10 +222,10 @@ let nativeHighlights: { normal: Highlight; active: Highlight }
 let nativeRegistry = CSS.highlights
 
 function isHighlightVisible(highlight: FindHighlight) {
-    return DOM.isVisible(nativeHighlights ? setReuseRange(highlight.range) : highlight)
+    return DOM.isVisible(nativeHighlights ? highlight.range : highlight)
 }
 
-function setNativeFocus(range: StaticRange, active: boolean) {
+function setNativeFocus(range: Range | StaticRange, active: boolean) {
     if (!nativeHighlights) return
     nativeHighlights.normal[active ? "delete" : "add"](range)
     nativeHighlights.active[active ? "add" : "delete"](range)
@@ -386,12 +395,16 @@ export async function jumpToMatch(searchQuery, option) {
                     const end = match.index + match[0].length
                     while (match.index >= nodeOffset + lengths[nodeIndex])
                         nodeOffset += lengths[nodeIndex++]
-                    reuseRange.setStart(nodes[nodeIndex], match.index - nodeOffset)
                     while (end > nodeOffset + lengths[nodeIndex])
                         nodeOffset += lengths[nodeIndex++]
-                    reuseRange.setEnd(nodes[nodeIndex], end - nodeOffset)
-                    if (reuseRange.toString() !== match[0]) continue
-                    found.push(new FindHighlight(new StaticRange(reuseRange)))
+                    const range = createRangeProxy({
+                        startContainer: nodes[nodeIndex],
+                        startOffset: match.index - nodeOffset,
+                        endContainer: nodes[nodeIndex],
+                        endOffset: end - nodeOffset,
+                    })
+                    if (range.toString() !== match[0]) continue
+                    found.push(new FindHighlight(range))
                 } catch (_) {}
             }
         }
@@ -438,7 +451,7 @@ function drawHighlights(highlights) {
         const doc = highlights[0].range.startContainer.ownerDocument
         const win: any = doc.defaultView
         const normal = new win.Highlight()
-        highlights.forEach(highlight => normal.add(highlight.range))
+        highlights.forEach(highlight => normal.add(highlight.range["range"]))
         const active = new win.Highlight()
         nativeRegistry = win.CSS.highlights
         normal.priority = 2147483646
