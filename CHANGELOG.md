@@ -47,7 +47,7 @@ Codename "Carpenter"
     - `:urlmodify -s` now supports setting multiple query parameters ([#3361](https://github.com/tridactyl/tridactyl/issues/3361))
     - `:reader` now shows the word count and estimated reading time ([#4681](https://github.com/tridactyl/tridactyl/issues/4681))
     - `:tgroupswitch` now autoselects matching tab groups ([#4649](https://github.com/tridactyl/tridactyl/issues/4649))
-    - `:tab` now starts from the current tab by default (override with `:set completions.Tab.initialposition`) ([#4177](https://github.com/tridactyl/tridactyl/issues/4177))
+    - `:set completions.Tab.initialposition top|auto|active` added to control where `:tab` completions open ([#4177](https://github.com/tridactyl/tridactyl/issues/4177))
     - `<ArrowUp>` and `<ArrowDown>` navigate completions when one is selected ([#3732](https://github.com/tridactyl/tridactyl/issues/3732))
     - `:tabdetach` now accepts `#/%` magic indices
     - `:find` uses much less washed-out native CSS highlights in Firefox 140+
