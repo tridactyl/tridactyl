@@ -90,6 +90,7 @@ class TabAllCompletionOption
 
 export class TabAllCompletionSource extends TabCompletionSource {
     public options: TabAllCompletionOption[]
+    private optionSet: string
     private shouldSetStateFromScore = true
 
     constructor(private _parent) {
@@ -137,6 +138,7 @@ export class TabAllCompletionSource extends TabCompletionSource {
         const [prefix] = this.splitOnPrefix(exstr)
 
         // Hide self and stop if prefixes don't match
+        const wasHidden = this.state === "hidden"
         if (prefix) {
             // Show self if prefix and currently hidden
             if (this.state === "hidden") {
@@ -144,6 +146,14 @@ export class TabAllCompletionSource extends TabCompletionSource {
             }
         } else {
             this.state = "hidden"
+            return
+        }
+
+        const optionSet =
+            this.canonicalisePrefix(prefix) === "tabgrab" ? "tabgrab" : "taball"
+        if (!this.optionsDirty && !wasHidden && this.optionSet === optionSet) {
+            this.completion = undefined
+            this.updateChain()
             return
         }
 
@@ -166,7 +176,7 @@ export class TabAllCompletionSource extends TabCompletionSource {
 
         // Check to see if this is a command that needs to exclude the current
         // window
-        const excludeCurrentWindow = this.canonicalisePrefix(prefix) === "tabgrab"
+        const excludeCurrentWindow = optionSet === "tabgrab"
         const windowIndices = new Map(
             [...new Set(tabs.map(tab => tab.windowId))]
                 .sort((a, b) => a - b)
@@ -191,8 +201,7 @@ export class TabAllCompletionSource extends TabCompletionSource {
                     tab.id.toString(),
                     tab,
                     tab.id === altTab?.id,
-                    tab.active &&
-                        tab.windowId === currentWindow.id,
+                    tab.active && tab.windowId === currentWindow.id,
                     windowIndices.get(tab.windowId),
                     containerMap.get(tab.cookieStoreId) ||
                         Containers.DefaultContainer,
@@ -210,6 +219,8 @@ export class TabAllCompletionSource extends TabCompletionSource {
             : -1
         this.completion = undefined
         this.options = options
+        this.optionSet = optionSet
+        this.optionsDirty = false
         this.updateChain()
         if (wasFocused) {
             const visibleOptions = this.options.filter(o => o.state !== "hidden")

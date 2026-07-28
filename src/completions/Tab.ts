@@ -78,6 +78,8 @@ class BufferCompletionOption
 
 export class BufferCompletionSource extends TabCompletionSource {
     public options: BufferCompletionOption[]
+    private optionSet: string
+    private unfilteredOptions: BufferCompletionOption[]
     private shouldSetStateFromScore = true
     private navigationAnchorTabId: number
 
@@ -257,6 +259,7 @@ export class BufferCompletionSource extends TabCompletionSource {
             !(prefix === "tabdiscard" && /^\s*--all(?:\s|$)/u.test(query))
 
         // Hide self and stop if prefixes don't match
+        const wasHidden = this.state === "hidden"
         if (prefix) {
             // Show self if prefix and currently hidden
             if (this.state === "hidden") {
@@ -267,13 +270,24 @@ export class BufferCompletionSource extends TabCompletionSource {
             return
         }
 
-        const options = await this.fillOptions(prefix, generation)
-        if (!options || !this.isCurrentUpdate(generation)) return
+        const optionSet = prefix === "tabmove" ? prefix : "default"
+        const cacheHit =
+            !this.optionsDirty && !wasHidden && this.optionSet === optionSet
+        let options: BufferCompletionOption[]
+        if (!cacheHit) {
+            options = await this.fillOptions(prefix, generation)
+            if (!options || !this.isCurrentUpdate(generation)) return
+        }
         const lastFocused =
             !setInitialPosition && this.lastFocused?.state === "focused"
                 ? (this.lastFocused as BufferCompletionOption)
                 : undefined
-        this.options = options
+        if (options) {
+            this.unfilteredOptions = options
+            this.optionSet = optionSet
+            this.optionsDirty = false
+        }
+        this.options = this.unfilteredOptions
         this.completion = undefined
 
         /* console.log('updateOptions', this.optionContainer) */

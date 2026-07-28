@@ -2,6 +2,7 @@ import * as Completions from "@src/completions"
 import * as Messaging from "@src/lib/messaging"
 
 export abstract class TabCompletionSource extends Completions.CompletionSourceFuse {
+    protected optionsDirty = true
     private removeTabChangesListener: () => void
     private handlingTabChanges = false
     private tabChangesQueued = false
@@ -33,6 +34,21 @@ export abstract class TabCompletionSource extends Completions.CompletionSourceFu
     }
 
     protected abstract refreshForTabChanges(): Promise<void>
+
+    updateDisplay() {
+        const visible = this.options
+            .filter(option => option.state !== "hidden")
+            .map(option => option.html)
+        const visibleSet = new Set(visible)
+        for (const child of [...this.optionContainer.children])
+            if (!visibleSet.has(child as HTMLElement)) child.remove()
+        for (const [index, option] of visible.entries()) {
+            const child = this.optionContainer.children[index]
+            if (child !== option)
+                this.optionContainer.insertBefore(option, child || null)
+        }
+        this.next(0)
+    }
 
     private queueTabChanges(message: Messaging.Message) {
         if (this.state === "hidden") return
@@ -69,6 +85,7 @@ export abstract class TabCompletionSource extends Completions.CompletionSourceFu
         try {
             do {
                 this.tabChangesQueued = false
+                this.optionsDirty = true
                 await this.refreshForTabChanges()
             } while (this.tabChangesQueued)
         } finally {
