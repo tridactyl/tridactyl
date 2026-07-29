@@ -563,7 +563,7 @@ export async function unloadtheme(themename: string) {
  */
 //#background
 export async function colourscheme(...args: string[]) {
-    const option = arg.lib({ "--url": String, "--regex": String, "--module": String }, { argv: args, allowNegativePositional: true })
+    const option = arg.parse({ "--url": String, "--regex": String, "--module": String }, { argv: args })
     let url = option["--url"]
     const regex = option["--module"] == "reader" ? "moz-extension://.*/static/reader\.html" : option["--regex"]
     let themename = option._[0]
@@ -1545,7 +1545,7 @@ export function find(...args: string[]) {
     // Completion previews pass session metadata as a non-user argument.
     const preview =
         typeof (args[0] as any) === "object" ? (args.shift() as any) : undefined
-    const parsed = arg.lib(
+    const parsed = arg.parse(
         {
             "--jump-to": Number,
             "-:": "--jump-to",
@@ -1561,11 +1561,7 @@ export function find(...args: string[]) {
             "--regex": Boolean,
             "-r": "--regex",
         },
-        {
-            argv: args,
-            permissive: true,
-            splitUnknownArguments: false,
-        },
+        { argv: args },
     )
     const argOpt = arg.withDefaults(parsed, { "--reverse": false, "--case-sensitive": false, "--case-insensitive": false })
     if (argOpt["--case-sensitive"] && argOpt["--case-insensitive"])
@@ -1600,7 +1596,7 @@ export function find(...args: string[]) {
 //#content
 export function findnext(...args: string[]) {
     let n = 1
-    const parsed = arg.lib(
+    const parsed = arg.parse(
         {
             "--search-from-view": Boolean,
             "-f": "--search-from-view",
@@ -1608,10 +1604,7 @@ export function findnext(...args: string[]) {
             "--reverse": Boolean,
             "-?": "--reverse",
         },
-        {
-            argv: args,
-            allowNegativePositional: true,
-        },
+        { argv: args },
     )
     const option = arg.withDefaults(parsed, { "--search-from-view": false, "--reverse": false })
     if (option._.length > 0) n = Number(option._[0])
@@ -1861,7 +1854,7 @@ export function home(all: "false" | "true" = "false") {
 */
 //#background
 export async function help(...args: string[]) {
-    const option = arg.lib(
+    const option = arg.parse(
         {
             "-a": Boolean,
             "-b": Boolean,
@@ -1873,7 +1866,7 @@ export async function help(...args: string[]) {
             "-t": Boolean,
             "-w": Boolean,
         },
-        { argv: args, allowNegativePositional: true },
+        { argv: args },
     )
 
     const glossaryPage = browser.runtime.getURL("static/clippy/glossary.html")
@@ -2811,18 +2804,14 @@ export async function tabnext_gt(index?: number) {
  */
 //#background
 export async function tabprev(...args: string[]) {
-    const argOpt = arg.lib(
+    const argOpt = arg.parse(
         {
             "--nowrap": Boolean,
             "--noisy": Boolean,
             "--reverse": Boolean,
             "--skip-discarded": Boolean,
         },
-        {
-            argv: args,
-            permissive: true,
-            splitUnknownArguments: false,
-        },
+        { argv: args },
     )
     const option = arg.withDefaults(argOpt, {
         "--nowrap": false,
@@ -2952,7 +2941,7 @@ export async function tabgrab(id: string) {
 
     The `--discard` flag opens a tab in the background without attempting to load it.
 
-    These can be combined in any order, but need to be placed as the first arguments.
+    These can be placed in any order before or after the address.
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
@@ -2986,58 +2975,43 @@ export async function tabopenwait(...addressarr: string[]): Promise<browser.tabs
  */
 //#background_helper
 export async function tabopen_helper({ addressarr = [], waitForDom = false }): Promise<browser.tabs.Tab> {
-    let active
+    const option = arg.parse(
+        {
+            "-b": Boolean,
+            "-p": Boolean,
+            "-w": Boolean,
+            "-c": String,
+            "--focus-address-bar": Boolean,
+            "--discard": Boolean,
+        },
+        {
+            argv: addressarr,
+            missingValueErrors: { "-c": "You must provide a container name!" },
+        },
+    )
+    const active = option["-b"] || option["--discard"] ? false : undefined
     let container
     let explicitlyContained = false
-    let bypassFocusHack = false
-    let discarded = false
-    let pinned = false
+    const bypassFocusHack = Boolean(option["--focus-address-bar"])
+    const discarded = Boolean(option["--discard"])
+    const pinned = Boolean(option["-p"])
+    if (option["-w"]) waitForDom = true
 
     const win = await browser.windows.getCurrent()
-
-    // Lets us pass both -b and -c in no particular order as long as they are up front.
-    async function argParse(args: string[]): Promise<string[]> {
-        if (args[0] === "-b") {
-            active = false
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "-p") {
-            pinned = true
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "-w") {
-            waitForDom = true
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "--focus-address-bar") {
-            bypassFocusHack = true
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "--discard") {
-            discarded = true
-            active = false
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "-c") {
-            if (args.length < 2) throw new Error(`You must provide a container name!`)
-            // Ignore the -c flag if incognito as containers are disabled.
-            if (!win.incognito) {
-                if (args[1] === "firefox-default" || args[1].toLowerCase() === "none") {
-                    container = "firefox-default"
-                } else {
-                    container = await Container.fuzzyMatch(args[1])
-                    explicitlyContained = Boolean(container)
-                }
-            } else logger.error("[tabopen] can't open a container in a private browsing window.")
-
-            args.shift()
-            args.shift()
-            argParse(args)
-        }
-        return args
+    const containerName = option["-c"]
+    // Ignore the -c flag if incognito as containers are disabled.
+    if (containerName !== undefined) {
+        if (!win.incognito) {
+            if (containerName === "firefox-default" || containerName.toLowerCase() === "none") {
+                container = "firefox-default"
+            } else {
+                container = await Container.fuzzyMatch(containerName)
+                explicitlyContained = Boolean(container)
+            }
+        } else logger.error("[tabopen] can't open a container in a private browsing window.")
     }
 
-    const query = await argParse(addressarr)
+    const query = option._
 
     const address = query.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
@@ -3536,39 +3510,29 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  *
  * `winopen -c containername [...]` will open the result in a container. See [[tabopen]] for more details on containers.
  *
+ * Options may be placed before or after the address.
+ *
  * Example: `winopen -popup -private ddg.gg`
  */
 //#background
 export async function winopen(...args: string[]) {
+    const option = arg.parse(
+        { "-private": Boolean, "-popup": Boolean, "-c": String },
+        {
+            argv: args,
+            missingValueErrors: { "-c": "You must provide a container name!" },
+        },
+    )
     const createData = {} as Parameters<typeof browser.windows.create>[0]
     let firefoxArgs = "--new-window"
-    let done = false
-    let containerName: string | undefined
-    while (!done) {
-        switch (args[0]) {
-            case "-private":
-                createData.incognito = true
-                args.shift()
-                firefoxArgs = "--private-window"
-                break
-
-            case "-popup":
-                createData.type = "popup"
-                args.shift()
-                break
-
-            case "-c":
-                if (args.length < 2) throw new Error(`You must provide a container name!`)
-                containerName = args.splice(0, 2)[1]
-                break
-
-            default:
-                done = true
-                break
-        }
+    if (option["-private"]) {
+        createData.incognito = true
+        firefoxArgs = "--private-window"
     }
+    if (option["-popup"]) createData.type = "popup"
 
-    const address = args.join(" ")
+    const address = option._.join(" ")
+    const containerName = option["-c"]
 
     if (containerName !== undefined) {
         if (createData.incognito || (await browser.windows.getCurrent()).incognito) {
@@ -6638,7 +6602,7 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
  */
 //#content
 export async function keyfeed(...args: string[]) {
-    const parsed = arg.lib({ "--page": Boolean, "--type": String }, { argv: args })
+    const parsed = arg.parse({ "--page": Boolean, "--type": String }, { argv: args })
     const option = arg.withDefaults(parsed, { "--page": false, "--type": "keydown" })
     const usePage = option["--page"]
     const eventType = option["--type"]

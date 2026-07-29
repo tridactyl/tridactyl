@@ -4,6 +4,7 @@ import * as config from "@src/lib/config"
 import * as Native from "@src/lib/native"
 import * as Messaging from "@src/lib/messaging"
 import * as DOM from "@src/lib/dom"
+import * as Container from "@src/lib/containers"
 import state from "@src/state"
 
 jest.mock("@src/lib/webext", () => ({
@@ -143,12 +144,39 @@ test.each(["invalid", "{}"])(
     },
 )
 
-test.each(["none", "somecnt"])(
-    '`tabopen("-c", "%s")` strips container arguments before URL handling',
-    async container => {
-        await tabopen("-c", container)
+test.each([
+    [["-c", "none"], []],
+    [["https://example.com", "-c", "somecnt"], ["https://example.com"]],
+])(
+    "`tabopen(%p)` strips container arguments before URL handling",
+    async (args, query) => {
+        await tabopen(...args)
 
-        expect(queryAndURLwrangler).toHaveBeenLastCalledWith([])
+        expect(queryAndURLwrangler).toHaveBeenLastCalledWith(query)
+    },
+)
+
+test("`tabopen` accepts combined flags and hyphen-leading container names", async () => {
+    jest.mocked(queryAndURLwrangler).mockResolvedValueOnce(
+        "https://example.com",
+    )
+
+    await tabopen("https://example.com", "-bp", "-c", "-work")
+
+    expect(Container.fuzzyMatch).toHaveBeenLastCalledWith("-work")
+    expect(webext.openInNewTab).toHaveBeenLastCalledWith(
+        "https://example.com",
+        expect.objectContaining({ active: false, pinned: true }),
+        false,
+    )
+})
+
+test.each([tabopen, winopen])(
+    "`%p -c` keeps its custom error",
+    async command => {
+        await expect(command("-c")).rejects.toThrow(
+            "You must provide a container name!",
+        )
     },
 )
 
@@ -179,6 +207,15 @@ test("`winopen` creates a neutral tab before navigating it", async () => {
     expect(browser.tabs.update).toHaveBeenCalledWith(42, {
         loadReplace: true,
         url: "https://example.com/",
+    })
+})
+
+test("`winopen` accepts a trailing private flag", async () => {
+    await winopen("https://example.com/", "-private")
+
+    expect(browser.windows.create).toHaveBeenLastCalledWith({
+        incognito: true,
+        url: "about:blank",
     })
 })
 

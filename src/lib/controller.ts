@@ -97,7 +97,7 @@ export async function acceptExCmd(
                     func !== stored_excmds[""].fillcmdline_tmp &&
                     func !== stored_excmds[""].fillcmdline_nofocus &&
                     func !== stored_excmds[""].updatecheck &&
-                    exstr.search("winopen -private") < 0
+                    !/(^|[\s;|{}])-private(?=$|[\s;|{}])/.test(exstr)
                 ) {
                     lastExUpdate = State.getAsync("last_ex_str").then(
                         last_ex_str => {

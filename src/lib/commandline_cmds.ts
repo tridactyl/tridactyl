@@ -190,13 +190,11 @@ export function getCommandlineFns(cmdline_state: {
          * Save non-secret commands to the cmdHistory and update the cmdline_history_position
          */
         store_ex_string: (command: string) => {
-            const [func, ...args] = command.trim().split(/\s+/)
-
             // Save non-secret commandlines to the history.
             if (
                 !command.startsWith(" ") &&
                 !browser.extension.inIncognitoContext &&
-                !(func === "winopen" && args[0] === "-private")
+                !/(^|[\s;|{}])-private(?=$|[\s;|{}])/.test(command)
             ) {
                 State.getAsync("cmdHistory").then(c => {
                     cmdline_state.state.cmdHistory = c.concat([command])
