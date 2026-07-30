@@ -92,8 +92,8 @@ html.TridactylOwnNamespace,
 
 #command-line-holder {
     border: solid black 1px;
-    display: inline-block;
-    height: 20px;
+    display: flex;
+    min-height: 20px;
     margin: 5px !important;
     order: 1 !important;
     width: 99%;

@@ -9,6 +9,7 @@ import {
 import * as aliases from "@src/lib/aliases"
 import * as config from "@src/lib/config"
 import { glossaryOptions } from "@src/completions/Glossary"
+import { formatExProgram } from "@src/lib/excmd"
 
 class HelpCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
@@ -86,7 +87,7 @@ export class HelpCompletionSource extends AproposCompletionSource {
                             binding =>
                                 new HelpCompletionOption(
                                     binding,
-                                    `Normal mode binding for \`${bindings[binding]}\``,
+                                    `Normal mode binding for \`${formatExProgram(bindings[binding])}\``,
                                     "-b",
                                 ),
                         ),

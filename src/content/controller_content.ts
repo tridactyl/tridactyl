@@ -11,6 +11,7 @@ import {
     isTrustedKeyboardEvent,
     TrustedKeyboardEvent,
 } from "@src/lib/keyseq"
+import { ExCommand } from "@src/lib/excmd"
 
 import * as hinting from "@src/content/hinting"
 import * as gobblemode from "@src/parsers/gobblemode"
@@ -156,7 +157,7 @@ function* ParserController() {
     }
 
     while (true) {
-        let exstr = ""
+        let exstr: ExCommand = ""
         let previousSuffix = null
         let keyEvents: MinimalKey[] = []
         try {
@@ -263,7 +264,9 @@ function* ParserController() {
                 }
             }
             contentState.suffix = ""
-            controller.acceptExCmd(exstr, "content")
+            controller
+                .acceptExCmd(exstr, "content")
+                .catch(e => logger.error("Error executing key binding: ", e))
         } catch (e) {
             // Rumsfeldian errors are caught here
             logger.error("An error occurred in the content controller: ", e)

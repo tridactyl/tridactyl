@@ -81,6 +81,30 @@ const testCases = [
         },
     },
     {
+        sources: ["-e"],
+        expected: {
+            openMode: OpenMode.Element,
+            warnings: [],
+        },
+    },
+    {
+        sources: ["-qe"],
+        expected: {
+            rapid: true,
+            openMode: OpenMode.Element,
+            warnings: [],
+        },
+    },
+    {
+        sources: ["-!Ve"],
+        expected: {
+            immediate: true,
+            includeInvisible: true,
+            openMode: OpenMode.Element,
+            warnings: [],
+        },
+    },
+    {
         sources: ['-c [class*="expand"],[class="togg"]'],
         expected: {
             selectors: ['[class*="expand"],[class="togg"]'],

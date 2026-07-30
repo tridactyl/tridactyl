@@ -93,11 +93,13 @@ import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
 import * as escape from "@src/lib/escape"
+import * as Collections from "@src/lib/collections"
 import semverCompare from "semver-compare"
 import * as hint_util from "@src/lib/hint_util"
 import { OpenMode } from "@src/lib/hint_util"
 import * as Proxy from "@src/lib/proxy"
 import * as arg from "@src/lib/arg_util"
+import { tabopenArgs, winopenArgs } from "@src/lib/open_args"
 import * as R from "ramda"
 import * as treestyletab from "@src/interop/tst"
 import { uuidv4 } from "@src/lib/math"
@@ -114,6 +116,15 @@ let ALL_EXCMDS
 // The entry-point script will make sure this has the right set of
 // excmds, so we can use it without futher configuration.
 import * as controller from "@src/lib/controller"
+import {
+    EX_CANCELLED,
+    ExCommand,
+    ExProgram,
+    formatExProgram,
+    isExProgram,
+    joinExCommand,
+    programSource,
+} from "@src/lib/excmd"
 
 //#content_helper
 import { keyMuncher as KEY_MUNCHER, startBufferingPageKeys } from "@src/content/controller_content"
@@ -553,7 +564,7 @@ export async function unloadtheme(themename: string) {
  */
 //#background
 export async function colourscheme(...args: string[]) {
-    const option = arg.lib({ "--url": String, "--regex": String, "--module": String }, { argv: args, allowNegativePositional: true })
+    const option = arg.parse({ "--url": String, "--regex": String, "--module": String }, { argv: args })
     let url = option["--url"]
     const regex = option["--module"] == "reader" ? "moz-extension://.*/static/reader\.html" : option["--regex"]
     let themename = option._[0]
@@ -897,6 +908,7 @@ export async function mktridactylrc(...args: string[]) {
  * The `--strings` flag will load the RC from rest arguments. It could be useful if you want to execute a batch of commands in js context. Eg: `js tri.excmds.source("--strings", [cmd1, cmd2].join("\n"))`.
  *
  * The RC file uses command-mode syntax, with commands separated by newlines; a trailing `\` continues a command on the next line, while `\\` ends a command with a literal `\`. Lines whose first non-whitespace character is `"` or `#` are comments; inline comments are not supported. Settings persist in local storage, and the RC file is not kept in sync with later changes. Use `:viewconfig --user` to inspect the resulting settings. There's an [example file](https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc) if you want it.
+ * Each RC file starts in syntax version 1. A standalone `set exversion 2` switches subsequent records in that file to version 2 and changes the interactive default.
  *
  * @param args the file/URL to open. For files: must be an absolute path, but can contain environment variables and things like ~.
  */
@@ -1534,7 +1546,7 @@ export function find(...args: string[]) {
     // Completion previews pass session metadata as a non-user argument.
     const preview =
         typeof (args[0] as any) === "object" ? (args.shift() as any) : undefined
-    const parsed = arg.lib(
+    const parsed = arg.parse(
         {
             "--jump-to": Number,
             "-:": "--jump-to",
@@ -1550,11 +1562,7 @@ export function find(...args: string[]) {
             "--regex": Boolean,
             "-r": "--regex",
         },
-        {
-            argv: args,
-            permissive: true,
-            splitUnknownArguments: false,
-        },
+        { argv: args },
     )
     const argOpt = arg.withDefaults(parsed, { "--reverse": false, "--case-sensitive": false, "--case-insensitive": false })
     if (argOpt["--case-sensitive"] && argOpt["--case-insensitive"])
@@ -1589,7 +1597,7 @@ export function find(...args: string[]) {
 //#content
 export function findnext(...args: string[]) {
     let n = 1
-    const parsed = arg.lib(
+    const parsed = arg.parse(
         {
             "--search-from-view": Boolean,
             "-f": "--search-from-view",
@@ -1597,10 +1605,7 @@ export function findnext(...args: string[]) {
             "--reverse": Boolean,
             "-?": "--reverse",
         },
-        {
-            argv: args,
-            allowNegativePositional: true,
-        },
+        { argv: args },
     )
     const option = arg.withDefaults(parsed, { "--search-from-view": false, "--reverse": false })
     if (option._.length > 0) n = Number(option._[0])
@@ -1850,7 +1855,7 @@ export function home(all: "false" | "true" = "false") {
 */
 //#background
 export async function help(...args: string[]) {
-    const option = arg.lib(
+    const option = arg.parse(
         {
             "-a": Boolean,
             "-b": Boolean,
@@ -1862,7 +1867,7 @@ export async function help(...args: string[]) {
             "-t": Boolean,
             "-w": Boolean,
         },
-        { argv: args, allowNegativePositional: true },
+        { argv: args },
     )
 
     const glossaryPage = browser.runtime.getURL("static/clippy/glossary.html")
@@ -1898,8 +1903,8 @@ export async function help(...args: string[]) {
                 // sequence referenced by 'helpItem' and don't check other
                 // modes
                 if (helpItem in bindings) {
-                    helpItem = bindings[helpItem].split(" ")
-                    helpItem = ["composite", "fillcmdline"].includes(helpItem[0]) ? helpItem[1] : helpItem[0]
+                    const command = programSource(bindings[helpItem]).split(" ")
+                    helpItem = ["composite", "fillcmdline"].includes(command[0]) ? command[1] : command[0]
                     return excmdPage + "#" + helpItem
                 }
             }
@@ -2552,12 +2557,24 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "D
         TRI_FIRED_URL: owntab.url,
     }
     for (const aukey of aukeyarr) {
-        for (const [k, v] of Object.entries(replacements)) {
-            aucmds[aukey] = aucmds[aukey].replace(k, v)
+        let excmd: ExCommand = aucmds[aukey]
+        if (
+            isExProgram(excmd) &&
+            Object.keys(replacements).some(key =>
+                programSource(excmd).includes(key),
+            )
+        ) {
+            autocmd_logger.error(
+                "Magic autocmd variables are not supported in ex blocks",
+            )
+            continue
         }
+        if (!isExProgram(excmd))
+            for (const [k, v] of Object.entries(replacements))
+                excmd = excmd.replace(k, () => String(v))
         try {
-            autocmd_logger.debug(`${cmdType} matched ${aukey}: ${aucmds[aukey]}`)
-            await controller.acceptExCmd(aucmds[aukey])
+            autocmd_logger.debug(`${cmdType} matched ${aukey}: ${formatExProgram(excmd)}`)
+            await controller.acceptExCmd(excmd)
         } catch (e) {
             autocmd_logger.error((e as Error).toString())
         }
@@ -2788,18 +2805,14 @@ export async function tabnext_gt(index?: number) {
  */
 //#background
 export async function tabprev(...args: string[]) {
-    const argOpt = arg.lib(
+    const argOpt = arg.parse(
         {
             "--nowrap": Boolean,
             "--noisy": Boolean,
             "--reverse": Boolean,
             "--skip-discarded": Boolean,
         },
-        {
-            argv: args,
-            permissive: true,
-            splitUnknownArguments: false,
-        },
+        { argv: args },
     )
     const option = arg.withDefaults(argOpt, {
         "--nowrap": false,
@@ -2929,7 +2942,7 @@ export async function tabgrab(id: string) {
 
     The `--discard` flag opens a tab in the background without attempting to load it.
 
-    These can be combined in any order, but need to be placed as the first arguments.
+    These can be placed in any order before or after the address.
 
     Unlike Firefox's Ctrl-t shortcut, this opens tabs immediately after the
     currently active tab rather than at the end of the tab list because that is
@@ -2963,58 +2976,36 @@ export async function tabopenwait(...addressarr: string[]): Promise<browser.tabs
  */
 //#background_helper
 export async function tabopen_helper({ addressarr = [], waitForDom = false }): Promise<browser.tabs.Tab> {
-    let active
+    const option = arg.parse(
+        tabopenArgs,
+        {
+            argv: addressarr,
+            missingValueErrors: { "-c": "You must provide a container name!" },
+        },
+    )
+    const active = option["-b"] || option["--discard"] ? false : undefined
     let container
     let explicitlyContained = false
-    let bypassFocusHack = false
-    let discarded = false
-    let pinned = false
+    const bypassFocusHack = Boolean(option["--focus-address-bar"])
+    const discarded = Boolean(option["--discard"])
+    const pinned = Boolean(option["-p"])
+    if (option["-w"]) waitForDom = true
 
     const win = await browser.windows.getCurrent()
-
-    // Lets us pass both -b and -c in no particular order as long as they are up front.
-    async function argParse(args: string[]): Promise<string[]> {
-        if (args[0] === "-b") {
-            active = false
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "-p") {
-            pinned = true
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "-w") {
-            waitForDom = true
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "--focus-address-bar") {
-            bypassFocusHack = true
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "--discard") {
-            discarded = true
-            active = false
-            args.shift()
-            argParse(args)
-        } else if (args[0] === "-c") {
-            if (args.length < 2) throw new Error(`You must provide a container name!`)
-            // Ignore the -c flag if incognito as containers are disabled.
-            if (!win.incognito) {
-                if (args[1] === "firefox-default" || args[1].toLowerCase() === "none") {
-                    container = "firefox-default"
-                } else {
-                    container = await Container.fuzzyMatch(args[1])
-                    explicitlyContained = Boolean(container)
-                }
-            } else logger.error("[tabopen] can't open a container in a private browsing window.")
-
-            args.shift()
-            args.shift()
-            argParse(args)
-        }
-        return args
+    const containerName = option["-c"]
+    // Ignore the -c flag if incognito as containers are disabled.
+    if (containerName !== undefined) {
+        if (!win.incognito) {
+            if (containerName === "firefox-default" || containerName.toLowerCase() === "none") {
+                container = "firefox-default"
+            } else {
+                container = await Container.fuzzyMatch(containerName)
+                explicitlyContained = Boolean(container)
+            }
+        } else logger.error("[tabopen] can't open a container in a private browsing window.")
     }
 
-    const query = await argParse(addressarr)
+    const query = option._
 
     const address = query.join(" ")
     if (!ABOUT_WHITELIST.includes(address) && /^(about|file):.*/.exec(address)) {
@@ -3513,39 +3504,29 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  *
  * `winopen -c containername [...]` will open the result in a container. See [[tabopen]] for more details on containers.
  *
+ * Options may be placed before or after the address.
+ *
  * Example: `winopen -popup -private ddg.gg`
  */
 //#background
 export async function winopen(...args: string[]) {
+    const option = arg.parse(
+        winopenArgs,
+        {
+            argv: args,
+            missingValueErrors: { "-c": "You must provide a container name!" },
+        },
+    )
     const createData = {} as Parameters<typeof browser.windows.create>[0]
     let firefoxArgs = "--new-window"
-    let done = false
-    let containerName: string | undefined
-    while (!done) {
-        switch (args[0]) {
-            case "-private":
-                createData.incognito = true
-                args.shift()
-                firefoxArgs = "--private-window"
-                break
-
-            case "-popup":
-                createData.type = "popup"
-                args.shift()
-                break
-
-            case "-c":
-                if (args.length < 2) throw new Error(`You must provide a container name!`)
-                containerName = args.splice(0, 2)[1]
-                break
-
-            default:
-                done = true
-                break
-        }
+    if (option["-private"] || option["--private"]) {
+        createData.incognito = true
+        firefoxArgs = "--private-window"
     }
+    if (option["-popup"] || option["--private"]) createData.type = "popup"
 
-    const address = args.join(" ")
+    const address = option._.join(" ")
+    const containerName = option["-c"]
 
     if (containerName !== undefined) {
         if (createData.incognito || (await browser.windows.getCurrent()).incognito) {
@@ -4069,10 +4050,18 @@ async function getnexttabs(tabid: number, n?: number) {
 
 */
 //#background
-export async function repeat(n = 1, ...exstr: string[]) {
-    let cmd = state.last_ex_str
-    if (exstr.length > 0) cmd = exstr.join(" ")
-    logger.debug("repeating " + cmd + " " + n + " times")
+export async function repeat(n: number | ExProgram = 1, ...exstr: Array<string | ExProgram>) {
+    let cmd: ExCommand
+    if (isExProgram(n)) {
+        cmd = n
+        n = 1
+    } else {
+        const count = parseFloat(String(n))
+        if (Number.isNaN(count)) throw new Error(`Invalid repeat count: ${n}`)
+        n = count
+        cmd = exstr.length ? joinExCommand(exstr) : state.last_ex_str
+    }
+    logger.debug("repeating " + formatExProgram(cmd) + " " + n + " times")
     for (let i = 0; i < n; i++) {
         await controller.acceptExCmd(cmd)
     }
@@ -4127,6 +4116,42 @@ export async function composite(...cmds: string[]) {
     } catch (e) {
         logger.error(e)
     }
+}
+
+/**
+ * Keep elements whose underscore expression is truthy, defaulting to the
+ * identity predicate `_`. `==` and `!=` use strict equality. Example:
+ * `js [{x: "ok"}, {}] | filter _.x == 'ok'`.
+ */
+//#both
+export function filter(callback: string | Collections.ExExpression | any[], values?: any[]): any[] {
+    if (values === undefined)
+        return Collections.filter(Collections.expression("_"), callback as any[])
+    return Collections.filter(
+        Collections.expression(callback as string | Collections.ExExpression),
+        values,
+    )
+}
+
+/**
+ * Join the elements of a piped array. The separator defaults to `,` and may be
+ * a quoted string. Example: `js [{name: "one"}, {name: "two"}] .| _.name | join " "`.
+ */
+//#both
+export function join(...args: string[]): string {
+    const values = args.pop() as any
+    return Collections.join(args.join(" "), values)
+}
+
+/**
+ * Split a piped string on a single space or the supplied delimiter.
+ * Quoted delimiters are parsed like [[join]]; `split ""` splits into characters.
+ * Example: `echo one,two | split ,`.
+ */
+//#both
+export function split(...args: string[]): string[] {
+    const value = args.pop() as any
+    return Collections.split(args.join(" "), value)
 }
 
 /**
@@ -4638,11 +4663,13 @@ export function unabbreviate(abbreviation: string) {
         - [[reset]]
 */
 //#background
-export async function bind(...args: string[]) {
+export async function bind(...args: Array<string | ExProgram>) {
     const args_obj = parse_bind_args(...args)
     if (args_obj.isRecursive || args_obj.mode === "*") throw new Error("`--recursive` and `--mode=*` can only be called on unbind.")
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
+        if (args_obj.mode === "browser" && isExProgram(args_obj.excmd))
+            throw new Error("Browser-mode binds do not support ex blocks")
         if (args_obj.mode === "browser" && parseMapstr(args_obj.key).hasExplicitDirection)
             throw new Error("Browser-mode binds do not support D/U modifiers.")
         const key_sub = findShadowingMapstr(
@@ -4668,7 +4695,7 @@ export async function bind(...args: string[]) {
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = bindshow(...args)
+        p = bindshow(...(args as string[]))
     }
     return p
 }
@@ -4679,7 +4706,7 @@ export async function bind(...args: string[]) {
 //#background
 export function bindshow(...args: string[]) {
     const args_obj = parse_bind_args(...args)
-    return fillcmdline_notrail("bind", (args_obj.mode ? "--mode=" + args_obj.mode + " " : "") + args_obj.key, config.getDynamic(args_obj.configName, args_obj.key))
+    return fillcmdline_notrail("bind", (args_obj.mode ? "--mode=" + args_obj.mode + " " : "") + args_obj.key, formatExProgram(config.getDynamic(args_obj.configName, args_obj.key)))
 }
 
 /**
@@ -4714,15 +4741,15 @@ export async function bindwizard(...args: string[]) {
  *
  */
 //#background
-export function bindurl(pattern: string, mode: string, keys: string, ...excmd: string[]) {
-    const args_obj = parse_bind_args(mode, keys, ...excmd)
+export function bindurl(pattern: string, ...args: Array<string | ExProgram>) {
+    const args_obj = parse_bind_args(...args)
     if (args_obj.mode === "browser") throw new Error("Browser-wide binds are not supported per-URL")
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
         p = config.setURL(pattern, args_obj.configName, args_obj.key, args_obj.excmd)
     } else if (args_obj.key.length) {
         // Display the existing bind
-        p = fillcmdline_notrail("#", args_obj.key, "=", config.getURL(pattern, [args_obj.configName, args_obj.key]))
+        p = fillcmdline_notrail("#", args_obj.key, "=", formatExProgram(config.getURL(pattern, [args_obj.configName, args_obj.key])))
     }
     return p
 }
@@ -5008,15 +5035,20 @@ export function getAutocmdEvents() {
  *
  */
 //#background
-export async function autocmd(event: string, url: string, ...excmd: string[]) {
+export async function autocmd(event: string, url: string, ...parts: Array<string | ExProgram>) {
     // rudimentary run time type checking
     if (!getAutocmdEvents().includes(event)) {
         throw new Error(event + " is not a supported event.")
     }
+    const excmd = joinExCommand(parts)
+    if (isExProgram(excmd) && excmd.source.includes("TRI_FIRED_"))
+        throw new Error("Magic autocmd variables are not supported in ex blocks")
     if (webrequests.requestEvents.includes(event)) {
-        await webrequests.registerWebRequestAutocmd(event, url, excmd.join(" "))
+        if (isExProgram(excmd))
+            throw new Error("WebRequest autocmds do not accept ex blocks")
+        await webrequests.registerWebRequestAutocmd(event, url, excmd)
     }
-    return config.set("autocmds", event, url, excmd.join(" "))
+    return config.set("autocmds", event, url, excmd)
 }
 
 /** @hidden */
@@ -5532,6 +5564,7 @@ const KILL_STACK: Element[] = []
  *
  * Hinting action flags (only one can be specified):
  *
+ * - -e return the selected live DOM element(s) without activating it. In exversion 2, use e.g. `hint -e | _.href | tabopen -b`. Escape cancels a normal element hint and skips the rest of its program; `-qe` and `-!e` return arrays.
  * - -t open in a new foreground tab
  * - -b open in background
  * - -y copy (yank) link's target to clipboard
@@ -5669,6 +5702,8 @@ export async function hint(...args: string[]): Promise<any> {
                   }
 
                   switch (config.openMode) {
+                      case OpenMode.Element:
+                          return elem
                       case OpenMode.Highlight:
                           const doc = elem.ownerDocument
                           const r = doc.createRange()
@@ -5808,7 +5843,14 @@ export async function hint(...args: string[]): Promise<any> {
             resolve(results)
         } else {
             // Perform hinting
-            hinting.hintPage(hintables, action, resolve, reject, config.rapid)
+            hinting.hintPage(
+                hintables,
+                action,
+                resolve,
+                reject,
+                config.rapid,
+                config.openMode === OpenMode.Element ? EX_CANCELLED : "",
+            )
         }
     }).then(value => {
         // Fix #1374 for all types of yanks: join returned results
@@ -6554,7 +6596,7 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
  */
 //#content
 export async function keyfeed(...args: string[]) {
-    const parsed = arg.lib({ "--page": Boolean, "--type": String }, { argv: args })
+    const parsed = arg.parse({ "--page": Boolean, "--type": String }, { argv: args })
     const option = arg.withDefaults(parsed, { "--page": false, "--type": "keydown" })
     const usePage = option["--page"]
     const eventType = option["--type"]

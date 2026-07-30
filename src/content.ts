@@ -14,6 +14,7 @@ import "@src/lib/html-tagged-template"
 /* import "@src/excmds_content" */
 /* import "@src/content/hinting" */
 import * as config from "@src/lib/config"
+import { formatExProgram } from "@src/lib/excmd"
 import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("content")
 logger.debug("Tridactyl content script loaded, boss!")
@@ -96,7 +97,15 @@ messaging.addListener(
 )
 messaging.addListener(
     "controller_content",
-    messaging.attributeCaller(controller),
+    messaging.attributeCaller({
+        acceptExCmd: async (exstr, source) => {
+            const exversion =
+                source === "commandline"
+                    ? await config.getAsync("exversion")
+                    : "1"
+            return controller.acceptExCmd(exstr, source, exversion)
+        },
+    }),
 )
 messaging.addListener("history_state", () => {
     window.dispatchEvent(new Event("HistoryState"))
@@ -446,7 +455,8 @@ function addStatusIndicator() {
         }
         const modeCls = `TridactylMode${result}`
         if (config.get("modeindicatorshowlastex") === "true") {
-            result = result + " | " + (await State.getAsync("last_ex_str"))
+            result +=
+                " | " + formatExProgram(await State.getAsync("last_ex_str"))
         }
 
         logger.debug(

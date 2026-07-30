@@ -194,7 +194,6 @@ test("isTrustedKeyboardEvent rejects spoofed objects", () => {
             new Map([[mks("<Space>"), "spacetest"]]),
         ],
     ])
-
     test("numeric prefixes can be disabled", () => {
         const map = new Map([[mks("qa"), "command"]])
         const response = ks.parse([mk("2")], map, false)
@@ -250,6 +249,19 @@ test("isTrustedKeyboardEvent rejects spoofed objects", () => {
         ).toBe("modified")
         const counted = parse([mk("2"), ...prefix, mk("2", { repeat: true })])
         expect(parse([...counted.keys, mk("t")]).exstr).toBe("quickmark 2")
+    })
+
+    test("preserves versioned block bindings", () => {
+        const program = { source: "echo block", exversion: 2 as const }
+        const map = new Map([[mks("x"), program]])
+        expect(ks.parse(mks("x"), map)).toEqual({
+            value: program,
+            exstr: program,
+            isMatch: true,
+            numericPrefix: undefined,
+            keys: [],
+        })
+        expect(() => ks.parse(mks("2x"), map)).toThrow("Counts")
     })
 } // }}}
 

@@ -214,3 +214,32 @@ test("config-only clear preserves persisted state", async () => {
     expect(tri.config.get("editorcmd")).toBe("auto")
     expect(await browser.storage.local.get()).toEqual({ state })
 })
+
+test("groups versioned programs after legacy RC commands", () => {
+    const nmaps = tri.config.USERCONFIG.nmaps
+    const exversion = tri.config.USERCONFIG.exversion
+    tri.config.USERCONFIG.nmaps = {
+        "=": { source: "echo equals", exversion: 2 },
+        x: "echo legacy | command",
+        y: { source: "echo one\necho two", exversion: 2 },
+    }
+    tri.config.USERCONFIG.exversion = "1"
+    try {
+        const rc = tri.config.parseConfig()
+        expect(rc.indexOf("bind x echo legacy | command")).toBeLessThan(
+            rc.indexOf("set exversion 2"),
+        )
+        expect(rc).toContain("bind y |{\necho one\necho two\n}|")
+        expect(rc).toContain("bind = |{\necho equals\n}|")
+        expect(rc).toContain("set exversion 1")
+        for (const key of [";", "\\|{", "\\}|"]) {
+            tri.config.USERCONFIG.nmaps = {
+                [key]: { source: "echo unsafe", exversion: 2 },
+            }
+            expect(() => tri.config.parseConfig()).toThrow("safely export")
+        }
+    } finally {
+        tri.config.USERCONFIG.nmaps = nmaps
+        tri.config.USERCONFIG.exversion = exversion
+    }
+})

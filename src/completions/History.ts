@@ -1,19 +1,21 @@
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as providers from "@src/completions/providers"
+import * as arg from "@src/lib/arg_util"
+import { getOpenArgs } from "@src/lib/open_args"
 
 class HistoryCompletionOption
     extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(page: any, options: string) {
+    constructor(page: any, complete: (value: string) => string) {
         super()
         if (!page.title) {
             page.title = new URL(page.url).host
         }
 
-        this.value = page.search ? options + page.title : options + page.url
+        this.value = complete(page.search ? page.title : page.url)
 
         let preplain = page.bmark ? "B" : ""
         preplain += page.search ? "S" : ""
@@ -58,7 +60,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         const prevStr = this.lastExstr
         this.lastExstr = exstr
         let [prefix, query] = this.splitOnPrefix(exstr)
-        let options = ""
+        let complete = (value: string) => value
 
         // Hide self and stop if prefixes don't match
         if (prefix) {
@@ -74,27 +76,32 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         const headerPostfix = []
         prefix = this.canonicalisePrefix(prefix)
 
-        // Ignoring command-specific arguments
-        // It's terrible but it's ok because it's just a stopgap until an actual commandline-parsing API is implemented
-        if (prefix === "tabopen") {
-            if (query.startsWith("-c ")) {
-                const args = query.split(" ")
-                if (args.length > 2) {
-                    options = args.slice(0, 2).join(" ")
-                    headerPostfix.push("container: " + args[1])
-                }
+        const spec = getOpenArgs(prefix)
+        if (spec) {
+            const analysis = arg.analyseForCompletion(spec, query)
+            if (analysis.activeValue?.option === "-c") {
+                this.options = []
+                this.deselect()
+                this.state = "hidden"
+                return
             }
-            if (query.startsWith("-b ")) {
-                const args = query.split(" ")
-                options = args.slice(0, 1).join(" ")
-                headerPostfix.push("background tab")
-            }
-        } else if (prefix === "winopen" && query.startsWith("-private ")) {
-            options = "-private"
-            headerPostfix.push("private window")
+            complete = value =>
+                arg.replacePositionals(analysis, [value]).join(" ")
+            query = analysis.positionals.join(" ")
+            if (/\s$/.test(exstr) && analysis.positionals.length && (analysis.terminated || !analysis.trailing.length)) query += " "
+            try {
+                const options = arg.parse(spec, {
+                    argv: arg.replacePositionals(
+                        analysis,
+                        analysis.positionals,
+                    ),
+                })
+                if (options["-c"] !== undefined)
+                    headerPostfix.push("container: " + options["-c"])
+                if (options["-b"]) headerPostfix.push("background tab")
+                if (options["-private"] || options["--private"]) headerPostfix.push("private window")
+            } catch {}
         }
-        options += options ? " " : ""
-        query = query.substring(options.length)
 
         this.updateSectionHeader(
             HistoryCompletionSource.DEFAULT_SECTION_HEADER,
@@ -121,7 +128,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
                 query,
                 config.get("historyresults"),
             )) as any
-        ).map(page => new HistoryCompletionOption(page, options))
+        ).map(page => new HistoryCompletionOption(page, complete))
 
         // Deselect any selected, but remember what they were.
         const lastFocused = this.lastFocused
