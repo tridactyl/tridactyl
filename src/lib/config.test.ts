@@ -229,13 +229,15 @@ test("groups versioned programs after legacy RC commands", () => {
         expect(rc.indexOf("bind x echo legacy | command")).toBeLessThan(
             rc.indexOf("set exversion 2"),
         )
-        expect(rc).toContain("bind y {\necho one\necho two\n}")
-        expect(rc).toContain("bind = {\necho equals\n}")
+        expect(rc).toContain("bind y |{\necho one\necho two\n}|")
+        expect(rc).toContain("bind = |{\necho equals\n}|")
         expect(rc).toContain("set exversion 1")
-        tri.config.USERCONFIG.nmaps = {
-            ";": { source: "echo unsafe", exversion: 2 },
+        for (const key of [";", "\\|{", "\\}|"]) {
+            tri.config.USERCONFIG.nmaps = {
+                [key]: { source: "echo unsafe", exversion: 2 },
+            }
+            expect(() => tri.config.parseConfig()).toThrow("safely export")
         }
-        expect(() => tri.config.parseConfig()).toThrow("safely export")
     } finally {
         tri.config.USERCONFIG.nmaps = nmaps
         tri.config.USERCONFIG.exversion = exversion

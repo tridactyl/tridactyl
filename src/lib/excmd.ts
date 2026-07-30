@@ -3,6 +3,9 @@ export interface ExProgram {
     exversion: 2
 }
 
+export const EX_BLOCK_OPEN = "|{"
+export const EX_BLOCK_CLOSE = "}|"
+
 export const EX_CANCELLED = Object.freeze({
     __tridactylExOutcome: "cancelled" as const,
 })
@@ -36,7 +39,7 @@ export const formatExProgram = (command: ExCommand) => {
     if (!isExProgram(command)) return command
     const prefix = command.source.startsWith("\n") ? "" : "\n"
     const suffix = command.source.endsWith("\n") ? "" : "\n"
-    return `{${prefix}${command.source}${suffix}}`
+    return `${EX_BLOCK_OPEN}${prefix}${command.source}${suffix}${EX_BLOCK_CLOSE}`
 }
 
 export function joinExCommand(parts: ExCommand[]): ExCommand {

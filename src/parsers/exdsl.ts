@@ -1,4 +1,10 @@
-import { ExProgram, isExCancelled, stripLeadingColons } from "@src/lib/excmd"
+import {
+    EX_BLOCK_CLOSE,
+    EX_BLOCK_OPEN,
+    ExProgram,
+    isExCancelled,
+    stripLeadingColons,
+} from "@src/lib/excmd"
 
 const operators = [".|", "|", ";"] as const
 
@@ -20,13 +26,20 @@ export type ExPart =
     | ({ type: "operator"; operator: ExOperator } & Span)
     | ({ type: "comment" } & Span)
     | ({ type: "heredoc"; bodyStart: number; bodyEnd: number } & Span)
-    | ({ type: "block"; body: ExStructure } & Span)
+    | ({
+          type: "block"
+          body: ExStructure
+          bodyStart: number
+          bodyEnd: number
+      } & Span)
 
 interface ParseResult extends ExStructure {
     end: number
+    bodyEnd?: number
 }
 
 const boundaries = " \t\r\n"
+const blockDelimiters = [EX_BLOCK_OPEN, EX_BLOCK_CLOSE]
 
 const status = (
     invalid: boolean,
@@ -54,13 +67,14 @@ function escapedSyntaxEnd(source: string, index: number) {
             isBoundary(source[index + candidate.length + 1]),
     )
     if (operator) return index + operator.length + 1
-    const escaped = source[index + 1]
-    if (
-        (escaped === "{" || escaped === "}") &&
-        isBraceBoundary(source, index - 1) &&
-        isBraceBoundary(source, index + 2)
+    const blockDelimiter = blockDelimiters.find(
+        delimiter =>
+            source.startsWith(delimiter, index + 1) &&
+            isBoundary(source[index - 1]) &&
+            isBoundary(source[index + delimiter.length + 1]),
     )
-        return index + 2
+    if (blockDelimiter) return index + blockDelimiter.length + 1
+    const escaped = source[index + 1]
     if (
         (escaped === "#" || escaped === '"') &&
         isWholeLineComment(source, index)
@@ -69,18 +83,12 @@ function escapedSyntaxEnd(source: string, index: number) {
     return undefined
 }
 
-function isBraceBoundary(source: string, index: number) {
-    const character = source[index]
-    return (
-        isBoundary(character) ||
-        "{}".includes(character) ||
-        (character === "\\" && "{}".includes(source[index + 1]))
-    )
-}
-
-function isStandaloneBrace(source: string, index: number) {
-    return (
-        isBraceBoundary(source, index - 1) && isBraceBoundary(source, index + 1)
+function blockDelimiterAt(source: string, index: number) {
+    if (!isBoundary(source[index - 1])) return undefined
+    return blockDelimiters.find(
+        delimiter =>
+            source.startsWith(delimiter, index) &&
+            isBoundary(source[index + delimiter.length]),
     )
 }
 
@@ -206,14 +214,18 @@ function parseRange(
             textStart = index + 1
             continue
         }
-        if (character === "{" && isStandaloneBrace(source, index)) {
+        const blockDelimiter = blockDelimiterAt(source, index)
+        if (blockDelimiter === EX_BLOCK_OPEN) {
             text(index)
-            const child = parseRange(source, index + 1, true)
+            const bodyStart = index + EX_BLOCK_OPEN.length
+            const child = parseRange(source, bodyStart, true)
             const end = child.end
             parts.push({
                 type: "block",
                 start: index,
                 end,
+                bodyStart,
+                bodyEnd: child.bodyEnd ?? source.length,
                 body: { parts: child.parts, status: child.status },
             })
             incomplete = incomplete || child.status === "incomplete"
@@ -223,7 +235,7 @@ function parseRange(
             textStart = end
             continue
         }
-        if (nested && character === "}" && isStandaloneBrace(source, index)) {
+        if (nested && blockDelimiter === EX_BLOCK_CLOSE) {
             text(index)
             return {
                 parts,
@@ -231,11 +243,13 @@ function parseRange(
                     invalid || expectation === "operand",
                     incomplete,
                 ),
-                end: index + 1,
+                end: index + EX_BLOCK_CLOSE.length,
+                bodyEnd: index,
             }
         }
-        if (!nested && character === "}" && isStandaloneBrace(source, index)) {
+        if (!nested && blockDelimiter === EX_BLOCK_CLOSE) {
             invalid = true
+            index += EX_BLOCK_CLOSE.length - 1
             continue
         }
 
@@ -340,7 +354,7 @@ function compile(
                     command: blockCommand,
                     piped,
                     program: {
-                        source: source.slice(block.start + 1, block.end - 1),
+                        source: source.slice(block.bodyStart, block.bodyEnd),
                         exversion: 2,
                     },
                 })

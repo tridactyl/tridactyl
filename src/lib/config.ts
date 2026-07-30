@@ -18,12 +18,24 @@
  */
 import * as R from "ramda"
 import * as binding from "@src/lib/binding"
-import { ExCommand, formatExProgram, isExProgram } from "@src/lib/excmd"
+import {
+    EX_BLOCK_CLOSE,
+    EX_BLOCK_OPEN,
+    ExCommand,
+    formatExProgram,
+    isExProgram,
+} from "@src/lib/excmd"
 import * as platform from "@src/lib/platform"
 import { DeepPartial } from "tsdef"
 
+const v2Syntax = [".|", "&&", "||", "|", ";", EX_BLOCK_OPEN, EX_BLOCK_CLOSE]
+const escapableV2Syntax = [".|", "|", ";", EX_BLOCK_OPEN, EX_BLOCK_CLOSE]
 const assertV2Argument = (value: string) => {
-    if (/[\s'"]|^(?:\.\||&&|\|\||[|;{}])$/.test(value))
+    if (
+        /[\s'"]/.test(value) ||
+        v2Syntax.includes(value) ||
+        (value[0] === "\\" && escapableV2Syntax.includes(value.slice(1)))
+    )
         throw new Error(`Cannot safely export dialect 2 argument: ${value}`)
 }
 

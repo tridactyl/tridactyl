@@ -38,7 +38,9 @@ test.each([
     "echo a |b",
     "echo C:\\windows\\etc",
     "echo /a\\|b/",
-    "echo {| b",
+    "echo a|{b",
+    "echo a}|b",
+    "echo a|{b}|c",
 ])("does not split protected or non-standalone operators in %s", source => {
     expect(shape(source)).toEqual([["text", source, undefined]])
     expect(parseStructure(source).status).toBe("complete")
@@ -46,9 +48,9 @@ test.each([
 
 test("only backslash protects and is removed from standalone DSL syntax", async () => {
     const run = jest.fn()
-    await evaluate("echo \\| \\&& \\|| \\.| \\; \\{ \\} \\{\\}", run)
+    await evaluate("echo \\| \\&& \\|| \\.| \\; \\|{ \\}| \\{ \\}", run)
     expect(run).toHaveBeenCalledWith(
-        "echo | \\&& \\|| .| ; { } {}",
+        "echo | \\&& \\|| .| ; |{ }| \\{ \\}",
         false,
         undefined,
         undefined,
@@ -89,12 +91,12 @@ test("protects operators in whole-line comments and separates lines", () => {
 })
 
 test("parses nested blocks independently", () => {
-    const source = "bind x { hint | tabopen } ; echo done"
+    const source = "bind x |{ hint | tabopen }| ; echo done"
     expect(shape(source)).toEqual([
         ["text", "bind x ", undefined],
         [
             "block",
-            "{ hint | tabopen }",
+            "|{ hint | tabopen }|",
             [
                 ["text", " hint ", undefined],
                 ["operator", "|", undefined],
@@ -107,8 +109,14 @@ test("parses nested blocks independently", () => {
     ])
 })
 
+test("allows an escaped closing delimiter inside a block", async () => {
+    const run = jest.fn()
+    await evaluate("|{ echo \\}| }|", run)
+    expect(run).toHaveBeenCalledWith("echo }|", false, undefined, undefined)
+})
+
 test("reports an unterminated block as incomplete", () =>
-    expect(parseStructure("bind x { echo done").status).toBe("incomplete"))
+    expect(parseStructure("bind x |{ echo done").status).toBe("incomplete"))
 
 test.each(["echo a |", "echo a .|", "echo a ;"])(
     "reports a missing right operand in %s",
@@ -119,8 +127,8 @@ test.each([
     "| echo a",
     "echo a | | echo b",
     "echo a ; ; echo b",
-    "echo a }",
-    "{ echo a | }",
+    "echo a }|",
+    "|{ echo a | }|",
     "js <<JS console.log(1)\necho done",
     "js <<JS console.log(1)\rmore JS",
     "js <<JS console.log(1)\r",
@@ -145,7 +153,7 @@ test("evaluates pipes and sequences in order", async () => {
 
 test("ignores leading colons on every command", async () => {
     const run = jest.fn(source => source)
-    await evaluate(":one\n{ :::two } ; :echo :::argument", run)
+    await evaluate(":one\n|{ :::two }| ; :echo :::argument", run)
     expect(run.mock.calls.map(call => call[0])).toEqual([
         "one",
         "two",
@@ -357,7 +365,7 @@ test("maps a command with arguments and pipes the collected results", async () =
 test("maps a multi-stage block", () =>
     expect(
         evaluate(
-            "values .| { double | stringify }",
+            "values .| |{ double | stringify }|",
             (command, _piped, input) => {
                 if (command === "values") return [1, 2]
                 if (command === "double") return input * 2
@@ -368,7 +376,7 @@ test("maps a multi-stage block", () =>
 
 test("supports nested block maps", () =>
     expect(
-        evaluate("matrix .| { pass .| double }", (command, _piped, input) => {
+        evaluate("matrix .| |{ pass .| double }|", (command, _piped, input) => {
             if (command === "matrix")
                 return [
                     [1, 2],
@@ -473,7 +481,7 @@ test("continues sequences after a rejected pipeline", async () => {
     expect(run.mock.calls.map(call => call[0])).toEqual(["a", "c"])
 })
 
-test.each(["a | cancel | b ; c", "a | { cancel | b } ; c"])(
+test.each(["a | cancel | b ; c", "a | |{ cancel | b }| ; c"])(
     "cancellation stops the whole program in %s",
     async source => {
         const run = jest.fn(command =>
@@ -517,7 +525,9 @@ test("evaluates nested standalone blocks with pipeline input", async () => {
         calls.push([source, piped, value])
         return piped ? `${source}(${value})` : source
     })
-    await expect(evaluate("a | { b | { c } }", run)).resolves.toBe("c(b(a))")
+    await expect(evaluate("a | |{ b | |{ c }| }|", run)).resolves.toBe(
+        "c(b(a))",
+    )
     expect(calls).toEqual([
         ["a", false, undefined],
         ["b", true, "a"],
@@ -527,7 +537,7 @@ test("evaluates nested standalone blocks with pipeline input", async () => {
 
 test("passes a trailing block as a versioned program argument", async () => {
     const run = jest.fn()
-    await evaluate("bind x { a\n# keep this comment\nb }", run)
+    await evaluate("bind x |{ a\n# keep this comment\nb }|", run)
     expect(run).toHaveBeenCalledWith("bind x", false, undefined, {
         source: " a\n# keep this comment\nb ",
         exversion: 2,
@@ -605,17 +615,28 @@ test("formats blocks containing whole-line comments safely", async () => {
 
 test("rejects unsupported nested syntax before executing", async () => {
     const run = jest.fn()
-    await expect(evaluate("a | { bind x { b } }", run)).rejects.toThrow(
+    await expect(evaluate("a | |{ bind x |{ b }| }|", run)).rejects.toThrow(
         "Unsupported",
     )
     expect(run).not.toHaveBeenCalled()
 })
 
 test.each([
-    "bind { a } trailing",
-    "bind x { a } { b }",
-    "a | bind x { b }",
-    "bind x { a } <<JS\nb\nJS",
+    "bind |{ a }| trailing",
+    "bind x |{ a }| |{ b }|",
+    "a | bind x |{ b }|",
+    "bind x |{ a }| <<JS\nb\nJS",
 ])("rejects ambiguous block arguments in %s", source =>
     expect(evaluate(source, jest.fn())).rejects.toThrow("Unsupported"),
 )
+
+test.each([
+    "js if (ready) { work() }",
+    "js const value = { key: 1 }",
+    "js let url; { let node = find() }",
+    "echo { unmatched } braces",
+])("treats ordinary braces as command text in %s", async source => {
+    const run = jest.fn()
+    await evaluate(source, run)
+    expect(run).toHaveBeenCalledWith(source, false, undefined, undefined)
+})

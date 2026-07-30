@@ -18,6 +18,27 @@ test.each([
     expect([...rcFileToExCmds(rc)]).toEqual(expected)
 })
 
+test("groups multiline v2 blocks with explicit delimiters", () => {
+    expect([
+        ...rcFileToExCmds("set exversion 2\nbind x |{\necho one\necho two\n}|"),
+    ]).toEqual([
+        "set exversion 2",
+        {
+            source: "bind x |{\necho one\necho two\n}|",
+            exversion: 2,
+        },
+    ])
+})
+
+test.each([
+    ["bind x |{\necho one", "incomplete"],
+    ["bind x }|", "invalid"],
+])("rejects %s v2 RC blocks", (source, error) => {
+    expect(() => [...rcFileToExCmds(`set exversion 2\n${source}`)]).toThrow(
+        `${error} ex command`,
+    )
+})
+
 test("runRc updates and saves versioned config", async () => {
     await config.clear()
     jest.mocked(controller.acceptExCmd).mockImplementation(async cmd => {

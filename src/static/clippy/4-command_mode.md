@@ -57,12 +57,12 @@ echo hello
 # bare expressions are allowed in pipes
 :js [{hello: "world"}, {mellow: "yellow"}, {hello: "universe"}] .| _.hello | filter | fillcmdline
 
-# { } form blocks
-:bind ;Y {
+# |{ }| form blocks
+:bind ;Y |{
     hint -eJc img |
     _.src |
     yankimage
-}
+}|
 
 # heredocs are supported for making javascript more pleasant
 :js <<JS
