@@ -26,8 +26,17 @@ function getFindHost() {
 
 const NATIVE_HIGHLIGHTS = typeof Highlight === "function" && "highlights" in CSS
 
-class SharedRangeView extends StaticRange {
+class SharedRangeView {
     private static shared = document.createRange()
+    private _staticRange: StaticRange
+    constructor(rangeSpec: {
+        startContainer: Node,
+        startOffset: number,
+        endContainer: Node,
+        endOffset: number,
+    }) {
+        this._staticRange = new StaticRange(rangeSpec)
+    }
     public toString() {
         return this.moveSharedRange().toString()
     }
@@ -40,8 +49,26 @@ class SharedRangeView extends StaticRange {
     public getClientRects() {
         return this.moveSharedRange().getClientRects()
     }
+    public isVisible() {
+        return DOM.isVisible(this.moveSharedRange())
+    }
     get commonAncestorContainer() {
         return this.moveSharedRange().commonAncestorContainer
+    }
+    get staticRange() {
+        return this._staticRange
+    }
+    get startContainer() {
+        return this._staticRange.startContainer
+    }
+    get startOffset() {
+        return this._staticRange.startOffset
+    }
+    get endContainer() {
+        return this._staticRange.endContainer
+    }
+    get endOffset() {
+        return this._staticRange.endOffset
     }
     private moveSharedRange() {
         SharedRangeView.shared.setStart(this.startContainer, this.startOffset)
@@ -53,8 +80,9 @@ class SharedRangeView extends StaticRange {
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
     private background = `var(--tridactyl-search-highlight-color)`
+    private staticRange: StaticRange
 
-    constructor(public range: SharedRangeView) {
+    constructor(public rangeView: SharedRangeView) {
         super()
         {
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1716685
@@ -63,6 +91,7 @@ class FindHighlight extends HTMLSpanElement {
                 this[key] = proto[key]
             }
         }
+        this.staticRange = rangeView.staticRange
         this.style.position = "absolute"
         this.style.top = "0px"
         this.style.left = "0px"
@@ -119,16 +148,16 @@ class FindHighlight extends HTMLSpanElement {
     }
 
     getBoundingClientRect() {
-        return this.range.getBoundingClientRect()
+        return this.rangeView.getBoundingClientRect()
     }
     getClientRects() {
-        return this.range.getClientRects()
+        return this.rangeView.getClientRects()
     }
     cloneRange() {
-        return this.range.cloneRange()
+        return this.rangeView.cloneRange()
     }
     unfocus() {
-        setNativeFocus(this.range, false)
+        setNativeFocus(this.staticRange, false)
         this.background = `var(--tridactyl-search-highlight-color)`
         for (const node of this.children) {
             ;(node as HTMLElement).style.background = this.background
@@ -147,7 +176,7 @@ class FindHighlight extends HTMLSpanElement {
             getBoundingClientRect: () => this.getBoundingClientRect(),
             parentElement: null,
         }
-        let parent = this.range.commonAncestorContainer
+        let parent = this.rangeView.commonAncestorContainer
         if (parent.nodeType !== Node.ELEMENT_NODE) {
             parent = parent.parentElement
         }
@@ -169,7 +198,7 @@ class FindHighlight extends HTMLSpanElement {
         }
         const focusable = this.queryInRange("a,input,button,details")
         if (focusElement && focusable) focusable.focus()
-        setNativeFocus(this.range, true)
+        setNativeFocus(this.staticRange, true)
         this.background = `var(--tridactyl-search-highlight-active-color)`
         for (const node of this.children) {
             const element = node as HTMLElement
@@ -177,7 +206,7 @@ class FindHighlight extends HTMLSpanElement {
         }
     }
     queryInRange(selector: string): HTMLElement | null {
-        const range = this.range
+        const range = this.staticRange
         const rangeEndNode = range.endContainer
         if (range.startContainer.ownerDocument !== document) return null
 
@@ -223,7 +252,7 @@ let nativeHighlights: { normal: Highlight; active: Highlight }
 let nativeRegistry = CSS.highlights
 
 function isHighlightVisible(highlight: FindHighlight) {
-    return DOM.isVisible(nativeHighlights ? highlight.range as unknown as Range : highlight)
+    return nativeHighlights ? highlight.rangeView.isVisible() : DOM.isVisible(highlight)
 }
 
 function setNativeFocus(range: Range | StaticRange, active: boolean) {
@@ -451,10 +480,10 @@ export async function jumpToMatch(searchQuery, option) {
 
 function drawHighlights(highlights) {
     if (NATIVE_HIGHLIGHTS) {
-        const doc = highlights[0].range.startContainer.ownerDocument
+        const doc = highlights[0].staticRange.startContainer.ownerDocument
         const win: any = doc.defaultView
         const normal = new win.Highlight()
-        highlights.forEach(highlight => normal.add(highlight.range))
+        highlights.forEach(highlight => normal.add(highlight.staticRange))
         const active = new win.Highlight()
         nativeRegistry = win.CSS.highlights
         normal.priority = 2147483646
@@ -502,7 +531,7 @@ async function findCompletionMatches(generation) {
     const headingIndexes = new Map()
     for (let index = 0; index < highlights.length; ++index) {
         const highlight = highlights[index]
-        const range = highlight.range
+        const range = highlight.rangeView
         const doc: Document = range.startContainer.ownerDocument
         const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT)
         walker.currentNode = range.startContainer
@@ -707,5 +736,5 @@ export async function jumpToNextMatch(n: number, searchFromView = false) {
 }
 
 export function currentMatchRange(): Range {
-    return lastHighlights[selected].range.cloneRange()
+    return lastHighlights[selected].rangeView.cloneRange()
 }
