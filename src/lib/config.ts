@@ -410,6 +410,10 @@ export class default_config {
         // These two don't strictly follow the "bind is ;g[flag]" rule but they make sense
         ";gF": "hint -qb",
         ";gf": "hint -q",
+        ";C": {
+            exversion: 2,
+            source: "hint -Je | _.href | fillcmdline tabopen _ -c"
+        },
 
         "<S-Insert>": "mode ignore",
         "<AC-Escape>": "mode ignore",
