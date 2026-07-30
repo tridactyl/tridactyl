@@ -194,7 +194,7 @@ export function getCommandlineFns(cmdline_state: {
             if (
                 !command.startsWith(" ") &&
                 !browser.extension.inIncognitoContext &&
-                !/(^|[\s;|{}])-private(?=$|[\s;|{}])/.test(command)
+                !/(^|[\s;|{}])--?private(?=$|[\s;|{}])/.test(command)
             ) {
                 State.getAsync("cmdHistory").then(c => {
                     cmdline_state.state.cmdHistory = c.concat([command])

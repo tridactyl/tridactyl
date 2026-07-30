@@ -3519,11 +3519,11 @@ export async function winopen(...args: string[]) {
     )
     const createData = {} as Parameters<typeof browser.windows.create>[0]
     let firefoxArgs = "--new-window"
-    if (option["-private"]) {
+    if (option["-private"] || option["--private"]) {
         createData.incognito = true
         firefoxArgs = "--private-window"
     }
-    if (option["-popup"]) createData.type = "popup"
+    if (option["-popup"] || option["--private"]) createData.type = "popup"
 
     const address = option._.join(" ")
     const containerName = option["-c"]

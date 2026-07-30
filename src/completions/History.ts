@@ -99,7 +99,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
                 if (options["-c"] !== undefined)
                     headerPostfix.push("container: " + options["-c"])
                 if (options["-b"]) headerPostfix.push("background tab")
-                if (options["-private"]) headerPostfix.push("private window")
+                if (options["-private"] || options["--private"]) headerPostfix.push("private window")
             } catch {}
         }
 

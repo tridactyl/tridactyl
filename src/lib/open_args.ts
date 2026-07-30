@@ -9,7 +9,9 @@ export const tabopenArgs = {
 
 export const winopenArgs = {
     "-private": Boolean,
+    "--private": Boolean,
     "-popup": Boolean,
+    "--popup": Boolean,
     "-c": String,
 }
 
