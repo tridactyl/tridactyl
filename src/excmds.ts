@@ -99,6 +99,7 @@ import * as hint_util from "@src/lib/hint_util"
 import { OpenMode } from "@src/lib/hint_util"
 import * as Proxy from "@src/lib/proxy"
 import * as arg from "@src/lib/arg_util"
+import { tabopenArgs, winopenArgs } from "@src/lib/open_args"
 import * as R from "ramda"
 import * as treestyletab from "@src/interop/tst"
 import { uuidv4 } from "@src/lib/math"
@@ -2976,14 +2977,7 @@ export async function tabopenwait(...addressarr: string[]): Promise<browser.tabs
 //#background_helper
 export async function tabopen_helper({ addressarr = [], waitForDom = false }): Promise<browser.tabs.Tab> {
     const option = arg.parse(
-        {
-            "-b": Boolean,
-            "-p": Boolean,
-            "-w": Boolean,
-            "-c": String,
-            "--focus-address-bar": Boolean,
-            "--discard": Boolean,
-        },
+        tabopenArgs,
         {
             argv: addressarr,
             missingValueErrors: { "-c": "You must provide a container name!" },
@@ -3517,7 +3511,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
 //#background
 export async function winopen(...args: string[]) {
     const option = arg.parse(
-        { "-private": Boolean, "-popup": Boolean, "-c": String },
+        winopenArgs,
         {
             argv: args,
             missingValueErrors: { "-c": "You must provide a container name!" },

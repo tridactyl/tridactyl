@@ -13,18 +13,7 @@ export const lib = arg
 type EdgeHandler = BooleanConstructor | NumberConstructor | StringConstructor
 type EdgeSpec = Record<string, string | EdgeHandler>
 
-/** Parse options in contiguous blocks at either edge of argv. */
-export function parse<T extends EdgeSpec>(
-    spec: T,
-    {
-        argv,
-        missingValueErrors = {},
-    }: { argv: string[]; missingValueErrors?: Record<string, string> },
-): arg.Result<T> {
-    const separator = argv.indexOf("--")
-    const trailing = separator < 0 ? [] : argv.slice(separator + 1)
-    argv = argv.slice(0, separator < 0 ? undefined : separator)
-
+function edgeOptions(spec: EdgeSpec) {
     const resolve = (name: string) => {
         let handler = spec[name]
         while (typeof handler === "string") {
@@ -49,7 +38,6 @@ export function parse<T extends EdgeSpec>(
         }
         return undefined
     }
-
     const optionSize = (args: string[], index: number) => {
         const identified = identify(args[index])
         if (!identified) return 0
@@ -72,17 +60,125 @@ export function parse<T extends EdgeSpec>(
             ? 2
             : 1
     }
+    return { resolve, identify, optionSize }
+}
 
+function edgeBounds(
+    args: string[],
+    optionSize: (args: string[], index: number) => number,
+) {
     let start = 0
     let size: number
-    while (start < argv.length && (size = optionSize(argv, start)))
+    while (start < args.length && (size = optionSize(args, start)))
         start += size
-    let end = argv.length
+    let end = args.length
     while (end > start) {
-        if (end - start > 1 && optionSize(argv, end - 2) === 2) end -= 2
-        else if (optionSize(argv, end - 1) === 1) end--
+        if (end - start > 1 && optionSize(args, end - 2) === 2) end -= 2
+        else if (optionSize(args, end - 1) === 1) end--
         else break
     }
+    return { start, end }
+}
+
+export function analyseForCompletion<T extends EdgeSpec>(
+    spec: T,
+    argstr: string,
+) {
+    const trailingEmpty = /\s$/.test(argstr)
+    const trimmed = argstr.trim()
+    const argv = trimmed ? trimmed.split(/\s+/) : []
+    const separator = argv.indexOf("--")
+    const args = argv.slice(0, separator < 0 ? undefined : separator)
+    const afterSeparator = separator < 0 ? [] : argv.slice(separator + 1)
+    const { identify, optionSize } = edgeOptions(spec)
+    const { start, end } = edgeBounds(args, optionSize)
+    const analysis = {
+        leading: args.slice(0, start),
+        positionals: args.slice(start, end).concat(afterSeparator),
+        trailing: args.slice(end),
+        terminated: separator >= 0,
+        activeValue: undefined as
+            | { option: string; query: string; edge: "leading" | "trailing" }
+            | undefined,
+    }
+    if (separator >= 0 || !args.length) return analysis
+
+    const setActive = (optionIndex: number, query: string) => {
+        const edge =
+            optionIndex < start
+                ? "leading"
+                : optionIndex >= end
+                  ? "trailing"
+                  : undefined
+        if (!edge) return
+        const identified = identify(args[optionIndex])
+        if (!identified) return
+        const valueIndex = identified.options.findIndex(
+            option => option.handler !== Boolean,
+        )
+        if (
+            valueIndex < 0 ||
+            valueIndex < identified.options.length - 1 ||
+            identified.attached !== undefined
+        )
+            return
+        analysis.activeValue = {
+            option: identified.options[valueIndex].name,
+            query,
+            edge,
+        }
+    }
+
+    const last = args.length - 1
+    if (trailingEmpty) {
+        setActive(last, "")
+        return analysis
+    }
+    if (last > 0 && optionSize(args, last - 1) === 2) {
+        setActive(last - 1, args[last])
+        return analysis
+    }
+    setActive(last, "")
+    return analysis
+}
+
+export function replacePositionals(
+    analysis: ReturnType<typeof analyseForCompletion>,
+    positionals: string[],
+): string[] {
+    return analysis.terminated
+        ? analysis.leading.concat(analysis.trailing, "--", positionals)
+        : analysis.leading.concat(positionals, analysis.trailing)
+}
+
+export function replaceActiveValue(
+    analysis: ReturnType<typeof analyseForCompletion>,
+    value: string,
+): string[] {
+    if (!analysis.activeValue) throw new Error("No active option value")
+    const leading = [...analysis.leading]
+    const trailing = [...analysis.trailing]
+    const edge = analysis.activeValue.edge === "leading" ? leading : trailing
+    if (!analysis.activeValue.query) edge.push(value)
+    else edge[edge.length - 1] = value
+    return leading.concat(analysis.positionals, trailing)
+}
+
+/** Parse options in contiguous blocks at either edge of argv. */
+export function parse<T extends EdgeSpec>(
+    spec: T,
+    {
+        argv,
+        missingValueErrors = {},
+    }: { argv: string[]; missingValueErrors?: Record<string, string> },
+): arg.Result<T> {
+    const separator = argv.indexOf("--")
+    const trailing = separator < 0 ? [] : argv.slice(separator + 1)
+    argv = argv.slice(0, separator < 0 ? undefined : separator)
+
+    const { resolve, identify, optionSize } = edgeOptions(spec)
+
+    const { start, end } = edgeBounds(argv, optionSize)
     const edges = argv.slice(0, start).concat(argv.slice(end))
     const positional = argv.slice(start, end).concat(trailing)
     const parsedSpec: arg.Spec = { ...spec }

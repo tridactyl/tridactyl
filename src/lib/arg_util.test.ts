@@ -1,4 +1,9 @@
-import { parse } from "@src/lib/arg_util"
+import {
+    analyseForCompletion,
+    parse,
+    replaceActiveValue,
+    replacePositionals,
+} from "@src/lib/arg_util"
 
 const spec = {
     "-b": Boolean,
@@ -47,4 +52,58 @@ test("supports custom missing-value errors", () => {
             missingValueErrors: { "-c": "A container name is required" },
         }),
     ).toThrow("A container name is required")
+})
+
+test.each([
+    ["-bp url", [["-bp"], ["url"], []]],
+    ["url -bp", [[], ["url"], ["-bp"]]],
+    ["url -bp ", [[], ["url"], ["-bp"]]],
+    ["-b url -c work", [["-b"], ["url"], ["-c", "work"]]],
+    ["one -b two", [[], ["one", "-b", "two"], []]],
+    ["-- url -c work", [[], ["url", "-c", "work"], []]],
+])("analyses completion edges in %s", (args, expected) => {
+    const analysis = analyseForCompletion(spec, args)
+    expect([analysis.leading, analysis.positionals, analysis.trailing]).toEqual(
+        expected,
+    )
+})
+
+test.each([
+    ["url -c", "-c", ""],
+    ["url -c ", "-c", ""],
+    ["-c wo", "-c", "wo"],
+    ["url -c wo", "-c", "wo"],
+    ["url -bc wo", "-c", "wo"],
+    ["url -c -work", "-c", "-work"],
+])("finds the active option value in %s", (args, option, query) => {
+    const analysis = analyseForCompletion(spec, args)
+    expect(analysis.activeValue).toMatchObject({ option, query })
+})
+
+test("reconstructs completed positional and option values", () => {
+    const analysis = analyseForCompletion(spec, "-bp exa -c wo")
+    expect(replacePositionals(analysis, ["https://example.com"])).toEqual([
+        "-bp",
+        "https://example.com",
+        "-c",
+        "wo",
+    ])
+    expect(replaceActiveValue(analysis, "work")).toEqual([
+        "-bp",
+        "exa",
+        "-c",
+        "work",
+    ])
+})
+
+test("does not consume recognised options as completion values", () => {
+    expect(analyseForCompletion(spec, "url -c -bp").activeValue).toBeUndefined()
+})
+
+test("preserves explicit option termination when reconstructing", () => {
+    const analysis = analyseForCompletion(spec, "-- -b query")
+    expect(replacePositionals(analysis, ["https://example.com"])).toEqual([
+        "--",
+        "https://example.com",
+    ])
 })
