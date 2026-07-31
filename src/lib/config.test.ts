@@ -204,13 +204,18 @@ test("merge object when user config undefined", () => {
     )
 })
 
-test("config-only clear preserves persisted state", async () => {
+test("config-only clear preserves custom themes and persisted state", async () => {
     const state = { cmdHistory: ["echo retained"] }
+    const customthemes = { issue5490: "body{color:red}" }
     await browser.storage.local.set({ state })
     await tri.config.set("editorcmd", "issue-5472")
+    await tri.config.set("configversion", "2.0")
+    await tri.config.set("customthemes", customthemes)
 
     await tri.config.clear("config")
 
     expect(tri.config.get("editorcmd")).toBe("auto")
+    expect(tri.config.get("configversion")).toBe("2.0")
+    expect(tri.config.get("customthemes")).toEqual(customthemes)
     expect(await browser.storage.local.get()).toEqual({ state })
 })

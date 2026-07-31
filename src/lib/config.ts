@@ -2306,17 +2306,27 @@ export async function unset(...target) {
 
 export async function clear(scope: "local" | "config" = "local") {
     if (!IN_BACKGROUND) {
-        USERCONFIG = o({})
+        const customthemes = scope === "config" && USERCONFIG.customthemes
+        USERCONFIG = customthemes
+            ? o({ configversion: CURRENT_CONFIG_VERSION, customthemes })
+            : o({})
         return mutateInBackground("clear", [scope])
     }
     if (EXCLUSIVE_PENDING) await EXCLUSIVE_QUEUE
     if (!INITIALISED) await getAsync()
     const old = USERCONFIG
-    USERCONFIG = o({})
+    const customthemes = scope === "config" && old.customthemes
+    USERCONFIG = customthemes
+        ? o({ configversion: CURRENT_CONFIG_VERSION, customthemes })
+        : o({})
     await store(() =>
-        scope === "config"
-            ? browser.storage.local.remove([CONFIGNAME, CONFIG_WRITE])
-            : browser.storage.local.clear(),
+        customthemes
+            ? browser.storage.local.set({
+                  [CONFIGNAME]: structuredClone(USERCONFIG),
+              })
+            : scope === "config"
+              ? browser.storage.local.remove([CONFIGNAME, CONFIG_WRITE])
+              : browser.storage.local.clear(),
     )
     notifyChangeListeners(old, USERCONFIG)
 }
