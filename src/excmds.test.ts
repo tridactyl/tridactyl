@@ -114,6 +114,28 @@ test("`set` preserves deep custom arrays", async () => {
     expect(config.getDynamic("custom", "deep", "array")).toEqual([1, 2])
 })
 
+test("`colourscheme --url` only refetches with `--update`", async () => {
+    const args = ["--module=reader", "--url=x", "issue5490"]
+    const fetchMock = jest
+        .fn()
+        .mockResolvedValueOnce({ text: async () => "" })
+        .mockResolvedValueOnce({ text: async () => "updated" })
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = fetchMock
+
+    try {
+        await backgroundExcmds.colourscheme(...args)
+        await backgroundExcmds.colourscheme(...args)
+        expect(fetchMock).toHaveBeenCalledTimes(1)
+
+        await backgroundExcmds.colourscheme("--update", ...args)
+        expect(fetchMock).toHaveBeenCalledTimes(2)
+    } finally {
+        globalThis.fetch = originalFetch
+        await config.unset("customthemes", args[2])
+    }
+})
+
 test("`autocontaindelete` removes only the matching rule", async () => {
     const pattern = "^https?://([^/]*\\.|)one\\.example/"
     await config.set("autocontain", pattern, "work")

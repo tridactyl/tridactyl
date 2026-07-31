@@ -39,7 +39,7 @@ Codename "Carpenter"
     - ex-mode completions now fall back to documentation search for unknown commands ([#944](https://github.com/tridactyl/tridactyl/issues/944))
     - `:quickmarkremove` removes a quickmark and its associated `gn`, `go`, `gw`, and `gp` bindings ([#4724](https://github.com/tridactyl/tridactyl/issues/4724))
     - `:set modeindicatorshowkeys` now shows Vimperator hint filters in the mode indicator ([#1669](https://github.com/tridactyl/tridactyl/issues/1669))
-    - `:sanitise tridactylconfig` clears stored user configuration without removing commandline history or other local Tridactyl data ([#5472](https://github.com/tridactyl/tridactyl/issues/5472))
+    - `:sanitise tridactylconfig` clears stored user configuration without removing commandline history or custom themes ([#5472](https://github.com/tridactyl/tridactyl/issues/5472))
     - `:unkeymap` removes key translations set with `:keymap` ([#1169](https://github.com/tridactyl/tridactyl/issues/1169))
     - `completions.History.autoselect` can now select the first history completion automatically ([#1370](https://github.com/tridactyl/tridactyl/issues/1370))
     - `:set searchurlopen` controls whether searchurls appear in `:open`, `:tabopen` and `:winopen` completions ([#4741](https://github.com/tridactyl/tridactyl/issues/4741))
@@ -58,6 +58,7 @@ Codename "Carpenter"
     - `:urlmodify --safe` prevents repeated navigation to the same URL within one second, avoiding redirect loops in `:autocmd`s ([#516](https://github.com/tridactyl/tridactyl/issues/516))
     - `:set hintmames words` uses random short words for hints ([#5482](https://github.com/tridactyl/tridactyl/issues/5482))
     - `superignore` can now be toggled globally from the toolbar popup ([#822](https://github.com/tridactyl/tridactyl/issues/822))
+    - `:colourscheme --url` reuses downloaded themes unless given `--update` to ease use in RC files
     - `:ttscontrol` now supports `play`, `pause`, `playpause`, and `stop` ([#217](https://github.com/tridactyl/tridactyl/issues/217))
     - `:downloads` now opens `about:downloads` in a new tab ([#615](https://github.com/tridactyl/tridactyl/issues/615))
     - `:dialog` opens Firefox `about:` pages, with `:d` as an alias ([#137](https://github.com/tridactyl/tridactyl/issues/137))

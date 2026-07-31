@@ -530,7 +530,7 @@ export async function unloadtheme(themename: string) {
  *
  * If THEMENAME is set to any other value except `--url`, Tridactyl will attempt to use its native binary (see [[native]]) in order to load a CSS file named THEMENAME from disk. The CSS file has to be in a directory named "themes" and this directory has to be in the same directory as your tridactylrc. If this fails, Tridactyl will attempt to load the theme from its internal storage.
  *
- * Themes can be loaded from URLs with `:colourscheme --url [url] [themename]`. If omitted, the theme name is inferred from the URL's filename. They are stored internally - if you want to update the theme run the whole command again. You can use `%` as a placeholder for the current URL.
+ * Themes can be loaded from URLs with `:colourscheme --url [url] [themename]`. If omitted, the theme name is inferred from the URL's filename. They are stored internally and reused; use `--update` with `--url` to redownload a theme. You can use `%` as a placeholder for the current URL.
  *
  * Themes can be used for specific sites with `:colourscheme --regex [url regex]`. As a shorthand to style our `:reader` mode, you can use `:colourscheme --module=reader`, for example, `:colourscheme --module=reader --url=https://raw.githubusercontent.com/tridactyl/tridactyl/refs/heads/master/contrib/themes/reader/newspaper.css newspaper`
  *
@@ -553,7 +553,7 @@ export async function unloadtheme(themename: string) {
  */
 //#background
 export async function colourscheme(...args: string[]) {
-    const option = arg.lib({ "--url": String, "--regex": String, "--module": String }, { argv: args, allowNegativePositional: true })
+    const option = arg.lib({ "--url": String, "--update": Boolean, "--regex": String, "--module": String }, { argv: args, allowNegativePositional: true })
     let url = option["--url"]
     const regex = option["--module"] == "reader" ? "moz-extension://.*/static/reader\.html" : option["--regex"]
     let themename = option._[0]
@@ -567,12 +567,12 @@ export async function colourscheme(...args: string[]) {
     // If this is a builtin theme, no need to bother with slow stuff
     if (!staticThemes.includes(themename)) {
         if (themename.search("\\.") >= 0) throw new Error(`Theme name should not contain any dots! (given name: ${themename}).`)
-        if (url) {
+        if (url && (option["--update"] || !Object.keys(config.get("customthemes")).includes(themename))) {
             if (url === "%") url = window.location.href // this is basically an easter egg
             if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
             const css = await (await fetch(url)).text()
-            await set("customthemes." + themename, css)
-        } else {
+            await config.set("customthemes", themename, css)
+        } else if (!url) {
             await loadtheme(themename)
         }
     }
