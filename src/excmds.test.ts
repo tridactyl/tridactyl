@@ -4,6 +4,7 @@ import * as config from "@src/lib/config"
 import * as Native from "@src/lib/native"
 import * as Messaging from "@src/lib/messaging"
 import * as DOM from "@src/lib/dom"
+import * as Controller from "@src/lib/controller"
 import state from "@src/state"
 
 jest.mock("@src/lib/webext", () => ({
@@ -22,11 +23,14 @@ jest.mock("@src/background/config_rc")
 
 jest.mock("@src/lib/native", () => ({
     ...jest.requireActual("@src/lib/native"),
+    disconnectNativeControls: jest.fn(),
     ff_cmdline: jest.fn(),
     getrcpath: jest.fn(),
     nativegate: jest.fn(),
     read: jest.fn(),
+    reconnectNativeControls: jest.fn(),
     run: jest.fn(),
+    runAsync: jest.fn(),
 }))
 
 jest.mock("@src/lib/containers", () => ({
@@ -246,7 +250,67 @@ test("`:native` reports native messaging errors", async () => {
         "excmd_content",
         "fillcmdline",
         [expect.stringMatching(/nativeinstall.*native_main\.py/)],
+        undefined,
     )
+})
+
+test("`:native` reconnects native control after a successful check", async () => {
+    const reconnect = jest.mocked(Native.reconnectNativeControls).mockClear()
+    jest.mocked(browser.runtime.sendNativeMessage).mockResolvedValueOnce({
+        version: "0.6.0",
+    })
+
+    await backgroundExcmds.native()
+
+    expect(reconnect).toHaveBeenCalledWith(true)
+})
+
+test("native composite execution propagates command errors", async () => {
+    const composite = backgroundExcmds.composite
+
+    await expect(
+        Controller.invokeExCmd(composite, ["not-a-real-excmd"], "native"),
+    ).rejects.toThrow("Not an excmd")
+})
+
+test("native source is forwarded to content command shims", async () => {
+    const messageActiveTab = jest.mocked(Messaging.messageActiveTab).mockClear()
+
+    await Controller.invokeExCmd(
+        backgroundExcmds.rssexec,
+        ["https://example.com/feed"],
+        "native",
+    )
+
+    expect(messageActiveTab).toHaveBeenCalledWith(
+        "excmd_content",
+        "rssexec",
+        ["https://example.com/feed", undefined],
+        "native",
+    )
+})
+
+test("`updatenative` leaves control released while an asynchronous installer runs", async () => {
+    jest.mocked(browser.runtime.getPlatformInfo).mockResolvedValue({
+        arch: "x86-64",
+        os: "linux",
+    })
+    jest.mocked(Native.nativegate).mockResolvedValue(true)
+    jest.mocked(browser.runtime.sendNativeMessage).mockResolvedValue({
+        version: "0.5.0",
+    })
+    const disconnect = jest.mocked(Native.disconnectNativeControls).mockClear()
+    const reconnect = jest.mocked(Native.reconnectNativeControls).mockClear()
+    const runAsync = jest.mocked(Native.runAsync).mockResolvedValue()
+
+    await backgroundExcmds.updatenative(false)
+
+    expect(disconnect).toHaveBeenCalledTimes(1)
+    expect(runAsync).toHaveBeenCalledTimes(1)
+    expect(disconnect.mock.invocationCallOrder[0]).toBeLessThan(
+        runAsync.mock.invocationCallOrder[0],
+    )
+    expect(reconnect).not.toHaveBeenCalled()
 })
 
 test.each(["mktridactylrc", "source"])(

@@ -1218,6 +1218,12 @@ export class default_config {
         "curl -fsSl https://raw.githubusercontent.com/tridactyl/native_messenger/master/installers/install.sh -o /tmp/trinativeinstall.sh && sh /tmp/trinativeinstall.sh %TAG"
 
     /**
+     * Allow the native messenger to control Tridactyl via `native_main --request [ex script]`.
+     * Requires [[native]] to be 0.6.0 or higher.
+     */
+    nativecontrol: "true" | "false" = "false"
+
+    /**
      * Used by :updatecheck and related built-in functionality to automatically check for updates and prompt users to upgrade.
      */
     update = {

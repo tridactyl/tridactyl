@@ -243,6 +243,7 @@ export async function getRssLinks(): Promise<Array<{ type: string; url: string; 
  */
 //#content
 export async function rssexec(url: string, type?: string, ...title: string[]) {
+    const source = controller.getCurrentExCmdSource()
     if (!url || url === "") {
         const links = await getRssLinks()
         switch (links.length) {
@@ -268,7 +269,7 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
         rsscmd += " " + url
     }
     // Need actual excmd parsing here.
-    return controller.acceptExCmd(rsscmd)
+    return controller.acceptExCmd(rsscmd, source)
 }
 
 /**
@@ -788,6 +789,7 @@ export async function native() {
     }
     let done
     if (version !== undefined) {
+        Native.reconnectNativeControls(true)
         done = fillcmdline("# Native messenger is correctly installed, version " + version)
     } else {
         done = fillcmdline("# Native messenger not found. Please run `:nativeinstall` and follow the instructions.")
@@ -902,20 +904,21 @@ export async function mktridactylrc(...args: string[]) {
  */
 //#background
 export async function source(...args: string[]) {
+    const commandSource = controller.getCurrentExCmdSource()
     if (args[0] === "--url") {
         let url = args[1]
         if (!url || url === "%") url = window.location.href
         if (!new RegExp("^(https?://)|data:").test(url)) url = "http://" + url
-        await rc.sourceFromUrl(url)
+        await rc.sourceFromUrl(url, commandSource)
     } else if (args[0] === "--strings") {
-        await rc.runRc(args.slice(1).join(" "))
+        await rc.runRc(args.slice(1).join(" "), commandSource)
     } else if (args[0] === "--clipboard") {
         const text = await getclip()
-        await rc.runRc(text)
+        await rc.runRc(text, commandSource)
     } else {
         const file = args.join(" ") || undefined
         if (!(await Native.nativegate("0.1.3", false))) throw new Error("`:source` requires the native messenger for local files. Run `:nativeinstall` or use `:source --clipboard`.")
-        if (!(await rc.source(file))) {
+        if (!(await rc.source(file, commandSource))) {
             logger.error("Could not find RC file")
         }
     }
@@ -942,7 +945,9 @@ export async function source_quiet(...args: string[]) {
 export async function updatenative(interactive = true) {
     if (!(await Native.nativegate("0", interactive))) {
         return
-    } else if ((await browser.runtime.getPlatformInfo()).os === "mac") {
+    }
+    const platform = await browser.runtime.getPlatformInfo()
+    if (platform.os === "mac") {
         if (interactive) logger.error("Updating the native messenger on OSX is broken. Please use `:nativeinstall` instead.")
         return
     }
@@ -952,14 +957,25 @@ export async function updatenative(interactive = true) {
     const native_version = await Native.getNativeMessengerVersion()
 
     if (semverCompare(native_version, "0.2.0") < 0) {
-        await Native.run(update_command)
+        Native.disconnectNativeControls()
+        try {
+            await Native.run(update_command)
+        } finally {
+            Native.reconnectNativeControls()
+        }
     } else if (semverCompare(native_version, "0.3.1") < 0) {
         if (interactive) {
             throw new Error("Updating is broken on this version of the native messenger. Please use `:nativeinstall` instead.")
         }
         return
     } else {
-        await Native.runAsync(update_command)
+        Native.disconnectNativeControls()
+        try {
+            await Native.runAsync(update_command)
+        } catch (error) {
+            Native.reconnectNativeControls()
+            throw error
+        }
         if (interactive) await fillcmdline("# Native messenger update started. Please wait a few seconds, then run `:native` to check whether it succeeded.")
     }
 }
@@ -2524,6 +2540,7 @@ if (fullscreenApiIsPrefixed) {
 /** @hidden */
 //#content
 export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "DocFocus" | "DocBlur" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState" | "ModeEnter" | "ModeLeave", target?: string) {
+    const source = controller.getCurrentExCmdSource()
     const aucmds = await config.getAsync("autocmds", cmdType)
     if (!aucmds) return
     const ausites = Object.keys(aucmds)
@@ -2557,7 +2574,7 @@ export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "D
         }
         try {
             autocmd_logger.debug(`${cmdType} matched ${aukey}: ${aucmds[aukey]}`)
-            await controller.acceptExCmd(aucmds[aukey])
+            await controller.acceptExCmd(aucmds[aukey], source)
         } catch (e) {
             autocmd_logger.error((e as Error).toString())
         }
@@ -4070,11 +4087,12 @@ async function getnexttabs(tabid: number, n?: number) {
 */
 //#background
 export async function repeat(n = 1, ...exstr: string[]) {
+    const source = controller.getCurrentExCmdSource()
     let cmd = state.last_ex_str
     if (exstr.length > 0) cmd = exstr.join(" ")
     logger.debug("repeating " + cmd + " " + n + " times")
     for (let i = 0; i < n; i++) {
-        await controller.acceptExCmd(cmd)
+        await controller.acceptExCmd(cmd, source)
     }
 }
 
@@ -4093,8 +4111,9 @@ export async function repeat(n = 1, ...exstr: string[]) {
  */
 //#both
 export async function composite(...cmds: string[]) {
+    const source = controller.getCurrentExCmdSource()
     try {
-        return (
+        return await (
             cmds
                 .join(" ")
                 // Semicolons delimit pipelines
@@ -4115,17 +4134,22 @@ export async function composite(...cmds: string[]) {
                     // nonsense. So we copy-paste the important
                     // parts of the body of that function instead.
                     const [fn, args] = excmd_parser.parser(cmds[0], ALL_EXCMDS)
-                    const first_value = fn.call({}, ...args)
+                    const first_value = controller.invokeExCmd(fn, args, source)
 
                     // Exec the rest of the pipe in sequence.
                     return cmds.slice(1).reduce(async (pipedValue, cmd) => {
                         const [fn, args] = excmd_parser.parser(cmd, ALL_EXCMDS)
-                        return fn.call({}, ...args, await pipedValue)
+                        return controller.invokeExCmd(
+                            fn,
+                            [...args, await pipedValue],
+                            source,
+                        )
                     }, first_value)
                 }, null as any)
         )
     } catch (e) {
         logger.error(e)
+        if (source === "native") throw e
     }
 }
 
