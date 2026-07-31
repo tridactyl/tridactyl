@@ -68,13 +68,24 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             href: node["href"],
             parent: node["parent"],
             id: node["id"],
-            level: node["level"] === 0 ? node["level"] : node["level"] - 1,
+            level: node["level"],
             time: node["time"],
         })
         for (const child of node["children"]) {
             this.flattenTree(child, flat)
         }
         return flat
+    }
+
+    private sortPathsOldestFirst(tree) {
+        for (const node of tree) {
+            this.sortPathsOldestFirst(node["children"])
+            node["latestTime"] = Math.max(
+                node["time"],
+                ...node["children"].map(child => child["latestTime"]),
+            )
+        }
+        tree.sort((a, b) => a["latestTime"] - b["latestTime"])
     }
 
     private addFormatTimeSpan(tree) {
@@ -111,6 +122,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         if (!history) history = { list: [] }
         const tree = this.makeTree(history["list"])
         if (tree.length > 0) {
+            this.sortPathsOldestFirst(tree[0]["children"])
             history["list"] = this.flattenTree(tree[0]).reverse()
         }
         this.addFormatTimeSpan(history["list"])
