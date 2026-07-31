@@ -2739,6 +2739,16 @@ async function tabIndexSetActive(index: number | string) {
     return tabSetActive(await idFromIndex(index))
 }
 
+/** Switch focus to the other side of the current split view, if it exists */
+//#background
+export async function splitnext() {
+    const tabs = await browser.tabs.query({ currentWindow: true })
+    const splitViewId = tabs.find(tab => tab.active)?.splitViewId
+    if (splitViewId === undefined || splitViewId < 0) return
+    const next = tabs.find(tab => !tab.active && tab.splitViewId === splitViewId)
+    if (next) return tabSetActive(next.id)
+}
+
 /** Switch to the first tab in Firefox's tab order. */
 //#background
 export async function tabfirst() {
