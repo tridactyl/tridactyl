@@ -186,13 +186,25 @@ function onIframeLoad(event: Event) {
     listenInIframe(event.currentTarget as FrameElement)
 }
 
+// workaround for FF140 era bug https://bugzilla.mozilla.org/show_bug.cgi?id=2035665
+// which left inaccessible <details> shadow roots accessible but unusable
+function isUsableShadowRoot(root: ShadowRoot, host: Element) {
+    try {
+        const node = host.ownerDocument?.defaultView?.Node
+        return !!node && root instanceof node
+    } catch {
+        return false
+    }
+}
+
 function discoverIframes(root: IframeRoot | Element) {
     for (const element of [root as Element, ...root.querySelectorAll("*")]) {
         if (["iframe", "frame"].includes(element.localName)) {
             listenInIframe(element as FrameElement)
         }
         const shadowRoot = (element as HTMLElement).openOrClosedShadowRoot
-        if (shadowRoot) observeIframeRoot(shadowRoot)
+        if (shadowRoot && isUsableShadowRoot(shadowRoot, element))
+            observeIframeRoot(shadowRoot)
     }
 }
 
