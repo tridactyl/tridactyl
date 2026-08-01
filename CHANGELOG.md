@@ -170,6 +170,7 @@ Codename "Carpenter"
     - hints no longer make animated elements disappear ([#3548](https://github.com/tridactyl/tridactyl/issues/3548))
     - `modeindicator` now updates without reloading the page ([#4738](https://github.com/tridactyl/tridactyl/issues/4738))
     - `<C-o>yy` now closes the command line after copying a completion ([#3256](https://github.com/tridactyl/tridactyl/issues/3256))
+    - `:back` branches are now sorted by newest members (#5492)
     - `modeindicator` now works on pages without a `<body>` ([#1163](https://github.com/tridactyl/tridactyl/issues/1163))
     - dark theme hint highlights now remain readable on light pages ([#4420](https://github.com/tridactyl/tridactyl/issues/4420))
     - mode indicator text no longer appears in Firefox's find results ([#2089](https://github.com/tridactyl/tridactyl/issues/2089))
