@@ -42,6 +42,9 @@
 " sanitise tridactylconfig
 " set configversion 2.0
 "
+" " horizontal scrolling layout for reader
+" colours --module=reader --url=https://raw.githubusercontent.com/tridactyl/tridactyl/refs/heads/master/contrib/themes/reader/newspaper.css newspaper
+" 
 " colours quakelight
 " set tabsort mru
 " 
@@ -128,6 +131,9 @@
 "
 " " Free up ctrl+[ for back in case H etc. has been stolen
 " unbind --mode=normal <C-[>
+"
+" " get rid of annoying google 'ai overviews'
+" set searchengine google
 " 
 " "
 " " Misc settings
