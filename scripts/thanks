@@ -4,9 +4,10 @@ export LAST_VERSION="$1"
 
 allcontributors="$(git shortlog -sn $LAST_VERSION..HEAD | cut -c8- | awk '!seen[$0]++' | paste -sd "," - | sed 's/,/, /g')"
 newcontributors="$(diff --changed-group-format='%<' --unchanged-group-format='' <(git shortlog -sn $LAST_VERSION..HEAD | cut -c8- | awk '!seen[$0]++'| sort) <(git shortlog -sn $LAST_VERSION | cut -c8- | awk '!seen[$0]++'| sort) | paste -sd "," - | sed 's/,/, /g')"
+issuereporters="$(gh issue list --state closed --search "closed:>$(git log -1 --format=%cI "$LAST_VERSION")" --limit 10000 --json author --jq '.[] | select(.author) | .author.login' | sort | uniq -c | sort -k1,1nr -k2,2 | awk '{print $2}' | paste -sd "," - | sed 's/,/, /g; s#app/#people who have since deleted their GitHub accounts#g')"
 
 echo "Thanks to all of our contributors for this release: $allcontributors"
 echo
 echo "Extra special thanks go to $newcontributors"
 echo
-echo Last, but not least - thank you to everyone who reported issues.
+echo "Last, but not least - thank you to everyone who reported the issues we closed in this release: $issuereporters"
