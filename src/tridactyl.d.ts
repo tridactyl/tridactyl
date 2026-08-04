@@ -20,6 +20,12 @@ interface HTMLElement {
     openOrClosedShadowRoot: ShadowRoot | null
 }
 
+declare namespace browser.tabs {
+    interface Tab {
+        splitViewId?: number
+    }
+}
+
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
 // these functions really can be anything, ditto for the objects
 declare function exportFunction(

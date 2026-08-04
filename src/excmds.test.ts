@@ -239,6 +239,27 @@ test("`changelistjump` skips closed tabs", async () => {
     ])
 })
 
+test.each([
+    [7, [[2, { active: true }]]],
+    [-1, []],
+    [undefined, []],
+])(
+    "`splitnext` handles split view ID %s",
+    async (splitViewId, expectedCalls) => {
+        const query = jest.mocked(browser.tabs.query)
+        const update = jest.mocked(browser.tabs.update)
+        update.mockClear()
+        query.mockResolvedValueOnce([
+            { id: 1, active: true, splitViewId },
+            { id: 2, active: false, splitViewId },
+        ] as browser.tabs.Tab[])
+
+        await backgroundExcmds.splitnext()
+        expect(query).toHaveBeenLastCalledWith({ currentWindow: true })
+        expect(update.mock.calls).toEqual(expectedCalls)
+    },
+)
+
 test("`nativeopen` targets the running macOS Firefox application", async () => {
     jest.mocked(browser.runtime.getPlatformInfo).mockResolvedValue({
         arch: "x86-64",

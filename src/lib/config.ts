@@ -325,6 +325,7 @@ export class default_config {
         K: "tabnext",
         gt: "tabnext_gt",
         gT: "tabprev",
+        gs: "splitnext", // c-w w is reserved for closing windows
         // "<c-n>": "tabnext_gt", // c-n is reserved for new window
         // "<c-p>": "tabprev",
         "g^": "tabfirst",
