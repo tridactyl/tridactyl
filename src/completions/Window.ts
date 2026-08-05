@@ -1,6 +1,7 @@
 import { browserBg } from "@src/lib/webext"
 import * as Completions from "@src/completions"
 import * as Messaging from "@src/lib/messaging"
+import * as compat from "@src/lib/compat"
 
 class WindowCompletionOption
     extends Completions.CompletionOptionHTML
@@ -90,15 +91,18 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         const excludeCurrentWindow = this.canonicalisePrefix(prefix) === "tabpush"
-        this.options = (await browserBg.windows.getAll({ populate: true }))
-        .filter( win => !(excludeCurrentWindow && win.focused))
-        .map(
-            win => {
+        let windows: browser.windows.Window[] = []
+        if (!(await compat.isAndroid())) {
+            // eslint-disable-next-line unsupported-apis-firefox-android
+            windows = await browserBg.windows.getAll({ populate: true })
+        }
+        this.options = windows
+            .filter(win => !(excludeCurrentWindow && win.focused))
+            .map(win => {
                 const o = new WindowCompletionOption(win)
                 o.state = "normal"
                 return o
-            },
-        )
+            })
         return this.updateDisplay()
     }
 }

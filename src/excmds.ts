@@ -76,7 +76,8 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab, getLastAudibleTab } from "@src/lib/webext"
+import * as compat from "@src/lib/compat"
+import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, sessionsBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab, getLastAudibleTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -673,13 +674,13 @@ export async function nativeopen(...args: string[]) {
         const selecttab = tab => {
             browser.tabs.onCreated.removeListener(selecttab)
             tabSetActive(tab.id)
-            browser.tabs.move(tab.id, { index })
+            compat.tabs.move(tab.id, { index })
         }
         browser.tabs.onCreated.addListener(selecttab)
 
         try {
             if ((await browser.runtime.getPlatformInfo()).os === "mac") {
-                if ((await browser.windows.getCurrent()).incognito) {
+                if ((await compat.windows.getCurrent()).incognito) {
                     throw new Error("nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
                 }
                 const appName = /(?:^|\/)([^/]+)\.app\/Contents\/MacOS\//.exec((await Native.ff_cmdline().catch(() => [])).join(" "))?.[1] ?? "Firefox"
@@ -1075,20 +1076,20 @@ export function getJumpPageId() {
 /** @hidden */
 //#content_helper
 export async function saveJumps(jumps) {
-    return browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
+    return sessionsBg.setTabValue(await activeTabId(), "jumps", jumps)
 }
 
 /** @hidden */
 //#content_helper
 export async function saveTabHistory(history) {
-    return browserBg.sessions.setTabValue((await ownTab()).id, "history", history)
+    return sessionsBg.setTabValue((await ownTab()).id, "history", history)
 }
 
 /** Returns a promise for an object with history list, index of a current, previous and next pages */
 /** @hidden */
 //#content_helper
 export async function curTabHistory() {
-    return browserBg.sessions.getTabValue((await ownTab()).id, "history")
+    return sessionsBg.getTabValue((await ownTab()).id, "history")
 }
 
 /** Returns a promise for an object containing the jumplist of all pages accessed in the current tab.
@@ -1098,7 +1099,7 @@ export async function curTabHistory() {
 //#content_helper
 export async function curJumps() {
     const tabid = await activeTabId()
-    let jumps = await browserBg.sessions.getTabValue(tabid, "jumps")
+    let jumps = await sessionsBg.getTabValue(tabid, "jumps")
     if (!jumps) jumps = {}
     // This makes sure that `key` exists in `obj`, setting it to `def` if it doesn't
     const ensure = (obj, key, def) => {
@@ -1283,7 +1284,7 @@ export async function scrolltab(tabId: number, scrollX: number, scrollY: number,
  */
 //#background
 export async function markadd(key: string) {
-    if ((await browser.windows.getCurrent()).incognito) {
+    if ((await compat.windows.getCurrent()).incognito) {
         throw new Error("Marks cannot be set in private mode")
     }
     // TODO: i18n: this should only ban numbers, not e.g. cyrillic
@@ -1530,7 +1531,9 @@ export function scrollpage(n = 1, count = 1) {
  *  Known bugs: find will currently happily jump to a non-visible element, and pressing n or N without having searched for anything will cause an error.
  */
 //#content
-export function find(...args: string[]) {
+export async function find(...args: string[]) {
+    if (await compat.isAndroid())
+        return fillcmdline_tmp(3000, ":find is not supported on android :(")
     // Completion previews pass session metadata as a non-user argument.
     const preview =
         typeof (args[0] as any) === "object" ? (args.shift() as any) : undefined
@@ -2426,7 +2429,7 @@ export async function zoom(level = 0, rel = "false", tabId = "auto") {
         throw new Error(`[zoom] level out of range: ${level}`)
     }
     if (rel === "true") {
-        level += await browser.tabs.getZoom()
+        level += await compat.tabs.getZoom()
 
         // Handle overshooting of zoom level.
         if (level > 5) level = 5
@@ -2434,9 +2437,9 @@ export async function zoom(level = 0, rel = "false", tabId = "auto") {
     }
 
     if (tabId === "auto") {
-        return browser.tabs.setZoom(level)
+        return compat.tabs.setZoom(level)
     } else {
-        return browser.tabs.setZoom(parseInt(tabId, 10), level)
+        return compat.tabs.setZoom(parseInt(tabId, 10), level)
     }
 }
 
@@ -2452,7 +2455,7 @@ export async function readerold() {
     if (await firefoxVersionAtLeast(58)) {
         const aTab = await activeTab()
         if (aTab.isArticle) {
-            return browser.tabs.toggleReaderMode()
+            return compat.tabs.toggleReaderMode()
         } // else {
         //  // once a statusbar exists an error can be displayed there
         // }
@@ -2827,18 +2830,18 @@ export async function tabprev(...args: string[]) {
  */
 //#background
 export async function tabpush(windowId?: number) {
-    const currentWindow = await browser.windows.getCurrent()
-    const windows = (await browser.windows.getAll()).filter(w => w.incognito === currentWindow.incognito)
+    const currentWindow = await compat.windows.getCurrent()
+    const windows = (await compat.windows.getAll()).filter(w => w.incognito === currentWindow.incognito)
     windows.sort((w1, w2) => w1.id - w2.id)
     const nextWindow = windows[(windows.findIndex(window => window.id === currentWindow.id) + 1) % windows.length]
     const tabId = await activeTabId()
     const winId = windowId ?? nextWindow.id
     const pos = await config.getAsync("tabopenpos")
     if (pos == "last") {
-        return browser.tabs.move(tabId, { index: -1, windowId: winId })
+        return compat.tabs.move(tabId, { index: -1, windowId: winId })
     } else {
         const index = (await activeTabOnWindow(winId)).index + 1
-        return browser.tabs.move(tabId, { index, windowId: winId })
+        return compat.tabs.move(tabId, { index, windowId: winId })
     }
 }
 
@@ -2847,7 +2850,7 @@ export async function tabpush(windowId?: number) {
 export async function tabaudio() {
     const tab = await getLastAudibleTab()
     if (tab) {
-        await browser.windows.update(tab.windowId, { focused: true })
+        await compat.windows.update(tab.windowId, { focused: true })
         return browser.tabs.update(tab.id, { active: true })
     }
 }
@@ -2858,16 +2861,16 @@ export async function tabaudio() {
  */
 //#background
 export async function winmerge(...windowIds: string[]) {
-    const target_wins = windowIds.length > 0 ? await Promise.all(windowIds.map(windowId => browser.windows.get(parseInt(windowId, 10), { populate: true }))) : await browser.windows.getAll({ populate: true })
-    const active_win = await browser.windows.getCurrent()
+    const target_wins = windowIds.length > 0 ? await Promise.all(windowIds.map(windowId => compat.windows.get(parseInt(windowId, 10), { populate: true }))) : await compat.windows.getAll({ populate: true })
+    const active_win = await compat.windows.getCurrent()
     return target_wins.forEach(target_win => {
         const [pinned_tabs, other_tabs] = R.splitWhen(t => !t.pinned, target_win.tabs)
         return Promise.all([
-            browser.tabs.move(
+            compat.tabs.move(
                 pinned_tabs.map(t => t.id),
                 { index: 0, windowId: active_win.id },
             ),
-            browser.tabs.move(
+            compat.tabs.move(
                 other_tabs.map(t => t.id),
                 { index: -1, windowId: active_win.id },
             ),
@@ -2882,7 +2885,7 @@ export async function winmerge(...windowIds: string[]) {
  */
 //#background_helper
 async function parseWinTabIndex(id: string) {
-    const windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
+    const windows = (await compat.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
     if (id === null || id === undefined || !/\d+\.\d+/.exec(id)) {
         const tab = await activeTab()
         const prevId = id
@@ -2904,14 +2907,14 @@ export async function tabgrab(id: string) {
     const [winid, tabindex_number] = await parseWinTabIndex(id)
     const tabid = (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
     // Figure out where it should be put
-    const windowId = (await browser.windows.getLastFocused({ windowTypes: ["normal"] })).id
+    const windowId = (await compat.windows.getLastFocused({ windowTypes: ["normal"] })).id
     // Move window
     const pos = await config.getAsync("tabopenpos")
     if (pos == "last") {
-        return browser.tabs.move(tabid, { index: -1, windowId })
+        return compat.tabs.move(tabid, { index: -1, windowId })
     } else {
         const index = (await activeTab()).index + 1
-        return browser.tabs.move(tabid, { index, windowId })
+        return compat.tabs.move(tabid, { index, windowId })
     }
 }
 
@@ -2970,7 +2973,7 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     let discarded = false
     let pinned = false
 
-    const win = await browser.windows.getCurrent()
+    const win = await compat.windows.getCurrent()
 
     // Lets us pass both -b and -c in no particular order as long as they are up front.
     async function argParse(args: string[]): Promise<string[]> {
@@ -3056,13 +3059,16 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     }
 
     if (typeof maybeURL === "object") {
-        // browser.search.search(tabId, ...) sometimes does not work when it is executed
+        // compat.search.search(tabId, ...) sometimes does not work when it is executed
         // right after openInNewTab(). Calling browser.tabs.get() between openInNewTab()
-        // and browser.search.search() seems to fix that problem.
-            // See https://github.com/tridactyl/tridactyl/pull/4791.
-            return openInNewTab("about:blank", args, waitForDom)
+        // and compat.search.search() seems to fix that problem.
+        // See https://github.com/tridactyl/tridactyl/pull/4791.
+        return openInNewTab("about:blank", args, waitForDom)
             .then(tab => browser.tabs.get(tab.id))
-            .then(tab => browser.search.search({ tabId: tab.id, ...maybeURL }))
+            .then(async tab => {
+                await compat.search.search({ tabId: tab.id, ...maybeURL })
+                return tab
+            })
     }
 
     // Fall back to about:newtab
@@ -3178,7 +3184,7 @@ export async function tabonly(...args: string[]) {
 */
 //#background
 export async function tabduplicate(index?: number) {
-    return browser.tabs.duplicate(await idFromIndex(index))
+    return compat.tabs.duplicate(await idFromIndex(index))
 }
 
 /** Detach a tab, opening it in a new window.
@@ -3188,23 +3194,26 @@ export async function tabduplicate(index?: number) {
 */
 //#background
 export async function tabdetach(index?: string) {
+    if (await compat.isAndroid()) return compat.unsupportedApi("tabdetach is not supported on Android")
     // Workaround for detached tabs not getting focus (issue #5273)
     const tabId = await idFromIndex(index)
     const currentTab = await browser.tabs.get(tabId)
     let tempWin
     try {
+        // eslint-disable-next-line unsupported-apis-firefox-android
         tempWin = await browser.windows.create({ incognito: currentTab.incognito, url: "about:blank" })
     } catch (error) {
         if (currentTab.incognito) throw error
         // Some Firefox setups can fail to resolve the default new-window URI.
         // Fall back to the simplest guaranteed-valid create call.
+        // eslint-disable-next-line unsupported-apis-firefox-android
         tempWin = await browser.windows.create({ url: "about:blank" })
     }
     const tempTab = tempWin.tabs[0]
-    await browser.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
+    await compat.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
     await browser.tabs.remove(tempTab.id)
     await browser.tabs.update(tabId, { active: true })
-    return browser.windows.get(tempTab.windowId)
+    return compat.windows.get(tempTab.windowId)
 }
 
 /** Toggle fullscreen state
@@ -3213,11 +3222,11 @@ export async function tabdetach(index?: string) {
 //#background
 export async function fullscreen() {
     // Could easily extend this to fullscreen / minimise any window but seems like that would be a tiny use-case.
-    const currwin = await browser.windows.getCurrent()
+    const currwin = await compat.windows.getCurrent()
     const wid = currwin.id
     // This might have odd behaviour on non-tiling window managers, but no-one uses those, right?
     const state = currwin.state === "fullscreen" ? "normal" : "fullscreen"
-    return browser.windows.update(wid, { state })
+    return compat.windows.update(wid, { state })
 }
 
 /** Close a tab.
@@ -3285,13 +3294,13 @@ export async function tabcloseallto(side: string) {
 export async function tabdiscard(index: string) {
     let id: number
     if (index === "--all") {
-        return browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t => t.id)))
+        return browser.tabs.query({}).then(ts => compat.tabs.discard(ts.map(t => t.id)))
     } else if (index === undefined) {
         throw new Error("tabdiscard requires a tab index or --all")
     } else {
         id = await idFromIndex(index)
     }
-    return browser.tabs.discard(id)
+    return compat.tabs.discard(id)
 }
 
 /** Restore the most recently closed item.
@@ -3308,8 +3317,9 @@ export async function tabdiscard(index: string) {
  */
 //#background
 export async function undo(item = "recent"): Promise<number> {
-    const current_win_id: number = (await browser.windows.getCurrent()).id
-    const sessions = await browser.sessions.getRecentlyClosed()
+    if (await compat.isAndroid()) return -1
+    const current_win_id: number = (await compat.windows.getCurrent()).id
+    const sessions = await sessionsBg.getRecentlyClosed()
 
     // Pick the first session object ("recent"), a tab ("tab"), a tab
     // from this window ("tab_strict"), a window ("window") or pick by sessionId.
@@ -3330,7 +3340,8 @@ export async function undo(item = "recent"): Promise<number> {
     const session = sessions.find(predicate)
 
     if (session) {
-        const restore = await browser.sessions.restore((session.tab || session.window).sessionId)
+        const restore = await sessionsBg.restore((session.tab || session.window).sessionId)
+        if (!restore) return -1
         return (restore.tab || restore.window).id
     }
     return -1
@@ -3358,7 +3369,7 @@ export async function tabmove(index = "$") {
             // current tab is already right before the previously active tab
             return []
         }
-        return browser.tabs.move(aTab.id, { index: previousTab.index })
+        return compat.tabs.move(aTab.id, { index: previousTab.index })
     }
     const windowTabs = await browser.tabs.query({ currentWindow: true })
     const windowPinnedTabs = await browser.tabs.query({ currentWindow: true, pinned: true })
@@ -3411,7 +3422,7 @@ export async function tabmove(index = "$") {
         } else newindex = minindex
     }
 
-    return browser.tabs.move(aTab.id, { index: newindex })
+    return compat.tabs.move(aTab.id, { index: newindex })
 }
 
 /**
@@ -3430,7 +3441,7 @@ export async function tabsort(...callbackchunks: string[]) {
     const windowTabs = await browser.tabs.query({ currentWindow: true })
     windowTabs.sort(comparator)
     Object.entries(windowTabs).forEach(([index, tab]) => {
-        browser.tabs.move(tab.id, { index: parseInt(index, 10) })
+        compat.tabs.move(tab.id, { index: parseInt(index, 10) })
     })
 }
 
@@ -3517,6 +3528,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  */
 //#background
 export async function winopen(...args: string[]) {
+    if (await compat.isAndroid()) return compat.unsupportedApi("no windows on android")
     const createData = {} as Parameters<typeof browser.windows.create>[0]
     let firefoxArgs = "--new-window"
     let done = false
@@ -3562,6 +3574,7 @@ export async function winopen(...args: string[]) {
 
     createData.url = "about:blank"
 
+    // eslint-disable-next-line unsupported-apis-firefox-android
     return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
 }
 
@@ -3575,9 +3588,9 @@ export async function winopen(...args: string[]) {
 //#background
 export async function winclose(...ids: string[]) {
     if (ids.length === 0) {
-        ids.push(`${(await browser.windows.getCurrent()).id}`)
+        ids.push(`${(await compat.windows.getCurrent()).id}`)
     }
-    return Promise.all(ids.map(id => browser.windows.remove(parseInt(id, 10))))
+    return Promise.all(ids.map(id => compat.windows.remove(parseInt(id, 10))))
 }
 
 /**
@@ -3589,8 +3602,8 @@ export async function winclose(...ids: string[]) {
  */
 //#background
 export async function wintitle(...title: string[]) {
-    const id = (await browser.windows.getCurrent()).id
-    return browser.windows.update(id, { titlePreface: title.join(" ") + " " })
+    const id = (await compat.windows.getCurrent()).id
+    return compat.windows.update(id, { titlePreface: title.join(" ") + " " })
 }
 
 /** Close all windows */
@@ -3598,8 +3611,8 @@ export async function wintitle(...title: string[]) {
 // We might have to do it ourselves.
 //#background
 export async function qall() {
-    const windows = await browser.windows.getAll()
-    return Promise.all(windows.map(window => browser.windows.remove(window.id)))
+    const windows = await compat.windows.getAll()
+    return Promise.all(windows.map(window => compat.windows.remove(window.id)))
 }
 
 // }}}
@@ -3614,7 +3627,7 @@ export async function qall() {
 //#background
 export async function sidebaropen(...urllike: string[]) {
     const url = await queryAndURLwrangler(urllike)
-    if (typeof url === "string") return browser.sidebarAction.setPanel({ panel: url })
+    if (typeof url === "string") return compat.sidebarAction.setPanel({ panel: url })
     throw new Error("Unsupported URL for sidebar. If it was a search term try `:set searchengine google` first")
 }
 
@@ -3793,16 +3806,17 @@ export async function tgroupcreate(name: string) {
         await setWindowTgroup(name)
         const initialUrl = await config.get("tabgroupnewtaburls")[name]
         await tabopen(initialUrl)
-        promises.push(tgroupTabs(name, true).then(tabs => browserBg.tabs.hide(tabs.map(tab => tab.id))))
+        promises.push(tgroupTabs(name, true).then(tabs => compat.tabs.hide(tabs.map(tab => tab.id))))
     } else {
         promises.push(
             browser.tabs.query({ currentWindow: true, pinned: false }).then(tabs => {
-                setTabTgroup(
+                const updated = setTabTgroup(
                     name,
                     tabs.map(({ id }) => id),
                 )
                 // trigger status line update
                 setContentStateGroup(name)
+                return updated
             }),
         )
         promises.push(setWindowTgroup(name))
@@ -3961,14 +3975,14 @@ export async function tgroupmove(name: string) {
     if (tabCount == 1) {
         return Promise.all([
             tgroupClearOldInfo(currentGroup, name),
-            tgroupTabs(name).then(tabs => {
-                browserBg.tabs.show(tabs.map(tab => tab.id))
-            }),
+            tgroupTabs(name).then(tabs =>
+                compat.tabs.show(tabs.map(tab => tab.id)),
+            ),
         ]).then(() => name)
     } else {
         const lastTabId = await tgroupLastTabId(currentGroup)
         await tabSetActive(lastTabId)
-        return browser.tabs.hide(currentTabId).then(() => currentGroup)
+        return compat.tabs.hide(currentTabId).then(() => currentGroup)
     }
 }
 
@@ -4499,7 +4513,7 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
         if (results.size) {
             if (interactive && results.size > 1) return fillcmdline_notrail(anyWindow ? "taball" : "tab", id)
             const firstTab = results.values().next().value
-            await browser.windows.update(firstTab.windowId, { focused: true })
+            await compat.windows.update(firstTab.windowId, { focused: true })
             return browser.tabs.update(firstTab.id, { active: true })
         }
         throw new Error("No tab found matching: " + id)
@@ -4507,7 +4521,7 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
 
     const [winid, tabindex_number] = await parseWinTabIndex(id)
     const tabid = (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
-    await browser.windows.update(winid, { focused: true })
+    await compat.windows.update(winid, { focused: true })
     return browser.tabs.update(tabid, { active: true })
 }
 
@@ -4653,7 +4667,7 @@ export async function bind(...args: string[]) {
             fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
         }
         if (args_obj.mode == "browser") {
-            const commands = await browser.commands.getAll()
+            const commands = await compat.commands.getAll()
 
             // Check for an existing command with this bind
             let command = commands.filter(c => mozMapToMinimalKey(c.shortcut).toMapstr() == args_obj.key)[0]
@@ -4662,7 +4676,7 @@ export async function bind(...args: string[]) {
             command = command === undefined ? (command = commands.filter(c => c.shortcut === "")[0]) : command
             if (command === undefined) throw new Error("You have reached the maximum number of browser binds. `:unbind` one you don't want from `:viewconfig browsermaps`.")
 
-            await browser.commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
+            await compat.commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
             await commandsHelper.updateListener()
         }
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
@@ -5173,8 +5187,8 @@ export async function unbind(...args: string[]) {
         return bindings[inherits] ? { ...getBindings(bindings[inherits]), ...bindings } : bindings
     }
     if (maps.includes("browsermaps")) {
-        const commands = (await browser.commands.getAll()).filter(command => command.shortcut && matches(mozMapToMinimalKey(command.shortcut).toMapstr()))
-        for (const command of commands) await browser.commands.update({ name: command.name, shortcut: "" })
+        const commands = (await compat.commands.getAll()).filter(command => command.shortcut && matches(mozMapToMinimalKey(command.shortcut).toMapstr()))
+        for (const command of commands) await compat.commands.update({ name: command.name, shortcut: "" })
         if (commands.length) await commandsHelper.updateListener()
     }
     for (const map of maps) {
@@ -5771,10 +5785,10 @@ export async function hint(...args: string[]): Promise<any> {
                               hintTabOpen(elem.href, false).catch(() => DOM.simulateClick(elem, DOM.TabTarget.NewBackgroundTab))
                               break
                           case OpenMode.Window:
-                              openInNewWindow({ url: new URL(elem.href, window.location.href).href })
+                               openInNewWindow({ url: new URL(elem.href, window.location.href).href }).catch(() => undefined)
                               break
                           case OpenMode.WindowPrivate:
-                              openInNewWindow({ url: elem.href, incognito: true })
+                               openInNewWindow({ url: elem.href, incognito: true }).catch(() => undefined)
                               break
                       }
                   } else {
@@ -6112,7 +6126,6 @@ export async function perfhistogram(...filters: string[]) {
 
 // }}}
 
-// unsupported on android
 /**
  * Add or remove a bookmark.
  *
@@ -6129,6 +6142,9 @@ export async function perfhistogram(...filters: string[]) {
  */
 //#background
 export async function bmark(url?: string, ...titlearr: string[]) {
+    if (await compat.isAndroid()) {
+        return compat.unsupportedApi("Bookmarks are not supported on Android.")
+    }
     const auto_url = url == undefined || url == (await activeTab()).url
     url =
         url === undefined
@@ -6142,8 +6158,10 @@ export async function bmark(url?: string, ...titlearr: string[]) {
               })()
     let title = titlearr.join(" ")
     // if titlearr is given and we have duplicates, we probably want to give an error here.
-    const dupbmarks = await browser.bookmarks.search({ url })
-    dupbmarks.forEach(bookmark => browser.bookmarks.remove(bookmark.id))
+    const dupbmarks = await compat.bookmarks.search({ url })
+    await Promise.all(
+        dupbmarks.map(bookmark => compat.bookmarks.remove(bookmark.id)),
+    )
     if (dupbmarks.length !== 0) return
     const path = title.substring(0, title.lastIndexOf("/") + 1)
     // if title is blank, get it from the current page.
@@ -6155,7 +6173,7 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     }
 
     if (path != "") {
-        const tree = (await browser.bookmarks.getTree())[0] // Why would getTree return a tree? Obviously it returns an array of unit length.
+        const tree = (await compat.bookmarks.getTree())[0] // Why would getTree return a tree? Obviously it returns an array of unit length.
         // I hate recursion.
         const treeClimber = (tree: browser.bookmarks.BookmarkTreeNode, treestr) => {
             if (tree.type !== "folder") return {}
@@ -6179,11 +6197,11 @@ export async function bmark(url?: string, ...titlearr: string[]) {
         }
 
         if (pathobj !== undefined) {
-            return browser.bookmarks.create({ url, title, parentId: pathobj.id })
+            return compat.bookmarks.create({ url, title, parentId: pathobj.id })
         } // otherwise, give the user an error, probably with [v.path for v in validpaths]
     }
 
-    return browser.bookmarks.create({ url, title })
+    return compat.bookmarks.create({ url, title })
 }
 
 //#background
@@ -6219,7 +6237,6 @@ async function js_helper(str: string[]) {
         if (flag == "-p") {
             // arg of -p comes from the end of str[]
             // and we don't know if the user will use it or not
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             JS_ARG = str.pop()
             str.shift()
             continue
@@ -6254,7 +6271,6 @@ async function js_helper(str: string[]) {
     if (separator !== null) {
         const pos = strJoin.indexOf(separator)
         // user may or may not use JS_ARGS
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         JS_ARGS = strJoin.slice(pos + 1).split(" ")
         jsContent = strJoin.slice(0, pos)
     } else {
@@ -6617,15 +6633,16 @@ import { Readability } from "@mozilla/readability"
  */
 //#content_helper
 export async function readerurl(article: any = undefined) {
+    const tab = await ownTab()
     if (!article) {
         document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
         article = new Readability(document.cloneNode(true) as any as Document).parse()
         article["link"] = window.location.href
-        article["favicon"] = (await ownTab()).favIconUrl
+        article["favicon"] = tab.favIconUrl
     }
     let hash = ""
     const article_encoded = btoa(encodeURIComponent(JSON.stringify(article)))
-    if (!(await browserBg.windows.getCurrent()).incognito) {
+    if (!tab.incognito) {
         const article_uuid = uuidv4()
         await set("reader_articles." + article_uuid, article_encoded)
         hash = article_uuid

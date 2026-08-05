@@ -328,6 +328,7 @@ export async function jumpToMatch(searchQuery, option) {
     const regex = option["regex"] && new RegExp(source, flags)
     let results: any = { count: 0 }
     if (!regex)
+        // eslint-disable-next-line unsupported-apis-firefox-android
         results = await browserBg.find.find(searchQuery, {
             tabId: await ownTabId(),
             caseSensitive: sensitive,
