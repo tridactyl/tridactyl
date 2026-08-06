@@ -762,6 +762,14 @@ function* hintnames_words(n: number): IterableIterator<string> {
     )
 }
 
+/** Reversed lexicographic hintnames.
+ * Reverses each hint so that nearby DOM elements get different first characters,
+ * making typed filtering more effective. See #3880.
+ * @hidden */
+function* hintnames_reverse(n: number, hintchars = defaultHintChars()): IterableIterator<string> {
+    yield* map(hintnames_uniform(n, hintchars), hint => hint.split("").reverse().join(""))
+}
+
 /** @hidden */
 function* hintnames(
     n: number,
@@ -774,6 +782,8 @@ function* hintnames(
             yield* hintnames_uniform(n, hintchars)
         case "words":
             yield* hintnames_words(n)
+        case "reverse":
+            yield* hintnames_reverse(n, hintchars)
         default:
             yield* hintnames_short(n, hintchars)
     }
