@@ -2,7 +2,9 @@ import * as controller from "@src/lib/controller"
 import * as config from "@src/lib/config"
 import * as Native from "@src/lib/native"
 
-export async function source(filename = "auto") {
+type ExCmdSource = Parameters<typeof controller.acceptExCmd>[1]
+
+export async function source(filename = "auto", commandSource?: ExCmdSource) {
     let rctext = ""
     if (filename === "auto") {
         rctext = await Native.getrc()
@@ -10,7 +12,7 @@ export async function source(filename = "auto") {
         rctext = (await Native.read(filename)).content
     }
     if (rctext === undefined) return false
-    await runRc(rctext)
+    await runRc(rctext, commandSource)
     return true
 }
 
@@ -30,10 +32,10 @@ export async function fetchText(url: string) {
 }
 const fetchConfig = fetchText
 
-export async function sourceFromUrl(url: string) {
+export async function sourceFromUrl(url: string, commandSource?: ExCmdSource) {
     const rctext = await fetchConfig(url)
     if (!rctext) return false
-    await runRc(rctext)
+    await runRc(rctext, commandSource)
     return true
 }
 
@@ -52,9 +54,9 @@ export async function writeRc(conf: string, force = false, filename = "auto") {
     return await Native.writerc(path, force, conf)
 }
 
-export async function runRc(rc: string) {
+export async function runRc(rc: string, commandSource?: ExCmdSource) {
     for (const cmd of rcFileToExCmds(rc)) {
-        await controller.acceptExCmd(cmd)
+        await controller.acceptExCmd(cmd, commandSource)
     }
     // Sourced commands have already been saved to the current local config.
     await config.update(true)
