@@ -75,6 +75,7 @@
     "pretty": "bash scripts/pretty.sh",
     "run": "web-ext run -s build/ -u 'paste.to'",
     "runwithprofile": "node scripts/runwithprofile.js",
+    "rundroid": "scripts/run_android.sh",
     "test": "yarn run build && web-ext build --source-dir ./build --overwrite-dest && jest --silent",
     "typecheck:browser-targets": "yarn generate-browser-types && tsc --project tsconfig.firefox.json --noEmit && tsc --project tsconfig.firefox-android.json --noEmit",
     "typecheck:chrome": "yarn generate-browser-types && tsc --project tsconfig.chrome.json --noEmit",
