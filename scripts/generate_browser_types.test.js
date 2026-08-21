@@ -7,6 +7,7 @@ const {
     supportState,
     transformCompatDeclaration,
     transformDeclarations,
+    validateAliases,
     validateNestedDefaults,
     validateNestedPolicy,
 } = require("./generate_browser_types")
@@ -77,6 +78,83 @@ test.each([
     [{ version_added: 68 }, "supported"],
 ])("evaluates support case %# conservatively", (statement, expected) => {
     expect(supportState(statement, "68.0")).toBe(expected)
+})
+
+test("allows partial support only when explicitly requested", () => {
+    const partial = { version_added: "1", partial_implementation: true }
+    expect(supportState(partial, "68.0", undefined, true)).toBe("supported")
+
+    const source = `declare namespace browser.example {
+        interface Base { value?: boolean }
+        interface Details extends Base {}
+        function partial(details: Details): void;
+        function full(): void;
+    }`
+    const api = {
+        example: {
+            partial: {
+                ...compat(partial),
+                details: { ...compat({ version_added: "1" }), value: compat({ version_added: false }) },
+            },
+            full: compat({ version_added: "1" }),
+        },
+    }
+    const result = generate(source, api, {
+        aliases: {},
+        unmapped: {},
+        partial_support: { "example.partial": ["firefox"] },
+    })
+
+    expect(compile(result.text, "browser.example.partial({})")).toEqual([])
+    expect(
+        compile(
+            result.text,
+            "declare const details: browser.example.Details; details.value",
+        ),
+    ).not.toEqual([])
+    expect(result.report.retained).toContainEqual({
+        path: "example.partial",
+        reason: "partial-supported",
+    })
+    expect(() =>
+        generate(source, api, {
+            aliases: {},
+            unmapped: {},
+            partial_support: { "example.full": ["firefox"] },
+        }),
+    ).toThrow("stale partial support: example.full")
+    expect(() =>
+        generate(source, api, {
+            aliases: {},
+            unmapped: {},
+            partial_support: { "example.partial": [] },
+        }),
+    ).toThrow("invalid partial support: example.partial")
+})
+
+test("filters inherited runtime object members", () => {
+    const source = `declare namespace browser.storage {
+        interface Base { get(): void; getKeys(): string[] }
+        interface Derived extends Base {}
+        const sync: Derived;
+    }`
+    const api = {
+        storage: {
+            sync: compat({ version_added: "1" }),
+            Base: {
+                get: compat({ version_added: "1" }),
+                getKeys: compat({ version_added: "101" }),
+            },
+        },
+    }
+    const result = generate(source, api, {
+        aliases: {},
+        unmapped: {},
+        nested_defaults: { targets: ["firefox"] },
+    })
+
+    expect(compile(result.text, "browser.storage.sync.get()")).toEqual([])
+    expect(compile(result.text, "browser.storage.sync.getKeys()")).not.toEqual([])
 })
 
 test("filters runtime declarations while preserving types and overloads", () => {
@@ -166,6 +244,75 @@ declare namespace browser.contextMenus {
     ])
 })
 
+test("maps split APIs per overload and callback payload", () => {
+    const source = `
+interface WebExtEvent<T extends (...args: any[]) => any> {
+    addListener(callback: T): void;
+}
+declare namespace browser.userScripts {
+    interface Legacy { legacy: string }
+    interface Modern { modern: string }
+    interface Payload { metadata: any }
+    function register(options: Legacy): void;
+    function register(scripts: Modern[]): void;
+    const onBeforeScript: WebExtEvent<(script: Payload) => void>;
+}`
+    const api = {
+        userScripts: {
+            ...compat({ version_added: "101" }),
+            register: compat({ version_added: "101" }),
+        },
+        userScripts_legacy: {
+            register: compat({ version_added: "1" }),
+            onBeforeScript: compat({ version_added: "1" }),
+        },
+    }
+    const aliases = {
+        "userScripts.onBeforeScript": "userScripts_legacy.onBeforeScript",
+        "userScripts.register": "userScripts_legacy.register",
+        "userScripts.register.scripts": "userScripts.register",
+    }
+    const result = generate(source, api, {
+        aliases,
+        unmapped: {},
+        nested_defaults: { targets: ["firefox"] },
+    })
+
+    expect(result.text.match(/function register/g) || []).toHaveLength(1)
+    expect(
+        compile(
+            result.text,
+            `declare const legacy: browser.userScripts.Legacy;
+             legacy.legacy;
+             browser.userScripts.register({ legacy: "x" });
+             browser.userScripts.onBeforeScript.addListener(script => script.metadata);`,
+        ),
+    ).toEqual([])
+    expect(
+        compile(result.text, `browser.userScripts.register([{ modern: "x" }]);`),
+    ).not.toEqual([])
+})
+
+test("rejects stale and invalid aliases", () => {
+    const report = {
+        retained: [{ path: "tabs.create" }],
+        removed: [],
+        nested: { retained: [], removed: [] },
+    }
+    const api = { tabs: { create: compat({ version_added: "1" }) } }
+
+    expect(() =>
+        validateAliases({ firefox: report }, { aliases: { stale: "tabs" } }, api),
+    ).toThrow("stale: stale")
+    expect(() =>
+        validateAliases(
+            { firefox: report },
+            { aliases: { "tabs.create": "tabs.create.__compat" } },
+            api,
+        ),
+    ).toThrow("invalid: tabs.create")
+})
+
 test("an unavailable parent overrides an unmapped child policy", () => {
     const source = `declare namespace browser.windows { const mode: string; }`
     const api = {
@@ -221,6 +368,7 @@ test("applies unmapped policy per target", () => {
 test.each([
     ["non-array values", "retain"],
     ["unknown targets", ["safari"]],
+    ["prototype targets", ["constructor"]],
     ["duplicate targets", ["firefox", "firefox"]],
 ])("rejects %s in unmapped policy", (_description, retainedTargets) => {
     const source = `declare namespace browser.future { const value: number; }`

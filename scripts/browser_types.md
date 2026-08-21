@@ -6,6 +6,8 @@ The generator filters runtime functions and constants, optional function and eve
 
 BCD normally lists only children with independent compatibility histories. Unlisted children inherit only from a supported or explicitly retained runtime parent. That policy is pinned to the declaration file, BCD version, complete sorted nested inventory, and generated declarations; dependency or mapper drift fails generation. Explicit exceptions live in `browser_types_policy.json`.
 
+Partial implementations default to unsupported. The reviewed Android exceptions are `tabs.query`, which may return only a subset of matching tabs, and `storage.sync`, which stores data without account synchronization or quota enforcement. Independently documented child incompatibilities are still removed.
+
 `src/lib/compat.ts` is type-checked before a generated declaration is emitted for each target. Every wrapped method has an explicit `native`, `fallback`, capability-only, or unavailable status. `DesktopApis`, `FirefoxApis`, and `FirefoxDesktopApis` make platform-only branches explicit without casts. Content callers use capability-specific RPC routes that are validated in the background; extension pages retain local context-sensitive API behavior. Event adapters remain background-local because listener functions cannot be serialized.
 
 Run the required Firefox checks with:

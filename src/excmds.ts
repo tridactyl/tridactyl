@@ -77,7 +77,7 @@
 // Shared
 import * as Messaging from "@src/lib/messaging"
 import * as compat from "@src/lib/compat"
-import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, sessionsBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab, getLastAudibleTab, getDesktopBg, isAndroid, requireDesktopBg, requireFirefoxDesktopBg } from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, sessionsBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab, getLastAudibleTab, getDesktopBg, isAndroid, requireDesktopBg, requireFirefoxBg, requireFirefoxDesktopBg } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -3756,7 +3756,7 @@ export async function containerupdate(name: string, uname: string, ucolor: strin
     logger.debug("containerupdate parameters: " + name + ", " + uname + ", " + ucolor + ", " + uicon)
     const containerId = await Container.fuzzyMatch(name)
     const containerObj = Container.fromString(uname, ucolor, uicon)
-    Container.update(containerId, containerObj)
+    await Container.update(containerId, containerObj)
 }
 
 /** Shows a list of the current containers in Firefox's native JSON viewer in the current tab.
@@ -3768,7 +3768,7 @@ export async function containerupdate(name: string, uname: string, ucolor: strin
 export async function viewcontainers() {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
-    const containers = await browserBg.contextualIdentities.query({}) // Can't access src/lib/containers.ts from a content script.
+    const containers = await (await requireFirefoxBg()).contextualIdentities.query({}) // Can't access src/lib/containers.ts from a content script.
     jsonview(JSON.stringify(containers))
 }
 
@@ -4469,13 +4469,14 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 */
 //#background
 export async function yankimage(url: string): Promise<void> {
+    const clipboard = (await requireFirefoxDesktopBg()).clipboard
     const absoluteUrl = UrlUtil.getAbsoluteURL(url, document.baseURI)
     const image = await window.fetch(absoluteUrl)
     const blob = await image.blob()
     // Blob.type returns a MIME type like "image/jpeg; charset=UTF-8", but the Clipboard API needs a type like "jpeg"
     const imageType = blob.type.split("/")[1].split(";")[0]
     try {
-        browser.clipboard.setImageData(await blob.arrayBuffer(), imageType as browser.clipboard._SetImageDataImageType)
+        await clipboard.setImageData(await blob.arrayBuffer(), imageType as browser.clipboard._SetImageDataImageType)
     } catch (err) {
         if (err instanceof Error && err.message.includes("imageType")) {
             throw new Error(`Image type ${blob.type} is not supported`)

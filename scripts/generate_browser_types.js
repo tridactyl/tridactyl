@@ -30,10 +30,10 @@ function compareVersions(left, right) {
     return 0
 }
 
-function supportState(statement, minimumVersion, alternativeName) {
+function supportState(statement, minimumVersion, alternativeName, allowPartial = false) {
     if (Array.isArray(statement)) {
         const states = statement.map(item =>
-            supportState(item, minimumVersion, alternativeName),
+            supportState(item, minimumVersion, alternativeName, allowPartial),
         )
         if (states.includes("supported")) return "supported"
         return states.includes("tooRecent") ? "tooRecent" : "unsupported"
@@ -45,7 +45,7 @@ function supportState(statement, minimumVersion, alternativeName) {
         statement.prefix ||
         (statement.alternative_name &&
             statement.alternative_name !== alternativeName) ||
-        statement.partial_implementation
+        (statement.partial_implementation && !allowPartial)
     )
         return "unsupported"
     const added = statement.version_added
@@ -153,7 +153,7 @@ function applyAlias(apiPath, aliases) {
     return alias ? aliases[alias] + apiPath.slice(alias.length) : apiPath
 }
 
-function supportForPath(api, apiPath, target, minimum, alternativePath) {
+function supportForPath(api, apiPath, target, minimum, alternativePath, allowPartial = false) {
     let feature = api
     let state
     const alternativeParts = alternativePath && alternativePath.split(".")
@@ -165,6 +165,7 @@ function supportForPath(api, apiPath, target, minimum, alternativePath) {
                 (feature.__compat.support || {})[target],
                 minimum,
                 alternativeParts?.slice(0, index + 1).join("."),
+                allowPartial,
             )
             if (
                 state === undefined ||
@@ -180,7 +181,8 @@ function supportForPath(api, apiPath, target, minimum, alternativePath) {
 function nodeAtPath(api, apiPath) {
     let feature = api
     for (const name of apiPath.split(".")) {
-        feature = feature && feature[name]
+        if (!feature || !Object.hasOwn(feature, name)) return undefined
+        feature = feature[name]
     }
     return feature
 }
@@ -188,6 +190,14 @@ function nodeAtPath(api, apiPath) {
 function featureAtPath(api, apiPath) {
     const feature = nodeAtPath(api, apiPath)
     return feature && feature.__compat ? feature : undefined
+}
+
+function invalidTargets(value) {
+    return (
+        !Array.isArray(value) ||
+        new Set(value).size !== value.length ||
+        value.some(name => !Object.hasOwn(targets, name))
+    )
 }
 
 function nestedDeclarationEdits(
@@ -258,6 +268,14 @@ function nestedDeclarationEdits(
         const normalized = name.replace(/^browser\./, "")
         if (normalized.includes(".")) return normalized
         return `${namespace}.${normalized}`
+    }
+
+    function inheritedTypes(declaration) {
+        return (declaration.node.heritageClauses || []).flatMap(clause =>
+            clause.types.map(type =>
+                resolveType(declaration.namespace, type.expression.getText()),
+            ),
+        )
     }
 
     const aliasesByName = new Map(
@@ -479,6 +497,16 @@ function nestedDeclarationEdits(
         contextCount = [...contexts.values()].flat().length
         for (const [typeName, entries] of [...contexts]) {
             const declaration = interfaces.get(typeName)
+            for (const childType of inheritedTypes(declaration)) {
+                for (const entry of entries) {
+                    const ancestry = entry.ancestry || [typeName]
+                    if (ancestry.includes(childType)) continue
+                    addContext(childType, {
+                        ...entry,
+                        ancestry: ancestry.concat(childType),
+                    })
+                }
+            }
             for (const member of declaration.node.members) {
                 if (!member.name || !member.type) continue
                 const property = nodeName(member.name)
@@ -507,6 +535,10 @@ function nestedDeclarationEdits(
         resultContextCount = [...resultContexts.values()].flat().length
         for (const [typeName, operations] of [...resultContexts]) {
             const declaration = interfaces.get(typeName)
+            for (const childType of inheritedTypes(declaration)) {
+                for (const operation of operations)
+                    addResultContext(childType, operation)
+            }
             for (const member of declaration.node.members) {
                 if (!member.type) continue
                 for (const name of typeNames(member.type)) {
@@ -520,11 +552,9 @@ function nestedDeclarationEdits(
 
     const aliases = mappingPolicy.aliases || {}
     const configured = mappingPolicy.nested_unmapped || {}
+    const partialSupport = mappingPolicy.partial_support || {}
     const invalid = Object.keys(configured).filter(
-        apiPath =>
-            !Array.isArray(configured[apiPath]) ||
-            new Set(configured[apiPath]).size !== configured[apiPath].length ||
-            configured[apiPath].some(name => !(name in targets)),
+        apiPath => invalidTargets(configured[apiPath]),
     )
     if (invalid.length)
         throw new Error(
@@ -534,12 +564,18 @@ function nestedDeclarationEdits(
     function classify(apiPath) {
         const bcdPath = applyAlias(apiPath, aliases)
         const alternativePath = bcdPath === apiPath ? undefined : apiPath
+        const allowPartial = Object.entries(partialSupport).some(
+            ([path, configuredTargets]) =>
+                configuredTargets.includes(target) &&
+                (apiPath === path || apiPath.startsWith(`${path}.`)),
+        )
         const support = supportForPath(
             api,
             bcdPath,
             target,
             minimum,
             alternativePath,
+            allowPartial,
         )
         if (featureAtPath(api, bcdPath)) {
             return {
@@ -742,8 +778,10 @@ function nestedDeclarationEdits(
             .map(name => `${declaration.operation}.${name}`)
     }
 
+    const removedOverloads = new Map()
     for (const declaration of retainedFunctions) {
         const parameters = declaration.node.parameters
+        const firstEdit = edits.length
         let trailing = true
         for (let index = parameters.length - 1; index >= 0; index--) {
             const parameter = parameters[index]
@@ -755,10 +793,19 @@ function nestedDeclarationEdits(
             if (
                 !trailing ||
                 (!parameter.questionToken && !parameter.initializer)
-            )
-                throw new Error(
-                    `Unsupported function parameter cannot be removed safely: ${apiPaths.join(", ")}`,
-                )
+            ) {
+                parameters.forEach(item => disabledParameters.add(item))
+                edits.splice(firstEdit)
+                edits.push({
+                    start: declaration.node.getFullStart(),
+                    end: declaration.node.end,
+                    text: "",
+                })
+                const removed = removedOverloads.get(declaration.operation) || []
+                removed.push(apiPaths)
+                removedOverloads.set(declaration.operation, removed)
+                break
+            }
             disabledParameters.add(parameter)
             edits.push({
                 start:
@@ -769,6 +816,15 @@ function nestedDeclarationEdits(
                 text: "",
             })
         }
+    }
+    for (const [operation, removed] of removedOverloads) {
+        if (
+            removed.length ===
+            retainedFunctions.filter(item => item.operation === operation).length
+        )
+            throw new Error(
+                `Unsupported function parameter cannot be removed safely: ${removed.flat().join(", ")}`,
+            )
     }
 
     for (const declaration of events) {
@@ -946,16 +1002,26 @@ function nestedDeclarationEdits(
                     .filter(candidate =>
                         featureAtPath(api, applyAlias(candidate, aliases)),
                     )
-                if (canonicalMapped) candidates.add(canonical)
+                if (
+                    canonicalMapped &&
+                    applyAlias(operation, aliases) === operation
+                )
+                    candidates.add(canonical)
                 for (const candidate of localCandidates) candidates.add(candidate)
                 if (!canonicalMapped && !localCandidates.length)
                     candidates.add(
-                        canonicalSupport.state === undefined ? localPath : canonical,
+                        applyAlias(operation, aliases) !== operation ||
+                            canonicalSupport.state === undefined
+                            ? localPath
+                            : canonical,
                     )
             }
             for (const context of contexts.get(typeName) || []) {
                 if (disabledParameters.has(context.sourceParameter)) continue
-                if (canonicalSupport.state !== undefined)
+                if (
+                    canonicalSupport.state !== undefined &&
+                    applyAlias(context.operation, aliases) === context.operation
+                )
                     candidates.add(canonical)
                 for (const candidate of contextPaths(context, property))
                     candidates.add(candidate)
@@ -979,34 +1045,67 @@ function decidePaths(declarations, target, minimum, api, mappingPolicy) {
     ].sort()
     const aliases = mappingPolicy.aliases || {}
     const configured = mappingPolicy.unmapped || {}
+    const partialSupport = mappingPolicy.partial_support || {}
+    const invalidPartial = Object.entries(partialSupport)
+        .filter(
+            ([apiPath, configuredTargets]) =>
+                !paths.includes(apiPath) ||
+                invalidTargets(configuredTargets) ||
+                configuredTargets.length === 0,
+        )
+        .map(([apiPath]) => apiPath)
+    if (invalidPartial.length)
+        throw new Error(
+            `Unmapped runtime policy drift (invalid partial support: ${invalidPartial.join(", ")})`,
+        )
+    function pathSupport(apiPath, allowPartial) {
+        const bcdPath = applyAlias(apiPath, aliases)
+        return supportForPath(
+            api,
+            bcdPath,
+            target,
+            minimum,
+            bcdPath === apiPath ? undefined : apiPath,
+            allowPartial,
+        )
+    }
     const support = new Map(
-        paths.map(apiPath => {
-            const bcdPath = applyAlias(apiPath, aliases)
-            const alternativePath = bcdPath === apiPath ? undefined : apiPath
-            return [
+        paths.map(apiPath => [
+            apiPath,
+            pathSupport(
                 apiPath,
-                supportForPath(api, bcdPath, target, minimum, alternativePath),
-            ]
-        }),
+                partialSupport[apiPath]?.includes(target) === true,
+            ),
+        ]),
     )
     const unmapped = paths.filter(apiPath => !support.get(apiPath).mapped)
     const configuredPaths = Object.keys(configured).sort()
     const unlisted = unmapped.filter(apiPath => !(apiPath in configured))
     const stale = configuredPaths.filter(apiPath => !unmapped.includes(apiPath))
-    const targetNames = Object.keys(targets)
     const invalid = configuredPaths.filter(apiPath => {
         const retainedTargets = configured[apiPath]
-        return (
-            !Array.isArray(retainedTargets) ||
-            new Set(retainedTargets).size !== retainedTargets.length ||
-            retainedTargets.some(name => !targetNames.includes(name))
-        )
+        return invalidTargets(retainedTargets)
     })
-    if (unlisted.length || stale.length || invalid.length) {
+    const stalePartial = Object.entries(partialSupport)
+        .filter(([, configuredTargets]) => configuredTargets.includes(target))
+        .filter(([apiPath]) => {
+            const before = pathSupport(apiPath, false)
+            const after = support.get(apiPath)
+            return before.state === "supported" || after.state !== "supported"
+        })
+        .map(([apiPath]) => apiPath)
+    if (
+        unlisted.length ||
+        stale.length ||
+        invalid.length ||
+        stalePartial.length
+    ) {
         const details = []
         if (unlisted.length) details.push(`unlisted: ${unlisted.join(", ")}`)
         if (stale.length) details.push(`stale: ${stale.join(", ")}`)
         if (invalid.length) details.push(`invalid: ${invalid.join(", ")}`)
+        if (stalePartial.length)
+            details.push(`stale partial support: ${stalePartial.join(", ")}`)
         throw new Error(`Unmapped runtime policy drift (${details.join("; ")})`)
     }
 
@@ -1025,7 +1124,11 @@ function decidePaths(declarations, target, minimum, api, mappingPolicy) {
             })
             continue
         }
-        decisions.set(apiPath, { keep: state === "supported", reason: state })
+        const partial = (partialSupport[apiPath] || []).includes(target)
+        decisions.set(apiPath, {
+            keep: state === "supported",
+            reason: partial ? "partial-supported" : state,
+        })
     }
     return {
         decisions,
@@ -1183,6 +1286,33 @@ function validateNestedPolicy(reports, mappingPolicy) {
     }
 }
 
+function validateAliases(reports, mappingPolicy, api) {
+    const observed = Object.values(reports).flatMap(report => [
+        ...report.retained,
+        ...report.removed,
+        ...report.nested.retained,
+        ...report.nested.removed,
+    ])
+    const aliases = mappingPolicy.aliases || {}
+    const stale = Object.keys(aliases).filter(
+        alias =>
+            !observed.some(
+                row => row.path === alias || row.path.startsWith(`${alias}.`),
+            ),
+    )
+    const invalid = Object.entries(aliases)
+        .filter(
+            ([, destination]) =>
+                typeof destination !== "string" ||
+                destination.split(".").includes("__compat") ||
+                !nodeAtPath(api, destination),
+        )
+        .map(([alias]) => alias)
+    const details = [stale.length && `stale: ${stale.join(", ")}`, invalid.length && `invalid: ${invalid.join(", ")}`].filter(Boolean)
+    if (details.length)
+        throw new Error(`Alias policy drift (${details.join("; ")})`)
+}
+
 function validateNestedDefaults(source, mappingPolicy, reports) {
     const defaults = mappingPolicy.nested_defaults
     if (!defaults) return
@@ -1193,7 +1323,7 @@ function validateNestedDefaults(source, mappingPolicy, reports) {
     const validTargets =
         Array.isArray(defaults.targets) &&
         new Set(defaults.targets).size === defaults.targets.length &&
-        defaults.targets.every(target => target in targets)
+        defaults.targets.every(target => Object.hasOwn(targets, target))
     if (
         !validTargets ||
         defaults.bcdVersion !== bcd.__meta.version ||
@@ -1458,6 +1588,7 @@ function generateAll(options = {}) {
         }
         reports[target] = result.report
     }
+    validateAliases(reports, policy, bcd.webextensions.api)
     validateNestedPolicy(reports, policy)
     validateNestedDefaults(source, policy, reports)
     fs.rmSync(path.join(outputRoot, "compat"), { recursive: true, force: true })
@@ -1498,6 +1629,7 @@ module.exports = {
     supportState,
     transformCompatDeclaration,
     transformDeclarations,
+    validateAliases,
     validateNestedDefaults,
     validateNestedPolicy,
 }

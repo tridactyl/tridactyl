@@ -31,9 +31,9 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@mdn/browser-compat-data": "5.5.7",
+    "@mdn/browser-compat-data": "8.0.12",
     "@types/css": "0.0.38",
-    "@types/firefox-webext-browser": "^120.0.4",
+    "@types/firefox-webext-browser": "143.0.0",
     "@types/jest": "29.5.12",
     "@types/nearley": "^2.11.5",
     "@types/selenium-webdriver": "^4.1.10",

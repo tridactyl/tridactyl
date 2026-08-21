@@ -51,6 +51,34 @@ describe("platform detection", () => {
         expect(getTree).toHaveBeenCalledTimes(1)
     })
 
+    test("returns no contextual identities on Android", async () => {
+        getPlatformInfo.mockResolvedValue({ os: "android" })
+        const query = jest.fn()
+        Object.defineProperty(browser, "contextualIdentities", {
+            configurable: true,
+            value: { query },
+        })
+        const compat = require("./compat") as typeof import("./compat")
+
+        await expect(compat.contextualIdentities.query({})).resolves.toEqual([])
+        expect(query).not.toHaveBeenCalled()
+    })
+
+    test("forwards contextual identity queries on desktop", async () => {
+        getPlatformInfo.mockResolvedValue({ os: "linux" })
+        const identities = [{ cookieStoreId: "firefox-container-1" }]
+        const query = jest.fn().mockResolvedValue(identities)
+        Object.defineProperty(browser, "contextualIdentities", {
+            configurable: true,
+            value: { query },
+        })
+        const compat = require("./compat") as typeof import("./compat")
+        const details = {}
+
+        await expect(compat.contextualIdentities.query(details)).resolves.toBe(identities)
+        expect(query).toHaveBeenCalledWith(details)
+    })
+
     test("retries after platform detection fails", async () => {
         getPlatformInfo
             .mockRejectedValueOnce(new Error("platform unavailable"))

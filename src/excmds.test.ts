@@ -213,6 +213,38 @@ test("`winopen` creates a neutral tab before navigating it", async () => {
     })
 })
 
+test("`yankimage` propagates asynchronous clipboard failures", async () => {
+    const error = new Error("clipboard failed")
+    const originalClipboard = browser.clipboard
+    const originalFetch = window.fetch
+    Object.defineProperty(browser, "clipboard", {
+        configurable: true,
+        value: { setImageData: jest.fn().mockRejectedValue(error) },
+    })
+    Object.defineProperty(window, "fetch", {
+        configurable: true,
+        value: jest.fn().mockResolvedValue({
+            blob: async () => ({
+                type: "image/png",
+                arrayBuffer: async () => new ArrayBuffer(0),
+            }),
+        }),
+    })
+
+    try {
+        await expect(backgroundExcmds.yankimage("image.png")).rejects.toBe(error)
+    } finally {
+        Object.defineProperty(browser, "clipboard", {
+            configurable: true,
+            value: originalClipboard,
+        })
+        Object.defineProperty(window, "fetch", {
+            configurable: true,
+            value: originalFetch,
+        })
+    }
+})
+
 test("`tabgrab` inserts after the active tab in its destination window", async () => {
     Object.assign(browser.windows, {
         getAll: jest.fn(options =>

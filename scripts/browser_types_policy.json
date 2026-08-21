@@ -1,11 +1,16 @@
 {
     "aliases": {
+        "action.isEnabled": "action.isEnabled.details",
         "contextMenus": "menus",
-        "tabs.MutedInfo.muted": "tabs.Tab.mutedInfo"
+        "storage.StorageAreaWithUsage": "storage.StorageArea",
+        "tabs.MutedInfo.muted": "tabs.Tab.mutedInfo",
+        "userScripts.onBeforeScript": "userScripts_legacy.onBeforeScript",
+        "userScripts.register": "userScripts_legacy.register",
+        "userScripts.register.LegacyRegisteredUserScript": "userScripts_legacy.RegisteredUserScript",
+        "userScripts.register.scripts": "userScripts.register"
     },
     "unmapped": {
         "activityLog.onExtensionActivity": ["firefox"],
-        "browserAction.getUserSettings": [],
         "browserSettings.colorManagement.mode": ["firefox"],
         "browserSettings.colorManagement.useNativeSRGB": ["firefox"],
         "browserSettings.colorManagement.useWebRenderCompositor": ["firefox"],
@@ -13,12 +18,6 @@
         "browsingData.removeFileSystems": ["chrome"],
         "browsingData.removeIndexedDB": ["chrome"],
         "browsingData.removeWebSQL": ["chrome"],
-        "devtools.inspectedWindow.getResources": ["chrome"],
-        "devtools.inspectedWindow.onResourceAdded": ["chrome"],
-        "devtools.inspectedWindow.onResourceContentCommitted": ["chrome"],
-        "devtools.panels.openResource": ["chrome"],
-        "devtools.panels.setOpenResourceHandler": ["chrome"],
-        "devtools.panels.sources": ["chrome"],
         "downloads.drag": [],
         "geckoProfiler.dumpProfileToFile": ["firefox"],
         "geckoProfiler.getProfile": ["firefox"],
@@ -58,7 +57,6 @@
         "telemetry.scalarSet": [],
         "telemetry.scalarSetMaximum": [],
         "telemetry.setEventRecordingEnabled": [],
-        "telemetry.submitEncryptedPing": [],
         "telemetry.submitPing": [],
         "urlbar.closeView": [],
         "urlbar.engagementTelemetry": [],
@@ -71,10 +69,10 @@
         "urlbar.search": []
     },
     "nested_defaults": {
-        "bcdVersion": "5.5.7",
-        "declarationVersion": "120.0.4",
-        "nestedSha256": "3aca316bbd142c23293f9379b5b497e19b5893c03a5a5cb9448d9104dbb9b9ec",
-        "sha256": "78cad677a4c3e28c2b318f99edc46781925cd149bc0139163d7cd9a0f4d9e729",
+        "bcdVersion": "8.0.12",
+        "declarationVersion": "143.0.0",
+        "nestedSha256": "1727ff7e2bd745c51c5ea02f7c58a1e646f6d18ba4bd555a1ec740bf395c5763",
+        "sha256": "3fa1deb281c454322ef48b77626307a64f7e6b65b4f2065ccd2645afc070cc9a",
         "targets": ["chrome", "firefox", "firefox_android"]
     },
     "nested_unmapped": {
@@ -83,6 +81,10 @@
         "webRequest.onBeforeRequest.return_promise": ["firefox", "firefox_android"],
         "webRequest.onBeforeSendHeaders.return_promise": ["firefox", "firefox_android"],
         "webRequest.onHeadersReceived.return_promise": ["firefox", "firefox_android"]
+    },
+    "partial_support": {
+        "storage.sync": ["firefox_android"],
+        "tabs.query": ["firefox_android"]
     },
     "compat_exports": [
         "callProxy",
@@ -113,6 +115,9 @@
         "bookmarks.search": {
             "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
         },
+        "clipboard.setImageData": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
         "commands.getAll": {
             "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
         },
@@ -131,8 +136,20 @@
         "commands.update": {
             "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
         },
+        "contextualIdentities.create": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "contextualIdentities.get": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
         "contextualIdentities.query": {
-            "targets": { "chrome": "firefox", "firefox": "native", "firefox_android": "native" }
+            "targets": { "chrome": "firefox", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "contextualIdentities.remove": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "contextualIdentities.update": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
         },
         "downloads.download": {
             "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }

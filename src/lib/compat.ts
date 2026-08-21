@@ -89,9 +89,22 @@ export const commands = {
     }
 }
 
+export const clipboard = {
+    setImageData: (...args: Parameters<typeof browser.clipboard.setImageData>) =>
+        browser.clipboard.setImageData(...args),
+}
+
 export const contextualIdentities = {
-    query: (...args: Parameters<typeof browser.contextualIdentities.query>) =>
-        browser.contextualIdentities.query(...args),
+    create: (...args: Parameters<typeof browser.contextualIdentities.create>) =>
+        browser.contextualIdentities.create(...args),
+    get: (...args: Parameters<typeof browser.contextualIdentities.get>) =>
+        browser.contextualIdentities.get(...args),
+    query: async (...args: Parameters<typeof browser.contextualIdentities.query>): Promise<browser.contextualIdentities.ContextualIdentity[]> =>
+        (await isAndroid()) ? [] : browser.contextualIdentities.query(...args),
+    remove: (...args: Parameters<typeof browser.contextualIdentities.remove>) =>
+        browser.contextualIdentities.remove(...args),
+    update: (...args: Parameters<typeof browser.contextualIdentities.update>) =>
+        browser.contextualIdentities.update(...args),
 }
 
 export const downloads = {
@@ -598,14 +611,16 @@ const desktopApis = {
 }
 
 const firefoxApis = {
-    contextualIdentities,
+    contextualIdentities: { query: contextualIdentities.query },
     find,
 }
 
 const firefoxDesktopApis = {
     ...desktopApis,
     ...firefoxApis,
+    clipboard,
     commands: { update: commands.update },
+    contextualIdentities,
     search: { search: search.search },
     sessions: {
         getTabValue: sessions.getTabValue,

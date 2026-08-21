@@ -249,13 +249,15 @@ export async function getWinIdFromIndex(index: string) {
 }
 
 export async function ownTabContainer() {
-    return browserBg.contextualIdentities.get((await ownTab()).cookieStoreId)
+    return (await requireFirefoxDesktopBg()).contextualIdentities.get(
+        (await ownTab()).cookieStoreId,
+    )
 }
 
 export async function activeTabContainer() {
     const containerId = await activeTabContainerId()
     if (containerId !== "firefox-default")
-        return browserBg.contextualIdentities.get(containerId)
+        return (await requireFirefoxDesktopBg()).contextualIdentities.get(containerId)
     else
         throw new Error(
             "firefox-default is not a valid contextualIdentity (activeTabContainer)",
