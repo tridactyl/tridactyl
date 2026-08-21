@@ -45,6 +45,7 @@ Object.assign(browser.tabs, {
     onActivated: tabEvent,
 })
 Object.assign(browser.runtime, {
+    getBrowserInfo: jest.fn(),
     getPlatformInfo: jest.fn().mockResolvedValue({ os: "linux" }),
     sendNativeMessage: jest.fn(),
 })
@@ -62,8 +63,16 @@ Object.defineProperty(browser, "sessions", {
 
 webext.initLastAudibleTabTracking()
 const backgroundExcmds = require("@src/.excmds_background.generated")
-const { jsb, nativeopen, quickmarkremove, set, tabopen, unbind, winopen } =
-    backgroundExcmds
+const {
+    jsb,
+    nativeopen,
+    quickmarkremove,
+    set,
+    tabgrab,
+    tabopen,
+    unbind,
+    winopen,
+} = backgroundExcmds
 const { followpage, js, ttscontrol } = require("@src/.excmds_content.generated")
 const { focusinput, setmode } = require("@src/.excmds_content.generated")
 
@@ -201,6 +210,29 @@ test("`winopen` creates a neutral tab before navigating it", async () => {
     expect(browser.tabs.update).toHaveBeenCalledWith(42, {
         loadReplace: true,
         url: "https://example.com/",
+    })
+})
+
+test("`tabgrab` inserts after the active tab in its destination window", async () => {
+    Object.assign(browser.windows, {
+        getAll: jest.fn(options =>
+            Promise.resolve(options ? [{ id: 7 }] : [{ id: 3 }, { id: 7 }]),
+        ),
+        getLastFocused: jest.fn().mockResolvedValue({ id: 9, type: "popup" }),
+    })
+    jest.mocked(browser.tabs.query).mockImplementation(async query =>
+        query.active
+            ? ([{ id: 70, index: 4, windowId: 7 }] as browser.tabs.Tab[])
+            : ([{ id: 30, index: 0, windowId: 3 }] as browser.tabs.Tab[]),
+    )
+    browser.tabs.move = jest.fn()
+    await config.set("tabopenpos", "next")
+
+    await tabgrab("1.1")
+
+    expect(browser.tabs.move).toHaveBeenCalledWith(30, {
+        index: 5,
+        windowId: 7,
     })
 })
 

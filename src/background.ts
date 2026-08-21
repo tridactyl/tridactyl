@@ -115,21 +115,20 @@ browser.tabs.onCreated.addListener(tabChangeListener("tab_created"))
 browser.tabs.onDetached.addListener(tabChangeListener("tab_detached"))
 // Fired when a tab is moved within a window.
 compat.tabs.onMoved.addListener(tabChangeListener("tab_moved"))
-browser.tabs.onUpdated.addListener(
-    tabChangeListener("tab_updated"),
-    {
-        properties: [
-            "audible",
-            "discarded",
-            "favIconUrl",
-            "hidden",
-            "mutedInfo",
-            "pinned",
-            "title",
-            "url",
-        ],
-    },
-)
+const trackedTabUpdates = [
+    "audible",
+    "discarded",
+    "favIconUrl",
+    "hidden",
+    "mutedInfo",
+    "pinned",
+    "title",
+    "url",
+]
+browser.tabs.onUpdated.addListener((_tabId, changeInfo) => {
+    if (trackedTabUpdates.some(property => property in changeInfo))
+        messageTabChanges("tab_updated")
+})
 browser.tabs.onActivated.addListener(tabChangeListener("tab_activated"))
 
 // Update on navigation too (but remember that sometimes people open tabs in the background :) )
@@ -274,7 +273,10 @@ const messages = {
         downloadUrl: download_background.downloadUrl,
         downloadUrlAs: download_background.downloadUrlAs,
     },
-    browser_proxy_background: { shim: proxy_background.shim },
+    browser_proxy_background: {
+        hasCapability: proxy_background.hasCapability,
+        shim: proxy_background.shim,
+    },
     omniscient_background: omniscient_controller,
 }
 export type Messages = typeof messages

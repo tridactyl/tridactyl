@@ -19,6 +19,7 @@
 import * as R from "ramda"
 import * as binding from "@src/lib/binding"
 import * as platform from "@src/lib/platform"
+import { unwrapMessageResponse } from "@src/lib/message_response"
 import { DeepPartial } from "tsdef"
 
 /* Remove all nulls from objects recursively
@@ -82,7 +83,9 @@ function exclusively<T>(operation: () => Promise<T>) {
 }
 
 function mutateInBackground(command, args) {
-    return browser.runtime.sendMessage({ type: "config_background", command, args })
+    return unwrapMessageResponse(
+        browser.runtime.sendMessage({ type: "config_background", command, args }),
+    )
 }
 
 /** @hidden

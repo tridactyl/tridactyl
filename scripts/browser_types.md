@@ -1,10 +1,12 @@
 # Browser API types
 
-`generate_browser_types.js` combines the pinned Firefox WebExtension declarations with the minimum versions in `browser-targets.json` and MDN Browser Compatibility Data. It emits one package per target under `generated/browser-types`.
+`generate_browser_types.js` combines the pinned Firefox WebExtension declarations with the minimum versions in `browser-targets.json` and MDN Browser Compatibility Data (BCD). It emits one package and report per target under `generated/browser-types`.
 
-The generator removes unsupported runtime functions and constants but preserves type-only declarations. This lets TypeScript reject an unavailable call while still allowing shared types such as `browser.tabs.Tab`.
+The generator filters runtime functions and constants, optional function and event parameters, callback Promise returns, fields in recursively named parameter/result/event interfaces, interface-valued runtime objects, and versioned string-literal unions (including alias chains). Shared interfaces use the conservative intersection of every mapped context, so a field is removed globally if any retained use cannot provide it.
 
-The checks cover runtime API members, matching the previous ESLint rules; they do not filter versioned fields inside parameter or result types. Calls through `src/lib/compat.ts` use that module's declared fallback contract, so the Chrome advisory does not inspect wrapper implementations until a Chrome runtime adapter exists.
+BCD normally lists only children with independent compatibility histories. Unlisted children inherit only from a supported or explicitly retained runtime parent. That policy is pinned to the declaration file, BCD version, complete sorted nested inventory, and generated declarations; dependency or mapper drift fails generation. Explicit exceptions live in `browser_types_policy.json`.
+
+`src/lib/compat.ts` is type-checked before a generated declaration is emitted for each target. Every wrapped method has an explicit `native`, `fallback`, capability-only, or unavailable status. `DesktopApis`, `FirefoxApis`, and `FirefoxDesktopApis` make platform-only branches explicit without casts. Content callers use capability-specific RPC routes that are validated in the background; extension pages retain local context-sensitive API behavior. Event adapters remain background-local because listener functions cannot be serialized.
 
 Run the required Firefox checks with:
 
@@ -12,8 +14,13 @@ Run the required Firefox checks with:
 yarn typecheck:browser-targets
 ```
 
-```sh
-yarn typecheck:chrome
-```
+Run the advisory Chrome check separately with `yarn typecheck:chrome`. It intentionally reports remaining direct Firefox-only source calls; target-specific compatibility wrappers do not fall through to raw browser APIs.
 
-`browser_types_policy.json` lists the targets that retain each declaration path that does not map to BCD; unlisted targets remove it. Generation fails when that list drifts. `src/lib/compat.ts` is the only raw compatibility boundary; target checks consume its generated declaration while the normal TypeScript build checks its implementation against full types.
+The reports distinguish mapped, inherited, retained, and removed top-level paths and nested candidate paths. A nested row records compatibility evidence used by one or more declarations, not whether a same-named declaration member was emitted. Generation also fails when runtime declarations, compatibility methods, exported compatibility helpers, capability membership, or policy targets drift.
+
+Remaining limitations are deliberately not presented as a full compatibility guarantee:
+
+- Inline object-literal input/result members and data aliases to named interfaces are not rewritten.
+- TypeScript can accept structurally wider callback return objects unless the returned value is explicitly typed.
+- Open-ended values such as `string[]` event-property filters cannot be narrowed from individual BCD value entries.
+- Conservative shared-interface filtering can reject a supported field in one context when another context is unsupported; operation-specific type cloning would improve precision.

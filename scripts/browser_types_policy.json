@@ -1,6 +1,7 @@
 {
     "aliases": {
-        "contextMenus": "menus"
+        "contextMenus": "menus",
+        "tabs.MutedInfo.muted": "tabs.Tab.mutedInfo"
     },
     "unmapped": {
         "activityLog.onExtensionActivity": ["firefox"],
@@ -68,5 +69,226 @@
         "urlbar.onResultPicked": [],
         "urlbar.onResultsRequested": [],
         "urlbar.search": []
+    },
+    "nested_defaults": {
+        "bcdVersion": "5.5.7",
+        "declarationVersion": "120.0.4",
+        "nestedSha256": "3aca316bbd142c23293f9379b5b497e19b5893c03a5a5cb9448d9104dbb9b9ec",
+        "sha256": "78cad677a4c3e28c2b318f99edc46781925cd149bc0139163d7cd9a0f4d9e729",
+        "targets": ["chrome", "firefox", "firefox_android"]
+    },
+    "nested_unmapped": {
+        "tabs.update.successorTabId": ["firefox"],
+        "webRequest.onAuthRequired.return_promise": ["firefox", "firefox_android"],
+        "webRequest.onBeforeRequest.return_promise": ["firefox", "firefox_android"],
+        "webRequest.onBeforeSendHeaders.return_promise": ["firefox", "firefox_android"],
+        "webRequest.onHeadersReceived.return_promise": ["firefox", "firefox_android"]
+    },
+    "compat_exports": [
+        "callProxy",
+        "clearTabSessionValues",
+        "clearWindowSessionValues",
+        "getDesktop",
+        "getFirefox",
+        "getFirefoxDesktop",
+        "getSessionId",
+        "getSidebar",
+        "isAndroid",
+        "notImplemented",
+        "requireDesktop",
+        "requireFirefox",
+        "requireFirefoxDesktop",
+        "unsupportedApi"
+    ],
+    "compat": {
+        "bookmarks.create": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "bookmarks.getTree": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "bookmarks.remove": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "bookmarks.search": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "commands.getAll": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "commands.onCommand.addListener": {
+            "api": "commands.onCommand",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "commands.onCommand.hasListener": {
+            "api": "commands.onCommand",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "commands.onCommand.removeListener": {
+            "api": "commands.onCommand",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "commands.update": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "contextualIdentities.query": {
+            "targets": { "chrome": "firefox", "firefox": "native", "firefox_android": "native" }
+        },
+        "downloads.download": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "downloads.onChanged.addListener": {
+            "api": "downloads.onChanged",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "downloads.onChanged.removeListener": {
+            "api": "downloads.onChanged",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "downloads.search": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "find.find": {
+            "targets": { "chrome": "firefox", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "history.search": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "omnibox.onInputEntered.addListener": {
+            "api": "omnibox.onInputEntered",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "omnibox.onInputEntered.hasListener": {
+            "api": "omnibox.onInputEntered",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "omnibox.onInputEntered.removeListener": {
+            "api": "omnibox.onInputEntered",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "omnibox.setDefaultSuggestion": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "runtime.sendNativeMessage": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "search.get": {
+            "targets": { "chrome": "fallback", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "search.search": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "sessions.getRecentlyClosed": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "sessions.getTabValue": {
+            "targets": { "chrome": "fallback", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "sessions.getWindowValue": {
+            "targets": { "chrome": "fallback", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "sessions.removeTabValue": {
+            "targets": { "chrome": "fallback", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "sessions.removeWindowValue": {
+            "targets": { "chrome": "fallback", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "sessions.restore": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "sessions.setTabValue": {
+            "targets": { "chrome": "fallback", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "sessions.setWindowValue": {
+            "targets": { "chrome": "fallback", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "sidebarAction.close": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "sidebarAction.open": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "sidebarAction.setPanel": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "sidebarAction.toggle": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "tabs.discard": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "tabs.create": {
+            "targets": { "chrome": "desktop", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "tabs.duplicate": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "tabs.getZoom": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "tabs.get": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "tabs.hide": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "tabs.move": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "tabs.onMoved.addListener": {
+            "api": "tabs.onMoved",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "tabs.onMoved.hasListener": {
+            "api": "tabs.onMoved",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "tabs.onMoved.removeListener": {
+            "api": "tabs.onMoved",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "tabs.query": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "tabs.setZoom": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "tabs.show": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "tabs.toggleReaderMode": {
+            "targets": { "chrome": "firefoxDesktop", "firefox": "native", "firefox_android": "firefoxDesktop" }
+        },
+        "tabs.update": {
+            "targets": { "chrome": "desktop", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "topSites.get": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "windows.create": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "windows.get": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "windows.getAll": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "windows.getCurrent": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "windows.getLastFocused": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "windows.onFocusChanged.addListener": {
+            "api": "windows.onFocusChanged",
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "fallback" }
+        },
+        "windows.remove": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        },
+        "windows.update": {
+            "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }
+        }
     }
 }

@@ -1,6 +1,23 @@
 {
     "extends": "./tsconfig.browser-target.json",
     "compilerOptions": {
+        "paths": {
+            "@src/.excmds_background.generated": ["./src/excmds.ts"],
+            "@src/.excmds_content.generated": ["./src/excmds.ts"],
+            "@src/.glossary.generated.json": [
+                "./scripts/browser_type_stubs/default.d.ts"
+            ],
+            "@src/.metadata.generated": [
+                "./scripts/browser_type_stubs/metadata.d.ts"
+            ],
+            "@src/grammars/.bracketexpr.generated": [
+                "./scripts/browser_type_stubs/default.d.ts"
+            ],
+            "@src/lib/compat": [
+                "./generated/browser-types/chrome/compat/index.d.ts"
+            ],
+            "@src/*": ["./src/*"]
+        },
         "types": ["chrome"]
     }
 }

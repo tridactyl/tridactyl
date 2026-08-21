@@ -7,6 +7,10 @@ describe("platform detection", () => {
             configurable: true,
             value: getPlatformInfo,
         })
+        Object.defineProperty(browser.runtime, "getBrowserInfo", {
+            configurable: true,
+            value: undefined,
+        })
     })
 
     test("is lazy and shares one in-flight request", async () => {
@@ -33,18 +37,18 @@ describe("platform detection", () => {
                 resolvePlatformInfo = resolve
             }),
         )
-        const getTabValue = jest.fn().mockResolvedValue("desktop")
-        Object.defineProperty(browser, "sessions", {
+        const getTree = jest.fn().mockResolvedValue([])
+        Object.defineProperty(browser, "bookmarks", {
             configurable: true,
-            value: { getTabValue },
+            value: { getTree },
         })
         const compat = require("./compat") as typeof import("./compat")
 
-        const value = compat.sessions.getTabValue(3, "history")
-        expect(getTabValue).not.toHaveBeenCalled()
+        const value = compat.bookmarks.getTree()
+        expect(getTree).not.toHaveBeenCalled()
         resolvePlatformInfo({ os: "linux" })
-        await expect(value).resolves.toBe("desktop")
-        expect(getTabValue).toHaveBeenCalledWith(3, "history")
+        await expect(value).resolves.toEqual([])
+        expect(getTree).toHaveBeenCalledTimes(1)
     })
 
     test("retries after platform detection fails", async () => {
@@ -56,6 +60,59 @@ describe("platform detection", () => {
         await expect(isAndroid()).rejects.toThrow("platform unavailable")
         await expect(isAndroid()).resolves.toBe(true)
         expect(getPlatformInfo).toHaveBeenCalledTimes(2)
+    })
+
+    test("exposes Firefox desktop APIs through an explicit capability", async () => {
+        getPlatformInfo.mockResolvedValue({ os: "linux" })
+        Object.defineProperty(browser.runtime, "getBrowserInfo", {
+            configurable: true,
+            value: jest.fn(),
+        })
+        const compat = require("./compat") as typeof import("./compat")
+
+        await expect(compat.getFirefoxDesktop()).resolves.toMatchObject({
+            kind: "firefoxDesktop",
+            api: { tabs: { hide: compat.tabs.hide } },
+        })
+        expect(compat.getFirefox()).toMatchObject({
+            kind: "firefox",
+            api: { find: { find: compat.find.find } },
+        })
+    })
+
+    test("exposes cross-browser desktop APIs independently", async () => {
+        getPlatformInfo.mockResolvedValue({ os: "linux" })
+        const compat = require("./compat") as typeof import("./compat")
+
+        await expect(compat.getDesktop()).resolves.toMatchObject({
+            kind: "desktop",
+            api: { windows: { getCurrent: compat.windows.getCurrent } },
+        })
+    })
+
+    test("rejects explicit Firefox desktop operations elsewhere", async () => {
+        getPlatformInfo.mockResolvedValue({ os: "android" })
+        const compat = require("./compat") as typeof import("./compat")
+
+        await expect(compat.getFirefoxDesktop()).resolves.toEqual({
+            kind: "unavailable",
+        })
+        await expect(compat.requireFirefoxDesktop()).rejects.toThrow(
+            "requires Firefox desktop",
+        )
+        await expect(compat.requireDesktop()).rejects.toThrow(
+            "requires a desktop browser",
+        )
+    })
+
+    test("does not mistake another desktop browser for Firefox", async () => {
+        getPlatformInfo.mockResolvedValue({ os: "linux" })
+        const compat = require("./compat") as typeof import("./compat")
+
+        expect(compat.getFirefox()).toEqual({ kind: "unavailable" })
+        await expect(compat.getFirefoxDesktop()).resolves.toEqual({
+            kind: "unavailable",
+        })
     })
 
     test("event registration and sidebar calls remain synchronous", async () => {
@@ -73,7 +130,10 @@ describe("platform detection", () => {
         const compat = require("./compat") as typeof import("./compat")
 
         expect(compat.commands.onCommand.addListener(jest.fn())).toBeUndefined()
-        const opened = compat.sidebarAction.open()
+        const sidebar = compat.getSidebar()
+        expect(sidebar.kind).toBe("sidebar")
+        if (sidebar.kind === "unavailable") throw new Error("missing sidebar")
+        const opened = sidebar.api.open()
         expect(addListener).toHaveBeenCalledTimes(1)
         expect(open).toHaveBeenCalledTimes(1)
         await expect(opened).resolves.toBeUndefined()
@@ -101,6 +161,7 @@ describe("platform detection", () => {
         const compat = require("./compat") as typeof import("./compat")
 
         expect(compat.commands.onCommand.addListener(jest.fn())).toBeUndefined()
+        expect(compat.getSidebar()).toEqual({ kind: "unavailable" })
         await expect(compat.sidebarAction.open()).rejects.toThrow(
             "sidebarAction.open is not supported",
         )
@@ -109,6 +170,14 @@ describe("platform detection", () => {
         ).rejects.toThrow("downloads.download is not supported")
         await expect(compat.topSites.get()).resolves.toEqual([])
         expect(console.warn).toHaveBeenCalledTimes(1)
+    })
+
+    test("proxy dispatch exposes only background-safe fallbacks", () => {
+        const compat = require("./compat") as typeof import("./compat")
+
+        expect(() => compat.callProxy("tabs", "query", [])).toThrow(
+            "Missing compatibility implementation",
+        )
     })
 
     test("stores session values in memory on Android", async () => {
@@ -135,6 +204,18 @@ describe("platform detection", () => {
         compat.clearWindowSessionValues(4)
         await expect(sessions.getTabValue(3, "history")).resolves.toBeUndefined()
         await expect(sessions.getWindowValue(4, "groups")).resolves.toBeUndefined()
+    })
+
+    test("stores session values when native methods are unavailable", async () => {
+        getPlatformInfo.mockResolvedValue({ os: "linux" })
+        Object.defineProperty(browser, "sessions", {
+            configurable: true,
+            value: {},
+        })
+        const { sessions } = require("./compat") as typeof import("./compat")
+
+        await sessions.setTabValue(3, "history", [1])
+        await expect(sessions.getTabValue(3, "history")).resolves.toEqual([1])
     })
 
     test("forwards session values on supported platforms", async () => {

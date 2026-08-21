@@ -4,9 +4,10 @@
 
 import * as Native from "@src/lib/native"
 import * as config from "@src/lib/config"
+import * as compat from "@src/lib/compat"
 import * as R from "ramda"
 import { getDownloadFilenameForUrl } from "@src/lib/url_util"
-import * as compat from "@src/lib/compat"
+import { requireDesktopBg } from "@src/lib/webext"
 
 /** Construct an object URL string from a given data URL
  *
@@ -60,7 +61,8 @@ export async function downloadUrl(url: string, saveAs: boolean) {
     //    feed in the dirctory for next time, and FF doesn't remember it
     //    itself (like it does if you right-click-save something)
 
-    const downloadPromise = compat.downloads.download({
+    const desktop = await requireDesktopBg()
+    const downloadPromise = desktop.downloads.download({
         url: urlToDownload,
         filename: fileName,
         incognito: config.get("downloadsskiphistory") === "true",
@@ -112,7 +114,8 @@ export async function downloadUrlAs(
         }
     })
 
-    const downloadId = await compat.downloads.download({
+    const desktop = await requireDesktopBg()
+    const downloadId = await desktop.downloads.download({
         conflictAction: "uniquify",
         url: urlToDownload,
         filename: fileName,
@@ -133,7 +136,7 @@ export async function downloadUrlAs(
             ) {
                 compat.downloads.onChanged.removeListener(onDownloadComplete)
                 const downloadItem = (
-                    await compat.downloads.search({
+                    await desktop.downloads.search({
                         id: downloadId,
                     })
                 )[0]

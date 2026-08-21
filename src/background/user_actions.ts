@@ -13,8 +13,12 @@ import * as compat from "@src/lib/compat"
 function escapehatch() {
     if (config.get("escapehatchsidebarhack") == "true") {
         // Only works if called via commands API command - fail silently if called otherwise
-        compat.sidebarAction.open().catch()
-        compat.sidebarAction.close().catch()
+        const sidebar = compat.getSidebar()
+        if (sidebar.kind === "sidebar")
+            void Promise.all([
+                sidebar.api.open(),
+                sidebar.api.close(),
+            ]).catch(() => undefined)
     }
     ;(async () => {
         const tabs = await browser.tabs.query({ currentWindow: true })
@@ -41,7 +45,10 @@ function escapehatch() {
  * Toggle the sidebar. Bind with e.g. `:bind --mode=browser <C-.> sidebartoggle`
  */
 function sidebartoggle() {
-    return compat.sidebarAction.toggle()
+    const sidebar = compat.getSidebar()
+    if (sidebar.kind === "unavailable")
+        return compat.unsupportedApi("This operation requires a sidebar API.")
+    return sidebar.api.toggle()
 }
 
 function jsua(...args: string[]) {

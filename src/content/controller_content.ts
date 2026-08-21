@@ -129,11 +129,15 @@ Messaging.addListener(
                 bufferingDuration +
                 "ms",
         )
-        sendResponse(Promise.resolve(bufferedPageKeys))
+        const pending = Messaging.sendMessageResponse(
+            sendResponse,
+            bufferedPageKeys,
+        )
         // At this point, clInput is focused and the page cannot get any more keyboard events
         // until it is refocused.
         mustBufferPageKeysForClInput = false
         bufferedPageKeys = []
+        return pending
     },
 )
 

@@ -89,6 +89,11 @@ export const commands = {
     }
 }
 
+export const contextualIdentities = {
+    query: (...args: Parameters<typeof browser.contextualIdentities.query>) =>
+        browser.contextualIdentities.query(...args),
+}
+
 export const downloads = {
     download: async (...args: Parameters<typeof browser.downloads.download>): Promise<number> => {
         if (hasBrowserApi(browser, ["downloads", "download"])) {
@@ -101,7 +106,7 @@ export const downloads = {
             if (hasBrowserApi(browser, ["downloads", "onChanged"])) {
                 browser.downloads.onChanged.addListener(callback)
             } else {
-                unsupportedApi("Event downloads.onChanged is not supported.")
+                notImplemented("Event downloads.onChanged is not supported.")
             }
         },
         removeListener: (callback: Parameters<typeof browser.downloads.onChanged.removeListener>[0]): void => {
@@ -183,7 +188,7 @@ export const runtime = {
 
 export const search = {
     get: async (): Promise<browser.search.SearchEngine[]> => {
-        if (!(await isAndroid())) {
+        if (hasBrowserApi(browser, ["search", "get"])) {
             return browser.search.get()
         } else {
             return []
@@ -210,6 +215,10 @@ export function clearTabSessionValues(tabId: number) {
 
 export function clearWindowSessionValues(windowId: number) {
     windowSessionValues.delete(windowId)
+}
+
+export function getSessionId(session: browser.sessions.Session) {
+    return session.tab?.sessionId || session.window?.sessionId
 }
 
 function getSessionValue(values: Map<number, Map<string, any>>, id: number, key: string) {
@@ -246,28 +255,28 @@ export const sessions = {
         }
     },
     getTabValue: async (...args: Parameters<typeof browser.sessions.getTabValue>) => {
-        if (!(await isAndroid())) {
+        if (hasBrowserApi(browser, ["sessions", "getTabValue"])) {
             return browser.sessions.getTabValue(...args)
         } else {
             return getSessionValue(tabSessionValues, args[0], args[1])
         }
     },
     getWindowValue: async (...args: Parameters<typeof browser.sessions.getWindowValue>) => {
-        if (!(await isAndroid())) {
+        if (hasBrowserApi(browser, ["sessions", "getWindowValue"])) {
             return browser.sessions.getWindowValue(...args)
         } else {
             return getSessionValue(windowSessionValues, args[0], args[1])
         }
     },
     removeTabValue: async (...args: Parameters<typeof browser.sessions.removeTabValue>): Promise<void> => {
-        if (!(await isAndroid())) {
+        if (hasBrowserApi(browser, ["sessions", "removeTabValue"])) {
             return browser.sessions.removeTabValue(...args)
         } else {
             removeSessionValue(tabSessionValues, args[0], args[1])
         }
     },
     removeWindowValue: async (...args: Parameters<typeof browser.sessions.removeWindowValue>): Promise<void> => {
-        if (!(await isAndroid())) {
+        if (hasBrowserApi(browser, ["sessions", "removeWindowValue"])) {
             return browser.sessions.removeWindowValue(...args)
         } else {
             removeSessionValue(windowSessionValues, args[0], args[1])
@@ -281,14 +290,14 @@ export const sessions = {
         }
     },
     setTabValue: async (...args: Parameters<typeof browser.sessions.setTabValue>): Promise<void> => {
-        if (!(await isAndroid())) {
+        if (hasBrowserApi(browser, ["sessions", "setTabValue"])) {
             return browser.sessions.setTabValue(...args)
         } else {
             setSessionValue(tabSessionValues, args[0], args[1], args[2])
         }
     },
     setWindowValue: async (...args: Parameters<typeof browser.sessions.setWindowValue>): Promise<void> => {
-        if (!(await isAndroid())) {
+        if (hasBrowserApi(browser, ["sessions", "setWindowValue"])) {
             return browser.sessions.setWindowValue(...args)
         } else {
             setSessionValue(windowSessionValues, args[0], args[1], args[2])
@@ -327,7 +336,58 @@ export const sidebarAction = {
     }
 }
 
+export type SidebarCapability =
+    | { kind: "sidebar"; api: FirefoxDesktopApis["sidebarAction"] }
+    | { kind: "unavailable" }
+
+export function getSidebar(): SidebarCapability {
+    if (!hasBrowserApi(browser, ["sidebarAction"]))
+        return { kind: "unavailable" }
+    return { kind: "sidebar", api: sidebarAction }
+}
+
+export type FirefoxDesktopTab = browser.tabs.Tab & {
+    cookieStoreId?: string
+    discarded?: boolean
+    favIconUrl?: string
+    isArticle?: boolean
+    openerTabId?: number
+}
+export type FirefoxDesktopCreateProperties =
+    browser.tabs._CreateCreateProperties & {
+        cookieStoreId?: string
+        discarded?: boolean
+        openerTabId?: number
+        pinned?: boolean
+    }
+export type FirefoxDesktopQueryInfo = browser.tabs._QueryQueryInfo & {
+    cookieStoreId?: string
+    pinned?: boolean
+}
+export interface DesktopCreateProperties {
+    active?: boolean
+    index?: number
+    openerTabId?: number
+    pinned?: boolean
+    url?: string
+    windowId?: number
+}
+export interface DesktopUpdateProperties {
+    muted?: boolean
+    pinned?: boolean
+    url?: string
+}
+export type FirefoxDesktopUpdateProperties =
+    browser.tabs._UpdateUpdateProperties & {
+        loadReplace?: boolean
+        muted?: boolean
+        pinned?: boolean
+    }
+
 export const tabs = {
+    create: async (
+        properties: FirefoxDesktopCreateProperties,
+    ): Promise<FirefoxDesktopTab> => browser.tabs.create(properties),
     discard: async (...args: Parameters<typeof browser.tabs.discard>): Promise<void> => {
         if (!(await isAndroid())) {
             return browser.tabs.discard(...args)
@@ -349,6 +409,8 @@ export const tabs = {
             return unsupportedApi("API tabs.getZoom is not supported on Android.")
         }
     },
+    get: async (...args: Parameters<typeof browser.tabs.get>): Promise<FirefoxDesktopTab> =>
+        browser.tabs.get(...args),
     hide: async (...args: Parameters<typeof browser.tabs.hide>): Promise<number[]> => {
         if (!(await isAndroid())) {
             return browser.tabs.hide(...args)
@@ -383,6 +445,9 @@ export const tabs = {
             return false
         }
     },
+    query: async (
+        queryInfo: FirefoxDesktopQueryInfo,
+    ): Promise<FirefoxDesktopTab[]> => browser.tabs.query(queryInfo),
     setZoom: async (tabIdOrZoom: number, zoomFactor?: number): Promise<void> => {
         if (!(await isAndroid())) {
             if (zoomFactor === undefined) {
@@ -406,7 +471,11 @@ export const tabs = {
         } else {
             return unsupportedApi("API tabs.toggleReaderMode is not supported on Android.") // ideally would fall back to our own mode
         }
-    }
+    },
+    update: async (
+        tabId: number,
+        updateProperties: FirefoxDesktopUpdateProperties,
+    ): Promise<FirefoxDesktopTab> => browser.tabs.update(tabId, updateProperties),
 }
 
 export const topSites = {
@@ -475,6 +544,141 @@ export const windows = {
             return unsupportedApi("API windows.update is not supported or meaningful on Android.")
         }
     }
+}
+
+const proxyApis = {
+    bookmarks: { getTree: bookmarks.getTree, search: bookmarks.search },
+    history,
+    search: { get: search.get },
+    sessions,
+    topSites,
+    windows: { getAll: windows.getAll },
+}
+export type ProxyApis = typeof proxyApis
+
+export function callProxy(api: string, func: string, args: any[]) {
+    const implementation = proxyApis[api] && proxyApis[api][func]
+    if (typeof implementation !== "function")
+        return unsupportedApi(`Missing compatibility implementation: ${api}.${func}`)
+    return Reflect.apply(implementation, undefined, args)
+}
+
+const desktopApis = {
+    bookmarks: { create: bookmarks.create, remove: bookmarks.remove },
+    downloads: {
+        download: downloads.download,
+        search: downloads.search,
+    },
+    omnibox: { setDefaultSuggestion: omnibox.setDefaultSuggestion },
+    runtime,
+    sessions: { restore: sessions.restore },
+    tabs: {
+        create: async (
+            properties: DesktopCreateProperties,
+        ): Promise<browser.tabs.Tab> => browser.tabs.create(properties),
+        discard: tabs.discard,
+        duplicate: tabs.duplicate,
+        getZoom: tabs.getZoom,
+        move: tabs.move,
+        setZoom: tabs.setZoom,
+        update: async (
+            tabId: number,
+            properties: DesktopUpdateProperties,
+        ): Promise<browser.tabs.Tab> => browser.tabs.update(tabId, properties),
+    },
+    windows: {
+        create: windows.create,
+        get: windows.get,
+        getAll: windows.getAll,
+        getCurrent: windows.getCurrent,
+        getLastFocused: windows.getLastFocused,
+        remove: windows.remove,
+        update: windows.update,
+    },
+}
+
+const firefoxApis = {
+    contextualIdentities,
+    find,
+}
+
+const firefoxDesktopApis = {
+    ...desktopApis,
+    ...firefoxApis,
+    commands: { update: commands.update },
+    search: { search: search.search },
+    sessions: {
+        getTabValue: sessions.getTabValue,
+        getWindowValue: sessions.getWindowValue,
+        removeTabValue: sessions.removeTabValue,
+        removeWindowValue: sessions.removeWindowValue,
+        setTabValue: sessions.setTabValue,
+        setWindowValue: sessions.setWindowValue,
+        ...desktopApis.sessions,
+    },
+    sidebarAction,
+    tabs: {
+        ...desktopApis.tabs,
+        create: tabs.create,
+        get: tabs.get,
+        hide: tabs.hide,
+        query: tabs.query,
+        show: tabs.show,
+        toggleReaderMode: tabs.toggleReaderMode,
+        update: tabs.update,
+    },
+}
+
+export type DesktopApis = typeof desktopApis
+export type DesktopCapability =
+    | { kind: "desktop"; api: DesktopApis }
+    | { kind: "unavailable" }
+export type FirefoxApis = typeof firefoxApis
+export type FirefoxCapability =
+    | { kind: "firefox"; api: FirefoxApis }
+    | { kind: "unavailable" }
+export type FirefoxDesktopApis = typeof firefoxDesktopApis
+export type FirefoxDesktopCapability =
+    | { kind: "firefoxDesktop"; api: FirefoxDesktopApis }
+    | { kind: "unavailable" }
+
+export async function getDesktop(): Promise<DesktopCapability> {
+    if (await isAndroid()) return { kind: "unavailable" }
+    return { kind: "desktop", api: desktopApis }
+}
+
+export async function requireDesktop(): Promise<DesktopApis> {
+    const capability = await getDesktop()
+    if (capability.kind === "unavailable")
+        return unsupportedApi("This operation requires a desktop browser.")
+    return capability.api
+}
+
+export function getFirefox(): FirefoxCapability {
+    if (!hasBrowserApi(browser, ["runtime", "getBrowserInfo"]))
+        return { kind: "unavailable" }
+    return { kind: "firefox", api: firefoxApis }
+}
+
+export function requireFirefox(): FirefoxApis {
+    const capability = getFirefox()
+    if (capability.kind === "unavailable")
+        return unsupportedApi("This operation requires Firefox.")
+    return capability.api
+}
+
+export async function getFirefoxDesktop(): Promise<FirefoxDesktopCapability> {
+    const desktop = await getDesktop()
+    if (desktop.kind === "unavailable" || getFirefox().kind === "unavailable")
+        return { kind: "unavailable" }
+    return { kind: "firefoxDesktop", api: firefoxDesktopApis }
+}
+
+export async function requireFirefoxDesktop(): Promise<FirefoxDesktopApis> {
+    const capability = await getFirefoxDesktop()
+    if (capability.kind === "unavailable")
+        return unsupportedApi("This operation requires Firefox desktop.")
+    return capability.api
 }
 
 export function notImplemented(message: string) {

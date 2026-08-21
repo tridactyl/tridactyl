@@ -1,5 +1,9 @@
 import * as Perf from "@src/perf"
-import { browserBg, getSortedTabs, prevActiveTab } from "@src/lib/webext"
+import {
+    getFirefoxBg,
+    getSortedTabs,
+    prevActiveTab,
+} from "@src/lib/webext"
 import { enumerate } from "@src/lib/itertools"
 import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
@@ -35,14 +39,19 @@ class BufferCompletionOption
         let pre = preplain
         if (tab.pinned) preplain += "P"
         if (tab.audible) preplain += "A"
-        if (tab.mutedInfo.muted) preplain += "M"
-        if (tab.discarded) preplain += "D"
+        const muted =
+            tab.mutedInfo &&
+            "muted" in tab.mutedInfo &&
+            tab.mutedInfo.muted
+        if (muted) preplain += "M"
+        const discarded = "discarded" in tab && tab.discarded
+        if (discarded) preplain += "D"
 
         if (config.get("completions", "Tab", "statusstylepretty") === "true") {
             if (tab.pinned) pre += "\uD83D\uDCCC"
             if (tab.audible) pre += "\uD83D\uDD0A"
-            if (tab.mutedInfo.muted) pre += "\uD83D\uDD07"
-            if (tab.discarded) pre += "\u2296"
+            if (muted) pre += "\uD83D\uDD07"
+            if (discarded) pre += "\u2296"
         } else {
             pre = preplain
         }
@@ -55,9 +64,10 @@ class BufferCompletionOption
         this.fuseKeys.push(String(tab.index + 1), tab.title, tab.url)
 
         // Create HTMLElement
-        const favIconUrl = tab.favIconUrl
-            ? tab.favIconUrl
-            : Completions.DEFAULT_FAVICON
+        const favIconUrl =
+            "favIconUrl" in tab && typeof tab.favIconUrl === "string"
+                ? tab.favIconUrl
+                : Completions.DEFAULT_FAVICON
         const indicator = tab.audible ? String.fromCodePoint(0x1f50a) : ""
         this.html = html`<tr
             class="BufferCompletionOption option container_${container.color} container_${container.icon} container_${container.name}"
@@ -199,10 +209,13 @@ export class BufferCompletionSource extends TabCompletionSource {
 
         // tabmove uses physical order within the pinned or unpinned group.
         const forceSort = prefix === "tabmove" ? "default" : undefined
+        const firefox = await getFirefoxBg()
         const [altTab, sortedTabs, container_all] = await Promise.all([
             prevActiveTab(),
             getSortedTabs(forceSort),
-            browserBg.contextualIdentities.query({}).catch(() => []),
+            firefox.kind === "firefox"
+                ? firefox.api.contextualIdentities.query({}).catch(() => [])
+                : [],
         ])
         if (!this.isCurrentUpdate(generation)) return
         let tabs = sortedTabs
@@ -219,7 +232,12 @@ export class BufferCompletionSource extends TabCompletionSource {
         // firefox-default is not in contextualIdenetities
         container_map.set("firefox-default", Containers.DefaultContainer)
         for (const [index, tab] of tabs.entries()) {
-            let tab_container = container_map.get(tab.cookieStoreId)
+            const cookieStoreId =
+                "cookieStoreId" in tab &&
+                typeof tab.cookieStoreId === "string"
+                    ? tab.cookieStoreId
+                    : "firefox-default"
+            let tab_container = container_map.get(cookieStoreId)
             if (!tab_container) {
                 tab_container = Containers.DefaultContainer
             }

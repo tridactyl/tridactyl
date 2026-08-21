@@ -1,6 +1,6 @@
 import * as config from "@src/lib/config"
 import * as DOM from "@src/lib/dom"
-import { compatBg, ownTabId } from "@src/lib/webext"
+import { ownTabId, requireFirefoxBg } from "@src/lib/webext"
 import state from "@src/state"
 import * as State from "@src/state"
 import { compute as scrollCompute } from "compute-scroll-into-view"
@@ -327,13 +327,15 @@ export async function jumpToMatch(searchQuery, option) {
     flags = flags.replace(/[gi]/g, "") + "g" + (sensitive ? "" : "i")
     const regex = option["regex"] && new RegExp(source, flags)
     let results: any = { count: 0 }
-    if (!regex)
-        results = await compatBg.find.find(searchQuery, {
+    if (!regex) {
+        const firefox = await requireFirefoxBg()
+        results = await firefox.find.find(searchQuery, {
             tabId: await ownTabId(),
             caseSensitive: sensitive,
             entireWord: false,
             includeRangeData: true,
         })
+    }
     if (generation !== searchGeneration) return
     if (!previewing) {
         state.lastSearchQuery = searchQuery

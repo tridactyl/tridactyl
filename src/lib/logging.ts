@@ -3,6 +3,7 @@
  */
 
 import * as Config from "@src/lib/config"
+import { unwrapMessageResponse } from "@src/lib/message_response"
 
 const LevelToNum = new Map<Config.LoggingLevel, number>()
 LevelToNum.set("never", 0)
@@ -40,13 +41,15 @@ export class Logger {
                     // work out how to import messaging/webext without breaking everything
                     return async (...message) => {
                         console.error(...message)
-                        return browser.runtime.sendMessage({
-                            type: "controller_background",
-                            command: "acceptExCmd",
-                            args: [
-                                "fillcmdline_nofocus # " + message.join(" "),
-                            ],
-                        })
+                        return unwrapMessageResponse(
+                            browser.runtime.sendMessage({
+                                type: "controller_background",
+                                command: "acceptExCmd",
+                                args: [
+                                    "fillcmdline_nofocus # " + message.join(" "),
+                                ],
+                            }),
+                        )
                     }
                 case "warning":
                     return console.warn
