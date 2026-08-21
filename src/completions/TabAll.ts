@@ -1,5 +1,5 @@
 import * as Perf from "@src/perf"
-import { browserBg, getSortedTabs, prevActiveTab } from "@src/lib/webext"
+import { browserBg, compatBg, getSortedTabs, prevActiveTab } from "@src/lib/webext"
 import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
@@ -130,8 +130,6 @@ export class TabAllCompletionSource extends TabCompletionSource {
     //     return this.options[option.tab.index]
     // }
 
-    // Eslint doesn't like this decorator but there's nothing we can do about it
-    // eslint-disable-next-line @typescript-eslint/member-ordering
     @Perf.measuredAsync
     private async updateOptions(exstr = "", preserveSelection = false) {
         const generation = this.beginUpdate()
@@ -168,8 +166,7 @@ export class TabAllCompletionSource extends TabCompletionSource {
         if (await compat.isAndroid()) {
             currentWindow = { id: tabs.find(tab => tab.active)?.windowId }
         } else {
-            // eslint-disable-next-line unsupported-apis-firefox-android
-            currentWindow = await browserBg.windows.getCurrent()
+            currentWindow = await compatBg.windows.getCurrent()
         }
         if (!this.isCurrentUpdate(generation)) return
 

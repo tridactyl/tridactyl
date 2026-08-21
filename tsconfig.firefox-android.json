@@ -1,0 +1,6 @@
+{
+    "extends": "./tsconfig.browser-target.json",
+    "compilerOptions": {
+        "types": ["firefox_android"]
+    }
+}

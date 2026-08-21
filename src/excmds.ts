@@ -2308,10 +2308,10 @@ export async function urlmodify(mode: "--safe" | "-t" | "-r" | "-s" | "-q" | "-Q
             const tabId = (await ownTab()).id
             const now = Date.now()
             const target = newUrl.toString()
-            const recent = ((await browserBg.sessions.getTabValue(tabId, "urlmodify-safe")) as [string, number][] || []).filter(([, time]) => now - time < 1000)
+            const recent = ((await sessionsBg.getTabValue(tabId, "urlmodify-safe")) as [string, number][] || []).filter(([, time]) => now - time < 1000)
             if (recent.some(([url]) => url === target)) return
             recent.push([target, now])
-            await browserBg.sessions.setTabValue(tabId, "urlmodify-safe", recent)
+            await sessionsBg.setTabValue(tabId, "urlmodify-safe", recent)
         }
         window.location.replace(newUrl)
     }
@@ -3200,14 +3200,12 @@ export async function tabdetach(index?: string) {
     const currentTab = await browser.tabs.get(tabId)
     let tempWin
     try {
-        // eslint-disable-next-line unsupported-apis-firefox-android
-        tempWin = await browser.windows.create({ incognito: currentTab.incognito, url: "about:blank" })
+        tempWin = await compat.windows.create({ incognito: currentTab.incognito, url: "about:blank" })
     } catch (error) {
         if (currentTab.incognito) throw error
         // Some Firefox setups can fail to resolve the default new-window URI.
         // Fall back to the simplest guaranteed-valid create call.
-        // eslint-disable-next-line unsupported-apis-firefox-android
-        tempWin = await browser.windows.create({ url: "about:blank" })
+        tempWin = await compat.windows.create({ url: "about:blank" })
     }
     const tempTab = tempWin.tabs[0]
     await compat.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
@@ -3529,7 +3527,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
 //#background
 export async function winopen(...args: string[]) {
     if (await compat.isAndroid()) return compat.unsupportedApi("no windows on android")
-    const createData = {} as Parameters<typeof browser.windows.create>[0]
+    const createData = {} as browser.windows._CreateCreateData
     let firefoxArgs = "--new-window"
     let done = false
     let containerName: string | undefined
@@ -3560,7 +3558,7 @@ export async function winopen(...args: string[]) {
     const address = args.join(" ")
 
     if (containerName !== undefined) {
-        if (createData.incognito || (await browser.windows.getCurrent()).incognito) {
+        if (createData.incognito || (await compat.windows.getCurrent()).incognito) {
             throw new Error("Can't open a container in a private browsing window.")
         }
         if (containerName !== "firefox-default" && containerName.toLowerCase() !== "none") {
@@ -3574,8 +3572,7 @@ export async function winopen(...args: string[]) {
 
     createData.url = "about:blank"
 
-    // eslint-disable-next-line unsupported-apis-firefox-android
-    return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
+    return compat.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
 }
 
 /**
@@ -6220,9 +6217,7 @@ const jsRcCache = new Map<string, string>()
  * @hidden
  */
 async function js_helper(str: string[]) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let JS_ARG = null
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let JS_ARGS = []
     let jsContent: string = null
 
@@ -6294,6 +6289,8 @@ async function js_helper(str: string[]) {
         jsContent = source
     }
 
+    void JS_ARG
+    void JS_ARGS
     return eval(jsContent)
 }
 

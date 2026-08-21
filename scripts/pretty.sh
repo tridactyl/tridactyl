@@ -45,7 +45,7 @@ main() {
 	lock .git/index.lock
 	case "$file" in
 	  *.md | *.css) prettier --write "$file";;
-	  *) prettier --write "$file"; eslint --rulesdir custom-eslint-rules --fix "$file";;
+	  *) prettier --write "$file"; eslint --fix "$file";;
 	esac
 	unlock .git/index.lock
 	git add "$file"
@@ -65,7 +65,7 @@ main() {
 		mv "$tmpfile" "$file";;
 	    *)
 	      staged "$file" > "$tmpfile"
-	      eslint --rulesdir custom-eslint-rules -c ../.eslintrc.js --fix -o /dev/null "$tmpfile" &&
+	      eslint -c ../.eslintrc.js --fix -o /dev/null "$tmpfile" &&
 		mv "$tmpfile" "$file";;
 	  esac
 	  chmod --reference="../$file" "$file" # match permissions

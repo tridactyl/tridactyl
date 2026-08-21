@@ -45,7 +45,7 @@ Object.assign(browser.tabs, {
     onActivated: tabEvent,
 })
 Object.assign(browser.runtime, {
-    getPlatformInfo: jest.fn(),
+    getPlatformInfo: jest.fn().mockResolvedValue({ os: "linux" }),
     sendNativeMessage: jest.fn(),
 })
 Object.assign(browser.commands, { update: jest.fn() })

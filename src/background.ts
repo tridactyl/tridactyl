@@ -76,11 +76,14 @@ controller.setExCmds({
 
 // {{{ tri.contentLocation
 let contentLocationCount = 0
-function updateContentLocation(windowId = browser.windows.WINDOW_ID_CURRENT) {
+function updateContentLocation(windowId?: number) {
     const myId = contentLocationCount + 1
     contentLocationCount = myId
+    const query: Parameters<typeof browser.tabs.query>[0] = { active: true }
+    if (windowId === undefined) query.currentWindow = true
+    else query.windowId = windowId
     browser.tabs
-        .query({ windowId, active: true })
+        .query(query)
         .then(t => {
             // Ignore stale queries when focus or active tabs change quickly.
             if (contentLocationCount === myId && t[0]?.url) {
@@ -90,8 +93,8 @@ function updateContentLocation(windowId = browser.windows.WINDOW_ID_CURRENT) {
         .catch(() => undefined)
 }
 browser.tabs.onActivated.addListener(() => updateContentLocation())
-browser.windows.onFocusChanged.addListener(windowId => {
-    if (windowId === browser.windows.WINDOW_ID_NONE) return
+compat.windows.onFocusChanged.addListener(windowId => {
+    if (windowId < 0) return
     updateContentLocation(windowId)
 })
 

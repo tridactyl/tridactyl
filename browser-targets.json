@@ -16,6 +16,7 @@
         ]
     },
     "chrome": {
-        "minimumVersion": "114"
+        "minimumVersion": "114",
+        "advisory": true
     }
 }

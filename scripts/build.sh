@@ -76,7 +76,10 @@ if [ "$QUICK_BUILD" != "1" ]; then
     scripts/make_tutorial.sh
     scripts/make_docs.sh
 
+    node scripts/generate_browser_types.js
     tsc --project tsconfig.json --noEmit
+    tsc --project tsconfig.firefox.json --noEmit
+    tsc --project tsconfig.firefox-android.json --noEmit
 else
 
     echo "Warning: dirty rebuild. Skipping docs, metadata and type checking..."

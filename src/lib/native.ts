@@ -4,7 +4,7 @@
 
 import semverCompare from "semver-compare"
 import * as config from "@src/lib/config"
-import { browserBg, getContext } from "@src/lib/webext"
+import { browserBg, compatBg, getContext } from "@src/lib/webext"
 import * as compat from "@src/lib/compat"
 
 import Logger from "@src/lib/logging"
@@ -52,8 +52,7 @@ export async function sendNativeMsg(
         if (await compat.isAndroid()) {
             throw new Error("no native on android")
         }
-        // eslint-disable-next-line unsupported-apis-firefox-android
-        resp = await browserBg.runtime.sendNativeMessage(NATIVE_NAME, send)
+        resp = await compatBg.runtime.sendNativeMessage(NATIVE_NAME, send)
         logger.info(`Received response:`, resp)
         return resp as MessageResp
     } catch (e) {

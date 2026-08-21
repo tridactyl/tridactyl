@@ -1,5 +1,5 @@
 import * as convert from "@src/lib/convert"
-import browserProxy from "@src/lib/browser_proxy"
+import browserProxy, { CompatApis } from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
 import * as compat from "@src/lib/compat"
@@ -74,7 +74,8 @@ export function getContext() {
 
 // Make this library work for both content and background.
 export const browserBg = inContentScript() ? browserProxy : browser
-export const sessionsBg =
+export const compatBg: CompatApis = inContentScript() ? browserProxy : compat
+export const sessionsBg: typeof compat.sessions =
     getContext() === "background" ? compat.sessions : browserProxy.sessions
 
 let lastAudibleTabId: number | undefined
@@ -142,8 +143,7 @@ export async function prevActiveTab() {
  */
 export async function activeWindowId() {
     if (await compat.isAndroid()) return (await activeTab()).windowId
-    // eslint-disable-next-line unsupported-apis-firefox-android
-    return (await browserBg.windows.getCurrent()).id
+    return (await compatBg.windows.getCurrent()).id
 }
 
 export async function removeActiveWindowValue(value) {
@@ -164,9 +164,7 @@ export async function ownTabId() {
 }
 
 async function windows() {
-    if (await compat.isAndroid()) return [] // shrug
-    // eslint-disable-next-line unsupported-apis-firefox-android
-    return (await browserBg.windows.getAll())
+    return (await compatBg.windows.getAll())
         .map(w => w.id)
         .sort((a, b) => a - b)
 }
@@ -344,8 +342,7 @@ export async function openInNewWindow(
     createData: browser.windows._CreateCreateData = {},
 ) {
     if (await compat.isAndroid()) return compat.unsupportedApi("no windows on android")
-    // eslint-disable-next-line unsupported-apis-firefox-android
-    return browserBg.windows.create(createData)
+    return compatBg.windows.create(createData)
 }
 
 // Returns object if we should use the search engine instead
@@ -412,8 +409,7 @@ export async function queryAndURLwrangler(
     }
 
     const android = await compat.isAndroid()
-    // eslint-disable-next-line unsupported-apis-firefox-android
-    const searchEngines = android ? [] : await browserBg.search.get()
+    const searchEngines = android ? [] : await compatBg.search.get()
     let engine = searchEngines.find(engine => engine.alias === firstWord)
     // Maybe firstWord is the name of a firefox search engine?
     if (engine !== undefined) {
@@ -497,8 +493,7 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
         )
     }
     if (!(await compat.isAndroid()) && typeof maybeURL === "object") {
-        // eslint-disable-next-line unsupported-apis-firefox-android
-        return browserBg.search.search({ tabId: tab.id, ...maybeURL })
+        return compatBg.search.search({ tabId: tab.id, ...maybeURL })
     }
 
     // Fall back to our new tab page
@@ -514,7 +509,6 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
  */
 export async function goToTab(tabId: number) {
     const tab = await browserBg.tabs.update(tabId, { active: true })
-    // eslint-disable-next-line unsupported-apis-firefox-android
-    if (!(await compat.isAndroid())) await browserBg.windows.update(tab.windowId, { focused: true })
+    if (!(await compat.isAndroid())) await compatBg.windows.update(tab.windowId, { focused: true })
     return tab
 }

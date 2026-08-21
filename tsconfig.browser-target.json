@@ -1,0 +1,32 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "paths": {
+            "@src/.excmds_background.generated": ["./src/excmds.ts"],
+            "@src/.excmds_content.generated": ["./src/excmds.ts"],
+            "@src/.glossary.generated.json": [
+                "./scripts/browser_type_stubs/default.d.ts"
+            ],
+            "@src/.metadata.generated": [
+                "./scripts/browser_type_stubs/metadata.d.ts"
+            ],
+            "@src/grammars/.bracketexpr.generated": [
+                "./scripts/browser_type_stubs/default.d.ts"
+            ],
+            "@src/lib/compat": ["./generated/browser-types/compat/index.d.ts"],
+            "@src/*": ["./src/*"]
+        },
+        "skipLibCheck": true,
+        "typeRoots": ["./generated/browser-types"]
+    },
+    "exclude": [
+        "./src/.excmds_background.generated.ts",
+        "./src/.excmds_content.generated.ts",
+        "./src/.metadata.generated.ts",
+        "./src/**/*.test.ts",
+        "./src/grammars/.bracketexpr.generated.ts",
+        "./src/lib/compat.ts",
+        "./src/lib/metadata.ts",
+        "./src/lib/test_utils.ts"
+    ]
+}

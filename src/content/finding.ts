@@ -1,6 +1,6 @@
 import * as config from "@src/lib/config"
 import * as DOM from "@src/lib/dom"
-import { browserBg, ownTabId } from "@src/lib/webext"
+import { compatBg, ownTabId } from "@src/lib/webext"
 import state from "@src/state"
 import * as State from "@src/state"
 import { compute as scrollCompute } from "compute-scroll-into-view"
@@ -328,8 +328,7 @@ export async function jumpToMatch(searchQuery, option) {
     const regex = option["regex"] && new RegExp(source, flags)
     let results: any = { count: 0 }
     if (!regex)
-        // eslint-disable-next-line unsupported-apis-firefox-android
-        results = await browserBg.find.find(searchQuery, {
+        results = await compatBg.find.find(searchQuery, {
             tabId: await ownTabId(),
             caseSensitive: sensitive,
             entireWord: false,
