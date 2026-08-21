@@ -9,7 +9,7 @@
         "userScripts.register.LegacyRegisteredUserScript": "userScripts_legacy.RegisteredUserScript",
         "userScripts.register.scripts": "userScripts.register"
     },
-    "unmapped": {
+    "unmapped_retained": {
         "activityLog.onExtensionActivity": ["firefox"],
         "browserSettings.colorManagement.mode": ["firefox"],
         "browserSettings.colorManagement.useNativeSRGB": ["firefox"],
@@ -18,7 +18,6 @@
         "browsingData.removeFileSystems": ["chrome"],
         "browsingData.removeIndexedDB": ["chrome"],
         "browsingData.removeWebSQL": ["chrome"],
-        "downloads.drag": [],
         "geckoProfiler.dumpProfileToFile": ["firefox"],
         "geckoProfiler.getProfile": ["firefox"],
         "geckoProfiler.getProfileAsArrayBuffer": ["firefox"],
@@ -29,50 +28,21 @@
         "geckoProfiler.resume": ["firefox"],
         "geckoProfiler.start": ["firefox"],
         "geckoProfiler.stop": ["firefox"],
-        "identity.getAccounts": [],
         "identity.getAuthToken": ["chrome"],
         "identity.getProfileUserInfo": ["chrome"],
         "identity.onSignInChanged": ["chrome"],
         "identity.removeCachedAuthToken": ["chrome"],
-        "networkStatus.getLinkInfo": [],
-        "networkStatus.onConnectionChanged": [],
         "normandyAddonStudy.endStudy": ["firefox"],
         "normandyAddonStudy.getClientMetadata": ["firefox"],
         "normandyAddonStudy.getStudy": ["firefox"],
         "normandyAddonStudy.onUnenroll": ["firefox"],
         "notifications.getPermissionLevel": ["chrome"],
         "notifications.onPermissionLevelChanged": ["chrome"],
-        "notifications.onShowSettings": [],
         "privacy.network.tlsVersionRestriction": ["firefox"],
         "runtime.restart": ["chrome"],
-        "sessions.getDevices": ["chrome"],
-        "telemetry.canUpload": [],
-        "telemetry.keyedScalarAdd": [],
-        "telemetry.keyedScalarSet": [],
-        "telemetry.keyedScalarSetMaximum": [],
-        "telemetry.recordEvent": [],
-        "telemetry.registerEvents": [],
-        "telemetry.registerScalars": [],
-        "telemetry.scalarAdd": [],
-        "telemetry.scalarSet": [],
-        "telemetry.scalarSetMaximum": [],
-        "telemetry.setEventRecordingEnabled": [],
-        "telemetry.submitPing": [],
-        "urlbar.closeView": [],
-        "urlbar.engagementTelemetry": [],
-        "urlbar.focus": [],
-        "urlbar.onBehaviorRequested": [],
-        "urlbar.onEngagement": [],
-        "urlbar.onQueryCanceled": [],
-        "urlbar.onResultPicked": [],
-        "urlbar.onResultsRequested": [],
-        "urlbar.search": []
+        "sessions.getDevices": ["chrome"]
     },
-    "nested_defaults": {
-        "bcdVersion": "8.0.12",
-        "declarationVersion": "143.0.0",
-        "nestedSha256": "1727ff7e2bd745c51c5ea02f7c58a1e646f6d18ba4bd555a1ec740bf395c5763",
-        "sha256": "3fa1deb281c454322ef48b77626307a64f7e6b65b4f2065ccd2645afc070cc9a",
+    "nested_inheritance": {
         "targets": ["chrome", "firefox", "firefox_android"]
     },
     "nested_unmapped": {
@@ -86,22 +56,6 @@
         "storage.sync": ["firefox_android"],
         "tabs.query": ["firefox_android"]
     },
-    "compat_exports": [
-        "callProxy",
-        "clearTabSessionValues",
-        "clearWindowSessionValues",
-        "getDesktop",
-        "getFirefox",
-        "getFirefoxDesktop",
-        "getSessionId",
-        "getSidebar",
-        "isAndroid",
-        "notImplemented",
-        "requireDesktop",
-        "requireFirefox",
-        "requireFirefoxDesktop",
-        "unsupportedApi"
-    ],
     "compat": {
         "bookmarks.create": {
             "targets": { "chrome": "native", "firefox": "native", "firefox_android": "desktop" }

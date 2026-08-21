@@ -5,14 +5,24 @@
 const fs = require("fs")
 const crypto = require("crypto")
 const path = require("path")
+const { isDeepStrictEqual } = require("util")
 const ts = require("typescript")
 const bcd = require("@mdn/browser-compat-data")
 const targets = require("../browser-targets.json")
 const policy = require("./browser_types_policy.json")
 
+const browserTypesLockPath = path.resolve(__dirname, "browser_types.lock.json")
+
 const declarationPath = require.resolve(
     "@types/firefox-webext-browser/index.d.ts",
 )
+const declarationVersion = JSON.parse(
+    fs.readFileSync(path.join(path.dirname(declarationPath), "package.json")),
+).version
+
+function sha256(value) {
+    return crypto.createHash("sha256").update(value).digest("hex")
+}
 
 function compareVersions(left, right) {
     const versionPattern = /^(≤)?\d+(\.\d+)*$/
@@ -552,7 +562,10 @@ function nestedDeclarationEdits(
 
     const aliases = mappingPolicy.aliases || {}
     const configured = mappingPolicy.nested_unmapped || {}
+    const inheritanceTargets = mappingPolicy.nested_inheritance?.targets || []
     const partialSupport = mappingPolicy.partial_support || {}
+    if (invalidTargets(inheritanceTargets))
+        throw new Error("Nested inheritance policy drift (invalid targets)")
     const invalid = Object.keys(configured).filter(
         apiPath => invalidTargets(configured[apiPath]),
     )
@@ -596,7 +609,7 @@ function nestedDeclarationEdits(
         )
         const inherited =
             (support.state === "supported" || retainedRuntimeParent) &&
-            mappingPolicy.nested_defaults?.targets?.includes(target) === true
+            inheritanceTargets.includes(target)
         return {
             mapped: false,
             path: apiPath,
@@ -1044,7 +1057,7 @@ function decidePaths(declarations, target, minimum, api, mappingPolicy) {
         ...new Set(declarations.map(declaration => declaration.path)),
     ].sort()
     const aliases = mappingPolicy.aliases || {}
-    const configured = mappingPolicy.unmapped || {}
+    const configured = mappingPolicy.unmapped_retained || {}
     const partialSupport = mappingPolicy.partial_support || {}
     const invalidPartial = Object.entries(partialSupport)
         .filter(
@@ -1080,11 +1093,10 @@ function decidePaths(declarations, target, minimum, api, mappingPolicy) {
     )
     const unmapped = paths.filter(apiPath => !support.get(apiPath).mapped)
     const configuredPaths = Object.keys(configured).sort()
-    const unlisted = unmapped.filter(apiPath => !(apiPath in configured))
     const stale = configuredPaths.filter(apiPath => !unmapped.includes(apiPath))
     const invalid = configuredPaths.filter(apiPath => {
         const retainedTargets = configured[apiPath]
-        return invalidTargets(retainedTargets)
+        return invalidTargets(retainedTargets) || retainedTargets.length === 0
     })
     const stalePartial = Object.entries(partialSupport)
         .filter(([, configuredTargets]) => configuredTargets.includes(target))
@@ -1094,14 +1106,8 @@ function decidePaths(declarations, target, minimum, api, mappingPolicy) {
             return before.state === "supported" || after.state !== "supported"
         })
         .map(([apiPath]) => apiPath)
-    if (
-        unlisted.length ||
-        stale.length ||
-        invalid.length ||
-        stalePartial.length
-    ) {
+    if (stale.length || invalid.length || stalePartial.length) {
         const details = []
-        if (unlisted.length) details.push(`unlisted: ${unlisted.join(", ")}`)
         if (stale.length) details.push(`stale: ${stale.join(", ")}`)
         if (invalid.length) details.push(`invalid: ${invalid.join(", ")}`)
         if (stalePartial.length)
@@ -1117,7 +1123,7 @@ function decidePaths(declarations, target, minimum, api, mappingPolicy) {
                 decisions.set(apiPath, { keep: false, reason: state })
                 continue
             }
-            const keep = configured[apiPath].includes(target)
+            const keep = configured[apiPath]?.includes(target) === true
             decisions.set(apiPath, {
                 keep,
                 reason: keep ? "unmapped-retained" : "unmapped-removed",
@@ -1226,13 +1232,11 @@ function transformDeclarations(source, target, minimum, api, mappingPolicy) {
     const generatedText = `// Generated for ${target} ${minimum}; do not edit.\n${text}`
     return {
         text: generatedText,
+        unmappedRuntime: mapping.unmapped,
         report: {
             target,
             minimumVersion: minimum,
-            declarationSha256: crypto
-                .createHash("sha256")
-                .update(generatedText)
-                .digest("hex"),
+            declarationSha256: sha256(generatedText),
             counts: {
                 runtimeDeclarations: declarations.length,
                 runtimePaths: mapping.paths.length,
@@ -1313,45 +1317,85 @@ function validateAliases(reports, mappingPolicy, api) {
         throw new Error(`Alias policy drift (${details.join("; ")})`)
 }
 
-function validateNestedDefaults(source, mappingPolicy, reports) {
-    const defaults = mappingPolicy.nested_defaults
-    if (!defaults) return
-    const version = JSON.parse(
-        fs.readFileSync(path.join(path.dirname(declarationPath), "package.json")),
-    ).version
-    const hash = crypto.createHash("sha256").update(source).digest("hex")
-    const validTargets =
-        Array.isArray(defaults.targets) &&
-        new Set(defaults.targets).size === defaults.targets.length &&
-        defaults.targets.every(target => Object.hasOwn(targets, target))
-    if (
-        !validTargets ||
-        defaults.bcdVersion !== bcd.__meta.version ||
-        defaults.declarationVersion !== version ||
-        defaults.sha256 !== hash
-    )
-        throw new Error(
-            `Nested default policy drift (expected ${version} ${hash})`,
-        )
-    if (!reports) return
-    const inventory = Object.entries(reports)
-        .flatMap(([target, report]) =>
-            [
-                `${target}:declaration:${report.declarationSha256 || ""}`,
-                ...[...report.nested.retained, ...report.nested.removed].map(
-                    row => `${target}:${row.path}:${row.mapped}:${row.reason}`,
+function serializeBrowserTypesLock(lock) {
+    return JSON.stringify(lock, null, 4) + "\n"
+}
+
+function buildBrowserTypesLock(source, outputs, compatExports) {
+    const generated = {}
+    for (const [target, output] of Object.entries(outputs).sort()) {
+        const rows = [
+            ...output.report.nested.retained,
+            ...output.report.nested.removed,
+        ]
+            .map(row => `${row.path}:${row.mapped}:${row.reason}`)
+            .sort()
+        generated[target] = {
+            declarationSha256: output.report.declarationSha256,
+            nestedInventorySha256: sha256(rows.join("\n")),
+            counts: output.report.counts,
+        }
+    }
+    return {
+        version: 1,
+        inputs: {
+            bcdVersion: bcd.__meta.version,
+            declarationVersion,
+            declarationSha256: sha256(source),
+        },
+        targets: Object.fromEntries(
+            Object.keys(targets)
+                .sort()
+                .map(target => [
+                    target,
+                    {
+                        minimumVersion: targets[target].minimumVersion,
+                        advisory: targets[target].advisory === true,
+                    },
+                ]),
+        ),
+        inventory: {
+            unmappedRuntime: [
+                ...new Set(
+                    Object.values(outputs).flatMap(
+                        output => output.unmappedRuntime,
+                    ),
                 ),
-            ],
+            ].sort(),
+            compatExports: [...new Set(compatExports)].sort(),
+        },
+        generated,
+    }
+}
+
+function validateBrowserTypesLock(locked, current) {
+    if (isDeepStrictEqual(locked, current)) return
+    const sections = ["version", "inputs", "targets", "inventory", "generated"]
+        .filter(
+            section => !isDeepStrictEqual(locked?.[section], current[section]),
         )
-        .sort()
-    const inventoryHash = crypto
-        .createHash("sha256")
-        .update(inventory.join("\n"))
-        .digest("hex")
-    if (defaults.nestedSha256 !== inventoryHash)
+        .join(", ")
+    throw new Error(
+        `Browser type lock drift (${sections}); run yarn update-browser-types-lock and review the diff`,
+    )
+}
+
+function writeBrowserTypesLock(fileName, lock) {
+    const temporary = `${fileName}.${process.pid}.tmp`
+    try {
+        fs.writeFileSync(temporary, serializeBrowserTypesLock(lock))
+        fs.renameSync(temporary, fileName)
+    } finally {
+        fs.rmSync(temporary, { force: true })
+    }
+}
+
+function readBrowserTypesLock(fileName) {
+    if (!fs.existsSync(fileName))
         throw new Error(
-            `Nested inventory policy drift (expected ${inventoryHash})`,
+            "Browser type lock is missing; run yarn update-browser-types-lock",
         )
+    return JSON.parse(fs.readFileSync(fileName, "utf8"))
 }
 
 function collectCompatMethods(source, fileName = "compat.d.ts") {
@@ -1417,8 +1461,7 @@ function transformCompatDeclaration(
     api,
     mappingPolicy,
 ) {
-    const { capabilities, exportedFunctions, methods } =
-        collectCompatMethods(source)
+    const { capabilities, methods } = collectCompatMethods(source)
     const configured = mappingPolicy.compat || {}
     const paths = [...new Set(methods.map(method => method.path))].sort()
     const configuredPaths = Object.keys(configured).sort()
@@ -1450,13 +1493,6 @@ function transformCompatDeclaration(
         if (invalid.length) details.push(`invalid: ${invalid.join(", ")}`)
         throw new Error(`Compat policy drift (${details.join("; ")})`)
     }
-    const configuredExports = (mappingPolicy.compat_exports || []).slice().sort()
-    const actualExports = [...new Set(exportedFunctions)].sort()
-    if (configuredExports.join() !== actualExports.join())
-        throw new Error(
-            `Compat export policy drift (expected: ${actualExports.join(", ")})`,
-        )
-
     const capabilityNames = {
         desktop: "desktopApis",
         firefox: "firefoxApis",
@@ -1563,8 +1599,8 @@ function generateAll(options = {}) {
         options.outputRoot ||
         path.resolve(__dirname, "../generated/browser-types")
     const source = fs.readFileSync(sourcePath, "utf8")
-    validateNestedDefaults(source, policy)
     const compatDeclaration = emitCompatDeclaration(outputRoot)
+    const compatExports = collectCompatMethods(compatDeclaration).exportedFunctions
     const reports = {}
     const outputs = {}
     for (const target of Object.keys(targets).sort()) {
@@ -1590,7 +1626,15 @@ function generateAll(options = {}) {
     }
     validateAliases(reports, policy, bcd.webextensions.api)
     validateNestedPolicy(reports, policy)
-    validateNestedDefaults(source, policy, reports)
+    const currentLock = buildBrowserTypesLock(source, outputs, compatExports)
+    if (options.updateLock) {
+        writeBrowserTypesLock(browserTypesLockPath, currentLock)
+        return reports
+    }
+    validateBrowserTypesLock(
+        readBrowserTypesLock(browserTypesLockPath),
+        currentLock,
+    )
     fs.rmSync(path.join(outputRoot, "compat"), { recursive: true, force: true })
     for (const [target, result] of Object.entries(outputs)) {
         const directory = path.join(outputRoot, target)
@@ -1611,7 +1655,15 @@ function generateAll(options = {}) {
 }
 
 if (require.main === module) {
-    const reports = generateAll()
+    const args = process.argv.slice(2)
+    const updateLock = args.length === 1 && args[0] === "--update-lock"
+    if (args.length && !updateLock)
+        throw new Error("Usage: generate_browser_types.js [--update-lock]")
+    const reports = generateAll({ updateLock })
+    if (updateLock)
+        console.log(
+            `Updated ${path.relative(process.cwd(), browserTypesLockPath)}`,
+        )
     for (const target of Object.keys(reports).sort()) {
         const counts = reports[target].counts
         console.log(
@@ -1622,14 +1674,18 @@ if (require.main === module) {
 
 module.exports = {
     applyAlias,
+    buildBrowserTypesLock,
+    collectCompatMethods,
     collectRuntimeDeclarations,
     decidePaths,
     emitCompatDeclaration,
     generateAll,
+    serializeBrowserTypesLock,
     supportState,
     transformCompatDeclaration,
     transformDeclarations,
     validateAliases,
-    validateNestedDefaults,
+    validateBrowserTypesLock,
     validateNestedPolicy,
+    writeBrowserTypesLock,
 }

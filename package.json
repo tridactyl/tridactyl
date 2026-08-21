@@ -68,6 +68,7 @@
     "clean": "rm -rf build generated",
     "forrest-run": "yarn run run",
     "generate-browser-types": "node scripts/generate_browser_types.js",
+    "update-browser-types-lock": "node scripts/generate_browser_types.js --update-lock",
     "jest": "jest --bail --runInBand",
     "lint": "bash hooks/pre-commit",
     "make-zip": "web-ext build --source-dir build --overwrite-dest",

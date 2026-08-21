@@ -1,0 +1,152 @@
+{
+    "version": 1,
+    "inputs": {
+        "bcdVersion": "8.0.12",
+        "declarationVersion": "143.0.0",
+        "declarationSha256": "3fa1deb281c454322ef48b77626307a64f7e6b65b4f2065ccd2645afc070cc9a"
+    },
+    "targets": {
+        "chrome": {
+            "minimumVersion": "114",
+            "advisory": true
+        },
+        "firefox": {
+            "minimumVersion": "94.0",
+            "advisory": false
+        },
+        "firefox_android": {
+            "minimumVersion": "113.0",
+            "advisory": false
+        }
+    },
+    "inventory": {
+        "unmappedRuntime": [
+            "activityLog.onExtensionActivity",
+            "browserSettings.colorManagement.mode",
+            "browserSettings.colorManagement.useNativeSRGB",
+            "browserSettings.colorManagement.useWebRenderCompositor",
+            "browsingData.removeAppcache",
+            "browsingData.removeFileSystems",
+            "browsingData.removeIndexedDB",
+            "browsingData.removeWebSQL",
+            "downloads.drag",
+            "geckoProfiler.dumpProfileToFile",
+            "geckoProfiler.getProfile",
+            "geckoProfiler.getProfileAsArrayBuffer",
+            "geckoProfiler.getProfileAsGzippedArrayBuffer",
+            "geckoProfiler.getSymbols",
+            "geckoProfiler.onRunning",
+            "geckoProfiler.pause",
+            "geckoProfiler.resume",
+            "geckoProfiler.start",
+            "geckoProfiler.stop",
+            "identity.getAccounts",
+            "identity.getAuthToken",
+            "identity.getProfileUserInfo",
+            "identity.onSignInChanged",
+            "identity.removeCachedAuthToken",
+            "networkStatus.getLinkInfo",
+            "networkStatus.onConnectionChanged",
+            "normandyAddonStudy.endStudy",
+            "normandyAddonStudy.getClientMetadata",
+            "normandyAddonStudy.getStudy",
+            "normandyAddonStudy.onUnenroll",
+            "notifications.getPermissionLevel",
+            "notifications.onPermissionLevelChanged",
+            "notifications.onShowSettings",
+            "privacy.network.tlsVersionRestriction",
+            "runtime.restart",
+            "sessions.getDevices",
+            "telemetry.canUpload",
+            "telemetry.keyedScalarAdd",
+            "telemetry.keyedScalarSet",
+            "telemetry.keyedScalarSetMaximum",
+            "telemetry.recordEvent",
+            "telemetry.registerEvents",
+            "telemetry.registerScalars",
+            "telemetry.scalarAdd",
+            "telemetry.scalarSet",
+            "telemetry.scalarSetMaximum",
+            "telemetry.setEventRecordingEnabled",
+            "telemetry.submitPing",
+            "urlbar.closeView",
+            "urlbar.engagementTelemetry",
+            "urlbar.focus",
+            "urlbar.onBehaviorRequested",
+            "urlbar.onEngagement",
+            "urlbar.onQueryCanceled",
+            "urlbar.onResultPicked",
+            "urlbar.onResultsRequested",
+            "urlbar.search"
+        ],
+        "compatExports": [
+            "callProxy",
+            "clearTabSessionValues",
+            "clearWindowSessionValues",
+            "getDesktop",
+            "getFirefox",
+            "getFirefoxDesktop",
+            "getSessionId",
+            "getSidebar",
+            "isAndroid",
+            "notImplemented",
+            "requireDesktop",
+            "requireFirefox",
+            "requireFirefoxDesktop",
+            "unsupportedApi"
+        ]
+    },
+    "generated": {
+        "chrome": {
+            "declarationSha256": "83fc8ad974fc47456ce20ec2ad13213e71eb002c9ff11fc103b2b52ac76f0c9f",
+            "nestedInventorySha256": "08926cd9674da268e490f7e8012bf99b17ff1d9d3ff6f8e814c4cb4d56188996",
+            "counts": {
+                "runtimeDeclarations": 531,
+                "runtimePaths": 512,
+                "mappedPaths": 455,
+                "unmappedPaths": 57,
+                "retainedPaths": 328,
+                "removedPaths": 184,
+                "nestedPaths": 3206,
+                "mappedNestedPaths": 634,
+                "unmappedNestedPaths": 2572,
+                "retainedNestedPaths": 3021,
+                "removedNestedPaths": 185
+            }
+        },
+        "firefox": {
+            "declarationSha256": "6d813b926548f715deb589fb5b9e9e8a2bf8c0ca6d46c32667e2a53457c2dff2",
+            "nestedInventorySha256": "9f07d24898cf2f9a4d691ffaf021b6d3c9566b70c09b26406361ed3dbb85864f",
+            "counts": {
+                "runtimeDeclarations": 531,
+                "runtimePaths": 512,
+                "mappedPaths": 455,
+                "unmappedPaths": 57,
+                "retainedPaths": 368,
+                "removedPaths": 144,
+                "nestedPaths": 3324,
+                "mappedNestedPaths": 676,
+                "unmappedNestedPaths": 2648,
+                "retainedNestedPaths": 3254,
+                "removedNestedPaths": 70
+            }
+        },
+        "firefox_android": {
+            "declarationSha256": "ece607093704870510d00f51681db1c76cb9efe0f88338fa5fe0a4b94080dc01",
+            "nestedInventorySha256": "14acbbbe3bd92de9f2075ec6f39ecb49d2c056c14b55dc441624ffd820515560",
+            "counts": {
+                "runtimeDeclarations": 531,
+                "runtimePaths": 512,
+                "mappedPaths": 455,
+                "unmappedPaths": 57,
+                "retainedPaths": 225,
+                "removedPaths": 287,
+                "nestedPaths": 2473,
+                "mappedNestedPaths": 487,
+                "unmappedNestedPaths": 1986,
+                "retainedNestedPaths": 2350,
+                "removedNestedPaths": 123
+            }
+        }
+    }
+}

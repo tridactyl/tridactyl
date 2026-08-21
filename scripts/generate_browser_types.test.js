@@ -1,18 +1,22 @@
-const crypto = require("crypto")
+const fs = require("fs")
+const os = require("os")
+const path = require("path")
 const ts = require("typescript")
-const bcd = require("@mdn/browser-compat-data")
-const declarationVersion = require("@types/firefox-webext-browser/package.json").version
 const {
     applyAlias,
+    buildBrowserTypesLock,
+    collectCompatMethods,
+    serializeBrowserTypesLock,
     supportState,
     transformCompatDeclaration,
     transformDeclarations,
     validateAliases,
-    validateNestedDefaults,
+    validateBrowserTypesLock,
     validateNestedPolicy,
+    writeBrowserTypesLock,
 } = require("./generate_browser_types")
 
-const emptyPolicy = { aliases: {}, unmapped: {} }
+const emptyPolicy = { aliases: {}, unmapped_retained: {} }
 
 function compat(statement) {
     return { __compat: { support: { firefox: statement } } }
@@ -101,7 +105,7 @@ test("allows partial support only when explicitly requested", () => {
     }
     const result = generate(source, api, {
         aliases: {},
-        unmapped: {},
+        unmapped_retained: {},
         partial_support: { "example.partial": ["firefox"] },
     })
 
@@ -119,14 +123,14 @@ test("allows partial support only when explicitly requested", () => {
     expect(() =>
         generate(source, api, {
             aliases: {},
-            unmapped: {},
+            unmapped_retained: {},
             partial_support: { "example.full": ["firefox"] },
         }),
     ).toThrow("stale partial support: example.full")
     expect(() =>
         generate(source, api, {
             aliases: {},
-            unmapped: {},
+            unmapped_retained: {},
             partial_support: { "example.partial": [] },
         }),
     ).toThrow("invalid partial support: example.partial")
@@ -149,8 +153,8 @@ test("filters inherited runtime object members", () => {
     }
     const result = generate(source, api, {
         aliases: {},
-        unmapped: {},
-        nested_defaults: { targets: ["firefox"] },
+        unmapped_retained: {},
+        nested_inheritance: { targets: ["firefox"] },
     })
 
     expect(compile(result.text, "browser.storage.sync.get()")).toEqual([])
@@ -232,7 +236,7 @@ declare namespace browser.contextMenus {
                 }),
             },
         },
-        { aliases: { contextMenus: "menus" }, unmapped: {} },
+        { aliases: { contextMenus: "menus" }, unmapped_retained: {} },
     )
     expect(applyAlias("contextMenus.create", { contextMenus: "menus" })).toBe(
         "menus.create",
@@ -274,8 +278,8 @@ declare namespace browser.userScripts {
     }
     const result = generate(source, api, {
         aliases,
-        unmapped: {},
-        nested_defaults: { targets: ["firefox"] },
+        unmapped_retained: {},
+        nested_inheritance: { targets: ["firefox"] },
     })
 
     expect(result.text.match(/function register/g) || []).toHaveLength(1)
@@ -322,7 +326,7 @@ test("an unavailable parent overrides an unmapped child policy", () => {
     }
     const policy = {
         aliases: {},
-        unmapped: { "windows.mode": ["firefox"] },
+        unmapped_retained: { "windows.mode": ["firefox"] },
     }
     const result = generate(source, api, policy)
     expect(compile(result.text, "browser.windows.mode")).not.toEqual([])
@@ -331,17 +335,19 @@ test("an unavailable parent overrides an unmapped child policy", () => {
     ])
 })
 
-test("fails on unmapped policy drift and permits explicit policy", () => {
+test("removes unmapped paths by default and permits explicit retention", () => {
     const source = `declare namespace browser.future { const value: number; }`
     const withUnmapped = (...paths) => ({
         aliases: {},
-        unmapped: Object.fromEntries(
+        unmapped_retained: Object.fromEntries(
             paths.map(apiPath => [apiPath, ["firefox"]]),
         ),
     })
-    expect(() => generate(source, {}, withUnmapped())).toThrow(
-        /unlisted: future\.value/,
-    )
+    const removed = generate(source, {}, withUnmapped())
+    expect(removed.text).not.toContain("const value")
+    expect(removed.report.removed).toEqual([
+        { path: "future.value", reason: "unmapped-removed" },
+    ])
 
     const result = generate(source, {}, withUnmapped("future.value"))
     expect(result.text).toContain("const value")
@@ -356,7 +362,7 @@ test("applies unmapped policy per target", () => {
     const source = `declare namespace browser.future { const value: number; }`
     const policy = {
         aliases: {},
-        unmapped: { "future.value": ["chrome"] },
+        unmapped_retained: { "future.value": ["chrome"] },
     }
     const firefox = generate(source, {}, policy)
     const chrome = transformDeclarations(source, "chrome", "100", {}, policy)
@@ -367,6 +373,7 @@ test("applies unmapped policy per target", () => {
 
 test.each([
     ["non-array values", "retain"],
+    ["empty target lists", []],
     ["unknown targets", ["safari"]],
     ["prototype targets", ["constructor"]],
     ["duplicate targets", ["firefox", "firefox"]],
@@ -374,7 +381,7 @@ test.each([
     const source = `declare namespace browser.future { const value: number; }`
     const policy = {
         aliases: {},
-        unmapped: { "future.value": retainedTargets },
+        unmapped_retained: { "future.value": retainedTargets },
     }
     expect(() => generate(source, {}, policy)).toThrow(/invalid: future\.value/)
 })
@@ -415,7 +422,6 @@ export declare const tabs: {
     }
     const policy = {
         aliases: {},
-        compat_exports: ["requireFirefoxDesktop"],
         compat: {
             "tabs.hide": {
                 api: "tabs.hide",
@@ -531,16 +537,14 @@ test("rejects compat methods missing from their declared capability", () => {
     ).toThrow(/capability drift.*tabs\.hide/)
 })
 
-test("rejects unlisted exported compat functions", () => {
-    expect(() =>
-        transformCompatDeclaration(
-            `export declare function hiddenAdapter(): void;`,
-            "firefox",
-            "94",
-            {},
-            { aliases: {}, compat: {}, compat_exports: [] },
-        ),
-    ).toThrow(/Compat export policy drift.*hiddenAdapter/)
+test("collects exported compatibility helpers for lock inventory", () => {
+    const source = `
+        export declare function hiddenAdapter(): void;
+        declare function privateAdapter(): void;
+    `
+    expect(collectCompatMethods(source).exportedFunctions).toEqual([
+        "hiddenAdapter",
+    ])
 })
 
 test("filters versioned parameter, result, callback, and event filter fields", () => {
@@ -956,7 +960,7 @@ declare namespace browser.precise {
     }
     const { text } = generate(source, api, {
         ...emptyPolicy,
-        nested_defaults: { targets: ["firefox"] },
+        nested_inheritance: { targets: ["firefox"] },
         nested_unmapped: { "precise.onDefault.return_promise": [] },
     })
 
@@ -1039,11 +1043,17 @@ declare namespace browser.example {
         compile(
             generate(source, api, {
                 ...emptyPolicy,
-                nested_defaults: { targets: ["firefox"] },
+                nested_inheritance: { targets: ["firefox"] },
             }).text,
             usage,
         ),
     ).toEqual([])
+    expect(() =>
+        generate(source, api, {
+            ...emptyPolicy,
+            nested_inheritance: { targets: ["safari"] },
+        }),
+    ).toThrow(/Nested inheritance policy drift/)
 })
 
 test("rejects stale nested policy", () => {
@@ -1059,57 +1069,89 @@ test("rejects stale nested policy", () => {
     ).toThrow(/Nested unmapped policy drift.*stale/)
 })
 
-test("rejects nested defaults when the declaration fingerprint changes", () => {
-    expect(() =>
-        validateNestedDefaults("changed", {
-            nested_defaults: {
-                bcdVersion: bcd.__meta.version,
-                declarationVersion,
-                sha256: "outdated",
-                targets: ["firefox"],
+function lockOutputs(declarationSha256 = "current", reason = "inherited-parent") {
+    return {
+        firefox: {
+            unmappedRuntime: ["future.value", "old.value"],
+            report: {
+                declarationSha256,
+                counts: { runtimePaths: 2, nestedPaths: 1 },
+                nested: {
+                    retained: [
+                        {
+                            mapped: false,
+                            path: "example.run.options",
+                            reason,
+                        },
+                    ],
+                    removed: [],
+                },
             },
+        },
+    }
+}
+
+test("builds deterministic browser type lock inventories", () => {
+    const lock = buildBrowserTypesLock("source", lockOutputs(), [
+        "zHelper",
+        "aHelper",
+        "zHelper",
+    ])
+
+    expect(lock.inventory).toEqual({
+        unmappedRuntime: ["future.value", "old.value"],
+        compatExports: ["aHelper", "zHelper"],
+    })
+    expect(lock.generated.firefox.counts).toEqual({
+        runtimePaths: 2,
+        nestedPaths: 1,
+    })
+    expect(serializeBrowserTypesLock(lock)).toMatch(/\n$/)
+    expect(() => validateBrowserTypesLock(lock, { ...lock })).not.toThrow()
+    expect(() =>
+        validateBrowserTypesLock(lock, {
+            ...lock,
+            inventory: { ...lock.inventory, unmappedRuntime: ["new.value"] },
         }),
-    ).toThrow(/Nested default policy drift/)
+    ).toThrow(/lock drift \(inventory\).*update-browser-types-lock/)
 })
 
-test("includes generated declarations in the nested inventory fingerprint", () => {
-    const source = "current"
-    const report = {
-        declarationSha256: "current",
-        nested: {
-            retained: [
-                {
-                    mapped: false,
-                    path: "example.run.options",
-                    reason: "inherited-parent",
-                },
-            ],
-            removed: [],
-        },
-    }
-    const nestedSha256 = crypto
-        .createHash("sha256")
-        .update(
-            [
-                "firefox:declaration:current",
-                "firefox:example.run.options:false:inherited-parent",
-            ].join("\n"),
+test("locks generated declarations and nested inventory separately", () => {
+    const locked = buildBrowserTypesLock("source", lockOutputs(), [])
+    const declarationChanged = buildBrowserTypesLock(
+        "source",
+        lockOutputs("changed"),
+        [],
+    )
+    const nestedChanged = buildBrowserTypesLock(
+        "source",
+        lockOutputs("current", "unmapped-removed"),
+        [],
+    )
+
+    expect(declarationChanged.generated.firefox.nestedInventorySha256).toBe(
+        locked.generated.firefox.nestedInventorySha256,
+    )
+    expect(nestedChanged.generated.firefox.nestedInventorySha256).not.toBe(
+        locked.generated.firefox.nestedInventorySha256,
+    )
+    expect(() =>
+        validateBrowserTypesLock(locked, declarationChanged),
+    ).toThrow(/lock drift \(generated\).*update-browser-types-lock/)
+})
+
+test("writes browser type locks without leaving temporary files", () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "browser-types-lock-"))
+    const fileName = path.join(directory, "lock.json")
+    const lock = buildBrowserTypesLock("source", lockOutputs(), [])
+    try {
+        writeBrowserTypesLock(fileName, lock)
+        writeBrowserTypesLock(fileName, lock)
+        expect(fs.readFileSync(fileName, "utf8")).toBe(
+            serializeBrowserTypesLock(lock),
         )
-        .digest("hex")
-    const mappingPolicy = {
-        nested_defaults: {
-            bcdVersion: bcd.__meta.version,
-            declarationVersion,
-            nestedSha256,
-            sha256: crypto.createHash("sha256").update(source).digest("hex"),
-            targets: ["firefox"],
-        },
+        expect(fs.readdirSync(directory)).toEqual(["lock.json"])
+    } finally {
+        fs.rmSync(directory, { recursive: true, force: true })
     }
-    expect(() =>
-        validateNestedDefaults(source, mappingPolicy, { firefox: report }),
-    ).not.toThrow()
-    report.declarationSha256 = "changed"
-    expect(() =>
-        validateNestedDefaults(source, mappingPolicy, { firefox: report }),
-    ).toThrow(/Nested inventory policy drift/)
 })
