@@ -13,7 +13,36 @@
             "browser_specific_settings",
             "gecko_android",
             "strict_min_version"
-        ]
+        ],
+        "manifest": {
+            "additionalVersionPaths": [
+                [
+                    "browser_specific_settings",
+                    "gecko",
+                    "strict_min_version"
+                ]
+            ],
+            "excludeKeys": [
+                "browser_action.default_area",
+                "chrome_url_overrides",
+                "commands",
+                "omnibox",
+                "sidebar_action",
+                "version_name"
+            ],
+            "excludePermissions": [
+                "bookmarks",
+                "contextMenus",
+                "contextualIdentities",
+                "find",
+                "history",
+                "nativeMessaging",
+                "search",
+                "sessions",
+                "tabHide",
+                "topSites"
+            ]
+        }
     },
     "chrome": {
         "minimumVersion": "114",

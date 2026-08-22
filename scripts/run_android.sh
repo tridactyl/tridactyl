@@ -6,4 +6,4 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-web-ext run -s build/ -t firefox-android --adb-device $1 --firefox-apk org.mozilla.firefox -u 'paste.to'
+web-ext run -s build-android/ -t firefox-android --adb-device "$1" --firefox-apk org.mozilla.firefox -u 'paste.to'

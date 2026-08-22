@@ -1,9 +1,11 @@
 AMOKEYS
 build
+build-android*
 node_modules
 src/grammars/*.ts
 generated
 web-ext-artifacts
+web-ext-artifacts-android
 .vscode
 native/__pycache__
 native/native_main
