@@ -98,8 +98,8 @@
     },
     "generated": {
         "chrome": {
-            "declarationSha256": "83fc8ad974fc47456ce20ec2ad13213e71eb002c9ff11fc103b2b52ac76f0c9f",
-            "nestedInventorySha256": "08926cd9674da268e490f7e8012bf99b17ff1d9d3ff6f8e814c4cb4d56188996",
+            "declarationSha256": "20c5558839793398a1cac81d9011daef21ac2207b271fabf67e540e3264f9ebb",
+            "nestedInventorySha256": "1c6401878817f01ffec318109393e6e940bcbf53a63447819af88c49e4f01937",
             "counts": {
                 "runtimeDeclarations": 531,
                 "runtimePaths": 512,
@@ -110,13 +110,13 @@
                 "nestedPaths": 3206,
                 "mappedNestedPaths": 634,
                 "unmappedNestedPaths": 2572,
-                "retainedNestedPaths": 3021,
-                "removedNestedPaths": 185
+                "retainedNestedPaths": 3017,
+                "removedNestedPaths": 189
             }
         },
         "firefox": {
             "declarationSha256": "6d813b926548f715deb589fb5b9e9e8a2bf8c0ca6d46c32667e2a53457c2dff2",
-            "nestedInventorySha256": "9f07d24898cf2f9a4d691ffaf021b6d3c9566b70c09b26406361ed3dbb85864f",
+            "nestedInventorySha256": "ff1d74803209cce57689b40b06966cc8aee5af324c040d8323959bd40f926c06",
             "counts": {
                 "runtimeDeclarations": 531,
                 "runtimePaths": 512,
@@ -132,8 +132,8 @@
             }
         },
         "firefox_android": {
-            "declarationSha256": "ece607093704870510d00f51681db1c76cb9efe0f88338fa5fe0a4b94080dc01",
-            "nestedInventorySha256": "14acbbbe3bd92de9f2075ec6f39ecb49d2c056c14b55dc441624ffd820515560",
+            "declarationSha256": "20341d575457c7cea0b23947d58be0bd3845f0bb17051720832ea09babed7295",
+            "nestedInventorySha256": "f318d306088ec376d5126b0da81f0576f660934f4e2bb084c2f20999f5530ba1",
             "counts": {
                 "runtimeDeclarations": 531,
                 "runtimePaths": 512,
@@ -144,8 +144,8 @@
                 "nestedPaths": 2473,
                 "mappedNestedPaths": 487,
                 "unmappedNestedPaths": 1986,
-                "retainedNestedPaths": 2350,
-                "removedNestedPaths": 123
+                "retainedNestedPaths": 2346,
+                "removedNestedPaths": 127
             }
         }
     }

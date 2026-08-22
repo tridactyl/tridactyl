@@ -13,6 +13,7 @@ import * as config from "@src/lib/config"
 import { compatProxy } from "@src/lib/browser_proxy"
 import {
     activeTabContainerId,
+    getSortedTabs,
     openInNewTab,
     queryAndURLwrangler,
     sessionsBg,
@@ -52,7 +53,8 @@ describe("Android search fallback", () => {
     })
 
     test("opens ordinary Android tabs without requiring containers", async () => {
-        ;(browser.tabs.query as jest.Mock).mockResolvedValue([
+        const query = browser.tabs.query as jest.Mock
+        query.mockReset().mockResolvedValueOnce([]).mockResolvedValue([
             { id: 1, index: 0, windowId: 1 },
         ])
         ;(browser.tabs.create as jest.Mock).mockResolvedValue({ id: 2 })
@@ -91,6 +93,18 @@ describe("portable search handling", () => {
     })
 
     afterEach(() => jest.restoreAllMocks())
+
+    test("filters hidden tabs without querying an unsupported field", async () => {
+        ;(browser.tabs.query as jest.Mock).mockReset().mockResolvedValue([
+            { hidden: true, index: 0 },
+            { hidden: false, index: 1 },
+        ])
+        jest.spyOn(config, "get").mockReturnValue("false" as never)
+
+        await expect(getSortedTabs()).resolves.toEqual([{ hidden: false, index: 1 }])
+
+        expect(browser.tabs.query).toHaveBeenCalledWith({ currentWindow: true })
+    })
 
     test("recognizes a bare host without Firefox search APIs", async () => {
         const values = { jsurls: {}, searchengine: "", searchurls: {} }

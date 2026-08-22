@@ -2829,7 +2829,8 @@ export async function tabprev(...args: string[]) {
         "--skip-discarded": false,
     })
     const increment = (parseInt(argOpt._.join(" "), 10) || 1) * (option["--reverse"] ? -1 : 1)
-    return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
+    return getSortedTabs("default").then(tabs => {
+        tabs = tabs.filter(tab => !("hidden" in tab && tab.hidden))
         if (option["--skip-discarded"])
             tabs = tabs.filter(tab => !("discarded" in tab && tab.discarded))
         tabs.sort((t1, t2) => t1.index - t2.index)

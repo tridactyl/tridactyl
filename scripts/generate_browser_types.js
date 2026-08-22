@@ -353,7 +353,8 @@ function nestedDeclarationEdits(
                 entry =>
                     entry.operation === context.operation &&
                     entry.slot === context.slot &&
-                    entry.sourceParameter === context.sourceParameter,
+                    entry.sourceParameter === context.sourceParameter &&
+                    entry.input === context.input,
             )
         )
             return
@@ -399,6 +400,7 @@ function nestedDeclarationEdits(
                     slot: parameter.name.text,
                     sourceParameter: parameter,
                     ancestry: [typeName],
+                    input: true,
                 })
             }
         }
@@ -495,6 +497,7 @@ function nestedDeclarationEdits(
                             slot: parameter.name.text,
                             sourceParameter: parameter,
                             ancestry: [childType],
+                            input: true,
                         })
                     }
                 }
@@ -529,9 +532,8 @@ function nestedDeclarationEdits(
                         const ancestry = entry.ancestry || [typeName]
                         if (ancestry.includes(childType)) continue
                         addContext(childType, {
-                            operation: entry.operation,
+                            ...entry,
                             slot: `${entry.slot}.${property}`,
-                            sourceParameter: entry.sourceParameter,
                             ancestry: ancestry.concat(childType),
                         })
                     }
@@ -574,14 +576,18 @@ function nestedDeclarationEdits(
             `Nested unmapped policy drift (invalid: ${invalid.join(", ")})`,
         )
 
-    function classify(apiPath) {
-        const bcdPath = applyAlias(apiPath, aliases)
-        const alternativePath = bcdPath === apiPath ? undefined : apiPath
-        const allowPartial = Object.entries(partialSupport).some(
+    function allowsPartial(apiPath) {
+        return Object.entries(partialSupport).some(
             ([path, configuredTargets]) =>
                 configuredTargets.includes(target) &&
                 (apiPath === path || apiPath.startsWith(`${path}.`)),
         )
+    }
+
+    function classify(apiPath, rejectInherited = false) {
+        const bcdPath = applyAlias(apiPath, aliases)
+        const alternativePath = bcdPath === apiPath ? undefined : apiPath
+        const allowPartial = allowsPartial(apiPath)
         const support = supportForPath(
             api,
             bcdPath,
@@ -617,14 +623,16 @@ function nestedDeclarationEdits(
                 ? "unmapped-retained"
                 : explicitlyConfigured
                   ? "unmapped-removed"
-                  : inherited
+                  : inherited && !rejectInherited
                   ? "inherited-parent"
                   : "unmapped-removed",
         }
     }
 
-    function decision(apiPaths) {
-        const results = apiPaths.map(classify)
+    function decision(apiPaths, rejectInherited = false) {
+        const results = apiPaths.map(apiPath =>
+            classify(apiPath, rejectInherited),
+        )
         return {
             keep: results.every(
                 result =>
@@ -680,8 +688,8 @@ function nestedDeclarationEdits(
     }
 
     const rows = []
-    function decide(apiPaths) {
-        const result = decision(apiPaths)
+    function decide(apiPaths, rejectInherited) {
+        const result = decision(apiPaths, rejectInherited)
         rows.push(...result.results)
         return result.keep
     }
@@ -984,6 +992,7 @@ function nestedDeclarationEdits(
             if (!member.name) continue
             const property = nodeName(member.name)
             const candidates = new Set()
+            let rejectInherited = false
             const canonical = `${typeName}.${property}`
             const canonicalPath = applyAlias(canonical, aliases)
             const canonicalMapped = featureAtPath(api, canonicalPath)
@@ -1031,15 +1040,26 @@ function nestedDeclarationEdits(
             }
             for (const context of contexts.get(typeName) || []) {
                 if (disabledParameters.has(context.sourceParameter)) continue
+                const contextCandidates = contextPaths(context, property)
+                const unmappedInput =
+                    context.input === true &&
+                    ts.isPropertySignature(member) &&
+                    member.questionToken !== undefined &&
+                    allowsPartial(context.operation) &&
+                    !contextCandidates.some(candidate =>
+                        featureAtPath(api, applyAlias(candidate, aliases)) ||
+                        candidate in configured,
+                    )
+                rejectInherited ||= unmappedInput
                 if (
                     canonicalSupport.state !== undefined &&
                     applyAlias(context.operation, aliases) === context.operation
                 )
                     candidates.add(canonical)
-                for (const candidate of contextPaths(context, property))
+                for (const candidate of contextCandidates)
                     candidates.add(candidate)
             }
-            if (candidates.size && !decide([...candidates])) {
+            if (candidates.size && !decide([...candidates], rejectInherited)) {
                 edits.push({
                     start: member.getFullStart(),
                     end: member.end,

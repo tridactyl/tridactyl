@@ -31,6 +31,8 @@ Run the advisory Chrome check separately with `yarn typecheck:chrome`. It intent
 
 The reports distinguish mapped, inherited, retained, and removed top-level paths and nested candidate paths. A nested row records compatibility evidence used by one or more declarations, not whether a same-named declaration member was emitted. Generation also fails when the generated lock, compatibility methods, capability membership, or human policy decisions drift.
 
+For APIs retained through `partial_support`, unmapped optional input fields are removed by default. Direct parameters and browser-provided callback or result fields continue to inherit parent support.
+
 Remaining limitations are deliberately not presented as a full compatibility guarantee:
 
 - Inline object-literal input/result members and data aliases to named interfaces are not rewritten.

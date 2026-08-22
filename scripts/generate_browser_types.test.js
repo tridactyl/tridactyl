@@ -1010,47 +1010,57 @@ browser.precise.onSibling.addListener((_change, input) => input.stable);
     }
 })
 
-test("removes unknown nested fields unless target policy retains them", () => {
+test("removes unknown inputs from partial APIs while inheriting outputs", () => {
     const source = `
 declare namespace browser.example {
     interface Options { stable?: boolean; unknown?: boolean }
+    interface Result { unknown?: boolean }
+    interface Filter { stable?: boolean; unknown?: boolean }
+    interface Payload { unknown?: boolean }
+    interface Event { addListener(callback: (payload: Payload) => void, filter?: Filter): void }
     function run(options: Options): void;
+    function read(): Result;
+    const onThing: Event;
 }
 `
     const api = {
         example: {
             run: {
-                ...compat({ version_added: "1" }),
+                ...compat({ version_added: "1", partial_implementation: true }),
                 options: { stable: compat({ version_added: "1" }) },
+            },
+            read: compat({ version_added: "1", partial_implementation: true }),
+            onThing: {
+                ...compat({ version_added: "1", partial_implementation: true }),
+                filter: { stable: compat({ version_added: "1" }) },
             },
         },
     }
     const usage = `browser.example.run({ stable: true, unknown: true })`
+    const partialSupport = { "example.run": ["firefox"], "example.read": ["firefox"], "example.onThing": ["firefox"] }
 
-    expect(compile(generate(source, api).text, usage)).not.toEqual([])
+    const inherited = generate(source, api, {
+        ...emptyPolicy,
+        partial_support: partialSupport,
+        nested_inheritance: { targets: ["firefox"] },
+    }).text
+    expect(compile(inherited, usage)).not.toEqual([])
     expect(
         compile(
-            generate(source, api, {
-                ...emptyPolicy,
-                nested_unmapped: {
-                    "example.run.options.unknown": ["firefox"],
-                },
-            }).text,
-            usage,
+            inherited,
+            `browser.example.read().unknown; browser.example.onThing.addListener(payload => payload.unknown, { stable: true })`,
         ),
     ).toEqual([])
     expect(
         compile(
-            generate(source, api, {
-                ...emptyPolicy,
-                nested_inheritance: { targets: ["firefox"] },
-            }).text,
-            usage,
+            inherited,
+            `browser.example.onThing.addListener(() => {}, { unknown: true })`,
         ),
-    ).toEqual([])
+    ).not.toEqual([])
     expect(() =>
         generate(source, api, {
             ...emptyPolicy,
+            partial_support: partialSupport,
             nested_inheritance: { targets: ["safari"] },
         }),
     ).toThrow(/Nested inheritance policy drift/)

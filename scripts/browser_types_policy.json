@@ -46,6 +46,10 @@
         "targets": ["chrome", "firefox", "firefox_android"]
     },
     "nested_unmapped": {
+        "tabs.query.queryInfo.camera": ["firefox"],
+        "tabs.query.queryInfo.hidden": ["firefox"],
+        "tabs.query.queryInfo.microphone": ["firefox"],
+        "tabs.query.queryInfo.screen": ["firefox"],
         "tabs.update.successorTabId": ["firefox"],
         "webRequest.onAuthRequired.return_promise": ["firefox", "firefox_android"],
         "webRequest.onBeforeRequest.return_promise": ["firefox", "firefox_android"],

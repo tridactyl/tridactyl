@@ -24,15 +24,16 @@ export async function getSortedTabs(
             ? (a, b) =>
                   +a.active || -b.active || b.lastAccessed - a.lastAccessed
             : (a, b) => a.index - b.index
-    const hiddenVal = config.get("tabshowhidden") === "true" ? undefined : false
-    const query: Parameters<typeof browser.tabs.query>[0] = {
-        hidden: hiddenVal,
-    }
+    const showHidden = config.get("tabshowhidden") === "true"
+    const query: Parameters<typeof browser.tabs.query>[0] = {}
     if (!allWindows) {
         if (inContentScript()) query.windowId = (await ownTab()).windowId
         else query.currentWindow = true
     }
-    return browserBg.tabs.query(query).then(tabs => tabs.sort(comp))
+    const tabs = await browserBg.tabs.query(query)
+    return tabs
+        .filter(tab => showHidden || !("hidden" in tab && tab.hidden))
+        .sort(comp)
 }
 
 export function inContentScript() {
@@ -164,12 +165,13 @@ export async function getLastAudibleTab() {
  */
 export async function activeTab() {
     if (inContentScript()) return ownTab()
-    return (
-        await browserBg.tabs.query({
-            active: true,
-            currentWindow: true,
-        })
-    )[0]
+    const [active] = await browserBg.tabs.query({
+        active: true,
+        currentWindow: true,
+    })
+    if (active) return active
+    const tabs = await browserBg.tabs.query({ currentWindow: true })
+    return tabs.find(tab => tab.active) ?? tabs[0]
 }
 
 export async function activeTabOnWindow(windowId?: number) {
@@ -215,8 +217,9 @@ export async function removeActiveWindowValue(value) {
 }
 
 export async function activeTabContainerId() {
+    if (await isAndroid()) return undefined
     const tab = await activeTab()
-    return "cookieStoreId" in tab && typeof tab.cookieStoreId === "string"
+    return tab && "cookieStoreId" in tab && typeof tab.cookieStoreId === "string"
         ? tab.cookieStoreId
         : undefined
 }
