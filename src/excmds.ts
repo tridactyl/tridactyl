@@ -6627,7 +6627,7 @@ export async function extoptions(...optionNameArgs: string[]) {
 }
 
 //#content_helper
-import { Readability } from "@mozilla/readability"
+import Defuddle from "defuddle"
 
 /**
  * @hidden
@@ -6636,7 +6636,11 @@ import { Readability } from "@mozilla/readability"
 export async function readerurl(article: any = undefined) {
     if (!article) {
         document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
-        article = new Readability(document.cloneNode(true) as any as Document).parse()
+        const { content, title, site, author, image } = new Defuddle(
+            document.cloneNode(true) as Document,
+            { url: window.location.href },
+        ).parse()
+        article = { content, title, site, author, image }
         article["link"] = window.location.href
         article["favicon"] = (await ownTab()).favIconUrl
     }
