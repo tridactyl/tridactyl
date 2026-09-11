@@ -35,10 +35,15 @@ const removeNull = R.when(
 
 /** @hidden */
 const CONFIGNAME = "userconfig"
+const CONFIG_WRITE = "userconfig-write"
+const CURRENT_CONFIG_VERSION = "2.0"
+const BACKGROUND_URL = browser.runtime.getURL("_generated_background_page.html")
+const IN_BACKGROUND = !BACKGROUND_URL || BACKGROUND_URL === window.location.href
 /** @hidden */
 const WAITERS = []
 /** @hidden */
 export let INITIALISED = false
+let INITIALISATION_ERROR
 
 /** @hidden */
 // make a naked object
@@ -54,16 +59,41 @@ function schlepp(settings) {
 
 /** @hidden */
 export let USERCONFIG = o({})
+let STORE_QUEUE = Promise.resolve()
+let EXCLUSIVE_QUEUE = Promise.resolve()
+let EXCLUSIVE_PENDING = 0
+let WRITE_ID = 0
+const WRITE_SESSION = `${Date.now()}-${Math.random()}:`
+const PENDING_WRITES = new Set<string>()
 
-/** @hidden
+function store<T>(operation: () => Promise<T>) {
+    const pending = STORE_QUEUE.then(operation)
+    STORE_QUEUE = pending.catch(() => undefined)
+    return pending
+}
+
+function exclusively<T>(operation: () => Promise<T>) {
+    EXCLUSIVE_PENDING++
+    const pending = EXCLUSIVE_QUEUE.then(operation)
+    EXCLUSIVE_QUEUE = pending.catch(() => undefined).then(() => {
+        EXCLUSIVE_PENDING--
+    })
+    return pending
+}
+
+function mutateInBackground(command, args) {
+    return browser.runtime.sendMessage({ type: "config_background", command, args })
+}
+
+/** @internal
  * Ideally, LoggingLevel should be in logging.ts and imported from there. However this would cause a circular dependency, which webpack can't deal with
  */
 export type LoggingLevel = "never" | "error" | "warning" | "info" | "debug"
 
 /**
- * This is the default configuration that Tridactyl comes with.
+ * This page documents Tridactyl's default configuration. Where present, input fields show values from your current configuration.
  *
- * You can change anything here using `set key1.key2.key3 value` or specific things any of the various helper commands such as `bind` or `command`. You can also jump to the help section of a setting using `:help $settingname`. Some of the settings have an input field containing their current value. You can modify these values and save them by pressing `<Enter>` but using `:set $setting $value` is a good habit to take as it doesn't force you to leave the page you're visiting to change your settings.
+ * You can change anything here using `set key1.key2.key3 value` or specific things any of the various helper commands such as `bind` or `command`. You can also jump to the help section of a setting using `:help $settingname`. You can modify values in the input fields and save them by pressing `<Enter>` but using `:set $setting $value` is a good habit to take as it doesn't force you to leave the page you're visiting to change your settings.
  *
  * If the setting you are changing has a dot or period character (.) in it, it cannot be set with `:set` directly. You must either use a helper command for that specific setting - e.g. `:seturl` or `:autocontain`, or you must use Tridactyl's JavaScript API with `:js tri.config.set("path", "to", "key", "value")` to set `{path: {to: {key: value}}}`.
  *
@@ -82,8 +112,8 @@ export class default_config {
     subconfigs: { [key: string]: DeepPartial<default_config> } = {
         "www.google.com": {
             followpagepatterns: {
-                next: "Next",
-                prev: "Previous",
+                next: ["Next"],
+                prev: ["Previous"],
             },
             nmaps: {
                 gi: "composite focusinput -l ; text.end_of_line", // Fix #4706
@@ -112,9 +142,9 @@ export class default_config {
      */
     modesubconfigs: { [key: string]: DeepPartial<default_config> } = {
         normal: {},
-        insert: {},
-        input: {},
-        ignore: {},
+        insert: { countaware: "false" },
+        input: { countaware: "false" },
+        ignore: { countaware: "false" },
         ex: {},
         hint: {},
         visual: {},
@@ -138,8 +168,10 @@ export class default_config {
         "<C-m>": "ex.accept_line",
         "<Escape>": "ex.hide_and_clear",
         "<C-[>": "ex.hide_and_clear",
-        "<ArrowUp>": "ex.prev_history",
-        "<ArrowDown>": "ex.next_history",
+        "<ArrowUp>": "ex.prev_history_or_completion",
+        "<ArrowDown>": "ex.next_history_or_completion",
+        "<PageUp>": "ex.prev_completion 15",
+        "<PageDown>": "ex.next_completion 15",
         "<S-Delete>": "ex.execute_ex_on_completion_args tabclose",
 
         "<A-b>": "text.backward_word",
@@ -153,12 +185,13 @@ export class default_config {
         "<C-f>": "ex.complete",
         "<Tab>": "ex.next_completion",
         "<S-Tab>": "ex.prev_completion",
-        "<Space>": "ex.insert_space_or_completion",
+        "<Space>": "ex.insert_character_or_completion",
         "<C-Space>": "ex.insert_space",
 
-        "<C-o>yy": "ex.execute_ex_on_completion_args clipboard yank",
+        "<C-o>yy": "ex.copy_completion",
         "<C-o>t": "ex.execute_ex_on_completion_args tabopen -b",
         "<C-o>w": "ex.execute_ex_on_completion_args winopen",
+        "<C-o>x": "ex.execute_ex_on_all_completions",
     }
 
     /**
@@ -188,6 +221,7 @@ export class default_config {
         "<AC-Escape>": "mode normal",
         "<AC-`>": "mode normal",
         "<S-Escape>": "mode ignore",
+        "<C-o>": "nmode normal 1 mode ignore",
     }
 
     /**
@@ -211,11 +245,11 @@ export class default_config {
     }
 
     /**
-     * Disable Tridactyl almost completely within a page, e.g. `seturl ^https?://mail.google.com disable true`. Only takes affect on page reload.
+     * Disable Tridactyl almost completely within a page, e.g. `seturl ^https?://mail.google.com superignore true`. Only takes affect on page reload.
      *
      * You are usually better off using `blacklistadd` and `seturl [url] noiframe true` as you can then still use some Tridactyl binds, e.g. `shift-insert` for exiting ignore mode.
      *
-     * NB: you should only use this with `seturl`. If you get trapped with Tridactyl disabled everywhere just run `tri unset superignore` in the Firefox address bar. If that still doesn't fix things, you can totally reset Tridactyl by running `tri help superignore` in the Firefox address bar, scrolling to the bottom of that page and then clicking "Reset Tridactyl config".
+     * Use the toolbar popup to toggle this globally. If you get trapped with Tridactyl disabled everywhere just run `tri unset superignore` in the Firefox address bar. If that still doesn't fix things, you can totally reset Tridactyl by running `tri help superignore` in the Firefox address bar, scrolling to the bottom of that page and then clicking "Reset Tridactyl config".
      */
     superignore: "true" | "false" = "false"
 
@@ -263,7 +297,7 @@ export class default_config {
         "<C-d>": "scrollpage 0.5",
         "<C-f>": "scrollpage 1",
         "<C-b>": "scrollpage -1",
-        "<C-v>": "nmode ignore 1 mode normal", // Is this a terrible idea? Pentadactyl did it http://bug.5digits.org/help/pentadactyl/browsing.xhtml#send-key
+        "<C-v>": "nmode ignore 1 mode normal",
         $: "scrollto 100 x",
         // "0": "scrollto 0 x", // will get interpreted as a count
         "^": "scrollto 0 x",
@@ -283,6 +317,7 @@ export class default_config {
         R: "reloadhard",
         x: "stop",
         gi: "focusinput",
+        gI: "hintinput",
         "g?": "rot13",
         "g!": "jumble",
         "g;": "changelistjump -1",
@@ -296,7 +331,7 @@ export class default_config {
         g0: "tabfirst",
         g$: "tablast",
         ga: "tabaudio",
-        gr: "reader --old",
+        gr: "reader",
         gu: "urlparent",
         gU: "urlroot",
         gf: "viewsource",
@@ -381,7 +416,7 @@ export class default_config {
         zr: "zoom -0.5 true",
         zM: "zoom 0.5 true",
         zR: "zoom -0.5 true",
-        zz: "zoom 1",
+        zz: "zoom 0",
         zI: "zoom 3",
         zO: "zoom 0.3",
         ".": "repeat",
@@ -393,31 +428,32 @@ export class default_config {
 
     vmaps = {
         "<Escape>":
-            "composite js document.getSelection().empty(); mode normal; hidecmdline",
+            "composite js tri.dom.getSelection().empty(); mode normal; hidecmdline",
         "<C-[>":
-            "composite js document.getSelection().empty(); mode normal ; hidecmdline",
-        y: "composite js document.getSelection().toString() | clipboard yank",
-        s: "composite js document.getSelection().toString() | fillcmdline open search",
-        S: "composite js document.getSelection().toString() | fillcmdline tabopen search",
+            "composite js tri.dom.getSelection().empty(); mode normal ; hidecmdline",
+        y: "composite js tri.dom.getSelection().toString() | clipboard yank",
+        "#": "composite js document.location + '#:~:text=' + encodeURIComponent(tri.dom.getSelection().toString()) | clipboard yank",
+        s: "composite js tri.dom.getSelection().toString() | fillcmdline open search",
+        S: "composite js tri.dom.getSelection().toString() | fillcmdline tabopen search",
         l: `js
-            const sel = document.getSelection();
+            const sel = tri.dom.getSelection();
             tri.visual.extendByCharacter(sel, "forward");
         `,
         h: `js
-            const sel = document.getSelection();
+            const sel = tri.dom.getSelection();
             tri.visual.extendByCharacter(sel, "backward");
         `,
-        e: 'js document.getSelection().modify("extend","forward","word")',
-        w: 'js document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","forward","word"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
-        b: 'js document.getSelection().modify("extend","backward","character"); document.getSelection().modify("extend","backward","word"); document.getSelection().modify("extend","forward","character")',
-        j: 'js document.getSelection().modify("extend","forward","line")',
-        q: "composite js document.getSelection().toString() | text2qr --timeout 5",
+        e: 'js tri.dom.getSelection().modify("extend","forward","word")',
+        w: "js tri.visual.extendByWord(tri.dom.getSelection())",
+        b: 'js let s=tri.dom.getSelection(); s.modify("extend","backward","character"); s.modify("extend","backward","word"); s.modify("extend","forward","character")',
+        j: 'js tri.dom.getSelection().modify("extend","forward","line")',
+        q: "composite js tri.dom.getSelection().toString() | text2qr --timeout 5",
         // "j": 'js document.getSelection().modify("extend","forward","paragraph")', // not implemented in Firefox
-        k: 'js document.getSelection().modify("extend","backward","line")',
-        $: 'js document.getSelection().modify("extend","forward","lineboundary")',
-        "0": 'js document.getSelection().modify("extend","backward","lineboundary")',
-        "=": "js let n = document.getSelection().anchorNode.parentNode; let s = window.getSelection(); let r = document.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
-        o: "js tri.visual.reverseSelection(document.getSelection())",
+        k: 'js tri.dom.getSelection().modify("extend","backward","line")',
+        $: 'js tri.dom.getSelection().modify("extend","forward","lineboundary")',
+        "0": 'js tri.dom.getSelection().modify("extend","backward","lineboundary")',
+        "=": "js let s = tri.dom.getSelection(); let n = s.anchorNode.parentNode; let r = n.ownerDocument.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
+        o: "js tri.visual.reverseSelection(tri.dom.getSelection())",
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 
@@ -451,7 +487,7 @@ export class default_config {
     leavegithubalone: "true" | "false" = "false"
 
     /**
-     * Which keys to protect from pages that try to override them. Requires [[leavegithubalone]] to be set to false.
+     * Which additional keys to protect from pages that try to override them. `:bind --mode=browser` binds are protected automatically. Requires [[leavegithubalone]] to be set to false.
      */
     blacklistkeys: string[] = ["/"]
 
@@ -461,6 +497,12 @@ export class default_config {
      * Related ex command: `autocmd`.
      */
     autocmds = {
+        /** Commands that will be run when a page gains focus. */
+        DocFocus: {},
+
+        /** Commands that will be run when a page loses focus. */
+        DocBlur: {},
+
         /**
          * Commands that will be run as soon as Tridactyl loads into a page.
          *
@@ -517,6 +559,12 @@ export class default_config {
             // "emacs.org": "tabclose",
         },
 
+        /** Commands that will be run when a mode is entered. */
+        ModeEnter: {},
+
+        /** Commands that will be run when a mode is left. */
+        ModeLeave: {},
+
         /**
          * Commands that will be run when fullscreen state changes.
          */
@@ -567,6 +615,11 @@ export class default_config {
     usekeytranslatemap: "true" | "false" = "true"
 
     /**
+     * Whether digits typed before bindings are interpreted as counts, e.g. whether `2gt` should run `:tabnext_gt 2` or just `:tabnext_gt`. Defaults to false in insert, input, and ignore modes. You can control it per mode with [[setmode]] or per site with [[seturl]]
+     */
+    countaware: "true" | "false" = "true"
+
+    /**
      * Instead of fetching actual character which depends on selected layout,
      * use machine code of a key and convert to character according to keyboardlayoutoverrides. The default layout mapping
      * is US `qwerty`, but can be changed with [[keyboardlayoutbase]].
@@ -610,6 +663,8 @@ export class default_config {
 
     /**
      * Default proxy to use for all URLs. Has to be the name of a proxy. To add a proxy, see `:help proxyadd`. NB: usage with `:seturl` is buggy, use `:autocontain -s [regex to match URL] none [proxy]` instead
+     *
+     * The special value `none` disables the proxy and also works with `:autocontain`
      */
     proxy = ""
 
@@ -651,7 +706,9 @@ export class default_config {
         audelete: "autocmddelete",
         blacklistremove: "autocmddelete DocStart",
         b: "tab",
+        d: "dialog",
         clsh: "clearsearchhighlight",
+        downloads: "tabopen about:downloads",
         nohlsearch: "clearsearchhighlight",
         noh: "clearsearchhighlight",
         o: "open",
@@ -677,8 +734,6 @@ export class default_config {
         bN: "tabprev",
         tprev: "tabprev",
         bprev: "tabprev",
-        tabfirst: "tab 1",
-        tablast: "tab 0",
         bfirst: "tabfirst",
         blast: "tablast",
         tfirst: "tabfirst",
@@ -693,6 +748,7 @@ export class default_config {
         sanitize: "sanitise",
         "saveas!": "saveas --cleanup --overwrite",
         tutorial: "tutor",
+        glossary: "define",
         h: "help",
         unmute: "mute unmute",
         authors: "credits",
@@ -706,7 +762,8 @@ export class default_config {
         man: "help",
         "!js": "fillcmdline_tmp 3000 !js is deprecated. Please use js instead",
         "!jsb": "fillcmdline_tmp 3000 !jsb is deprecated. Please use jsb instead",
-        get_current_url: "js document.location.href",
+        findrc: "js tri.native.getrcpath().then(tri.excmds.fillcmdline_notrail)",
+        get_current_url: "js tri.urlutils.decodeUrlForDisplay(document.location.href)",
         current_url: "composite get_current_url | fillcmdline_notrail ",
         stop: "js window.stop()",
         zo: "zoom",
@@ -726,16 +783,36 @@ export class default_config {
         tabclosealltoright: "tabcloseallto right",
         tabclosealltoleft: "tabcloseallto left",
         reibadailty: "jumble",
+        smoothscrollwizard: "composite set smoothscroll true; unbind h; unbind j; unbind k; unbind l; unbind <C-u>; unbind <C-d>; bind <D-j> scrollstart 0 100; bind <D-k> scrollstart 0 -100; bind <D-h> scrollstart -100 0; bind <D-l> scrollstart 100 0; bind <DC-d> scrollstart 0 500; bind <DC-u> scrollstart 0 -500; bind <U-j> scrollstop; bind <U-k> scrollstop; bind <U-h> scrollstop; bind <U-l> scrollstop; bind <U-J> scrollstop; bind <U-K> scrollstop; bind <U-H> scrollstop; bind <U-L> scrollstop; bind <UC-u> scrollstop; bind <UC-d> scrollstop; bind <UC-U> scrollstop; bind <UC-D> scrollstop; fillcmdline_tmp 2000 smooth scroll binds set up",
+        nosmoothscrollwizard: "composite set smoothscroll false; reset <D-j>; reset <D-k>; reset <D-h>; reset <D-l>; reset <DC-d>; reset <DC-u>; reset <U-j>; reset <U-k>; reset <U-h>; reset <U-l>; reset <U-J>; reset <U-K>; reset <U-H>; reset <U-L>; reset <UC-u>; reset <UC-d>; reset <UC-U>; reset <UC-D>; reset j; reset k; reset h; reset l; reset <C-d>; reset <C-u>; reset <C-f>; reset <C-b>; fillcmdline_tmp 2000 original scroll binds restored",
+        scrollsmoothwizard: "smoothscrollwizard",
+        noscrollsmoothwizard: "nosmoothscrollwizard",
     }
 
+    /** Ex-mode abbreviations, added with [[abbreviate]]. */
+    abbreviations: { [abbreviation: string]: string } = {}
+
     /**
-     * Used by `]]` and `[[` to look for links containing these words.
+     * Used by `]]` and `[[` to look for links containing these patterns.
+     * Arrays are tried in order; strings retain the legacy single-regex behaviour.
      *
      * Edit these if you want to add, e.g. other language support.
      */
-    followpagepatterns = {
-        next: "^(next|newer)\\b|»|>>|more",
-        prev: "^(prev(ious)?|older)\\b|«|<<",
+    followpagepatterns: {
+        next: string | string[]
+        prev: string | string[]
+    } = {
+        next: [
+            "^(next|newer|neuer(e[mnrs]?)?|nächst(e[mnrs]?)?|weiter(e[mnrs]?)?|suivante?s?|prochaine?s?|successiv[oaie]|seguent[ei]|avanti|siguientes?|próxim[oa]s?)\\b",
+            "›|>",
+            "»",
+            "more",
+        ],
+        prev: [
+            "^(prev(ious)?|older|vorherig(e[mnrs]?)?|älter(e[mnrs]?)?|zurück|précédente?s?|precedent[ei]|indietro|anterior(es)?|atrás)\\b",
+            "‹|<",
+            "«",
+        ],
     }
 
     /**
@@ -820,9 +897,9 @@ export class default_config {
     hintfiltermode: "simple" | "vimperator" | "vimperator-reflow" = "simple"
 
     /**
-     * Whether to optimise for the shortest possible names for each hint, or to use a simple numerical ordering. If set to `numeric`, overrides `hintchars` setting.
+     * Whether to optimise for the shortest possible names for each hint, or to use a simple numerical ordering. If set to `numeric` or `words`, overrides `hintchars` setting. `words` uses random three letter English words (and therefore works badly with hintfiltermode vimperator*)
      */
-    hintnames: "short" | "numeric" | "uniform" = "short"
+    hintnames: "short" | "numeric" | "uniform" | "words" = "short"
 
     /**
      * Whether to display the names for hints in uppercase.
@@ -857,6 +934,9 @@ export class default_config {
      */
     hintautoselect: "true" | "false" = "true"
 
+    /** Whether to hide hints for elements obscured by other elements. */
+    hinthideobscured: "true" | "false" = "false"
+
     /**
      * Controls whether the page can focus elements for you via js
      *
@@ -879,6 +959,8 @@ export class default_config {
     commandlineterriblewebsitefix: "true" | "false" = "false"
 
     /**
+     * **Deprecated** Use `:smoothscrollwizard` instead.
+     *
      * Whether to use Tridactyl's (bad) smooth scrolling.
      */
     smoothscroll: "true" | "false" = "false"
@@ -946,6 +1028,11 @@ export class default_config {
     theme = "default"
 
     /**
+     * Whether to _not_ expose the active theme as a `TridactylTheme...` class on page root elements. Disabled by default for backwards compatibility with custom themes that use this class.
+     */
+    themeprivacy: "true" | "false" = "false"
+
+    /**
      * Storage for custom themes
      *
      * Maps theme names to CSS. Predominantly used automatically by [[colourscheme]] to store themes read from disk, as documented by [[colourscheme]]. Setting this manually is untested but might work provided that [[colourscheme]] is then used to change the theme to the right theme name.
@@ -999,9 +1086,9 @@ export class default_config {
     }
 
     /**
-     * Disables the commandline iframe. Dangerous setting, use [[seturl]] to set it. If you ever set this setting to "true" globally and then want to set it to false again, you can do this by opening Tridactyl's preferences page from about:addons.
+     * Disables the commandline iframe. Dangerous setting, use [[seturl]] to set it. If you ever set this setting to "true" globally and then want to set it to false again, you can do this by opening Tridactyl's preferences page from about:addons. By default, it is set to 'lazy' which should be ideal for the widest level of compatibility.
      */
-    noiframe: "true" | "false" = "false"
+    noiframe: "true" | "false" | "lazy" = "lazy"
 
     /**
      * @deprecated A list of URLs on which to not load the iframe. Use `seturl [URL] noiframe true` instead, as shown in [[noiframe]].
@@ -1017,7 +1104,7 @@ export class default_config {
      *
      * Example values:
      * - linux: `xterm -e vim`
-     * - windows: `start cmd.exe /c \"vim\"`.
+     * - windows: `start /wait cmd.exe /c \"vim\"`.
      *
      * Also see [:editor](/static/docs/modules/_src_excmds_.html#editor).
      */
@@ -1161,7 +1248,14 @@ export class default_config {
     }
 
     /**
-     * Profile directory to use with native messenger with e.g, `guiset`.
+     * Profile directory used by native messenger commands such as `guiset` and [[nativeopen]].
+     *
+     * `auto` tries to detect the current Firefox profile. If detection chooses the
+     * wrong profile, set this to the absolute profile directory shown in `about:support`. Do not surround
+     * the path with quotes: use `:set profiledir /path/to/profile`, not `:set profiledir "/path/to/profile"`.
+     * Values are used literally: `~` and environment variables such as `$HOME` are not expanded.
+     *
+     * Launching Firefox with `-P <name>` or `--profile <path>` makes `auto` work better.
      */
     profiledir = "auto"
 
@@ -1193,9 +1287,22 @@ export class default_config {
     tabshowhidden: "true" | "false" = "false"
 
     /**
-     * Number of most recent results to ask Firefox for. We display the top 20 or so most frequently visited ones.
+     * Number of most recent results to ask Firefox for. The displayed subset is ordered by historysort.
      */
     historyresults = 50
+
+    /** Sort history by visit count ("frequency"), last visit ("recent"), or visit count inversely decayed after 90 days ("frecency"). */
+    historysort: "frequency" | "recent" | "frecency" = "frequency"
+
+    /**
+     * Whether bookmarks are included in :open, :tabopen and :winopen completions.
+     */
+    bmarkopen: "true" | "false" = "true"
+
+    /**
+     * Whether searchurls are included in :open, :tabopen and :winopen completions.
+     */
+    searchurlopen: "true" | "false" = "true"
 
     /**
      * When displaying bookmarks in history completions, how many page views to pretend they have.
@@ -1230,6 +1337,11 @@ export class default_config {
              */
             autoselect: "true",
             /**
+             * Initially position and navigate from the active tab for physical
+             * ordering, or first tab for MRU. "active" and "top" force either.
+             */
+            initialposition: "top" as "auto" | "active" | "top",
+            /**
              * Whether to use unicode symbols to display tab statuses
              */
             statusstylepretty: "false",
@@ -1237,11 +1349,17 @@ export class default_config {
         TabAll: {
             autoselect: "true",
         },
+        TabGroup: {
+            autoselect: "true",
+        },
         Rss: {
             autoselect: "true",
         },
         Bmark: {
             autoselect: "true",
+        },
+        History: {
+            autoselect: "false",
         },
         Sessions: {
             autoselect: "true",
@@ -1256,7 +1374,7 @@ export class default_config {
     /**
      * Number of characters to use as context for the matches shown in completions
      */
-    findcontextlen = 100
+    findcontextlen = 50
 
     /**
      * Whether find should be case-sensitive
@@ -1269,13 +1387,11 @@ export class default_config {
     findhighlighttimeout = 0
 
     /**
-     * Whether Tridactyl should jump to the first match when using `:find`
+     * Whether Tridactyl should preview matches while typing `:find`
      */
-    incsearch: "true" | "false" = "false"
+    incsearch: "true" | "false" = "true"
 
-    /**
-     * How many characters should be typed before triggering incsearch/completions
-     */
+    /** @deprecated Retained for compatibility; this setting has no effect. */
     minincsearchlen = 3
 
     /**
@@ -1320,6 +1436,12 @@ export class default_config {
      * Corresponds to 'showcmd' option of vi.
      */
     modeindicatorshowkeys: "true" | "false" = "false"
+
+    /** Show the Ex command that `:repeat` would execute. */
+    modeindicatorshowlastex: "true" | "false" = "false"
+
+    /** Names of Ex commands that do not replace the command executed by `:repeat`. */
+    repeatblacklist: string[] = []
 
     /**
      * Whether a trailing slash is appended when we get the parent of a url with
@@ -1956,6 +2078,10 @@ function setDeepProperty(obj, value, target) {
  * Merges two objects and any child objects they may have
  */
 export function mergeDeep(o1, o2) {
+    if (o2 === undefined && (o1 === null || typeof o1 !== "object")) return o1
+    if (Array.isArray(o1) && o2 === null) return []
+    if (Array.isArray(o2)) return o2.slice()
+    if (o2 !== null && o2 !== undefined && typeof o2 !== "object") return o2
     if (o1 === null) return o(o2)
     const r = Array.isArray(o1) ? o1.slice() : o({})
     Object.assign(r, o1, o2)
@@ -2074,15 +2200,19 @@ export async function getAsync(
     target_typed?: keyof default_config,
     ...target: string[]
 ) {
+    if (INITIALISATION_ERROR) throw INITIALISATION_ERROR
     if (INITIALISED) {
+        if (IN_BACKGROUND) return get(target_typed, ...target)
         // TODO: consider storing keys directly
         const browserconfig = await browser.storage.local.get(CONFIGNAME)
         USERCONFIG = browserconfig[CONFIGNAME] || o({})
 
         return get(target_typed, ...target)
     } else {
-        return new Promise(resolve =>
-            WAITERS.push(() => resolve(get(target_typed, ...target))),
+        return new Promise((resolve, reject) =>
+            WAITERS.push(() =>
+                getAsync(target_typed, ...target).then(resolve, reject),
+            ),
         )
     }
 }
@@ -2093,17 +2223,26 @@ export async function getAsync(
  * Does not synchronise custom themes due to storage constraints.
  */
 export async function push() {
-    const local_conf = await browser.storage.local.get(CONFIGNAME)
-    // eslint-disable-next-line @typescript-eslint/dot-notation
-    delete local_conf[CONFIGNAME]["customthemes"]
-    return browser.storage.sync.set(local_conf)
+    if (!IN_BACKGROUND) return mutateInBackground("push", [])
+    return exclusively(async () => {
+        if (!INITIALISED) await getAsync()
+        const userconfig = structuredClone(USERCONFIG)
+        delete userconfig["customthemes"]
+        return browser.storage.sync.set({ [CONFIGNAME]: userconfig })
+    })
 }
 
 /*
  * Replaces the local configuration with the configuration from your sync storage. Does not merge: it overwrites.
  */
 export async function pull() {
-    return browser.storage.local.set(await browser.storage.sync.get(CONFIGNAME))
+    if (!IN_BACKGROUND) return mutateInBackground("pull", [])
+    return exclusively(async () => {
+        if (!INITIALISED) await getAsync()
+        const synced = await browser.storage.sync.get(CONFIGNAME)
+        USERCONFIG = synced[CONFIGNAME] || o({})
+        return save()
+    })
 }
 
 /** @hidden
@@ -2136,14 +2275,15 @@ export async function set(...args) {
     const target = args.slice(0, args.length - 1)
     const value = args[args.length - 1]
 
-    if (INITIALISED) {
-        // wait for storage to settle, otherwise we could clobber a previous incomplete set()
+    if (!IN_BACKGROUND) {
         setDeepProperty(USERCONFIG, value, target)
-
-        return save()
-    } else {
-        setDeepProperty(USERCONFIG, value, target)
+        return mutateInBackground("set", args)
     }
+
+    if (EXCLUSIVE_PENDING) await EXCLUSIVE_QUEUE
+    if (!INITIALISED) await getAsync()
+    setDeepProperty(USERCONFIG, value, target)
+    return save()
 }
 
 /** @hidden
@@ -2155,10 +2295,40 @@ export function unsetURL(pattern, ...target) {
 
 /** Delete the key at target in USERCONFIG if it exists
  * @hidden */
-export function unset(...target) {
+export async function unset(...target) {
+    if (IN_BACKGROUND && EXCLUSIVE_PENDING) await EXCLUSIVE_QUEUE
+    if (IN_BACKGROUND && !INITIALISED) await getAsync()
     const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
     if (parent !== undefined) delete parent[target[target.length - 1]]
+    if (!IN_BACKGROUND) return mutateInBackground("unset", target)
     return save()
+}
+
+export async function clear(scope: "local" | "config" = "local") {
+    if (!IN_BACKGROUND) {
+        const customthemes = scope === "config" && USERCONFIG.customthemes
+        USERCONFIG = customthemes
+            ? o({ configversion: CURRENT_CONFIG_VERSION, customthemes })
+            : o({})
+        return mutateInBackground("clear", [scope])
+    }
+    if (EXCLUSIVE_PENDING) await EXCLUSIVE_QUEUE
+    if (!INITIALISED) await getAsync()
+    const old = USERCONFIG
+    const customthemes = scope === "config" && old.customthemes
+    USERCONFIG = customthemes
+        ? o({ configversion: CURRENT_CONFIG_VERSION, customthemes })
+        : o({})
+    await store(() =>
+        customthemes
+            ? browser.storage.local.set({
+                  [CONFIGNAME]: structuredClone(USERCONFIG),
+              })
+            : scope === "config"
+              ? browser.storage.local.remove([CONFIGNAME, CONFIG_WRITE])
+              : browser.storage.local.clear(),
+    )
+    notifyChangeListeners(old, USERCONFIG)
 }
 
 /** Save the config back to storage API.
@@ -2170,8 +2340,17 @@ export function unset(...target) {
  */
 export async function save() {
     const settingsobj = o({})
-    settingsobj[CONFIGNAME] = USERCONFIG
-    return browser.storage.local.set(settingsobj)
+    settingsobj[CONFIGNAME] = structuredClone(USERCONFIG)
+    if (IN_BACKGROUND) {
+        settingsobj[CONFIG_WRITE] = WRITE_SESSION + ++WRITE_ID
+        PENDING_WRITES.add(settingsobj[CONFIG_WRITE])
+    }
+    return store(() =>
+        browser.storage.local.set(settingsobj).catch(error => {
+            PENDING_WRITES.delete(settingsobj[CONFIG_WRITE])
+            throw error
+        }),
+    )
 }
 
 /** Updates the config to the latest version.
@@ -2184,7 +2363,17 @@ export async function save() {
     When adding updaters, don't forget to set("configversion", newversionnumber)!
     @hidden
  */
-export async function update() {
+export async function update(useCurrentConfig = false) {
+    const set = (...args) => setDeepProperty(USERCONFIG, args.pop(), args)
+    const unset = (...target) => {
+        const key = target.pop()
+        delete getDeepProperty(USERCONFIG, target)?.[key]
+    }
+    const setURL = (pattern, ...args) => {
+        new RegExp(pattern)
+        set("subconfigs", pattern, ...args)
+    }
+    // Avoid public setters, which wait for migration to finish.
     // Updates a value both in the main config and in sub (=site specific) configs
     const updateAll = (setting: string[], fn: (any) => any) => {
         const val = getDeepProperty(USERCONFIG, setting)
@@ -2388,19 +2577,20 @@ export async function update() {
                     : sync?.storageloc !== undefined
                       ? sync.storageloc
                       : "sync"
-            if (current_storageloc == "sync") {
-                await pull()
-            } else if (current_storageloc != "local") {
+            if (!useCurrentConfig && current_storageloc == "sync") {
+                USERCONFIG = sync || o({})
+            } else if (!useCurrentConfig && current_storageloc != "local") {
                 throw new Error(
                     "storageloc was set to something weird: " +
                         current_storageloc +
                         ", automatic migration of settings was not possible.",
                 )
             }
-            set("configversion", "2.0")
+            set("configversion", CURRENT_CONFIG_VERSION)
             updated = true // NB: when adding a new updater, move this line to the end of it
         }
     }
+    if (updated) await save()
     return updated
 }
 
@@ -2410,17 +2600,36 @@ export async function update() {
     @hidden
  */
 async function init() {
+    if (!IN_BACKGROUND) await mutateInBackground("ready", [])
     const localConfig = await browser.storage.local.get(CONFIGNAME)
     schlepp(localConfig[CONFIGNAME])
 
-    INITIALISED = true
-    for (const waiter of WAITERS) {
-        waiter()
+    if (IN_BACKGROUND) {
+        const syncConfig = await browser.storage.sync.get([CONFIGNAME, "nmaps"])
+        const isNewProfile =
+            localConfig[CONFIGNAME] === undefined &&
+            syncConfig[CONFIGNAME] === undefined &&
+            syncConfig.nmaps === undefined
+        if (isNewProfile) {
+            USERCONFIG.configversion = CURRENT_CONFIG_VERSION
+            await save()
+        } else {
+            await update()
+        }
     }
 }
 
 /** @hidden */
 const changeListeners = new Map()
+
+function notifyChangeListeners(oldConfig, newConfig) {
+    changeListeners.forEach((listeners, key) => {
+        const old = oldConfig[key] === undefined ? DEFAULTS[key] : oldConfig[key]
+        const next = newConfig[key] === undefined ? DEFAULTS[key] : newConfig[key]
+        if (JSON.stringify(old) !== JSON.stringify(next))
+            listeners.forEach(f => f(old, next))
+    })
+}
 
 /** @hidden
  * @param name The name of a "toplevel" config setting (i.e. "nmaps", not "nmaps.j")
@@ -2505,16 +2714,17 @@ export function parseConfig(): string {
 
 const parseConfigHelper = (pconf, parseobj, prefix = []) => {
     for (const i of Object.keys(pconf)) {
-        if (typeof pconf[i] !== "object") {
+        if (typeof pconf[i] !== "object" || Array.isArray(pconf[i])) {
+            const value = Array.isArray(pconf[i]) ? JSON.stringify(pconf[i]) : pconf[i]
             if (prefix[0] === "subconfigs") {
                 const pattern = prefix[1]
                 const subconf = [...prefix.slice(2), i].join(".")
                 parseobj.subconfigs.push(
-                    `seturl ${pattern} ${subconf} ${pconf[i]}`,
+                    `seturl ${pattern} ${subconf} ${value}`,
                 )
             } else {
                 parseobj.conf.push(
-                    `set ${[...prefix, i].join(".")} ${pconf[i]}`,
+                    `set ${[...prefix, i].join(".")} ${value}`,
                 )
             }
         } else if (pconf[i] === null) {
@@ -2550,10 +2760,15 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
                     } else {
                         parseobj.aliases.push(`alias ${e} ${pconf[i][e]}`)
                     }
+                } else if (i === "abbreviations") {
+                    parseobj.conf.push(`abbreviate ${e} ${pconf[i][e]}`)
                 } else if (i === "autocmds") {
                     for (const a of Object.keys(pconf[i][e])) {
+                        const value = pconf[i][e][a]
                         parseobj.aucmds.push(
-                            `autocmd ${e} ${a} ${pconf[i][e][a]}`,
+                            value === null
+                                ? `autocmddelete ${e} ${a}`
+                                : `autocmd ${e} ${a} ${value}`,
                         )
                     }
                 } else if (i === "autocontain") {
@@ -2583,17 +2798,29 @@ const parseConfigHelper = (pconf, parseobj, prefix = []) => {
 // Listen for changes to the storage and update the USERCONFIG if appropriate.
 // TODO: BUG! Sync and local storage are merged at startup, but not by this thing.
 browser.storage.onChanged.addListener((changes, areaname) => {
+    if (IN_BACKGROUND) {
+        if (areaname !== "local") return
+        const write = changes[CONFIG_WRITE]?.newValue
+        if (PENDING_WRITES.delete(write)) {
+            const { newValue = {}, oldValue = {} } = changes[CONFIGNAME] || {}
+            notifyChangeListeners(oldValue, newValue)
+            return
+        }
+        if (CONFIGNAME in changes) {
+            exclusively(async () => {
+                await STORE_QUEUE
+                if (!INITIALISED) await getAsync()
+                const old = USERCONFIG
+                const stored = await browser.storage.local.get(CONFIGNAME)
+                USERCONFIG = stored[CONFIGNAME] || o({})
+                notifyChangeListeners(old, USERCONFIG)
+            }).catch(console.error)
+        }
+        return
+    }
     if (CONFIGNAME in changes) {
         const { newValue, oldValue } = changes[CONFIGNAME]
         const old = oldValue || {}
-
-        function triggerChangeListeners(key, value = newValue[key]) {
-            const arr = changeListeners.get(key)
-            if (arr) {
-                const v = old[key] === undefined ? DEFAULTS[key] : old[key]
-                arr.forEach(f => f(v, value))
-            }
-        }
 
         if (areaname === "sync") {
             // Probably do something here with push/pull?
@@ -2616,21 +2843,20 @@ browser.storage.onChanged.addListener((changes, areaname) => {
             // TODO: this should be a deep comparison but this is better than nothing
             changedKeys.forEach(key => (USERCONFIG[key] = newValue[key]))
             unsetKeys.forEach(key => delete USERCONFIG[key])
-
-            // Trigger listeners
-            unsetKeys.forEach(key => triggerChangeListeners(key, DEFAULTS[key]))
-
-            changedKeys.forEach(key => triggerChangeListeners(key))
+            notifyChangeListeners(old, newValue)
         } else {
             // newValue is undefined when calling browser.storage.AREANAME.clear()
             // If newValue is undefined and AREANAME is the same value as STORAGELOC, the user wants to clean their config
             USERCONFIG = o({})
-
-            Object.keys(old)
-                .filter(key => old[key] !== DEFAULTS[key])
-                .forEach(key => triggerChangeListeners(key))
+            notifyChangeListeners(old, USERCONFIG)
         }
     }
 })
 
 init()
+    .then(() => (INITIALISED = true))
+    .catch(error => {
+        INITIALISATION_ERROR = error
+        console.error(error)
+    })
+    .then(() => WAITERS.forEach(waiter => waiter()))

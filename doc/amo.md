@@ -1,6 +1,6 @@
 **Control your browser with your keyboard _only_.**
 
-Replace Firefox's control mechanism with one modelled on VIM. This is a "Firefox Quantum" replacement for VimFX, Vimperator and Pentadactyl. Most common tasks you want your browser to perform are bound to a single key press:
+Replace Firefox's control mechanism with one modelled on VIM. We were heavily inspired by VimFX, Vimperator and Pentadactyl, but more modern equivalents are Vimium or qutebrowser. Most common tasks you want your browser to perform are bound to a single key press:
 
 -   You want to open a new tab? Hit `t`.
 -   You want to follow that link? Hit `f` and type the displayed label. (Note: hint characters should be typed in lowercase.)
@@ -52,9 +52,9 @@ Since Tridactyl aims to provide all the features Vimperator and Pentadactyl had,
 -   Access recently closed tabs:
     -   If you've accidentally closed a tab or window, Tridactyl will let you open it again with the `:undo` command which is bound to `u` by default.
 -   Access browser tabs:
-    -   Tridactyl provides a quick tab-switching menu/command with the `:buffer` command (bound to `b`). This permission is also required to close, move, and pin tabs, amongst other things.
+    -   Tridactyl provides a quick tab-switching menu/command with the `:tab` command (bound to `b`). This permission is also required to close, move, and pin tabs, amongst other things.
 -   Access browser activity during navigation:
-    -   This is needed for Tridactyl to be able to go back to normal mode every time you open a new page. In the future we may use it for autocommands.
+    -   This is needed for Tridactyl to be able to go back to normal mode every time you open a new page. It is also used for autocommands.
 -   Read the text of all open tabs:
     -   This allows us to use Firefox's built-in find-in-page API, for, for example, allowing you to bind find-next and find-previous to `n` and `N`.
 -   Monitor extension usage and manage themes:

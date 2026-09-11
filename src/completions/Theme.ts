@@ -6,7 +6,7 @@ export class ThemeCompletionOption
     extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
-    constructor(public value: string, public documentation: string = "") {
+    constructor(public value: string, public documentation = "") {
         super()
         this.fuseKeys.push(this.value)
 

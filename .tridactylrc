@@ -34,6 +34,19 @@
 " " get it in the browser, or just restart.
 " 
 " " If you're bovine3dom run sed 's|^" ||' .tridactylrc > ~/.config/tridactyl/tridactylrc
+"
+" "
+" " Cleanup (requires Tridactyl 1.25.0+)
+" " Persisted settings may briefly apply at startup before this file is sourced.
+" "
+" sanitise tridactylconfig
+" set configversion 2.0
+"
+" " horizontal scrolling layout for reader
+" colours --module=reader --url=https://raw.githubusercontent.com/tridactyl/tridactyl/refs/heads/master/contrib/themes/reader/newspaper.css newspaper
+" 
+" colours quakelight
+" set tabsort mru
 " 
 " 
 " "
@@ -76,7 +89,7 @@
 " " bindurl ^https://duckduckgo.com F hint -Jbc [data-testid="result-title-a"]
 
 " " Make `gi` on GitHub take you to the search box
-" bindurl ^https://github.com gi hint -!Vc [aria-label^='search' i]
+" bindurl ^https://github.com gi hint -!Jc [aria-label*="Search"]
 " 
 " " Allow Ctrl-a to select all in the commandline
 " unbind --mode=ex <C-a>
@@ -98,11 +111,29 @@
 " bind gr reader
 " bind gR reader --tab
 "
-" " Suspend / "discard" all tabs - handy for stretching out battery life
-" command discardall jsb browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t=>t.id)))
+" " Use experimental :find mode
+" bind / fillcmdline find -r
+" bind ? fillcmdline find -r --reverse
+" bind n findnext --search-from-view
+" bind <C-g> findnext --search-from-view
+" bind N findnext --search-from-view --reverse
+" bind <C-G> findnext --search-from-view --reverse
+" bind gN findselect
+" " conflicts with quickmarks
+" " bind gN composite findnext --search-from-view --reverse; findselect
+" bind ,<Space> nohlsearch
+"
+" " Suspend / "discard" all tabs - handy for stretching out battery life. Now a default command, aliased here for my muscle memory
+" command discardall tabdiscard --all
 " 
-" " Julia docs' built in search is bad
-" set searchurls.julia https://www.google.com/search?q=site:http://docs.julialang.org/en/v1%20
+" " Search the current website with `open site [query]`
+" set jsurls.site async q => `https://www.google.com/search?num=100&q=${encodeURIComponent("site:" + new URL((await tri.webext.activeTab()).url).hostname + " " + q)}`
+"
+" " Free up ctrl+[ for back in case H etc. has been stolen
+" unbind --mode=normal <C-[>
+"
+" " get rid of annoying google 'ai overviews'
+" set searchengine google
 " 
 " "
 " " Misc settings
@@ -154,6 +185,9 @@
 
 " " Quickmark for PRs by humans
 " quickmark p https://github.com/tridactyl/tridactyl/pulls?q=is%3Apr+is%3Aopen+-label%3Adependencies+-author%3Abovine3dom+sort%3Aupdated-desc
+
+" " Quick issue navigation
+" bind --mode=normal ,i js tri.excmds.gobble("<CR>", 'js -d£ window.location.href = "https://github.com/tridactyl/tridactyl/issues/" + JS_ARGS[1]£')
 " 
 " " Inject Google Translate
 " " This (clearly) is remotely hosted code. Google will be sent the whole

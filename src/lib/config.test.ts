@@ -11,6 +11,46 @@ const config = new default_config()
 // todo: test subconfigs and platform_defaults
 const nmaps = Object.keys(config.nmaps)
 
+test("findrc displays the automatically selected RC path", () => {
+    expect(config.exaliases).toHaveProperty(
+        "findrc",
+        "js tri.native.getrcpath().then(tri.excmds.fillcmdline_notrail)",
+    )
+})
+
+test.each([
+    ["next", "Nächste Seite"],
+    ["next", "Neuere Beiträge"],
+    ["next", "Weiter"],
+    ["next", "Suivantes"],
+    ["next", "Successivi"],
+    ["next", "Seguente"],
+    ["next", "Siguientes"],
+    ["next", "Próxima"],
+    ["prev", "Vorherige Seite"],
+    ["prev", "Ältere Beiträge"],
+    ["prev", "Zurück"],
+    ["prev", "Précédentes"],
+    ["prev", "Precedenti"],
+    ["prev", "Indietro"],
+    ["prev", "Anteriores"],
+    ["prev", "Atrás"],
+] as const)("default %s-page pattern matches %s", (direction, text) => {
+    const opposite = direction === "next" ? "prev" : "next"
+    expect(text).toMatch(
+        new RegExp(
+            (config.followpagepatterns[direction] as string[]).join("|"),
+            "i",
+        ),
+    )
+    expect(text).not.toMatch(
+        new RegExp(
+            (config.followpagepatterns[opposite] as string[]).join("|"),
+            "i",
+        ),
+    )
+})
+
 // Test that all of the default maps use the canonical representation (otherwise they won't work correctly, because Tridactyl expects the maps in the config to be canonical; which now that I write it, that does seem like an obvious foot-gun for if we ever change the canonicalisation algorithm).
 //
 // But, hey, at least with this test we are more likely to notice if that happens and either not change the canonicalisation algorithm or introduce a migration.
@@ -24,7 +64,7 @@ test("getURL in keymap and config", () => {
     expect(nmaps.f).toBe("hint -c [tabindex]:not(.two)>div,a")
 
     const google = "https://www.google.com/"
-    expect(getURL(google, ["followpagepatterns", "prev"])).toBe("Previous")
+    expect(getURL(google, ["followpagepatterns", "prev"])).toEqual(["Previous"])
 })
 
 test("getURL in keymap and config in mock mode", () => {
@@ -33,7 +73,7 @@ test("getURL in keymap and config in mock mode", () => {
         expect(nmaps.f).toBe("hint -c [tabindex]:not(.two)>div,a")
     })
     mockUrl("https://www.google.com/", () => {
-        expect(get("followpagepatterns", "prev")).toBe("Previous")
+        expect(get("followpagepatterns", "prev")).toEqual(["Previous"])
     })
 })
 
@@ -42,6 +82,12 @@ test("merge deep should keep null", () => {
     const b = { n: null }
     const c = tri.config.mergeDeep({}, { n: null })
     expect(c).toEqual({ n: null })
+})
+
+test("null removes default arrays", async () => {
+    await tri.config.set("followpagepatterns", "next", null)
+    expect(get("followpagepatterns", "next")).toEqual([])
+    await tri.config.unset("followpagepatterns")
 })
 
 test("get in default inherit keymap", () => {
@@ -64,6 +110,18 @@ test("keymap unbind default", () => {
 
     const exmaps = get("exmaps")
     expect(exmaps["<Space>"]).toBeUndefined()
+})
+
+test("null removes and exports a default autocmd", async () => {
+    const event = "DocLoad"
+    const url = "^https://github.com/tridactyl/tridactyl/issues/new$"
+
+    expect(get("autocmds", event)[url]).toBe("issue")
+    await tri.config.set("autocmds", event, url, null)
+
+    expect(tri.config.USERCONFIG.autocmds[event][url]).toBeNull()
+    expect(get("autocmds", event)[url]).toBeUndefined()
+    expect(tri.config.parseConfig()).toContain(`autocmddelete ${event} ${url}`)
 })
 
 test("get in modified inherit keymap", () => {
@@ -124,22 +182,40 @@ test("merge object when default undefined", () => {
 test("merge object when user config undefined", () => {
     const u = "youtube"
     const obj = "followpagepatterns"
-    const val = "go-next"
+    const val = ["go-next"]
     const prev = tri.config.get(obj, "prev")
-    expect(typeof tri.config.get(obj, "next")).toBe("string")
     const orig = tri.config.get(obj, "next")
-    expect(tri.config.DEFAULTS[obj]["next"]).toBe(orig)
+    expect(tri.config.DEFAULTS[obj]["next"]).toEqual(orig)
     expect(tri.config.USERCONFIG[obj]).toBeUndefined()
 
     tri.config.setURL(u, obj, "next", val)
-    expect(tri.config.get(obj, "next")).toBe(orig)
-    expect(tri.config.DEFAULTS[obj].next).toBe(orig)
+    expect(tri.config.get(obj, "next")).toEqual(orig)
+    expect(tri.config.DEFAULTS[obj].next).toEqual(orig)
     expect(tri.config.USERCONFIG[obj]).toBeUndefined()
 
     mockUrl(u, () => {
-        expect(tri.config.get(obj, "next")).toBe(val)
+        expect(tri.config.get(obj, "next")).toEqual(val)
         expect(tri.config.get(obj)).toEqual({ next: val, prev: prev })
     })
 
     expect(tri.config.USERCONFIG.subconfigs[u][obj]).toEqual({ next: val })
+    expect(tri.config.parseConfig()).toContain(
+        `seturl ${u} ${obj}.next ${JSON.stringify(val)}`,
+    )
+})
+
+test("config-only clear preserves custom themes and persisted state", async () => {
+    const state = { cmdHistory: ["echo retained"] }
+    const customthemes = { issue5490: "body{color:red}" }
+    await browser.storage.local.set({ state })
+    await tri.config.set("editorcmd", "issue-5472")
+    await tri.config.set("configversion", "2.0")
+    await tri.config.set("customthemes", customthemes)
+
+    await tri.config.clear("config")
+
+    expect(tri.config.get("editorcmd")).toBe("auto")
+    expect(tri.config.get("configversion")).toBe("2.0")
+    expect(tri.config.get("customthemes")).toEqual(customthemes)
+    expect(await browser.storage.local.get()).toEqual({ state })
 })

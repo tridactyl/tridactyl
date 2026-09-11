@@ -1,14 +1,16 @@
 import * as Completions from "@src/completions"
-import * as Metadata from "@src/.metadata.generated"
+import { excmdsFunctions, getDoc } from "@src/.metadata.generated"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 
-export class ExcmdCompletionOption extends Completions.CompletionOptionHTML
-    implements Completions.CompletionOptionFuse {
+export class ExcmdCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
-    constructor(public value: string, public documentation: string = "") {
+    constructor(
+        public value: string,
+        public documentation = "",
+    ) {
         super()
-        this.fuseKeys.push(this.value)
+        this.fuseKeys.push(this.value, this.documentation)
 
         // Create HTMLElement
         this.html = html`<tr class="ExcmdCompletionOption option">
@@ -37,7 +39,7 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         return this.updateOptions(exstr)
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     updateChain(exstr = this.lastExstr, options = this.options) {
         if (this.options.length > 0) this.state = "normal"
         else this.state = "hidden"
@@ -57,16 +59,15 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
 
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
-
-        const excmds = Metadata.everything.getFile("src/excmds.ts")
-        if (!excmds) return
-        const fns = excmds.getFunctions()
+        this.node.querySelector(".sectionHeader").textContent = "ex commands"
 
         // Add all excmds that start with exstr and that tridactyl has metadata about to completions
         this.options = this.scoreOptions(
-            fns
-                .filter(([name, fn]) => !fn.hidden && name.startsWith(exstr))
-                .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
+            Object.entries(excmdsFunctions)
+                .filter(([name]) => name.startsWith(exstr))
+                .map(
+                    ([name, fn]) => new ExcmdCompletionOption(name, getDoc(fn)),
+                ),
         )
 
         // Also narrow down aliases map to possible completions
@@ -80,13 +81,13 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
 
         for (const alias of Object.keys(exaliases)) {
             const cmd = aliases.expandExstr(alias, exaliases)
-            const fn = excmds.getFunction(cmd)
+            const fn = excmdsFunctions[cmd]
 
             if (fn) {
                 this.options.push(
                     new ExcmdCompletionOption(
                         alias,
-                        `Alias for \`${cmd}\`. ${fn.doc}`,
+                        `Alias for \`${cmd}\`. ${getDoc(fn)}`,
                     ),
                 )
             } else {
@@ -100,14 +101,34 @@ export class ExcmdCompletionSource extends Completions.CompletionSourceFuse {
         // Add partial matched funcs like: 'conf' ~= 'viewconfig'
         const seen = new Set(this.options.map(o => o.value))
         const partial_options = this.scoreOptions(
-            fns
-                .filter(
-                    ([name, fn]) =>
-                        !fn.hidden && name.includes(exstr) && !seen.has(name),
-                )
-                .map(([name, fn]) => new ExcmdCompletionOption(name, fn.doc)),
+            Object.entries(excmdsFunctions)
+                .filter(([name]) => name.includes(exstr) && !seen.has(name))
+                .map(
+                    ([name, fn]) => new ExcmdCompletionOption(name, getDoc(fn)),
+                ),
         )
         this.options = this.options.concat(partial_options)
+
+        const [command] = exstr.trim().split(/\s+/)
+        if (
+            this.options.length === 0 &&
+            command &&
+            !excmdsFunctions[command] &&
+            exaliasesConfig[command] === undefined
+        ) {
+            const query = exstr.toLowerCase()
+            this.node.querySelector(".sectionHeader").textContent = "ex commands (no matches, falling back to doc search)"
+            this.options = this.scoreOptions(
+                Object.entries(excmdsFunctions)
+                    .filter(([, fn]) =>
+                        getDoc(fn).toLowerCase().includes(query),
+                    )
+                    .map(
+                        ([name, fn]) =>
+                            new ExcmdCompletionOption(name, getDoc(fn)),
+                    ),
+            )
+        }
 
         this.options.forEach(o => (o.state = "normal"))
         return this.updateChain()

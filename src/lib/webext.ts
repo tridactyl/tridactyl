@@ -7,6 +7,7 @@ import * as R from "ramda"
 
 export async function getSortedTabs(
     forceSort?: "mru" | "default",
+    allWindows = false,
 ): Promise<browser.tabs.Tab[]> {
     const sortAlg = forceSort ?? config.get("tabsort")
     const comp =
@@ -15,12 +16,13 @@ export async function getSortedTabs(
                   +a.active || -b.active || b.lastAccessed - a.lastAccessed
             : (a, b) => a.index - b.index
     const hiddenVal = config.get("tabshowhidden") === "true" ? undefined : false
-    return browserBg.tabs
-        .query({
-            currentWindow: true,
-            hidden: hiddenVal,
-        })
-        .then(tabs => tabs.sort(comp))
+    const query: Parameters<typeof browser.tabs.query>[0] = {
+        hidden: hiddenVal,
+    }
+    if (!allWindows) {
+        query.currentWindow = true
+    }
+    return browserBg.tabs.query(query).then(tabs => tabs.sort(comp))
 }
 
 export function inContentScript() {
@@ -28,20 +30,22 @@ export function inContentScript() {
 }
 
 export function getTriVersion() {
-    const manifest = browser.runtime.getManifest()
+    return browser.runtime.getManifest().version
+}
 
-    // version_name only really exists in Chrome
-    // but we're using it anyway for our own purposes
-    return (
+export function getTriVersionName() {
+    const manifest = browser.runtime.getManifest()
+    const versionName = (
         manifest as browser._manifest.WebExtensionManifest & {
-            version_name: string
+            version_name?: string
         }
     ).version_name
+    return versionName || manifest.version
 }
 
 export function getPrettyTriVersion() {
     const manifest = browser.runtime.getManifest()
-    return manifest.name + " " + getTriVersion()
+    return manifest.name + " " + getTriVersionName()
 }
 
 export function notBackground() {
@@ -69,6 +73,27 @@ export function getContext() {
 
 // Make this library work for both content and background.
 export const browserBg = inContentScript() ? browserProxy : browser
+
+let lastAudibleTabId: number | undefined
+
+export function initLastAudibleTabTracking() {
+    browser.tabs.onUpdated.addListener(
+        (tabId, changeInfo) => {
+            if (changeInfo.audible === false) lastAudibleTabId = tabId
+        },
+        { properties: ["audible"] },
+    )
+    browser.tabs.onRemoved.addListener(tabId => {
+        if (tabId === lastAudibleTabId) lastAudibleTabId = undefined
+    })
+}
+if (getContext() === "background") initLastAudibleTabTracking()
+/** Return a currently audible tab, or the one that most recently stopped. */
+export async function getLastAudibleTab() {
+    const [tab] = await browserBg.tabs.query({ audible: true })
+    if (tab || lastAudibleTabId === undefined) return tab
+    return browserBg.tabs.get(lastAudibleTabId).catch(() => undefined)
+}
 
 /** The first active tab in the currentWindow.
  *
@@ -193,6 +218,7 @@ export async function openInNewTab(
         bypassFocusHack?
         discarded?
         pinned?
+        beforeNavigate?: (tabId: number) => void
     } = {
         active: true,
         related: false,
@@ -215,9 +241,11 @@ export async function openInNewTab(
     })
 
     const thisTab = await activeTab()
+    const delayedUrl = kwargs.beforeNavigate && !kwargs.discarded && url
     const options: Parameters<typeof browser.tabs.create>[0] = {
         active: kwargs.bypassFocusHack,
-        url,
+        windowId: thisTab.windowId,
+        url: delayedUrl ? "about:blank" : url,
         cookieStoreId: kwargs.cookieStoreId,
         discarded: kwargs.discarded,
         pinned: kwargs.pinned,
@@ -252,14 +280,17 @@ export async function openInNewTab(
 
     const tabCreateWrapper = async options => {
         const tab = await browserBg.tabs.create(options)
+        let result = tab
+        let listener
         const answer: Promise<browser.tabs.Tab> = new Promise(resolve => {
             // This can't run in content scripts, obviously
             // surely we never call this from a content script?
             if (waitForDOM) {
-                const listener = (message, sender) => {
+                listener = (message, sender) => {
                     if (
                         message === "dom_loaded_background" &&
-                        sender?.tab?.id === tab.id
+                        sender?.tab?.id === tab.id &&
+                        (!delayedUrl || sender?.url !== "about:blank")
                     ) {
                         browserBg.runtime.onMessage.removeListener(listener)
                         resolve(tab)
@@ -270,14 +301,24 @@ export async function openInNewTab(
                 resolve(tab)
             }
         })
+        if (kwargs.beforeNavigate) {
+            kwargs.beforeNavigate(tab.id)
+            if (delayedUrl)
+                result = await browserBg.tabs.update(tab.id, {
+                    url: delayedUrl,
+                    loadReplace: true,
+                })
+        }
         // Return on slow- / extremely quick- loading pages anyway
-        return Promise.race([
+        await Promise.race([
             answer,
             (async () => {
                 await sleep(750)
+                if (listener) browserBg.runtime.onMessage.removeListener(listener)
                 return tab
             })(),
         ])
+        return result
     }
     if (kwargs.active === false) {
         // load in background
@@ -348,7 +389,7 @@ export async function queryAndURLwrangler(
     const searchurls = config.get("searchurls")
     const template = expandRecursively(firstWord, searchurls)
     if (template != firstWord) {
-        const url = UrlUtil.interpolateSearchItem(new URL(template), rest)
+        const url = UrlUtil.interpolateSearchItem(template, rest)
         // firstWord is a searchurl, so let's use that
         return url.href
     }
@@ -404,7 +445,7 @@ export async function queryAndURLwrangler(
     if (enginename) {
         if (searchurls[enginename]) {
             const url = UrlUtil.interpolateSearchItem(
-                new URL(searchurls[enginename]),
+                searchurls[enginename],
                 queryString,
             )
             return url.href

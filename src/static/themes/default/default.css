@@ -19,6 +19,7 @@
 
     /* Search highlight */
     --tridactyl-search-highlight-color: yellow;
+    --tridactyl-search-highlight-active-color: rgb(255 127 255);
 
     /* Hinting */
 
@@ -34,8 +35,8 @@
     --tridactyl-hintspan-border-style: solid;
     --tridactyl-hintspan-js-background: hsla(0, 0%, 65%);
 
-    --tridactyl-hintspan-active-fg: var(--tridactyl-hintspan-fg);
-    --tridactyl-hintspan-active-bg: var(--tridactyl-hintspan-bg);
+    --tridactyl-hintspan-active-fg: var(--tridactyl-hint-active-bg);
+    --tridactyl-hintspan-active-bg: var(--tridactyl-hint-active-fg);
     --tridactyl-hintspan-active-border-color: var(--tridactyl-hintspan-border-color);
 
     /* Element highlights */

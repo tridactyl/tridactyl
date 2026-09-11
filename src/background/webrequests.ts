@@ -12,7 +12,7 @@ export const requestEventExpraInfoSpecMap = {
 export const requestEvents = Object.keys(requestEventExpraInfoSpecMap)
 
 // I'm being lazy - strictly the functions map strings to void | blocking responses
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export const LISTENERS: Record<string, Record<string, Function>> = {}
 
 export const registerWebRequestAutocmd = async (
@@ -21,7 +21,7 @@ export const registerWebRequestAutocmd = async (
     func: string,
 ) => {
     // I'm being lazy - strictly the functions map strings to void | blocking responses
-    // eslint-disable-next-line @typescript-eslint/ban-types
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     const listener = eval(func) as Function
 
     if (!LISTENERS[requestEvent]) LISTENERS[requestEvent] = {}

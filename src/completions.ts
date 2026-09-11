@@ -14,6 +14,11 @@ import Fuse from "fuse.js"
 import * as aliases from "@src/lib/aliases"
 import { backoff } from "@src/lib/patience"
 import * as config from "@src/lib/config"
+export { decodeUrlForDisplay } from "@src/lib/url_util"
+
+export function treePrefix(level: number) {
+    return `  ${"  ".repeat(Math.max(level - 1, 0))}${level ? "┌─" : ""}· `
+}
 
 export const DEFAULT_FAVICON = browser.runtime.getURL(
     "static/defaultFavicon.svg",
@@ -31,7 +36,7 @@ export abstract class CompletionOption {
 }
 
 export abstract class CompletionSource {
-    readonly options: CompletionOption[]
+    options: CompletionOption[]
     node: HTMLElement
     public completion: string
     public args: string
@@ -56,6 +61,10 @@ export abstract class CompletionSource {
         // Not sure this is necessary but every completion source has it
         this.prefixes = this.prefixes.map(p => p + " ")
         this.trailingSpace = options.trailingSpace
+    }
+
+    protected canonicalisePrefix(prefix: string) {
+        return aliases.expandExstr(prefix).trim()
     }
 
     /** Control presentation of Source */
@@ -150,6 +159,7 @@ export interface ScoredOption {
 }
 
 export abstract class CompletionSourceFuse extends CompletionSource {
+    options: CompletionOptionFuse[]
     public node
 
     fuseOptions = {
@@ -172,26 +182,22 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     protected optionContainer = html`<table class="optionContainer"></table>`
 
-    // invalidate cache on option change
-    private _options: CompletionOptionFuse[]
-    public get options(): CompletionOptionFuse[] {
-        return this._options
-    }
-    public set options(val: CompletionOptionFuse[]) {
-        this._options = val
-        this.fuse = undefined
-    }
+    private fusedOptions: CompletionOptionFuse[]
 
     constructor(
         prefixes,
         className: string,
-        title?: string,
+        title?: string | HTMLElement,
         options = { trailingSpace: true },
     ) {
         super(prefixes, options)
-        this.node = html`<div class="${className} hidden">
-            <div class="sectionHeader">${title || className}</div>
-        </div>`
+        this.node = html`<div class="${className} hidden"></div>`
+        const header =
+            typeof title === "string" || title === undefined
+                ? html`<div>${title || className}</div>`
+                : title
+        header.classList.add("sectionHeader")
+        this.node.appendChild(header)
         this.node.appendChild(this.optionContainer)
         this.state = "hidden"
     }
@@ -237,6 +243,18 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         this.updateDisplay()
     }
 
+    completionForOption(option: CompletionOption) {
+        const [prefix] = this.splitOnPrefix(this.lastExstr)
+        return prefix ? [prefix, option.value].join(" ") : option.value
+    }
+
+    visibleCompletions() {
+        if (this.state === "hidden") return []
+        return (this.options || [])
+            .filter(option => option.state !== "hidden")
+            .map(option => this.completionForOption(option))
+    }
+
     select(option: CompletionOption) {
         if (this.lastExstr !== undefined && option !== undefined) {
             const [prefix] = this.splitOnPrefix(this.lastExstr)
@@ -261,8 +279,9 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
     /** Rtn sorted array of {option, score} */
     scoredOptions(query: string): ScoredOption[] {
-        if (this.fuse === undefined) {
+        if (this.fuse === undefined || this.fusedOptions !== this.options) {
             this.fuse = new Fuse(this.options, this.fuseOptions)
+            this.fusedOptions = this.options
         }
 
         return this.fuse.search(query).map(result => ({
@@ -297,7 +316,8 @@ export abstract class CompletionSourceFuse extends CompletionSource {
 
         if (this.sortScoredOptions) {
             const sorted_options = scoredOpts.map(res => res.option)
-            this._options = sorted_options.concat(hidden_options)
+            this.options = sorted_options.concat(hidden_options)
+            this.fusedOptions = this.options
         }
     }
 
@@ -319,7 +339,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
                 this.deselect()
                 // visopts.length + 1 because we want an empty completion at the end
                 const max = visopts.length + 1
-                const opt = visopts[(currind + inc + max) % max]
+                const opt = visopts[((currind + inc) % max + max) % max]
                 if (opt) this.select(opt)
                 return true
             })
@@ -329,7 +349,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
     /* abstract onUpdate(query: string, prefix: string, options: CompletionOptionFuse[]) */
 
     // Lots of methods don't need this but some do
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     async onInput(exstr: string) {}
 }
 

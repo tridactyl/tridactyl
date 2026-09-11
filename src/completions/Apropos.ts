@@ -1,13 +1,22 @@
 import * as Completions from "@src/completions"
-import * as Metadata from "@src/.metadata.generated"
+import {
+    excmdsFunctions,
+    defaultConfigMembers,
+    getDoc,
+    memberDoc,
+} from "@src/.metadata.generated"
 import * as aliases from "@src/lib/aliases"
 import * as config from "@src/lib/config"
+import { glossaryOptions } from "@src/completions/Glossary"
 
-class AproposCompletionOption extends Completions.CompletionOptionHTML
-    implements Completions.CompletionOptionFuse {
+class AproposCompletionOption extends Completions.CompletionOptionHTML implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(public name: string, doc: string, flag: string) {
+    constructor(
+        public name: string,
+        doc: string,
+        flag: string,
+    ) {
         super()
         this.value = `${flag} ${name}`
         this.html = html`<tr class="AproposCompletionOption option">
@@ -20,10 +29,19 @@ class AproposCompletionOption extends Completions.CompletionOptionHTML
 export class AproposCompletionSource extends Completions.CompletionSourceFuse {
     public options: AproposCompletionOption[]
 
-    constructor(private _parent) {
-        super(["apropos"], "AproposCompletionSource", "Apropos")
+    constructor(
+        private _parent,
+        prefixes = ["apropos"],
+        className = "AproposCompletionSource",
+        title = "Apropos",
+    ) {
+        super(prefixes, className, title)
 
         this._parent.appendChild(this.node)
+    }
+
+    protected createOption(name: string, doc: string, flag: string) {
+        return new AproposCompletionOption(name, doc, flag)
     }
 
     public async filter(exstr: string) {
@@ -42,20 +60,13 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
 
-        const file = Metadata.everything.getFile("src/lib/config.ts")
-        const default_config = file.getClass("default_config")
-        const excmds = Metadata.everything.getFile("src/excmds.ts")
-        const fns = excmds.getFunctions()
         const settings = config.get()
         const exaliases = settings.exaliases
         const bindings = settings.nmaps
-        if (
-            fns === undefined ||
-            exaliases === undefined ||
-            bindings === undefined
-        ) {
+        if (exaliases === undefined || bindings === undefined) {
             return
         }
+        const fns = Object.entries(excmdsFunctions)
 
         const flags = {
             "-a": (options, query) =>
@@ -65,17 +76,15 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                             (
                                 alias +
                                 aliases.expandExstr(alias) +
-                                excmds.getFunction(aliases.expandExstr(alias))
+                                excmdsFunctions[aliases.expandExstr(alias)]
                             )
                                 .toLowerCase()
                                 .includes(query),
                         )
                         .map(alias => {
                             const cmd = aliases.expandExstr(alias)
-                            const doc =
-                                (excmds.getFunction(cmd) || ({} as any)).doc ||
-                                ""
-                            return new AproposCompletionOption(
+                            const doc = getDoc(excmdsFunctions[cmd])
+                            return this.createOption(
                                 alias,
                                 `Alias for \`${cmd}\`. ${doc}`,
                                 "-a",
@@ -92,7 +101,7 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                         )
                         .map(
                             binding =>
-                                new AproposCompletionOption(
+                                this.createOption(
                                     binding,
                                     `Normal mode binding for \`${bindings[binding]}\``,
                                     "-b",
@@ -102,16 +111,14 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
             "-e": (options, query) =>
                 options.concat(
                     fns
-                        .filter(
-                            ([name, fn]) =>
-                                !fn.hidden &&
-                                (name + fn.doc).toLowerCase().includes(query),
+                        .filter(([name, fn]) =>
+                            (name + getDoc(fn)).toLowerCase().includes(query),
                         )
                         .map(
                             ([name, fn]) =>
-                                new AproposCompletionOption(
+                                this.createOption(
                                     name,
-                                    `Excmd. ${fn.doc}`,
+                                    `Excmd. ${getDoc(fn)}`,
                                     "-e",
                                 ),
                         ),
@@ -120,22 +127,22 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
                 options.concat(
                     Object.keys(settings)
                         .filter(x =>
-                            (x + default_config.getMember(x)?.doc)
+                            (x + memberDoc(defaultConfigMembers[x]))
                                 .toLowerCase()
                                 .includes(query),
                         )
                         .map(setting => {
-                            const member = default_config.getMember(setting)
-                            let doc = ""
-                            if (member !== undefined) {
-                                doc = member.doc
-                            }
-                            return new AproposCompletionOption(
+                            const doc = memberDoc(defaultConfigMembers[setting])
+                            return this.createOption(
                                 setting,
                                 `Setting. ${doc}`,
                                 "-s",
                             )
                         }),
+                ),
+            "-g": (options, query) =>
+                options.concat(
+                    glossaryOptions(this.createOption.bind(this), query, false),
                 ),
         }
 

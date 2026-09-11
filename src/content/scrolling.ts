@@ -3,12 +3,79 @@ import * as config from "@src/lib/config"
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
 const opts = { smooth: null, duration: null }
+let scrollGeneration = 0
+
+// Stopgap keydown/keyup smooth scrolling support
+const continuousScrollState = {
+    xVel: 0,
+    yVel: 0,
+    lastStep: 0,
+    scrolling: false,
+}
+
+/** Scroll continuously until scrollstop is called.
+ *  Pass an x and y velocity, or just a y velocity.
+ *  If only a single arg is passed, it will be treated as y (vertical scroll).
+ *  Can also pass a multiplier, intented to be used as a numeric arg when `:scrollstart` is bound to a key.
+ *
+ *  Velocity unit = px/second
+ */
+export function scrollstart(aVelocity, bVelocity, mult) {
+    mult = (Number(mult) || 1) / (Number(config.get("scrollduration")) || 100)
+    if (!bVelocity) {
+        continuousScrollState.xVel = 0
+        continuousScrollState.yVel = (Number(aVelocity) || 0) * mult
+    } else {
+        continuousScrollState.xVel = (Number(aVelocity) || 0) * mult
+        continuousScrollState.yVel = (Number(bVelocity) || 0) * mult
+    }
+
+    const wasScrolling = continuousScrollState.scrolling
+
+    continuousScrollState.scrolling = continuousScrollState.xVel !== 0 || continuousScrollState.yVel !== 0
+
+    if (!wasScrolling && continuousScrollState.scrolling) {
+        continuousScrollState.lastStep = performance.now()
+        continuousScrollStep()
+    }
+}
+
+// Calculate distance to scroll based on time since last scroll and scroll velocity
+function continuousScrollStep() {
+    const thisStep = performance.now()
+    const dt = thisStep - continuousScrollState.lastStep
+    continuousScrollState.lastStep = thisStep
+    const xDistance = continuousScrollState.xVel * dt
+    const yDistance = continuousScrollState.yVel * dt
+
+    // We could only call continuousScrollStep if recursiveScroll returns true
+    // But sub-pixel/unsuccessful scrolls accumulate and would eventually cause a successful scroll
+    // So if recursiveScroll returns false, holding the scroll key down a bit longer might still work
+    recursiveScroll(xDistance, yDistance)
+    .then(() => {
+        if (continuousScrollState.scrolling) requestAnimationFrame(continuousScrollStep)
+    })
+}
+
+/** Call after scrollstart() to cease scrolling.
+ */
+export function scrollstop() {
+    continuousScrollState.xVel = 0
+    continuousScrollState.yVel = 0
+    continuousScrollState.scrolling = false
+}
+
 async function getSmooth(): Promise<string> {
+    // Continuous scroll will break with existing smoothscroll behaviour
+    if (continuousScrollState.scrolling) return "false"
+
     if (opts.smooth === null)
         opts.smooth = await config.getAsync("smoothscroll")
     return opts.smooth
 }
 async function getDuration(): Promise<number> {
+    if (continuousScrollState.scrolling) return 0
+
     if (opts.duration === null)
         opts.duration = await config.getAsync("scrollduration")
     return opts.duration
@@ -42,19 +109,27 @@ class ScrollingData {
         this.duration = duration
         this.startTime = performance.now()
         this.startPos = this.elem[this.scrollDirection]
+        const elem = this.elem as Element
+        const absoluteEnd = distance === Infinity
+            ? this.scrollDirection === "scrollTop"
+                ? elem.scrollHeight - elem.clientHeight
+                : elem.scrollWidth - elem.clientWidth
+            : distance === -Infinity ? 0 : undefined
         // If we're already scrolling, update the endPos based off the current endPos
         if (this.scrolling) {
-            this.endPos = this.endPos + distance
+            this.endPos = absoluteEnd ?? this.endPos + distance
             return true
         }
-        this.endPos = this.startPos + distance
-        if ("style" in this.elem)
-            (this.elem as any).style.scrollBehavior = "unset"
+        this.endPos = absoluteEnd ?? this.startPos + distance
         this.scrolling = this.scrollStep()
         if (this.scrolling)
             // If the element can be scrolled, scroll until animation completion
-            this.scheduleStep()
+            this.scheduleStep(scrollGeneration)
         return this.scrolling
+    }
+
+    public stop() {
+        this.scrolling = false
     }
 
     /** Computes where the element should be.
@@ -99,7 +174,9 @@ class ScrollingData {
     private scrollStep(): boolean {
         const prevScrollPos: number = this.elem[this.scrollDirection]
         const target = this.getStep()
-        this.elem[this.scrollDirection] = target
+        const options: ScrollToOptions = { behavior: "instant" }
+        options[this.scrollDirection === "scrollTop" ? "top" : "left"] = target
+        ;(this.elem as Element).scrollTo(options)
         // Ensure endPos value is possible for display dpi
         if (target === this.endPos)
             this.endPos = this.elem[this.scrollDirection]
@@ -108,12 +185,14 @@ class ScrollingData {
 
     /** Calls this.scrollStep() until the element has been completely scrolled
      * or the scrolling animation is complete */
-    private scheduleStep() {
+    private scheduleStep(generation: number) {
         // If scrollStep() scrolled the element, reschedule a step
         // Otherwise, register that the element stopped scrolling
-        window.requestAnimationFrame(() =>
-            this.scrollStep() ? this.scheduleStep() : (this.scrolling = false),
-        )
+        window.requestAnimationFrame(() => {
+            if (generation !== scrollGeneration) return
+            if (this.scrollStep()) this.scheduleStep(generation)
+            else this.scrolling = false
+        })
     }
 }
 
@@ -122,18 +201,26 @@ const horizontallyScrolling = new Map<Node, ScrollingData>()
 // Stores elements that are currently being vertically scrolled
 const verticallyScrolling = new Map<Node, ScrollingData>()
 
-/** Tries to scroll e by x and y pixel, make the smooth scrolling animation
- *  last duration milliseconds
+export function stop() {
+    scrollGeneration++
+    horizontallyScrolling.forEach(scrollData => scrollData.stop())
+    verticallyScrolling.forEach(scrollData => scrollData.stop())
+}
+
+/** Tries to scroll e by x and y pixels, with infinities representing the edges.
+ *  Make the smooth scrolling animation last duration milliseconds.
  */
 export async function scroll(
     xDistance = 0,
     yDistance = 0,
     e: Node,
     duration?: number,
+    generation = scrollGeneration,
 ): Promise<boolean> {
     const smooth = await getSmooth()
     if (smooth === "false") duration = 0
     else if (duration === undefined) duration = await getDuration()
+    if (generation !== scrollGeneration) return true
 
     let didScroll = false
     if (xDistance !== 0) {
@@ -186,6 +273,7 @@ export async function recursiveScroll(
     xDistance: number,
     yDistance: number,
     node?: Element,
+    generation = scrollGeneration,
 ) {
     let startingFromCached = false
     if (!node) {
@@ -206,7 +294,7 @@ export async function recursiveScroll(
 
             node = currentFocused
             while (true) {
-                if (await scroll(xDistance, yDistance, node)) return true
+                if (await scroll(xDistance, yDistance, node, undefined, generation)) return true
                 node = node.parentElement
                 if (!node) break
             }
@@ -222,7 +310,7 @@ export async function recursiveScroll(
     do {
         // If node is undefined or if we managed to scroll it
         if (
-            (await scroll(xDistance, yDistance, treeWalker.currentNode)) ||
+            (await scroll(xDistance, yDistance, treeWalker.currentNode, undefined, generation)) ||
             ((treeWalker.currentNode as any).contentDocument &&
                 !(treeWalker.currentNode as any).src?.startsWith(
                     "moz-extension://",
@@ -230,7 +318,9 @@ export async function recursiveScroll(
                 (await recursiveScroll(
                     xDistance,
                     yDistance,
-                    (treeWalker.currentNode as any).contentDocument.body,
+                    (treeWalker.currentNode as any).contentDocument.scrollingElement ??
+                        (treeWalker.currentNode as any).contentDocument.documentElement,
+                    generation,
                 )))
         ) {
             // Cache the node for next time and stop trying to scroll
@@ -245,7 +335,7 @@ export async function recursiveScroll(
         treeWalker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT)
         do {
             // If node is undefined or if we managed to scroll it
-            if (await scroll(xDistance, yDistance, treeWalker.currentNode)) {
+            if (await scroll(xDistance, yDistance, treeWalker.currentNode, undefined, generation)) {
                 // Cache the node for next time and stop trying to scroll
                 lastRecursiveScrolled = treeWalker.currentNode
                 lastX = xDistance

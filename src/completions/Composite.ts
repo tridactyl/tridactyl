@@ -1,11 +1,10 @@
 import * as Completions from "@src/completions"
 import * as ExcmdCompletions from "@src/completions/Excmd"
-import * as Metadata from "@src/.metadata.generated"
+import { excmdsFunctions, getDoc } from "@src/.metadata.generated"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 
 const PREFIX = "composite"
-const regex = new RegExp("^" + PREFIX + " ")
 
 // Most of this is copied verbatim from Excmd.ts - would have liked to inherit but constructor posed difficulties
 export class CompositeCompletionSource extends Completions.CompletionSourceFuse {
@@ -27,12 +26,21 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
         return this.updateOptions(exstr)
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     updateChain(exstr = this.lastExstr, options = this.options) {
         if (this.options.length > 0) this.state = "normal"
         else this.state = "hidden"
 
         this.updateDisplay()
+    }
+
+    completionForOption(option: ExcmdCompletions.ExcmdCompletionOption) {
+        return (
+            this.lastExstr.replace(
+                new RegExp(this.getendexstr(this.lastExstr) + "$"),
+                "",
+            ) + option.value
+        )
     }
 
     select(option: ExcmdCompletions.ExcmdCompletionOption) {
@@ -65,21 +73,15 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
             return
         }
 
-        const excmds = Metadata.everything.getFile("src/excmds.ts")
-        if (!excmds) return
-        const fns = excmds.getFunctions()
-
         // Add all excmds that start with exstr and that tridactyl has metadata about to completions
         this.options = this.scoreOptions(
-            fns
-                .filter(
-                    ([name, fn]) => !fn.hidden && name.startsWith(end_exstr),
-                )
+            Object.entries(excmdsFunctions)
+                .filter(([name]) => name.startsWith(end_exstr))
                 .map(
                     ([name, fn]) =>
                         new ExcmdCompletions.ExcmdCompletionOption(
                             name,
-                            fn.doc,
+                            getDoc(fn),
                         ),
                 ),
         )
@@ -90,12 +92,12 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
         )
         for (const alias of exaliases) {
             const cmd = aliases.expandExstr(alias)
-            const fn = excmds.getFunction(cmd)
+            const fn = excmdsFunctions[cmd]
             if (fn) {
                 this.options.push(
                     new ExcmdCompletions.ExcmdCompletionOption(
                         alias,
-                        `Alias for \`${cmd}\`. ${fn.doc}`,
+                        `Alias for \`${cmd}\`. ${getDoc(fn)}`,
                     ),
                 )
             } else {
@@ -118,8 +120,8 @@ export class CompositeCompletionSource extends Completions.CompletionSourceFuse 
     }
 
     private getendexstr(exstr) {
-        return exstr
-            .replace(regex, "")
+        const [, query = exstr] = this.splitOnPrefix(exstr)
+        return query
             .split("|")
             .slice(-1)[0]
             .split(";")

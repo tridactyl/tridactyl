@@ -8,6 +8,7 @@ import {
     getDriver,
     getDriverAndProfileDirs,
     iframeLoaded,
+    quitDrivers,
     sendKeys,
 } from "./utils"
 
@@ -22,9 +23,7 @@ describe("webdriver", () => {
         driver = await getDriver()
     })
 
-    afterEach(async () => {
-        await driver.quit()
-    })
+    afterEach(quitDrivers)
 
     interface Tab {
         active: boolean
@@ -124,11 +123,14 @@ describe("webdriver", () => {
                     "elem.innerText=`%u`;" +
                     "document.body.appendChild(elem)<CR>",
             )
+            await driver.executeScript(`
+                ["news/rss.xml", "views/atom.xml", "pews/rss.xml", "tews/atom.xml"].forEach(href => {
+                    const link = document.createElement("a")
+                    link.href = href
+                    document.body.appendChild(link)
+                })`)
 
             // First, make sure completions are offered
-            await driver.get(
-                "file:///" + process.cwd() + "/e2e_tests/html/rss.html",
-            )
             const iframe = await iframeLoaded(driver)
             await sendKeys(driver, ":rssexec ")
             await driver.switchTo().frame(iframe)
@@ -196,8 +198,8 @@ describe("webdriver", () => {
         const { driver, newProfiles } = await getDriverAndProfileDirs()
         try {
             // Then, make sure `:guiset` is offering completions
-            const iframe = await iframeLoaded(driver)
             await sendKeys(driver, ":guiset ")
+            const iframe = await iframeLoaded(driver)
             await driver.switchTo().frame(iframe)
             const elements = await driver.findElements(
                 By.className("GuisetCompletionOption"),
@@ -212,7 +214,7 @@ describe("webdriver", () => {
                     `return document.getElementById("tridactyl-input").value`,
                 ),
             ).toEqual(
-                "userChrome.css written. Please restart Firefox to see the changes.",
+                `userChrome.css written to ${newProfiles[0]}/chrome/userChrome.css. Please restart Firefox to see the changes.`,
             )
             const profile = newProfiles.find(async p =>
                 (await fs.readdir(path.join(p, "chrome"))).find(files =>
@@ -222,8 +224,6 @@ describe("webdriver", () => {
             expect(profile).toBeDefined()
         } catch (e) {
             fail(e)
-        } finally {
-            await driver.quit()
         }
     })
 
@@ -368,7 +368,7 @@ describe("webdriver", () => {
             await untilTabUrlMatches(
                 driver,
                 newTab.id,
-                new RegExp("^https://www.google.com/search.*qwant"),
+                new RegExp("^https?:\/\/.*qwant", "i"),
             )
         } catch (e) {
             fail(e)

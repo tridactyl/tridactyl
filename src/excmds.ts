@@ -67,6 +67,8 @@
     [libera-link]: ircs://irc.libera.chat:6697/tridactyl
     [matrix-badge]: /static/badges/matrix-badge.svg
     [matrix-link]: https://matrix.to/#/#tridactyl:matrix.org
+
+    @packageDocumentation
 */
 /** ignore this line */
 
@@ -74,7 +76,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, browserBg, activeTab, activeTabOnWindow, activeTabId, activeWindowId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab } from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, activeTab, activeTabOnWindow, activeTabId, activeWindowId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab, getLastAudibleTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -83,11 +85,10 @@ import * as UrlUtil from "@src/lib/url_util"
 import * as config from "@src/lib/config"
 import * as aliases from "@src/lib/aliases"
 import * as Logging from "@src/lib/logging"
-import { AutoContain } from "@src/lib/autocontainers"
+import { AutoContain, markExplicitContainerTab } from "@src/lib/autocontainers"
 import * as CSS from "css"
 import * as Perf from "@src/perf"
-import * as Metadata from "@src/.metadata.generated"
-import { ObjectType } from "../compiler/types/ObjectType"
+import { staticThemes, excmdsFunctions, defaultConfigMembers, memberType, typeKind, convert, convertMember } from "@src/.metadata.generated"
 import * as Native from "@src/lib/native"
 import * as TTS from "@src/lib/text_to_speech"
 import * as excmd_parser from "@src/parsers/exmode"
@@ -100,6 +101,8 @@ import * as arg from "@src/lib/arg_util"
 import * as R from "ramda"
 import * as treestyletab from "@src/interop/tst"
 import { uuidv4 } from "@src/lib/math"
+import { ABOUT_PAGES } from "@src/lib/about_pages"
+import glossary from "@src/.glossary.generated.json"
 
 /**
  * This is used to drive some excmd handling in `composite`.
@@ -113,7 +116,7 @@ let ALL_EXCMDS
 import * as controller from "@src/lib/controller"
 
 //#content_helper
-import { generator as KEY_MUNCHER } from "@src/content/controller_content"
+import { keyMuncher as KEY_MUNCHER, startBufferingPageKeys } from "@src/content/controller_content"
 
 /**
  * Used to store the types of the parameters for each excmd for
@@ -128,6 +131,8 @@ const logger = new Logging.Logger("excmd")
 
 /** @hidden **/
 const TRI_VERSION = getTriVersion()
+const TRI_VERSION_NAME = getTriVersionName()
+const IS_BETA = browser.runtime.getManifest().applications?.gecko?.id?.includes(".betas") || false
 
 //#content_helper
 // {
@@ -153,7 +158,14 @@ ALL_EXCMDS = {
 }
 // }
 
-import { mapstrToKeyseq, mozMapToMinimalKey, minimalKeyToMozMap, MinimalKey } from "@src/lib/keyseq"
+import {
+    mapstrToKeyseq,
+    mozMapToMinimalKey,
+    minimalKeyToMozMap,
+    MinimalKey,
+    findShadowingMapstr,
+    parseMapstr,
+} from "@src/lib/keyseq"
 
 //#background_helper
 // {
@@ -216,7 +228,7 @@ export async function getRssLinks(): Promise<Array<{ type: string; url: string; 
             }
             if (seen.has(e.href)) return acc
             seen.add(e.href)
-            return acc.concat({ type, url: e.href, title: e.title || e.innerText } as { type: string; url: string; title: string })
+            return acc.concat({ type, url: e.href, title: e.title || e.innerText })
         }, [])
 }
 
@@ -332,7 +344,7 @@ import { getEditor } from "editor-adapter"
  * ```
  *
  * Your editor of choice may need to run in a terminal. For example, this command opens neovim with kitty and exits after closing the editor:
- * ```vim
+ * ```text
  * set editorcmd kitty nvim
  * ```
  *
@@ -348,6 +360,8 @@ import { getEditor } from "editor-adapter"
 //#content
 export async function editor() {
     const elem = DOM.getLastUsedInput()
+    if (!elem || !DOM.isTextEditable(elem))
+        throw new Error(":editor requires a previously focused editable element")
     const selector = DOM.getSelector(elem)
     addTridactylEditorClass(selector)
 
@@ -388,8 +402,8 @@ export async function editor() {
     } finally {
         removeTridactylEditorClass(selector)
         window.removeEventListener("beforeunload", beforeUnloadListener)
-        return ans
     }
+    return ans
 }
 
 /**
@@ -402,7 +416,7 @@ export async function guiset_quiet(rule: string, option: string) {
     // Could potentially fall back to sending minimal example to clipboard if native not installed
 
     // Check for native messenger and make sure we have a plausible profile directory
-    if (!(await Native.nativegate("0.1.1"))) return
+    if (!(await Native.nativegate("0.1.1", false))) return
     const profile_dir = await Native.getProfileDir()
     await setpref("toolkit.legacyUserProfileCustomizations.stylesheets", "true")
 
@@ -421,7 +435,8 @@ export async function guiset_quiet(rule: string, option: string) {
     }
     // Trim due to https://github.com/reworkcss/css/issues/113
     const stylesheetDone = CSS.stringify(css_util.changeCss(rule, option, stylesheet)).trim()
-    return Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
+    await Native.write(profile_dir + "/chrome/userChrome.css", stylesheetDone)
+    return profile_dir
 }
 
 /**
@@ -435,44 +450,47 @@ export async function guiset_quiet(rule: string, option: string) {
  *
  * Example usage: `guiset gui none`, `guiset gui full`, `guiset tabs autohide`.
  *
+ * If your Firefox profile cannot be found automatically on Windows, go to `about:support`, copy the `Profile Directory` path, then run `:set profiledir PROFILEDIRECTORY`, replacing `PROFILEDIRECTORY` with the copied path.
+ *
  * Some of the available options:
  *
  * - gui
- *      - full
- *      - none
+ *     - full
+ *     - none
  *
  * - tabs
- *      - always
- *      - autohide
+ *     - always
+ *     - autohide
  *
  * - navbar
- *      - always
- *      - autohide
- *      - none
+ *     - always
+ *     - autohide
+ *     - none
  *
  * - hoverlink (the little link that appears when you hover over a link)
- *      - none
- *      - left
- *      - right
- *      - top-left
- *      - top-right
+ *     - none
+ *     - left
+ *     - right
+ *     - top-left
+ *     - top-right
  *
  * - statuspanel (hoverlink + the indicator that appears when a website is loading)
- *      - none
- *      - left
- *      - right
- *      - top-left
- *      - top-right
+ *     - none
+ *     - left
+ *     - right
+ *     - top-left
+ *     - top-right
  *
  * If you want to use guiset in your tridactylrc, you might want to use [[guiset_quiet]] instead.
  */
 //#background
 export async function guiset(rule: string, option: string) {
-    if (!(await guiset_quiet(rule, option))) {
+    const profile_dir = await guiset_quiet(rule, option)
+    if (!profile_dir) {
         throw new Error(":guiset failed. Please ensure native messenger is installed.")
     }
 
-    return fillcmdline_tmp(3000, "userChrome.css written. Please restart Firefox to see the changes.")
+    return fillcmdline_tmp(3000, `userChrome.css written to ${profile_dir}/chrome/userChrome.css. Please restart Firefox to see the changes.`)
 }
 
 /** @hidden */
@@ -486,8 +504,11 @@ export function cssparse(...css: string[]) {
 export async function loadtheme(themename: string) {
     if (!(await Native.nativegate("0.1.9"))) return
     const separator = (await browserBg.runtime.getPlatformInfo()).os === "win" ? "\\" : "/"
+    const rcPath = await Native.getrcpath().catch(
+        () => `~${separator}.config${separator}tridactyl${separator}tridactylrc`,
+    )
     // remove the "tridactylrc" bit so that we're left with the directory
-    const path = (await Native.getrcpath()).split(separator).slice(0, -1).join(separator) + separator + "themes" + separator + themename + ".css"
+    const path = rcPath.split(separator).slice(0, -1).join(separator) + separator + "themes" + separator + themename + ".css"
     const file = await Native.read(path)
     if (file.code !== 0) {
         if (Object.keys(await config.get("customthemes")).includes(themename)) return
@@ -509,7 +530,7 @@ export async function unloadtheme(themename: string) {
  *
  * If THEMENAME is set to any other value except `--url`, Tridactyl will attempt to use its native binary (see [[native]]) in order to load a CSS file named THEMENAME from disk. The CSS file has to be in a directory named "themes" and this directory has to be in the same directory as your tridactylrc. If this fails, Tridactyl will attempt to load the theme from its internal storage.
  *
- * Themes can be loaded from URLs with `:colourscheme --url [url] [themename]`. They are stored internally - if you want to update the theme run the whole command again. You can use `%` as a placeholder for the current URL.
+ * Themes can be loaded from URLs with `:colourscheme --url [url] [themename]`. If omitted, the theme name is inferred from the URL's filename. They are stored internally and reused; use `--update` with `--url` to redownload a theme. You can use `%` as a placeholder for the current URL.
  *
  * Themes can be used for specific sites with `:colourscheme --regex [url regex]`. As a shorthand to style our `:reader` mode, you can use `:colourscheme --module=reader`, for example, `:colourscheme --module=reader --url=https://raw.githubusercontent.com/tridactyl/tridactyl/refs/heads/master/contrib/themes/reader/newspaper.css newspaper`
  *
@@ -517,6 +538,7 @@ export async function unloadtheme(themename: string) {
  *
  * Example: `:colourscheme mysupertheme`
  * On linux, this will load ~/.config/tridactyl/themes/mysupertheme.css
+ * See our [guide to creating custom themes](https://tridactyl.xyz/newsletters/tips-and-tricks/2-custom-themes/).
  *
  * __NB__: due to Tridactyl's architecture, the theme will take a small amount of time to apply as each page is loaded. If this annoys you, you may use [userContent.css](http://kb.mozillazine.org/index.php?title=UserContent.css&printable=yes) to make changes to Tridactyl earlier. For example, users using the dark theme may like to put
  *
@@ -527,25 +549,30 @@ export async function unloadtheme(themename: string) {
  * }
  * ```
  *
- * in their `userContent.css`. Follow [issue #2510](https://github.com/tridactyl/tridactyl/issues/2510) if you would like to find out when we have made a more user-friendly solution.
+ * in their `userContent.css`. Tridactyl's initial theme follows the system colour scheme - if you get flashes while the configured theme loads, try changing your system-wide theme to dark mode wherever you normally change your system settings.
  */
 //#background
 export async function colourscheme(...args: string[]) {
-    const option = arg.lib({ "--url": String, "--regex": String, "--module": String }, { argv: args, allowNegativePositional: true })
+    const option = arg.lib({ "--url": String, "--update": Boolean, "--regex": String, "--module": String }, { argv: args, allowNegativePositional: true })
     let url = option["--url"]
     const regex = option["--module"] == "reader" ? "moz-extension://.*/static/reader\.html" : option["--regex"]
-    const themename = option._[0]
+    let themename = option._[0]
+
+    if (!themename && url) {
+        const filename = new URL(url === "%" ? window.location.href : url, window.location.href).pathname.split("/").pop()
+        themename = filename?.replace(/\.[^.]*$/, "")
+    }
+    if (!themename) throw new Error(`You must provide a theme name or a URL with a filename!`)
 
     // If this is a builtin theme, no need to bother with slow stuff
-    if (!Metadata.staticThemes.includes(themename)) {
+    if (!staticThemes.includes(themename)) {
         if (themename.search("\\.") >= 0) throw new Error(`Theme name should not contain any dots! (given name: ${themename}).`)
-        if (url) {
-            if (themename === undefined) throw new Error(`You must provide a theme name!`)
+        if (url && (option["--update"] || !Object.keys(config.get("customthemes")).includes(themename))) {
             if (url === "%") url = window.location.href // this is basically an easter egg
             if (!(url.startsWith("http://") || url.startsWith("https://"))) url = "http://" + url
             const css = await (await fetch(url)).text()
-            set("customthemes." + themename, css)
-        } else {
+            await config.set("customthemes", themename, css)
+        } else if (!url) {
             await loadtheme(themename)
         }
     }
@@ -655,8 +682,9 @@ export async function nativeopen(...args: string[]) {
                 if ((await browser.windows.getCurrent()).incognito) {
                     throw new Error("nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
                 }
-                const osascriptArgs = ["-e 'on run argv'", "-e 'tell application \"Firefox\" to open location item 1 of argv'", "-e 'end run'"]
-                await Native.run("osascript " + osascriptArgs.join(" ") + " " + url)
+                const appName = /(?:^|\/)([^/]+)\.app\/Contents\/MacOS\//.exec((await Native.ff_cmdline().catch(() => [])).join(" "))?.[1] ?? "Firefox"
+                const osascriptArgs = ["on run argv", `tell application "${appName.replace(/["\\]/g, "\\$&")}" to open location item 1 of argv`, "end run"].map(script => `-e ${escape.sh(script)}`)
+                await Native.run(`osascript ${osascriptArgs.join(" ")} ${escape.sh(url)}`)
             } else {
                 const os = (await browser.runtime.getPlatformInfo()).os
                 if (firefoxArgs.length === 0) {
@@ -701,6 +729,18 @@ export async function nativeopen(...args: string[]) {
     }
 }
 
+/** Opens a supported Firefox internal page. */
+//#background
+export async function dialog(...nameArgs: string[]) {
+    let name = nameArgs.join(" ")
+    if (name === "preference") name = "preferences"
+    if (!Object.prototype.hasOwnProperty.call(ABOUT_PAGES, name))
+        throw new Error(`Unknown dialog: ${name}`)
+    if (!(await Native.nativegate("0", false)))
+        throw new Error("The native messenger is required to open Firefox dialogs")
+    return nativeopen(`about:${name}`)
+}
+
 /**
  * Run command in /bin/sh (unless you're on Windows), and print the output in the command line. Non-zero exit codes and stderr are ignored, currently.
  *
@@ -727,7 +767,7 @@ export async function exclaim(...str: string[]) {
 //#background
 export async function exclaim_quiet(...str: string[]) {
     let result = ""
-    if (await Native.nativegate()) {
+    if (await Native.nativegate("0", false)) {
         result = (await Native.run(str.join(" "))).content
     }
     return result
@@ -740,7 +780,12 @@ export async function exclaim_quiet(...str: string[]) {
  */
 //#background
 export async function native() {
-    const version = await Native.getNativeMessengerVersion(true)
+    let version
+    try {
+        version = await Native.getNativeMessengerVersion()
+    } catch (e) {
+        return fillcmdline("# Native messenger not found. Please run `:nativeinstall` and follow the instructions. " + e)
+    }
     let done
     if (version !== undefined) {
         done = fillcmdline("# Native messenger is correctly installed, version " + version)
@@ -761,26 +806,28 @@ export async function native() {
  */
 //#background
 export async function nativeinstall() {
-    const tag = TRI_VERSION.includes("pre") ? "master" : TRI_VERSION
+    const tag = IS_BETA ? "master" : TRI_VERSION
     let done
     const installstr = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
     await yank(installstr)
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
-        done = fillcmdline("# Installation command copied to clipboard. Please paste and run it in cmd.exe (other shells won't work) to install the native messenger.")
+        done = fillcmdline("# Installation command copied to clipboard. Please paste and run it in cmd.exe (other shells won't work) to install the native messenger. If that fails, try opening cmd.exe as Administrator and running the command again.")
     } else {
         done = fillcmdline("# Installation command copied to clipboard. Please paste and run it in your shell to install the native messenger.")
     }
     return done
 }
 
-/** Writes current config to a file. By default, the config file is "~/.tridactylrc".
+/** Exports the current user config as an RC file. With no path, it targets the file selected by the automatic RC search, falling back to "~/.tridactylrc".
 
     NB: an RC file is not required for your settings to persist: all settings are stored in a local Firefox storage database by default as soon as you set them.
+
+    This is a one-time export: Tridactyl does not update the RC file when settings change. Use [[source]] to run one.
 
     With no arguments supplied the excmd will try to find an appropriate
     config path and write the rc file to there. Any argument given to the
     excmd excluding the `-f` flag will be treated as a path to write the rc
-    file to relative to the native messenger's location (`~/.local/share/tridactyl/`). By default, it silently refuses to overwrite existing files.
+    file to relative to the native messenger's location (`~/.local/share/tridactyl/`). By default, it refuses to overwrite existing files.
 
     The RC file will be split into sections that will be created if a config
     property is discovered within one of them:
@@ -798,7 +845,7 @@ export async function nativeinstall() {
 
     Available flags:
     - `-f` will overwrite the config file if it exists.
-    - `--clipboard` write config to clipboard - no [[native]] required
+    - `--clipboard` writes config to the clipboard - with the default `yankto` setting, no [[native]] is required
 
     @param args an optional string of arguments to be parsed.
     @returns the parsed config.
@@ -824,7 +871,9 @@ export async function mktridactylrc(...args: string[]) {
         setclip(conf)
         return fillcmdline_tmp(3000, "# RC copied to clipboard")
     }
-    if ((await Native.nativegate("0.1.11")) && !(await rc.writeRc(conf, overwrite, file))) logger.error("Could not write RC file")
+    if (!(await Native.nativegate("0.1.11", false))) throw new Error("`:mktridactylrc` requires the native messenger. Run `:nativeinstall` or use `:mktridactylrc --clipboard`.")
+    const path = await rc.writeRc(conf, overwrite, file)
+    await fillcmdline_tmp(3000, `# RC written to ${path}`)
 
     return conf
 }
@@ -834,7 +883,9 @@ export async function mktridactylrc(...args: string[]) {
  *
  * This function accepts flags: `--url`, `--clipboard` or `--strings`.
  *
- * If no argument given, it will try to open ~/.tridactylrc, ~/.config/tridactyl/tridactylrc or $XDG_CONFIG_HOME/tridactyl/tridactylrc in reverse order. You may use a `_` in place of a leading `.` if you wish, e.g, if you use Windows.
+ * With no argument, it loads only the first file selected by the native messenger. The platform config directory (usually `$XDG_CONFIG_HOME/tridactyl/tridactylrc` or `~/.config/tridactyl/tridactylrc`) takes precedence over `~/.tridactylrc`. Windows also accepts `~/_config/tridactyl/tridactylrc` and `~/_tridactylrc`.
+ *
+ * Local files require the [[native]] messenger. With the default configuration, this no-argument form runs once at browser startup. Run `:findrc` to display the path it would currently select or `:source` after editing it.
  *
  * On Windows, the `~` expands to `%USERPROFILE%`.
  *
@@ -842,13 +893,11 @@ export async function mktridactylrc(...args: string[]) {
  *
  * Tridactyl won't run on many raw pages due to a Firefox bug with Content Security Policy, so you may need to use the `source --url [URL]` form.
  *
- * The `--clipboard` flag will load the RC from the clipboard, which is useful for people cannot install the native messenger or do not wish to store their RC online. You can use this with `mktridactylrc --clipboard`.
+ * The `--clipboard` flag will load the RC from the clipboard, which is useful for people who cannot install the native messenger or do not wish to store their RC online. With the default `putfrom` setting, it does not require [[native]]. You can use this with `mktridactylrc --clipboard`.
  *
  * The `--strings` flag will load the RC from rest arguments. It could be useful if you want to execute a batch of commands in js context. Eg: `js tri.excmds.source("--strings", [cmd1, cmd2].join("\n"))`.
  *
- * The RC file is just a bunch of Tridactyl excmds (i.e, the stuff on this help page). Settings persist in local storage. There's an [example file](https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc) if you want it.
- *
- * There is a [bug](https://github.com/tridactyl/tridactyl/issues/1409) where not all lines of the RC file are executed if you use `sanitise` at the top of it. We instead recommend you put `:bind ZZ composite sanitise tridactyllocal; qall` in your RC file and use `ZZ` to exit Firefox.
+ * The RC file uses command-mode syntax, with commands separated by newlines; a trailing `\` continues a command on the next line, while `\\` ends a command with a literal `\`. Lines whose first non-whitespace character is `"` or `#` are comments; inline comments are not supported. Settings persist in local storage, and the RC file is not kept in sync with later changes. Use `:viewconfig --user` to inspect the resulting settings. There's an [example file](https://raw.githubusercontent.com/tridactyl/tridactyl/master/.tridactylrc) if you want it.
  *
  * @param args the file/URL to open. For files: must be an absolute path, but can contain environment variables and things like ~.
  */
@@ -866,7 +915,8 @@ export async function source(...args: string[]) {
         await rc.runRc(text)
     } else {
         const file = args.join(" ") || undefined
-        if ((await Native.nativegate("0.1.3")) && !(await rc.source(file))) {
+        if (!(await Native.nativegate("0.1.3", false))) throw new Error("`:source` requires the native messenger for local files. Run `:nativeinstall` or use `:source --clipboard`.")
+        if (!(await rc.source(file))) {
             logger.error("Could not find RC file")
         }
     }
@@ -898,7 +948,7 @@ export async function updatenative(interactive = true) {
         return
     }
 
-    const tag = TRI_VERSION.includes("pre") ? "master" : TRI_VERSION
+    const tag = IS_BETA ? "master" : TRI_VERSION
     const update_command = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
     const native_version = await Native.getNativeMessengerVersion()
 
@@ -911,9 +961,8 @@ export async function updatenative(interactive = true) {
         return
     } else {
         await Native.runAsync(update_command)
+        if (interactive) await fillcmdline("# Native messenger update started. Please wait a few seconds, then run `:native` to check whether it succeeded.")
     }
-
-    if (interactive) native()
 }
 
 /**
@@ -1033,15 +1082,14 @@ export async function saveJumps(jumps) {
 /** @hidden */
 //#content_helper
 export async function saveTabHistory(history) {
-    return browserBg.sessions.setTabValue(await activeTabId(), "history", history)
+    return browserBg.sessions.setTabValue((await ownTab()).id, "history", history)
 }
 
 /** Returns a promise for an object with history list, index of a current, previous and next pages */
 /** @hidden */
 //#content_helper
 export async function curTabHistory() {
-    const tabid = await activeTabId()
-    return await browserBg.sessions.getTabValue(tabid, "history")
+    return browserBg.sessions.getTabValue((await ownTab()).id, "history")
 }
 
 /** Returns a promise for an object containing the jumplist of all pages accessed in the current tab.
@@ -1065,7 +1113,7 @@ export async function curJumps() {
     return jumps
 }
 
-/** Calls [[jumpprev]](-n) */
+/** Calls [[jumpprev]] with `-n`. */
 //#content
 export function jumpnext(n = 1) {
     return jumpprev(-n)
@@ -1323,10 +1371,6 @@ export function addJump() {
 //#content_helper
 document.addEventListener("scroll", addJump, { passive: true })
 
-// Try to restore the previous jump position every time a page is loaded
-//#content_helper
-document.addEventListener("load", () => curJumps().then(() => jumpprev(0)))
-
 // Adds a new entry to history tree or updates it if already visited
 /** @hidden */
 //#content_helper
@@ -1365,8 +1409,8 @@ window.addEventListener("HistoryState", addTabHistory)
 /** Blur (unfocus) the active element and enter normal mode */
 //#content
 export function unfocus() {
-    ;((document.activeElement.shadowRoot ? DOM.deepestShadowRoot(document.activeElement.shadowRoot) : document).activeElement as HTMLInputElement).blur()
-    contentState.mode = "normal"
+    ((DOM.activeElement() || document.activeElement) as HTMLInputElement)?.blur()
+    hinting.getHintCommands().reset()
 }
 
 /** Scrolls the window or any scrollable child element by a pixels on the horizontal axis and b pixels on the vertical axis.
@@ -1400,20 +1444,25 @@ export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
     const percentage = a.clamp(0, 100)
     let done = Promise.resolve(undefined as any)
     if (b === "y") {
-        const top = elem.getClientRects()[0].top
-        window.scrollTo(window.scrollX, (percentage * elem.scrollHeight) / 100)
-        if (top === elem.getClientRects()[0].top && (percentage === 0 || percentage === 100)) {
-            // scrollTo failed, if the user wants to go to the top/bottom of
-            // the page try scrolling.recursiveScroll instead
-            done = scrolling.recursiveScroll(window.scrollX, 1073741824 * (percentage === 0 ? -1 : 1), document.documentElement)
+        if (percentage === 0 || percentage === 100)
+            done = scrolling.recursiveScroll(
+                0,
+                percentage === 0 ? -Infinity : Infinity,
+                document.documentElement,
+            )
+        else {
+            scrolling.stop()
+            window.scrollTo(window.scrollX, (percentage * elem.scrollHeight) / 100)
         }
     } else if (b === "x") {
         const left = elem.getClientRects()[0].left
+        scrolling.stop()
         window.scrollTo((percentage * elem.scrollWidth) / 100, window.scrollY)
         if (left === elem.getClientRects()[0].left && (percentage === 0 || percentage === 100)) {
             done = scrolling.recursiveScroll(1073741824 * (percentage === 0 ? -1 : 1), window.scrollX, document.documentElement)
         }
     } else {
+        scrolling.stop()
         window.scrollTo(a, Number(b)) // a,b numbers
     }
     return done.then(() => undefined)
@@ -1422,6 +1471,7 @@ export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
 /** @hidden */
 //#content_helper
 let lineHeight = null
+
 /** Scrolls the document of its first scrollable child element by n lines.
  *
  *  The height of a line is defined by the site's CSS. If Tridactyl can't get it, it'll default to 22 pixels.
@@ -1456,35 +1506,50 @@ export function scrollpage(n = 1, count = 1) {
 }
 
 /**
- *  Rudimentary find mode, left unbound by default as we don't currently support `incsearch`. Suggested binds:
+ *  Find mode is left unbound by default. Suggested binds:
  *
- *      bind / fillcmdline find
- *      bind ? fillcmdline find --reverse
- *      bind n findnext --search-from-view
- *      bind N findnext --search-from-view --reverse
- *      bind gn findselect
- *      bind gN composite findnext --search-from-view --reverse; findselect
- *      bind ,<Space> nohlsearch
+ * ```text
+ * bind / fillcmdline find
+ * bind ? fillcmdline find --reverse
+ * bind n findnext --search-from-view
+ * bind N findnext --search-from-view --reverse
+ * bind gn findselect
+ * bind gN composite findnext --search-from-view --reverse; findselect
+ * bind ,<Space> nohlsearch
+ * ```
  *
  *  Argument: A string you want to search for.
  *
- *  This function accepts two flags: `-?` or `--reverse` to search from the bottom rather than the top and `-: n` or `--jump-to n` to jump directly to the nth match.
+ *  This function accepts `-?` or `--reverse` to search from the bottom rather than the top, `-: n` or `--jump-to n` to jump directly to the nth match, and `-s` or `--case-sensitive` and `-i` or `--case-insensitive` to override `findcase`. The case flags cannot be combined. `-r` or `--regex` accepts [JavaScript regular expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions) or `/pattern/flags`; `g` is added automatically.
  *
  *  The behavior of this function is affected by the following setting:
  *
  *  `findcase`: either "smart", "sensitive" or "insensitive". If "smart", find will be case-sensitive if the pattern contains uppercase letters.
+ *  `findresults`: maximum completion rows to show; `-1` is unlimited and `0` disables them.
+ *  `findcontextlen`: number of context characters to show around each completion.
  *
  *  Known bugs: find will currently happily jump to a non-visible element, and pressing n or N without having searched for anything will cause an error.
  */
 //#content
 export function find(...args: string[]) {
-    const argOpt = arg.lib(
+    // Completion previews pass session metadata as a non-user argument.
+    const preview =
+        typeof (args[0] as any) === "object" ? (args.shift() as any) : undefined
+    const parsed = arg.lib(
         {
             "--jump-to": Number,
             "-:": "--jump-to",
 
             "--reverse": Boolean,
             "-?": "--reverse",
+
+            "--case-sensitive": Boolean,
+            "-s": "--case-sensitive",
+
+            "--case-insensitive": Boolean,
+            "-i": "--case-insensitive",
+            "--regex": Boolean,
+            "-r": "--regex",
         },
         {
             argv: args,
@@ -1492,10 +1557,24 @@ export function find(...args: string[]) {
             splitUnknownArguments: false,
         },
     )
+    const argOpt = arg.withDefaults(parsed, { "--reverse": false, "--case-sensitive": false, "--case-insensitive": false })
+    if (argOpt["--case-sensitive"] && argOpt["--case-insensitive"])
+        throw new Error("find case flags cannot be combined")
     const option = {}
-    option["reverse"] = Boolean(argOpt["--reverse"])
+    option["reverse"] = argOpt["--reverse"]
     if ("--jump-to" in argOpt) option["jumpTo"] = argOpt["--jump-to"]
+    if (argOpt["--case-sensitive"] || argOpt["--case-insensitive"])
+        option["caseSensitive"] = argOpt["--case-sensitive"]
+    option["regex"] = argOpt["--regex"]
     const searchQuery = argOpt._.join(" ")
+    if (preview) {
+        const { session } = preview
+        if (preview.cancel) return finding.cancelPreview(session)
+        const completions = preview.completions !== false && config.get("findresults") !== 0
+        if (config.get("incsearch") === "true" && searchQuery.length > 0)
+            return finding.previewMatch(session, searchQuery, option, completions, preview.selected === true)
+        return finding.cancelPreview(session)
+    }
     return finding.jumpToMatch(searchQuery, option)
 }
 
@@ -1505,13 +1584,13 @@ export function find(...args: string[]) {
  * - `-f` or `--search-from-view` to search from the current view instead of the previous match
  * - `-?` or `--reverse` to reverse the sign of the number
  *
- * @param number - number of words to advance down the page (use 1 for next word, -1 for previous), default to 1
+ * @param args - flags and number of words to advance down the page (use 1 for next word, -1 for previous), default to 1
  *
  */
 //#content
 export function findnext(...args: string[]) {
     let n = 1
-    const option = arg.lib(
+    const parsed = arg.lib(
         {
             "--search-from-view": Boolean,
             "-f": "--search-from-view",
@@ -1524,9 +1603,10 @@ export function findnext(...args: string[]) {
             allowNegativePositional: true,
         },
     )
+    const option = arg.withDefaults(parsed, { "--search-from-view": false, "--reverse": false })
     if (option._.length > 0) n = Number(option._[0])
     if (option["--reverse"]) n = -n
-    return finding.jumpToNextMatch(n, Boolean(option["--search-from-view"]))
+    return finding.jumpToNextMatch(n, option["--search-from-view"])
 }
 
 //#content
@@ -1552,13 +1632,21 @@ function history(url_or_num: string, direction: number) {
     isNaN(url_or_num as unknown as number) ? open(url_or_num) : window.history.go(parseInt(url_or_num, 10) * direction)
 }
 
-/** Navigate forward one page in history. */
+/**
+ * Navigate forward one page in history. Pass a count to go forward
+ * that many pages. Add a space after `:forward` to show the tab history tree
+ * for the current tab.
+ */
 //#content
 export function forward(...args: string[]) {
     return history(args.join(" "), 1)
 }
 
-/** Navigate back one page in history. */
+/**
+ * Navigate back one page in history. Pass a count to go back that
+ * many pages. Add a space after `:back` to show the tab history tree for the
+ * current tab.
+ */
 //#content
 export function back(...args: string[]) {
     return history(args.join(" "), -1)
@@ -1685,42 +1773,7 @@ export async function open_quiet(...urlarr: string[]) {
  */
 //#content
 export async function url2args() {
-    const url = document.location.href
-    const searchurls = await config.getAsync("searchurls")
-    let result = url
-
-    for (const engine of Object.keys(searchurls)) {
-        const [beginning, end] = [...searchurls[engine].split("%s"), ""]
-        if (url.startsWith(beginning) && url.endsWith(end)) {
-            // Get the string matching %s
-            let encodedArgs = url.substring(beginning.length)
-            encodedArgs = encodedArgs.substring(0, encodedArgs.length - end.length)
-            // Remove any get parameters that might have been added by the search engine
-            // This works because if the user's query contains an "&", it will be encoded as %26
-            const amperpos = encodedArgs.search("&")
-            if (amperpos > 0) encodedArgs = encodedArgs.substring(0, amperpos)
-
-            // Do transformations depending on the search engine
-            if (beginning.search("duckduckgo") > 0) encodedArgs = encodedArgs.replace(/\+/g, " ")
-            else if (beginning.search("wikipedia") > 0) encodedArgs = encodedArgs.replace(/_/g, " ")
-
-            const args = engine + " " + decodeURIComponent(encodedArgs)
-            if (args.length < result.length) result = args
-        }
-    }
-    return result
-}
-
-/** @hidden */
-//#content_helper
-let sourceElement: Element
-/** @hidden */
-//#content_helper
-function removeSource() {
-    if (sourceElement) {
-        sourceElement.remove()
-        sourceElement = undefined
-    }
+    return UrlUtil.searchUrlToArgs(document.location.href, await config.getAsync("searchurls"))
 }
 
 /** Display the (HTML) source of the current page.
@@ -1732,27 +1785,16 @@ function removeSource() {
     Otherwise, the source of the current document will be displayed.
 */
 //#content
-export function viewsource(url = "") {
+export async function viewsource(url = "") {
+    if (window.location.href.includes("static/reader.html?source#")) return tabclose()
     if (url === "") url = window.location.href
     if (config.get("viewsource") === "default") {
         window.location.href = "view-source:" + url
         return
     }
-    if (!sourceElement) {
-        sourceElement = CommandLineContent.executeWithoutCommandLine(() => {
-            const pre = document.createElement("pre")
-            pre.id = "TridactylViewsourceElement"
-            pre.className = "cleanslate " + config.get("theme")
-            pre.innerText = document.documentElement.innerHTML
-            document.documentElement.appendChild(pre)
-            window.addEventListener("popstate", removeSource)
-            return pre
-        })
-    } else {
-        sourceElement.parentNode.removeChild(sourceElement)
-        sourceElement = undefined
-        window.removeEventListener("popstate", removeSource)
-    }
+    const pre = document.createElement("pre")
+    pre.textContent = CommandLineContent.executeWithoutCommandLine(() => document.documentElement.innerHTML)
+    return tabopen(await readerurl({ content: pre.outerHTML, link: url, source: true }))
 }
 
 /**
@@ -1779,11 +1821,11 @@ export function home(all: "false" | "true" = "false") {
 
 /** Show this page.
 
-    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd, a binding or a setting.
+    `:help something` jumps to the entry for something. Something can be an excmd, an alias for an excmd, a binding, a setting or a glossary term.
 
     On the ex command page, the "nmaps" list is a list of all the bindings for the command you're seeing and the "exaliases" list lists all its aliases.
 
-    If there's a conflict (e.g. you have a "go" binding that does something, a "go" excmd that does something else and a "go" setting that does a third thing), the binding is chosen first, then the setting, then the excmd. In such situations, if you want to let Tridactyl know you're looking for something specfic, you can specify the following flags:
+    If there's a conflict, bindings are chosen first, then settings, aliases, ex commands and finally glossary terms. You can select a category explicitly with the following flags:
 
     `-a`: look for an alias
 
@@ -1793,6 +1835,8 @@ export function home(all: "false" | "true" = "false") {
 
     `-s`: look for a setting
 
+    `-g`: look in the glossary
+
     `-B`: open the help page in a background tab
 
     `-o`: open the help page in the current tab
@@ -1801,7 +1845,7 @@ export function home(all: "false" | "true" = "false") {
 
     `-w`: open the help page in a new window
 
-    If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline. You will be able to see the whole pipeline by hovering your mouse over the alias in the "exaliases" list. Unfortunately there currently is no way to display these HTML tooltips from the keyboard.
+    If the keyword you gave to `:help` is actually an alias for a composite command (see [[composite]]) , you will be taken to the help section for the first command of the pipeline.
 
     e.g. `:help bind`
 */
@@ -1813,6 +1857,7 @@ export async function help(...args: string[]) {
             "-b": Boolean,
             "-e": Boolean,
             "-s": Boolean,
+            "-g": Boolean,
             "-B": Boolean,
             "-o": Boolean,
             "-t": Boolean,
@@ -1821,7 +1866,10 @@ export async function help(...args: string[]) {
         { argv: args, allowNegativePositional: true },
     )
 
-    const openInCurrentWindow = option["-o"] || ((await activeTab()).url.startsWith(browser.runtime.getURL("static/docs/")) && !(option["-B"] || option["-t"] || option["-w"]))
+    const glossaryPage = browser.runtime.getURL("static/clippy/glossary.html")
+    const excmdPage = browser.runtime.getURL("static/docs/modules/_src_excmds_.html")
+    const activeUrl = (await activeTab()).url
+    const openInCurrentWindow = option["-o"] || ((activeUrl.startsWith(browser.runtime.getURL("static/docs/")) || activeUrl.startsWith(glossaryPage)) && !(option["-B"] || option["-t"] || option["-w"]))
     const subject = option._.join(" ")
     const settings = await config.getAsync()
     let url = ""
@@ -1839,7 +1887,7 @@ export async function help(...args: string[]) {
                 if (resolved.includes(helpItem)) break
             }
             if (resolved.length > 0) {
-                return browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+                return excmdPage + "#" + helpItem
             }
             return ""
         },
@@ -1853,12 +1901,16 @@ export async function help(...args: string[]) {
                 if (helpItem in bindings) {
                     helpItem = bindings[helpItem].split(" ")
                     helpItem = ["composite", "fillcmdline"].includes(helpItem[0]) ? helpItem[1] : helpItem[0]
-                    return browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem
+                    return excmdPage + "#" + helpItem
                 }
             }
             return ""
         },
-        excmd: (helpItem: string) => browser.runtime.getURL("static/docs/modules/_src_excmds_.html") + "#" + helpItem,
+        excmd: (helpItem: string) => Object.prototype.hasOwnProperty.call(excmdsFunctions, helpItem) ? excmdPage + "#" + helpItem : "",
+        glossary: (helpItem: string) => {
+            const entry = glossary.find(entry => entry.word === helpItem)
+            return entry ? glossaryPage + "#" + encodeURIComponent(entry.anchor) : ""
+        },
         setting: (helpItem: string) => {
             let subSettings = settings
             const settingNames = helpItem.split(".")
@@ -1878,22 +1930,27 @@ export async function help(...args: string[]) {
     }
 
     if (subject === "") {
-        url = browser.runtime.getURL("static/docs/modules/_src_excmds_.html")
+        url = option["-g"] ? glossaryPage : excmdPage
     } else {
+        const categoryFlags = ["-a", "-b", "-e", "-s", "-g"].filter(flag => option[flag])
+        if (categoryFlags.length > 1) throw new Error("Only one help category may be selected")
         // If the user did specify what they wanted, specifically look for it
         if (option["-a"]) url = strategies.alias(subject)
         else if (option["-b"]) url = strategies.binding(subject)
         else if (option["-e"]) url = strategies.excmd(subject)
         else if (option["-s"]) url = strategies.setting(subject)
+        else if (option["-g"]) url = strategies.glossary(subject)
 
         // Otherwise or if it couldn't be found, try all possible items
-        if (url === "") {
-            const priority = [strategies.binding, strategies.setting, strategies.alias, strategies.excmd]
+        if (url === "" && categoryFlags.length === 0) {
+            const priority = [strategies.binding, strategies.setting, strategies.alias, strategies.excmd, strategies.glossary]
             for (const strategy of priority) {
                 url = strategy(subject)
                 if (url !== "") break
             }
         }
+        if (url === "" && categoryFlags.length) throw new Error(`No ${categoryFlags[0]} help found for ${subject}`)
+        if (url === "") url = excmdPage + "#" + subject
     }
 
     let done
@@ -1908,6 +1965,12 @@ export async function help(...args: string[]) {
         done = tabopen(url)
     }
     return done.then(() => undefined)
+}
+
+/** Look up a term in the glossary. */
+//#background
+export async function define(...words: string[]) {
+    return help("-g", ...words)
 }
 
 /**
@@ -2014,21 +2077,28 @@ export function mouse_mode() {
 }
 
 /** @hidden */
-// Find clickable next-page/previous-page links whose text matches the supplied pattern,
-// and return the last such link.
+// Find clickable next-page/previous-page links whose text matches the supplied patterns.
+// String patterns return the last match; array patterns are tried in order and respect direction.
 //
-// If no matching link is found, return undefined.
+// If no matching link is found, return null.
 //
-// We return the last link that matches because next/prev buttons tend to be at the end of the page
-// whereas lots of blogs have "VIEW MORE" etc. plastered all over their pages.
 //#content_helper
-function findRelLink(pattern: RegExp): HTMLAnchorElement | null {
+function findRelLink(patterns: string | string[], rel: "next" | "prev"): HTMLAnchorElement | null {
     // querySelectorAll returns a "non-live NodeList" which is just a shit array without working reverse() or find() calls, so convert it.
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const links = Array.from(document.querySelectorAll("a") as NodeListOf<HTMLAnchorElement>)
 
-    // Find the last link that matches the test
-    return links.reverse().find(link => pattern.test(link.innerText))
+    if (typeof patterns === "string") {
+        const pattern = new RegExp(patterns, "i")
+        return links.reverse().find(link => pattern.test(link.innerText)) || null
+    }
+
+    if (rel === "prev") links.reverse()
+    for (const pattern of patterns) {
+        const link = links.find(link => new RegExp(pattern, "i").test(link.innerText))
+        if (link) return link
+    }
+    return null
 
     // Note:
     // `innerText` gives better (i.e. less surprising) results than `textContent`
@@ -2049,14 +2119,14 @@ function selectLast(selector: string): HTMLElement | null {
 
     If a link or anchor element with rel=rel exists, use that, otherwise fall back to:
 
-        1) find the last anchor on the page with innerText matching the appropriate `followpagepattern`.
+        1) for string settings, find the last matching anchor; for arrays, try each pattern in order and choose the first matching anchor for "next", or the last for "prev".
         2) call [[urlincrement]] with 1 or -1
 
     If you want to support e.g. French:
 
     ```
-    set followpagepatterns.next ^(next|newer|prochain)\b|»|>>
-    set followpagepatterns.prev ^(prev(ious)?|older|précédent)\b|«|<<
+    set followpagepatterns.next ["^(next|newer|prochain)\\b","›|>","»","more"]
+    set followpagepatterns.prev ["^(prev(ious)?|older|précédent)\\b","‹|<","«"]
     ```
 
     @param rel   the relation of the target page to the current page: "next" or "prev"
@@ -2070,7 +2140,7 @@ export function followpage(rel: "next" | "prev" = "next") {
         return
     }
 
-    const anchor = (selectLast(`a[rel~=${rel}][href]`) || findRelLink(new RegExp(config.get("followpagepatterns", rel), "i"))) as HTMLAnchorElement
+    const anchor = (selectLast(`a[rel~=${rel}][href]`) || findRelLink(config.get("followpagepatterns", rel), rel)) as HTMLAnchorElement
 
     if (anchor) {
         DOM.mouseEvent(anchor, "click")
@@ -2135,6 +2205,10 @@ export function urlparent(count = 1) {
 /**
  * Open a URL made by modifying the current URL
  *
+ * Prefix any mode with `--safe` to suppress repeated navigation to the same
+ * URL within one second in a tab. This can prevent redirect loops in
+ * [[autocmd]]s: `autocmd DocStart amazon.co.uk urlmodify --safe -t www smile`
+ *
  * There are several modes:
  *
  * * Text replace mode:   `urlmodify -t <old> <new>`
@@ -2149,11 +2223,11 @@ export function urlparent(count = 1) {
  *   all instances respectively
  *      * `http://example.com` -> (`-r [ea] X g`) -> `http://XxXmplX.com`
  *
- * * Query set mode: `urlmodify -s <query> <value>`
+ * * Query set mode: `urlmodify -s <query> <value> [[-s] <query> <value> ...]`
  *
- *   Sets the value of a query to be a specific one. If the query already
- *   exists, it will be replaced.
- *      * `http://e.com?id=abc` -> (`-s foo bar`) -> `http://e.com?id=abc&foo=bar
+ *   Sets the value of each query to be a specific one. If a query already
+ *   exists, it will be replaced. The `-s` between pairs is optional.
+ *      * `http://e.com?id=abc` -> (`-s foo bar baz quux`) -> `http://e.com?id=abc&foo=bar&baz=quux`
  *
  * * Query replace mode: `urlmodify -q <query> <new_val>`
  *
@@ -2178,7 +2252,7 @@ export function urlparent(count = 1) {
  *   path). -1 will append to the existing path, -2 will remove the last path
  *   level, and so on.
  *
- *   ```plaintext
+ *   ```text
  *   http://website.com/this/is/the/path/component
  *   Graft point:       ^    ^  ^   ^    ^        ^
  *   From left:         0    1  2   3    4        5
@@ -2201,7 +2275,7 @@ export function urlparent(count = 1) {
  *   Examples:
  *
  *   * `urlmodify -tu <old> <new> <URL>`
- *   * `urlmodify -su <query> <value> <URL>`
+ *   * `urlmodify -su <query> <value> [[-s] <query> <value> ...] <URL>`
  *   * `urlmodify -gu <graft_point> <new_path_tail> <URL>`
  *
  * @param mode      The replace mode:
@@ -2212,20 +2286,31 @@ export function urlparent(count = 1) {
  *  * -Q delete the given query
  *  * -g graft a new path onto URL or parent path of it
  *  * -*u Use last argument as URL input instead of current URL
- * @param replacement the replacement arguments (depends on mode):
+ * @param args the replacement arguments (depends on mode):
  *  * -t <old> <new>
  *  * -r <regexp> <new> [flags]
- *  * -s <query> <value>
+ *  * -s <query> <value> [[-s] <query> <value> ...]
  *  * -q <query> <new_val>
  *  * -Q <query>
  *  * -g <graftPoint> <newPathTail>
  *  * -*u <arguments> <URL>
  */
 //#content
-export function urlmodify(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-tu" | "-ru" | "-su" | "-qu" | "-Qu" | "-gu", ...args: string[]) {
-    const newUrl = urlmodify_js(mode, ...args)
+export async function urlmodify(mode: "--safe" | "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-tu" | "-ru" | "-su" | "-qu" | "-Qu" | "-gu", ...args: string[]) {
+    const safe = mode === "--safe"
+    const modifyMode = safe ? args.shift() as Parameters<typeof urlmodify_js>[0] : mode
+    const newUrl = urlmodify_js(modifyMode, ...args)
     // TODO: once we have an arg parser, have a quiet flag that prevents the page from being added to history
     if (newUrl && newUrl !== window.location.href) {
+        if (safe) {
+            const tabId = (await ownTab()).id
+            const now = Date.now()
+            const target = newUrl.toString()
+            const recent = ((await browserBg.sessions.getTabValue(tabId, "urlmodify-safe")) as [string, number][] || []).filter(([, time]) => now - time < 1000)
+            if (recent.some(([url]) => url === target)) return
+            recent.push([target, now])
+            await browserBg.sessions.setTabValue(tabId, "urlmodify-safe", recent)
+        }
         window.location.replace(newUrl)
     }
 }
@@ -2273,11 +2358,17 @@ export function urlmodify_js(mode: "-t" | "-r" | "-s" | "-q" | "-Q" | "-g" | "-t
             break
 
         case "-s":
-            if (args.length !== 2) {
-                throw new Error("Query setting needs 2 arguments:" + "<query> <value>")
+            if (args.length < 2) {
+                throw new Error("Query setting needs query/value pairs: " + "<query> <value> ...")
             }
-
-            newUrl = UrlUtil.setQueryValue(oldUrl, args[0], args[1])
+            newUrl = oldUrl
+            for (let i = 0; i < args.length; i += 2) {
+                if (i > 0 && args[i] === "-s") i++
+                if (i + 1 >= args.length) {
+                    throw new Error("Query setting needs query/value pairs: " + "<query> <value> ...")
+                }
+                newUrl = UrlUtil.setQueryValue(newUrl, args[i], args[i + 1])
+            }
             break
         case "-q":
             if (args.length !== 2) {
@@ -2332,7 +2423,7 @@ export async function geturlsforlinks(reltype = "rel", rel: string) {
 //#background
 export async function zoom(level = 0, rel = "false", tabId = "auto") {
     level = Math.abs(level) > 5 ? level / 100 : level
-    if (rel === "false" && (level > 5 || level < 0.3)) {
+    if (rel === "false" && level !== 0 && (level > 5 || level < 0.3)) {
         throw new Error(`[zoom] level out of range: ${level}`)
     }
     if (rel === "true") {
@@ -2378,6 +2469,20 @@ window.addEventListener("pagehide", () => loadaucmds("DocEnd"))
 window.addEventListener("DOMContentLoaded", () => {
     loadaucmds("DocLoad")
 })
+// activeElement is updated after blur; ignore focus moving to Tridactyl's iframe.
+let commandlineFocused = false
+window.addEventListener("blur", () =>
+    setTimeout(() => {
+        commandlineFocused = document.activeElement?.id === "cmdline_iframe"
+        if (!commandlineFocused) loadaucmds("DocBlur")
+    }),
+)
+window.addEventListener("focus", () =>
+    setTimeout(() => {
+        if (!commandlineFocused) loadaucmds("DocFocus")
+        commandlineFocused = document.activeElement?.id === "cmdline_iframe"
+    }),
+)
 window.addEventListener("HistoryState", () => loadaucmds("HistoryState"))
 
 // Unsupported edge-case: a SPA that doesn't have a UriChange autocmd changes URL to one that does.
@@ -2419,11 +2524,13 @@ if (fullscreenApiIsPrefixed) {
 
 /** @hidden */
 //#content
-export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState") {
+export async function loadaucmds(cmdType: "DocStart" | "DocLoad" | "DocEnd" | "DocFocus" | "DocBlur" | "TabEnter" | "TabLeft" | "FullscreenEnter" | "FullscreenLeft" | "FullscreenChange" | "UriChange" | "HistoryState" | "ModeEnter" | "ModeLeave", target?: string) {
     const aucmds = await config.getAsync("autocmds", cmdType)
     if (!aucmds) return
     const ausites = Object.keys(aucmds)
-    const aukeyarr = ausites.filter(e => window.document.location.href.search(e) >= 0)
+    const matchTarget = target === undefined ? window.document.location.href : target
+    const aukeyarr = ausites.filter(e => matchTarget.search(e) >= 0)
+    if (aukeyarr.length === 0) return
     const owntab = await ownTab()
     const replacements = {
         TRI_FIRED_MOZ_TABID: owntab.id,
@@ -2504,25 +2611,21 @@ input[type='password']
  *                  "-b": biggest input field
  */
 //#content
-export function focusinput(nth: number | string) {
+export async function focusinput(nth: number | string) {
     let inputToFocus: HTMLElement = null
 
     // set to false to avoid falling back on the first available input
     // if a special finder fails
     let fallbackToNumeric = true
 
-    // nth = "-l" -> use the last used input for this page
+    // nth = "-l" -> use the last used input
     if (nth === "-l" || !nth) {
-        // try to recover the last used input stored as a
-        // DOM node, which should be exactly the one used before (or null)
-        if (DOM.getLastUsedInput()) {
-            inputToFocus = DOM.getLastUsedInput()
-        } else {
-            // Pick the first input in the DOM.
-            inputToFocus = DOM.getElemsBySelector(INPUTTAGS_selectors, [DOM.isSubstantial])[0] as HTMLElement
-
-            // We could try to save the last used element on page exit, but
-            // that seems like a lot of faff for little gain.
+        inputToFocus = DOM.getLastUsedInput()
+        if (!inputToFocus?.isConnected) {
+            const selector = await State.getAsync("lastInputSelector")
+            if (selector) {
+                inputToFocus = DOM.getElemsBySelector(selector, [DOM.isTextEditable, DOM.isSubstantial])[0] as HTMLElement
+            }
         }
     } else if (nth === "-n" || nth === "-N") {
         // attempt to find next/previous input
@@ -2571,6 +2674,12 @@ export function focusinput(nth: number | string) {
     }
 }
 
+/** Hint an input and enter input mode. */
+//#content
+export async function hintinput() {
+    if (await hint("-Jc", INPUTTAGS_selectors)) contentState.mode = "input"
+}
+
 /**
  * Focus the tab which contains the last focussed input element. If you're lucky, it will focus the right input, too.
  *
@@ -2579,13 +2688,19 @@ export function focusinput(nth: number | string) {
 //#background
 export async function changelistjump() {
     const tail = state.prevInputs[state.prevInputs.length - 1]
-    const jumppos = tail.jumppos ? tail.jumppos : state.prevInputs.length - 1
-    const input = state.prevInputs[jumppos]
-    await browser.tabs.update(input.tab, { active: true })
-    const id = input.inputId
-    // Not all elements have an ID, so this will do for now.
-    if (id) focusbyid(input.inputId)
-    else focusinput("-l")
+    const jumppos = tail.jumppos ?? state.prevInputs.length - 1
+    for (let i = jumppos; i >= 0; i--) {
+        const input = state.prevInputs[i]
+        try {
+            await browser.tabs.update(input.tab, { active: true })
+        } catch {
+            continue
+        }
+        // Not all elements have an ID, so this will do for now.
+        if (input.inputId) focusbyid(input.inputId)
+        else focusinput("-l")
+        return
+    }
 
     // Really want to bin the input we just focussed ^ and edit the real last input to tell us where to jump to next.
     // It doesn't work in practice as the focus events get added after we try to delete them.
@@ -2625,9 +2740,23 @@ async function tabIndexSetActive(index: number | string) {
     return tabSetActive(await idFromIndex(index))
 }
 
+/** Switch to the first tab in Firefox's tab order. */
+//#background
+export async function tabfirst() {
+    return tabSetActive((await getSortedTabs("default"))[0].id)
+}
+
+/** Switch to the last tab in Firefox's tab order. */
+//#background
+export async function tablast() {
+    return tabSetActive((await getSortedTabs("default")).slice(-1)[0].id)
+}
+
 /** Switch to the next tab, wrapping round.
 
     If increment is specified, move that many tabs forwards.
+
+    Pass `--skip-discarded` to skip discarded tabs.
  */
 //#background
 export async function tabnext(...args: string[]) {
@@ -2655,6 +2784,8 @@ export async function tabnext_gt(index?: number) {
 /** Switch to the previous tab, wrapping round.
 
     If increment is specified, move that many tabs backwards.
+
+    Pass `--skip-discarded` to skip discarded tabs.
  */
 //#background
 export async function tabprev(...args: string[]) {
@@ -2663,6 +2794,7 @@ export async function tabprev(...args: string[]) {
             "--nowrap": Boolean,
             "--noisy": Boolean,
             "--reverse": Boolean,
+            "--skip-discarded": Boolean,
         },
         {
             argv: args,
@@ -2670,15 +2802,18 @@ export async function tabprev(...args: string[]) {
             splitUnknownArguments: false,
         },
     )
-    const option = {}
-    option["nowrap"] = Boolean(argOpt["--nowrap"])
-    option["noisy"] = Boolean(argOpt["--noisy"])
-    option["reverse"] = Boolean(argOpt["--reverse"])
-    const increment = (parseInt(argOpt._.join(" "), 10) || 1) * (option["reverse"] ? -1 : 1)
+    const option = arg.withDefaults(argOpt, {
+        "--nowrap": false,
+        "--noisy": false,
+        "--reverse": false,
+        "--skip-discarded": false,
+    })
+    const increment = (parseInt(argOpt._.join(" "), 10) || 1) * (option["--reverse"] ? -1 : 1)
     return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
+        if (option["--skip-discarded"]) tabs = tabs.filter(tab => !tab.discarded)
         tabs.sort((t1, t2) => t1.index - t2.index)
         const curTab = tabs.findIndex(t => t.active)
-        const prevTab = !option["nowrap"] ? (curTab - increment + tabs.length) % tabs.length : Math.min(Math.max(curTab - increment, 0), tabs.length - 1)
+        const prevTab = !option["--nowrap"] ? (curTab - increment + tabs.length) % tabs.length : Math.min(Math.max(curTab - increment, 0), tabs.length - 1)
         // TODO: add fillcmdline_tmp with details here for --noisy (expect it to show on the wrong tab unless you await it correctly)
         return browser.tabs.update(tabs[prevTab].id, { active: true })
     })
@@ -2708,13 +2843,13 @@ export async function tabpush(windowId?: number) {
     }
 }
 
-/** Switch to the tab currently playing audio, if any. */
+/** Switch to a tab playing audio, or the one that most recently stopped. */
 //#background
 export async function tabaudio() {
-    const tabs = await browser.tabs.query({ audible: true })
-    if (tabs.length > 0) {
-        await browser.windows.update(tabs[0].windowId, { focused: true })
-        return browser.tabs.update(tabs[0].id, { active: true })
+    const tab = await getLastAudibleTab()
+    if (tab) {
+        await browser.windows.update(tab.windowId, { focused: true })
+        return browser.tabs.update(tab.id, { active: true })
     }
 }
 
@@ -2831,6 +2966,7 @@ export async function tabopenwait(...addressarr: string[]): Promise<browser.tabs
 export async function tabopen_helper({ addressarr = [], waitForDom = false }): Promise<browser.tabs.Tab> {
     let active
     let container
+    let explicitlyContained = false
     let bypassFocusHack = false
     let discarded = false
     let pinned = false
@@ -2868,6 +3004,7 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
                     container = "firefox-default"
                 } else {
                     container = await Container.fuzzyMatch(args[1])
+                    explicitlyContained = Boolean(container)
                 }
             } else logger.error("[tabopen] can't open a container in a private browsing window.")
 
@@ -2885,12 +3022,18 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
         return nativeopen(address) as unknown as browser.tabs.Tab // I don't understand why changing the final return below meant I had to change this
     }
 
-    const aucon = new AutoContain()
-    if (!container && aucon.autocontainConfigured()) {
-        const [autoContainer] = await aucon.getAuconAndProxiesForUrl(address)
-        if (autoContainer && autoContainer !== "firefox-default") {
-            container = autoContainer
-            logger.debug("tabopen setting container automatically using autocontain directive")
+    const maybeURL = await queryAndURLwrangler(query)
+    if (typeof maybeURL === "string" && !ABOUT_WHITELIST.includes(maybeURL) && /^(about|file):.*/.exec(maybeURL)) {
+        return nativeopen(maybeURL) as unknown as browser.tabs.Tab
+    }
+    if (typeof maybeURL === "string" && !container) {
+        const aucon = new AutoContain()
+        if (aucon.autocontainConfigured()) {
+            const [autoContainer] = await aucon.getAuconAndProxiesForUrl(maybeURL)
+            if (autoContainer && autoContainer !== "firefox-default") {
+                container = autoContainer
+                logger.debug("tabopen setting container automatically using autocontain directive")
+            }
         }
     }
 
@@ -2907,8 +3050,9 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     args.bypassFocusHack = bypassFocusHack
     args.discarded = discarded
     args.pinned = pinned
-    const maybeURL = await queryAndURLwrangler(query)
     if (typeof maybeURL === "string") {
+        if (explicitlyContained && maybeURL.search("^https?://") >= 0)
+            args.beforeNavigate = markExplicitContainerTab
         return openInNewTab(maybeURL, args, waitForDom)
     }
 
@@ -2916,8 +3060,8 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
         // browser.search.search(tabId, ...) sometimes does not work when it is executed
         // right after openInNewTab(). Calling browser.tabs.get() between openInNewTab()
         // and browser.search.search() seems to fix that problem.
-        // See https://github.com/tridactyl/tridactyl/pull/4791.
-        return openInNewTab(null, args, waitForDom)
+            // See https://github.com/tridactyl/tridactyl/pull/4791.
+            return openInNewTab("about:blank", args, waitForDom)
             .then(tab => browser.tabs.get(tab.id))
             .then(tab => browser.search.search({ tabId: tab.id, ...maybeURL }))
     }
@@ -3041,17 +3185,26 @@ export async function tabduplicate(index?: number) {
 /** Detach a tab, opening it in a new window.
 
     @param index
-        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab.
+        The 1-based index of the tab to target. index < 1 wraps. `#` targets the previous tab and `%` the current tab. If omitted, this tab.
 */
 //#background
-export async function tabdetach(index?: number) {
+export async function tabdetach(index?: string) {
     // Workaround for detached tabs not getting focus (issue #5273)
     const tabId = await idFromIndex(index)
     const currentTab = await browser.tabs.get(tabId)
-    const tempTab = (await browser.windows.create({ incognito: currentTab.incognito })).tabs[0]
+    let tempWin
+    try {
+        tempWin = await browser.windows.create({ incognito: currentTab.incognito, url: "about:blank" })
+    } catch (error) {
+        if (currentTab.incognito) throw error
+        // Some Firefox setups can fail to resolve the default new-window URI.
+        // Fall back to the simplest guaranteed-valid create call.
+        tempWin = await browser.windows.create({ url: "about:blank" })
+    }
+    const tempTab = tempWin.tabs[0]
     await browser.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
-    browser.tabs.remove(tempTab.id)
-    browser.tabs.update(tabId, { active: true })
+    await browser.tabs.remove(tempTab.id)
+    await browser.tabs.update(tabId, { active: true })
     return browser.windows.get(tempTab.windowId)
 }
 
@@ -3070,10 +3223,10 @@ export async function fullscreen() {
 
 /** Close a tab.
 
-    Known bug: autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL.
+    Autocompletion will make it impossible to close more than one tab at once if the list of numbers looks enough like an open tab's title or URL. If that annoys you, run `:set completions.Tab.autoselect false`, but this will also change `:tab` etc completions.
 
     @param indexes
-        The 1-based indexes of the tabs to target. indexes < 1 wrap. If omitted, this tab.
+        The 1-based indexes of the tabs to target. indexes < 1 wrap. If omitted, this tab. `--match string` targets every tab completion whose title or URL contains the string literally and case-sensitively.
 */
 //#background
 export async function tabclose(...indexes: string[]) {
@@ -3084,7 +3237,14 @@ export async function tabclose(...indexes: string[]) {
         }
         return tabFromIndex(id)
     }
-    const tabs = await Promise.all(indexes.length > 0 ? indexes.map(maybeWinTabToTab) : [activeTab()])
+    let tabs: browser.tabs.Tab[]
+    if (indexes[0] === "--match") {
+        const match = indexes.slice(1).join(" ")
+        if (!match) throw new Error("tabclose --match requires a string")
+        tabs = (await getSortedTabs()).filter(tab => tab.title.includes(match) || tab.url.includes(match))
+    } else {
+        tabs = await Promise.all(indexes.length > 0 ? indexes.map(maybeWinTabToTab) : [activeTab()])
+    }
     const tabclosepinned = (await config.getAsync("tabclosepinned")) === "true"
     if (!tabclosepinned) {
         // Pinned tabs should not be closed, abort if one of the tabs is pinned
@@ -3117,10 +3277,10 @@ export async function tabcloseallto(side: string) {
 }
 
 /**
- * Discard a tab without closing it to free up memory.
+ * Discard a tab without closing it to free up memory. Active tabs cannot be discarded.
  *
  * @param index
- *        The 1-based index of the tab to target. index < 1 wraps. If omitted, this tab. Magic argument `--all` will discard all tabs
+ *        The 1-based index of the tab to target. index < 1 wraps. An argument is required. `%` targets the active tab and will not be discarded. Magic argument `--all` discards all discardable tabs.
  */
 //#background
 export async function tabdiscard(index: string) {
@@ -3128,7 +3288,7 @@ export async function tabdiscard(index: string) {
     if (index === "--all") {
         return browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t => t.id)))
     } else if (index === undefined) {
-        id = (await activeTab()).id
+        throw new Error("tabdiscard requires a tab index or --all")
     } else {
         id = await idFromIndex(index)
     }
@@ -3136,8 +3296,7 @@ export async function tabdiscard(index: string) {
 }
 
 /** Restore the most recently closed item.
-    The default behaviour is to restore the most recently closed tab in the
-    current window unless the most recently closed item is a window.
+    The default behaviour is to restore the most recently closed tab or window.
 
     Supplying either "tab" or "window" as an argument will specifically only
     restore an item of the specified type. Supplying "tab_strict" only restores
@@ -3153,11 +3312,11 @@ export async function undo(item = "recent"): Promise<number> {
     const current_win_id: number = (await browser.windows.getCurrent()).id
     const sessions = await browser.sessions.getRecentlyClosed()
 
-    // Pick the first session object that is a window or a tab from this window ("recent"), a tab ("tab"), a tab
+    // Pick the first session object ("recent"), a tab ("tab"), a tab
     // from this window ("tab_strict"), a window ("window") or pick by sessionId.
     const predicate =
         item === "recent"
-            ? s => s.window || (s.tab && s.tab.windowId === current_win_id)
+            ? () => true
             : item === "tab"
               ? s => s.tab
               : item === "tab_strict"
@@ -3178,22 +3337,24 @@ export async function undo(item = "recent"): Promise<number> {
     return -1
 }
 
-/** Move the current tab to be just in front of the index specified.
-
-    Known bug: This supports relative movement with `tabmove +pos` and `tabmove -pos`, but autocomplete doesn't know that yet and will override positive and negative indexes.
-
-    Put a space in front of tabmove if you want to disable completion and have the relative indexes at the command line.
-
-    Binds are unaffected.
-
-    @param index
-        New index for the current tab.
-
-        1,start,^ are aliases for the first index. 0,end,$ are aliases for the last index.
-*/
+/**
+ * Move a tab, defaulting to the current one, to be just in front of the index specified.
+ *
+ * Known bug: This supports relative movement with `tabmove +pos` and `tabmove -pos`, but autocomplete doesn't know that yet and will override positive and negative indexes.
+ *
+ * Put a space in front of tabmove if you want to disable completion and have the relative indexes at the command line.
+ *
+ * Binds are unaffected.
+ *
+ * @param index New index for the current tab.
+ *
+ * 1,start,^ are aliases for the first index. 0,end,$ are aliases for the last index.
+ *
+ * @param tabToMove Which tab to move. Defaults to the current tab.
+ */
 //#background
-export async function tabmove(index = "$") {
-    const aTab = await activeTab()
+export async function tabmove(index = "$", tabToMove?: string) {
+    const aTab = await tabFromIndex(tabToMove)
     if (index === "#") {
         const previousTab = await prevActiveTab()
         if (previousTab.index - aTab.index === 1) {
@@ -3222,7 +3383,13 @@ export async function tabmove(index = "$") {
 
     if (index.startsWith("+") || index.startsWith("-")) {
         relative = true
-        newindex = Number(index) + aTab.index
+        const visibleTabs = windowTabs.filter(
+            tab => !tab.hidden && tab.pinned === aTab.pinned,
+        )
+        const currentIndex = visibleTabs.findIndex(tab => tab.id === aTab.id)
+        const tabCount = visibleTabs.length
+        const targetIndex = (currentIndex + Number(index)).mod(tabCount)
+        newindex = visibleTabs[targetIndex].index
     } else if (["end", "$", "0"].includes(index)) {
         newindex = maxindex
     } else if (["start", "^"].includes(index)) {
@@ -3257,7 +3424,7 @@ export async function tabmove(index = "$") {
  * - `--title` sorts tabs by title
  * - `--url` sorts tabs by url (the default)
  * - `(tab1, tab2) => true|false`
- *      - sort by arbitrary comparison function. `tab{1,2}` are objects with properties described here: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/Tab
+ *     - sort by arbitrary comparison function. `tab{1,2}` are objects with properties described here: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/Tab
  */
 //#background
 export async function tabsort(...callbackchunks: string[]) {
@@ -3282,7 +3449,7 @@ export async function pin(index: string) {
  Passing "all" to the excmd will operate on  the mute state of all tabs.
  Passing "unmute" to the excmd will unmute.
  Passing "toggle" to the excmd will toggle the state of `browser.tabs.tab.MutedInfo`
- @param string[] muteArgs
+ @param muteArgs
  */
 //#background
 export async function mute(...muteArgs: string[]): Promise<void> {
@@ -3347,7 +3514,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  *
  * `winopen -popup [...]` will open it in a popup window. You can combine the two for a private popup.
  *
- * `winopen -c containername [...]` will open the result in a container while ignoring other options given. See [[tabopen]] for more details on containers.
+ * `winopen -c containername [...]` will open the result in a container. See [[tabopen]] for more details on containers.
  *
  * Example: `winopen -popup -private ddg.gg`
  */
@@ -3356,7 +3523,7 @@ export async function winopen(...args: string[]) {
     const createData = {} as Parameters<typeof browser.windows.create>[0]
     let firefoxArgs = "--new-window"
     let done = false
-    let useContainer = false
+    let containerName: string | undefined
     while (!done) {
         switch (args[0]) {
             case "-private":
@@ -3372,8 +3539,7 @@ export async function winopen(...args: string[]) {
 
             case "-c":
                 if (args.length < 2) throw new Error(`You must provide a container name!`)
-                args.shift()
-                useContainer = true
+                containerName = args.splice(0, 2)[1]
                 break
 
             default:
@@ -3384,12 +3550,12 @@ export async function winopen(...args: string[]) {
 
     const address = args.join(" ")
 
-    if (useContainer) {
-        if (firefoxArgs === "--private-window") {
+    if (containerName !== undefined) {
+        if (createData.incognito || (await browser.windows.getCurrent()).incognito) {
             throw new Error("Can't open a container in a private browsing window.")
-        } else {
-            args.unshift("-c")
-            return tabopen(...args).then(() => tabdetach())
+        }
+        if (containerName !== "firefox-default" && containerName.toLowerCase() !== "none") {
+            createData.cookieStoreId = await Container.fuzzyMatch(containerName)
         }
     }
 
@@ -3397,7 +3563,7 @@ export async function winopen(...args: string[]) {
         return nativeopen(firefoxArgs, address)
     }
 
-    createData.url = "https://fix-a-firefox-bug.invalid"
+    createData.url = "about:blank"
 
     return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
 }
@@ -3405,7 +3571,7 @@ export async function winopen(...args: string[]) {
 /**
  * Close a window.
  *
- * @param id - The window id. Defaults to the id of the current window.
+ * @param ids - The window ids. Defaults to the id of the current window.
  *
  * Example: `winclose`
  */
@@ -3481,34 +3647,35 @@ export async function sidebartoggle() {
   @param name The container name.
  */
 //#background
-export async function containerclose(name: string) {
-    const containerId = await Container.getId(name)
+export async function containerclose(...name: string[]) {
+    const containerId = await Container.getId(name.join(" "))
     return browser.tabs.query({ cookieStoreId: containerId }).then(tabs => browser.tabs.remove(tabs.map(tab => tab.id)))
 }
-/** Creates a new container. Note that container names must be unique and that the checks are case-insensitive.
+/** Creates a new container. Note that container names must be unique and that the checks are case-insensitive. Pass `--or-update` before the name to update a matching container instead.
 
     Further reading https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
 
     Example usage:
         - `:containercreate tridactyl green dollar`
+        - `:containercreate --or-update tridactyl green dollar`
 
-    @param name The container name. Must be unique.
-    @param color The container color. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". If no color is chosen a random one will be selected from the list of valid colors.
-    @param icon The container icon. Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill". If no icon is chosen, it defaults to "fingerprint".
+    @param args The optional `--or-update` flag, container name, color, and icon. Valid colors are: "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple". Valid icons are: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill".
  */
 //#background
-export async function containercreate(name: string, color?: string, icon?: string) {
-    await Container.create(name, color, icon)
+export async function containercreate(...args: string[]) {
+    const orUpdate = args[0] === "--or-update"
+    const [name, color, icon] = args.slice(orUpdate ? 1 : 0)
+    await Container.create(name, color, icon, orUpdate)
 }
 
 /** Delete a container. Closes all tabs associated with that container beforehand. Note: container names are case-insensitive.
   @param name The container name.
  */
 //#background
-export async function containerdelete(name: string) {
-    if (name == undefined) return
-    await containerclose(name)
-    await Container.remove(name)
+export async function containerdelete(...name: string[]) {
+    if (name.length === 0) return
+    await containerclose(...name)
+    await Container.remove(name.join(" "))
 }
 
 /** Update a container's information. Note that none of the parameters are optional and that container names are case-insensitive.
@@ -3559,11 +3726,11 @@ export async function viewcontainers() {
     @param containerName The container name, fuzzy matched like `-c` on [[tabopen]]. Leave empty to uncontain.
  */
 //#background
-export async function recontain(containerName: string) {
+export async function recontain(...containerName: string[]) {
     const thisTab = await activeTab()
 
     let container
-    await Container.fuzzyMatch(containerName)
+    await Container.fuzzyMatch(containerName.join(" "))
         .then(match => {
             container = match
         })
@@ -3941,30 +4108,33 @@ export function tgroupcolors() {
 
 //#background
 export function version() {
-    return fillcmdline_notrail(TRI_VERSION)
+    return fillcmdline_notrail(TRI_VERSION_NAME)
 }
 
 /**
  *  Switch mode.
  *
- *  For now you probably shouldn't manually switch to other modes than `normal` and `ignore`. Make sure you're aware of the key bindings (ignoremaps) that will allow you to go come back to normal mode from ignore mode before you run `:mode ignore` otherwise you're going to have a hard time re-enabling Tridactyl.
+ *  `mode ignore` temporarily disables almost all Tridactyl key bindings. By default, `<S-Escape>` toggles between `normal` and `ignore` modes. Shift-Insert, Ctrl-Alt-Escape and Ctrl-Alt-Backtick also do this.
  *
- *  Example:
- *      - `mode ignore` to ignore almost all keys.
+ *  To make `<Insert>` toggle ignore mode, bind it in both modes:
  *
- *  If you're looking for a way to temporarily disable Tridactyl, `mode ignore` might be what you're looking for.
+ *      bind --mode=normal <Insert> mode ignore
+ *      bind --mode=ignore <Insert> mode normal
+ *
+ *  You probably shouldn't manually switch to modes other than `normal` and `ignore`.
  *
  *  Note that when in ignore mode, Tridactyl will not switch to insert mode when focusing text areas/inputs. This is by design.
  *
  *  **New feature:** you can add modes as simply as adding binds with `bind --mode=[newmodename]` and then enter the mode with `mode [newmodename]`.
  */
 //#content
-export function mode(mode: ModeName) {
+export function mode(mode: string) {
     // TODO: event emition on mode change.
+    if (mode === undefined) throw new Error("Mode must be provided!")
     if (mode === "hint") {
         hint()
     } else {
-        contentState.mode = mode
+        contentState.mode = mode as ModeName
     }
 }
 
@@ -4117,15 +4287,12 @@ export function sleep(time_ms: number) {
 
 /** @hidden */
 //#content
-export function showcmdline(focus = true) {
+export async function showcmdline(focus = true) {
     logger.debug("excmds showcmdline()")
     const hidehover = true
-    CommandLineContent.show(hidehover)
-    let done = Promise.resolve()
-    if (focus) {
-        done = Messaging.messageOwnTab("commandline_frame", "focus")
-    }
-    return done
+    const shown = await CommandLineContent.show(hidehover)
+    if (!shown) await Messaging.messageOwnTab("stop_buffering_page_keys")
+    else if (focus) return Messaging.messageOwnTab("commandline_frame", "focus")
 }
 
 /** @hidden */
@@ -4134,44 +4301,53 @@ export function hidecmdline() {
     CommandLineContent.hide_and_blur()
 }
 
-/** Set the current value of the commandline to string *with* a trailing space */
+/**
+* Set the current value of the commandline to string *with* a trailing space.
+*
+* `fillcmdline --wait` will only return after the command line is closed. It can only be invoked in binds to avoid deadlock.
+*/
 //#content
-export function fillcmdline(...strarr: string[]) {
+export async function fillcmdline(...strarr: string[]) {
+    const wait = strarr[0] === "--wait"
+    if (wait) strarr.shift()
+    if (wait && controller.getCurrentExCmdSource() === "commandline") {
+        throw new Error("fillcmdline --wait cannot be run from the commandline")
+    }
     const str = strarr.join(" ")
-    showcmdline(false)
+    startBufferingPageKeys()
+    await showcmdline(false)
     logger.debug("excmds fillcmdline sending fillcmdline to commandline_frame")
-    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true /*trailspace*/, true /*focus*/])
+    return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, true /*trailspace*/, true /*focus*/, wait])
 }
 
 /** Set the current value of the commandline to string *without* a trailing space */
 //#content
-export function fillcmdline_notrail(...strarr: string[]) {
+export async function fillcmdline_notrail(...strarr: string[]) {
     const str = strarr.join(" ")
-    showcmdline(false)
+    startBufferingPageKeys()
+    await showcmdline(false)
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [str, false /*trailspace*/, true /*focus*/])
 }
 
 /** Show and fill the command line without focusing it */
 //#content
-export function fillcmdline_nofocus(...strarr: string[]) {
-    showcmdline(false)
+export async function fillcmdline_nofocus(...strarr: string[]) {
+    await showcmdline(false)
     return Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
 }
 
 /** Shows str in the command line for ms milliseconds. Recommended duration: 3000ms. */
 //#content
 export async function fillcmdline_tmp(ms: number, ...strarr: string[]) {
-    showcmdline(false)
-    Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
-    return new Promise<void>(resolve =>
-        setTimeout(async () => {
-            if (document.activeElement?.id !== "cmdline_iframe") {
-                CommandLineContent.hide_and_blur()
-                resolve(Messaging.messageOwnTab("commandline_frame", "clear", [true]))
-            }
-            resolve()
-        }, ms),
-    )
+    await showcmdline(false)
+    const done = Messaging.messageOwnTab("commandline_frame", "fillcmdline", [strarr.join(" "), false, false])
+    setTimeout(() => {
+        if (document.activeElement?.id !== "cmdline_iframe") {
+            CommandLineContent.hide_and_blur()
+            Messaging.messageOwnTab("commandline_frame", "clear", [true])
+        }
+    }, ms)
+    return done
 }
 
 /**
@@ -4278,6 +4454,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
                 urls = await geturlsforlinks("rev", "canonical")
             }
             if (urls.length > 0) {
+                urls[0] = UrlUtil.decodeUrlForDisplay(urls[0])
                 await yank(urls[0])
                 done = fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                 break
@@ -4286,13 +4463,14 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
         case "yankcanon":
             urls = await geturlsforlinks("rel", "canonical")
             if (urls.length > 0) {
+                urls[0] = UrlUtil.decodeUrlForDisplay(urls[0])
                 await yank(urls[0])
                 done = fillcmdline_tmp(3000, "# " + urls[0] + " copied to clipboard.")
                 break
             }
         // Trying yank if yankcanon failed...
         case "yank":
-            content = content === "" ? (await activeTab()).url : content
+            content = content === "" ? UrlUtil.decodeUrlForDisplay((await activeTab()).url) : content
             await yank(content)
             done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
@@ -4302,12 +4480,12 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
             done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
         case "yankmd":
-            content = "[" + (await activeTab()).title + "](" + (await activeTab()).url + ")"
+            content = "[" + (await activeTab()).title + "](" + UrlUtil.decodeUrlForDisplay((await activeTab()).url) + ")"
             await yank(content)
             done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
         case "yankorg":
-            content = "[[" + (await activeTab()).url + "][" + (await activeTab()).title + "]]"
+            content = "[[" + UrlUtil.decodeUrlForDisplay((await activeTab()).url) + "][" + (await activeTab()).title + "]]"
             await yank(content)
             done = fillcmdline_tmp(3000, "# " + content + " copied to clipboard.")
             break
@@ -4339,7 +4517,7 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 /** Copy an image to the clipboard.
 
     @param url
-        Absolute URL to the image to be copied. You can obtain an absolute URL from a relative one using [tri.urlutils.getAbsoluteURL](_src_lib_url_util_.html#getabsoluteurl).
+        Absolute URL to the image to be copied. You can obtain an absolute URL from a relative one using <a href="/static/docs/modules/_src_lib_url_util_.html#getabsoluteurl">tri.urlutils.getAbsoluteURL</a>.
 */
 //#background
 export async function yankimage(url: string): Promise<void> {
@@ -4359,16 +4537,16 @@ export async function yankimage(url: string): Promise<void> {
     }
 }
 
-/** Change active tab.
-
-    @param id
-        A bare number means the current window is used. Starts at 1. 0 refers to last tab of the current window, -1 to penultimate tab, etc.
-
-        A string following the following format: "[0-9]+.[0-9]+" means the first number being the index of the window that should be selected and the second one being the index of the tab within that window. [[taball]] has completions for this format.
-
-        "%" denotes the current tab and "#" denotes the tab that was last accessed in this window.  "P", "A", "M" and "D" indicate tab status (i.e. a pinned, audible, muted or discarded tab).  Use `:set completions.Tab.statusstylepretty true` to display unicode characters instead.  "P","A","M","D" can be used to filter by tab status in either setting.
-
-        A non integer string means to search the URL and title for matches, in this window if called from tab, all windows if called from taball. Title matches can contain '*' as a wildcard.
+/**
+ * Change active tab.
+ *
+ * @param id A bare number means the current window is used. Starts at 1. 0 refers to last tab of the current window, -1 to penultimate tab, etc.
+ *
+ * A string following the following format: "[0-9]+.[0-9]+" means the first number being the index of the window that should be selected and the second one being the index of the tab within that window. [[taball]] has completions for this format.
+ *
+ * "%" denotes the current tab and "#" denotes the tab that was last accessed in this window.  "P", "A", "M" and "D" indicate tab status (i.e. a pinned, audible, muted or discarded tab).  Use `:set completions.Tab.statusstylepretty true` to display unicode characters instead.  "P","A","M","D" can be used to filter by tab status in either setting.
+ *
+ * A non integer string means to search the URL and title for matches, in this window if called from tab, all windows if called from taball. Title matches can contain '*' as a wildcard.
  */
 //#background
 export async function tab(...id: string[]) {
@@ -4505,6 +4683,20 @@ export function comclear(name: string) {
     config.unset("exaliases", name)
 }
 
+/** Define an abbreviation that is expanded in the command line. */
+//#background
+export function abbreviate(abbreviation: string, ...expansion: string[]) {
+    if (!abbreviation || !expansion.length) throw new Error("abbreviate requires an abbreviation and expansion")
+    return config.set("abbreviations", abbreviation, expansion.join(" "))
+}
+
+/** Remove a command-line abbreviation. */
+//#background
+export function unabbreviate(abbreviation: string) {
+    if (!abbreviation) throw new Error("unabbreviate requires an abbreviation")
+    return config.unset("abbreviations", abbreviation)
+}
+
 /** Bind a sequence of keys to an excmd or view bound sequence.
 
     This is an easier-to-implement bodge while we work on vim-style maps.
@@ -4516,6 +4708,8 @@ export function comclear(name: string) {
         - `bind j scrollline 20`
         - `bind F hint -b`
 
+    To create a dynamic keybinding that passes subsequent keypresses as arguments, bind to [[gobble]]. See its documentation for a JavaScript example.
+
     You can view binds by omitting the command line:
 
         - `bind j`
@@ -4523,9 +4717,22 @@ export function comclear(name: string) {
 
     You can bind to modifiers and special keys by enclosing them with angle brackets, for example `bind <C-\>z fullscreen`, `unbind <F1>` (a favourite of people who use TreeStyleTabs :) ), or `bind <Backspace> forward`.
 
-    Modifiers are truncated to a single character, so Ctrl -> C, Alt -> A, and Shift -> S. Shift is a bit special as it is only required if Shift does not change the key inputted, e.g. `<S-ArrowDown>` is OK, but `<S-a>` should just be `A`.
+    Firefox reserves some keybinds for its own use such as `<C-n>`. If you want to bind to one of these, you need to go to `about:keyboard` and unbind them there before Tridactyl can access them.
 
     You can view all special key names here: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values
+
+    Modifiers are truncated to a single character, so Ctrl -> C, Alt -> A, and Shift -> S. Shift is a bit special as it is only required if Shift does not change the key inputted, e.g. `<S-ArrowDown>` is OK, but `<S-a>` should just be `A`.
+
+    Additionally, you can bind explicitly to a keydown or keyup event with the `D` and `U` modifiers respectively. You can make any bind optional by giving it a `?` modifier. Any bind which does not have an explicit `U` or `D` is interpreted as if it is followed by an optional keyup event, unless it is the final key. For example, `gg` becomes `g<?U-g>g`. Explicit keydown events, e.g. `<D-z>`, are not allowed to be the automatic repeat firings you get if you hold the key down. `hint` and `gobble` mode do not currently support `keyup` events.
+
+    An imaginative use of this is a "layer" where holding a key down changes the rest of the bindings:
+
+    ```
+    bind <D-\> mode ignore
+    bind --mode=ignore <U-\> mode normal
+    ```
+
+    With these bindings, holding backslash would let you send keys to the web page, such as `<C-f>` for using Firefox's built-in find mode.
 
     Use [[composite]] if you want to execute multiple excmds. Use
     [[fillcmdline]] to put a string in the cmdline and focus the cmdline
@@ -4549,20 +4756,18 @@ export function comclear(name: string) {
 */
 //#background
 export async function bind(...args: string[]) {
-    if (args.includes("--recursive")) {
-        throw new Error("`--recursive` can only be called on unbind.")
-    }
-
     const args_obj = parse_bind_args(...args)
+    if (args_obj.isRecursive || args_obj.mode === "*") throw new Error("`--recursive` and `--mode=*` can only be called on unbind.")
     let p = Promise.resolve()
     if (args_obj.excmd !== "") {
-        for (let i = 0; i < args_obj.key.length; i++) {
-            // Check if any initial subsequence of the key exists and will shadow the new binding
-            const key_sub = args_obj.key.slice(0, i)
-            if (config.getDynamic(args_obj.configName, key_sub)) {
-                fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
-                break
-            }
+        if (args_obj.mode === "browser" && parseMapstr(args_obj.key).hasExplicitDirection)
+            throw new Error("Browser-mode binds do not support D/U modifiers.")
+        const key_sub = findShadowingMapstr(
+            args_obj.key,
+            Object.keys(config.getDynamic(args_obj.configName) || {}),
+        )
+        if (key_sub) {
+            fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
         }
         if (args_obj.mode == "browser") {
             const commands = await browser.commands.getAll()
@@ -4647,6 +4852,8 @@ export function bindurl(pattern: string, mode: string, keys: string, ...excmd: s
  *  e.g,
  *      keymap ę e
  *
+ *  Remove mappings with [[unkeymap]].
+ *
  */
 //#background
 export function keymap(source: string, target: string) {
@@ -4654,7 +4861,13 @@ export function keymap(source: string, target: string) {
         fillcmdline("You can't keymap with keyboardlayoutforce set. Set values in keyboardlayoutoverrides to change layout for tridactyl shortcuts.")
         return
     }
-    return set("keytranslatemap." + source, target)
+    return config.set("keytranslatemap", source, target)
+}
+
+/** Removes a key translation set with [[keymap]], e.g. `unkeymap .`. */
+//#background
+export function unkeymap(source: string) {
+    return config.unset("keytranslatemap", source)
 }
 
 /**
@@ -4673,25 +4886,34 @@ function validateSetArgs(key: string, values: string[]) {
     const target: any[] = key.split(".")
 
     let value
-    const file = Metadata.everything.getFile("src/lib/config.ts")
-    const default_config = file.getClass("default_config")
-    const md = default_config.getMember(target[0])
-    if (md !== undefined) {
-        const strval = values.join(" ")
+    const strval = values.join(" ")
+    const md = defaultConfigMembers[target[0]]
+    if (/^followpagepatterns\.(next|prev)$/.test(key)) {
+        try {
+            const parsed = JSON.parse(strval)
+            value = Array.isArray(parsed) ? parsed : strval
+        } catch {
+            value = strval
+        }
+        if (Array.isArray(value) && value.some(pattern => typeof pattern !== "string"))
+            throw new Error("Followpage patterns must be strings!")
+    } else if (md !== undefined) {
+        const t = memberType(md)
         // Note: the conversion will throw if strval can't be converted to the right type
-        if (md.type.kind === "object" && target.length > 1) {
-            value = (md.type as ObjectType).convertMember(target.slice(1), strval)
+        if (typeKind(t) === "object" && target.length > 1) {
+            value = convertMember(t, target.slice(1), strval)
         } else {
-            value = md.type.convert(strval)
+            value = convert(t, strval)
         }
     } else {
         // If we don't have metadata, fall back to the old way
         logger.warning("Could not fetch setting metadata. Falling back to type of current value.")
         const currentValue = config.get(...target)
         if (Array.isArray(currentValue)) {
-            // Do nothing
+            value = JSON.parse(strval)
+            if (!Array.isArray(value)) throw new Error("Value must be an array!")
         } else if (currentValue === undefined || typeof currentValue === "string") {
-            value = values.join(" ")
+            value = strval
         } else {
             throw new Error("Unsupported setting type!")
         }
@@ -4742,6 +4964,7 @@ export function seturl(pattern: string, key: string, ...values: string[]) {
  *
  * Currently this command is only supported for the following settings:
  * - [[allowautofocus]]
+ * - [[countaware]]
  *
  * Example:
  * - `setmode ignore allowautofocus true`
@@ -4751,7 +4974,8 @@ export function setmode(mode: string, key: string, ...values: string[]) {
     if (!mode || !key || !values.length) {
         throw new Error("seturl syntax: mode key value")
     }
-    if (key !== "allowautofocus") throw new Error("Setting '" + key + "' not supported with setmode")
+    if (!["allowautofocus", "countaware"].includes(key))
+        throw new Error("Setting '" + key + "' not supported with setmode")
 
     return config.set("modesubconfigs", mode, ...validateSetArgs(key, values))
 }
@@ -4828,68 +5052,74 @@ export function firefoxsyncpush() {
 
 /** @hidden */
 //#background_helper
-const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState"].concat(webrequests.requestEvents)
+const AUCMDS = ["DocStart", "DocLoad", "DocEnd", "DocFocus", "DocBlur", "TriStart", "TabEnter", "TabLeft", "FullscreenChange", "FullscreenEnter", "FullscreenLeft", "UriChange", "HistoryState", "ModeEnter", "ModeLeave"].concat(webrequests.requestEvents)
 /** @hidden */
 //#background_helper
 export function getAutocmdEvents() {
     return AUCMDS
 }
-/** Set autocmds to run when certain events happen.
+/**
+ * Set autocmds to run when certain events happen.
  *
- * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'HistoryPushState', 'HistoryReplace', 'UriChange', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
+ * @param event Currently, 'TriStart', 'DocStart', 'DocLoad', 'DocEnd', 'DocFocus', 'DocBlur', 'TabEnter', 'TabLeft', 'FullscreenChange', 'FullscreenEnter', 'FullscreenLeft', 'HistoryState', 'UriChange', 'ModeEnter', 'ModeLeave', 'AuthRequired', 'BeforeRedirect', 'BeforeRequest', 'BeforeSendHeaders', 'Completed', 'ErrorOccured', 'HeadersReceived', 'ResponseStarted', and 'SendHeaders' are supported
  *
-        - DocStart: When a webpage loading. Exactly, when tridactyl is loading in a page.
-        - DocLoad: When the whole html parsed, not including image/css loaded. (Just like jquery $(fn) or the [DOMContentLoaded event](https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event).)
-        - DocEnd: When a webpage unloaded/closed or backward/forward in history. Exactly, the [pagehide event](https://developer.mozilla.org/en-US/docs/Web/API/Window/pagehide_event).
-        - TabEnter: When a tab get focus.
-        - TabLeft: When a tab lost focus or closed.
+ * - DocStart: When a webpage loading. Exactly, when tridactyl is loading in a page.
+ * - DocLoad: When the whole html parsed, not including image/css loaded. (Just like jquery $(fn) or the [DOMContentLoaded event](https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event).)
+ * - DocEnd: When a webpage unloaded/closed or backward/forward in history. Exactly, the [pagehide event](https://developer.mozilla.org/en-US/docs/Web/API/Window/pagehide_event).
+ * - DocFocus: When a webpage gains focus. Exactly, the [focus event](https://developer.mozilla.org/en-US/docs/Web/API/Window/focus_event).
+ * - DocBlur: When a webpage loses focus. Exactly, the [blur event](https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event).
+ * - TabEnter: When a tab get focus.
+ * - TabLeft: When a tab lost focus or closed.
+ * - ModeLeave and ModeEnter: When Tridactyl's mode changes. ModeLeave runs first against the previous mode, then ModeEnter runs against the new mode.
 
-        - A supported webRequest event (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the corresponding [WebExtension webRequest event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events)
+ * - A supported webRequest event (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the corresponding [WebExtension webRequest event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events)
 
-        - The 'HistoryState' event is triggered when a page uses the web history API to change the page location / URI. It should be used in preference to 'UriChange' below since it will use almost no resources. The 'UriChange' event may work on websites where 'HistoryState' does not.
-        - The 'HistoryPushState' is triggered only when a page calls 'history.pushState' to change URI, and 'HistoryReplace' is for 'history.replace'. By the way, the HistoryPopState is not implemented.
-        - The 'UriChange' event is for "single page applications" which change their URIs without triggering DocStart or DocLoad events. It uses a timer to check whether the URI has changed, which has a small impact on battery life on pages matching the `url` parameter. We suggest using it sparingly.
+ * - The 'HistoryState' event is triggered when same-document navigation changes the page location / URI. It should be used in preference to 'UriChange' below since it will use almost no resources. The 'UriChange' event may work on websites where 'HistoryState' does not.
+ * - The 'UriChange' event is for "single page applications" which change their URIs without triggering DocStart or DocLoad events. It uses a timer to check whether the URI has changed, which has a small impact on battery life on pages matching the `url` parameter. We suggest using it sparingly.
  *
  * @param url type depends on the event
  *
-        - For most events (DocStart, DocEnd, TabEnter, TabLeft, ...): a JavaScript regex (e.g. `www\.amazon\.co.*`)
-            - We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search)
-        - For TriStart: regular expression that matches the hostname of the computer the autocmd should be run on. This requires the native messenger to be installed, except for the ".*" regular expression which will always be triggered, even without the native messenger.
-        - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
+ * - For most events (DocStart, DocEnd, TabEnter, TabLeft, ...): a JavaScript regex (e.g. `www\.amazon\.co.*`)
+ *     - We just use [URL.search](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search)
+ * - For TriStart: regular expression that matches the hostname of the computer the autocmd should be run on. This requires the native messenger to be installed, except for the ".*" regular expression which will always be triggered, even without the native messenger.
+ * - For ModeLeave and ModeEnter: a JavaScript regex that matches the previous or new mode name, respectively.
+ * - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): a [URL match pattern](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
  *
- * @param command type depends on the event
+ * @param excmd type depends on the event
 
-        - For most events (DocStart, DocEnd, TabEnter, TabLeft, ...): the excmd to run (use [[composite]] to run multiple commands).
-            - Example for zooming in more on a website:
-              ```
-              autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID
-              ```
+ * - For most events (DocStart, DocEnd, TabEnter, TabLeft, ...): the excmd to run (use [[composite]] to run multiple commands).
+ *     - Example for zooming in more on a website:
+ *
+ *       ```text
+ *       autocmd DocStart .*example\.com.* zoom 150 false TRI_FIRED_MOZ_TABID
+ *       ```
 
-        - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the text of a javascript function that should accept a [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) and return a [blocking response](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
-            - Example for redirecting from new to old reddit:
-              ```
-              autocmd BeforeRequest https://www.reddit.com/r/* (details) => ({redirectUrl: details.url.replace(/^https:\/\/www\./, "https://old.")})
-              ```
+ * - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the text of a javascript function that should accept a [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) and return a [blocking response](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
+ *     - Example for redirecting from new to old reddit:
+ *
+ *       ```text
+ *       autocmd BeforeRequest https://www.reddit.com/r/* (details) => ({redirectUrl: details.url.replace(/^https:\/\/www\./, "https://old.")})
+ *       ```
 
  * For non-webRequest events, magic variables are available which are replaced with the relevant string at runtime:
 
-        - `TRI_FIRED_MOZ_TABID`: Provides Mozilla's `tabID` associated with the fired event.
-        - `TRI_FIRED_TRI_TABINDEX`: Provides tridactyls internal tab index associated with the fired event.
-        - `TRI_FIRED_MOZ_WINID`: Provides Mozilla's `windowId` associated with the fired event.
-        - `TRI_FIRED_MOZ_OPENERTABID`: The ID of the tab that opened this tab.
-        - `TRI_FIRED_ACTIVE`: Whether the tab is active in its window. This may be true even if the tab's window is not currently focused.
-        - `TRI_FIRED_AUDIBLE`: Indicates whether the tab is producing sound (even if muted).
-        - `TRI_FIRED_MUTED`: Indicates whether the tab is muted.
-        - `TRI_FIRED_DISCARDED`: Whether the tab is discarded. A discarded tab is one whose content has been unloaded from memory.
-        - `TRI_FIRED_HEIGHT`: The height of the tab in pixels.
-        - `TRI_FIRED_WIDTH`: The width of the tab in pixels.
-        - `TRI_FIRED_HIDDEN`: Whether the tab is hidden.
-        - `TRI_FIRED_INCOGNITO`: Whether the tab is in a private browsing window.
-        - `TRI_FIRED_ISARTICLE`: True if the tab can be rendered in Reader Mode, false otherwise.
-        - `TRI_FIRED_LASTACCESSED`: Time at which the tab was last accessed, in milliseconds since the epoch.
-        - `TRI_FIRED_PINNED`: Whether the tab is pinned.
-        - `TRI_FIRED_TITLE`: The title of the tab.
-        - `TRI_FIRED_URL`: The URL of the document that the tab is displaying.
+ * - `TRI_FIRED_MOZ_TABID`: Provides Mozilla's `tabID` associated with the fired event.
+ * - `TRI_FIRED_TRI_TABINDEX`: Provides tridactyls internal tab index associated with the fired event.
+ * - `TRI_FIRED_MOZ_WINID`: Provides Mozilla's `windowId` associated with the fired event.
+ * - `TRI_FIRED_MOZ_OPENERTABID`: The ID of the tab that opened this tab.
+ * - `TRI_FIRED_ACTIVE`: Whether the tab is active in its window. This may be true even if the tab's window is not currently focused.
+ * - `TRI_FIRED_AUDIBLE`: Indicates whether the tab is producing sound (even if muted).
+ * - `TRI_FIRED_MUTED`: Indicates whether the tab is muted.
+ * - `TRI_FIRED_DISCARDED`: Whether the tab is discarded. A discarded tab is one whose content has been unloaded from memory.
+ * - `TRI_FIRED_HEIGHT`: The height of the tab in pixels.
+ * - `TRI_FIRED_WIDTH`: The width of the tab in pixels.
+ * - `TRI_FIRED_HIDDEN`: Whether the tab is hidden.
+ * - `TRI_FIRED_INCOGNITO`: Whether the tab is in a private browsing window.
+ * - `TRI_FIRED_ISARTICLE`: True if the tab can be rendered in Reader Mode, false otherwise.
+ * - `TRI_FIRED_LASTACCESSED`: Time at which the tab was last accessed, in milliseconds since the epoch.
+ * - `TRI_FIRED_PINNED`: Whether the tab is pinned.
+ * - `TRI_FIRED_TITLE`: The title of the tab.
+ * - `TRI_FIRED_URL`: The URL of the document that the tab is displaying.
 
  * For debugging, use `:set logging.autocmds debug` and check the Firefox web console. `WebRequest` events have no logging.
  *
@@ -4904,6 +5134,15 @@ export async function autocmd(event: string, url: string, ...excmd: string[]) {
         await webrequests.registerWebRequestAutocmd(event, url, excmd.join(" "))
     }
     return config.set("autocmds", event, url, excmd.join(" "))
+}
+
+/** @hidden */
+//#background_helper
+function autocontainPattern(args: string[]) {
+    const mode = ["-u", "-s"].includes(args[0]) ? args.shift() : ""
+    const pattern = args.shift()
+    if (mode === "-u") return pattern
+    return mode === "-s" ? `^https?://([^/]*\\.|)${pattern}/` : `^https?://[^/]*${pattern}/`
 }
 
 /**
@@ -4937,22 +5176,26 @@ export async function autocmd(event: string, url: string, ...excmd: string[]) {
 export function autocontain(...args: string[]) {
     if (args.length === 0) throw new Error("Invalid autocontain arguments.")
 
-    const urlMode = args[0] === "-u"
-    const saneMode = args[0] === "-s"
-    if (urlMode || saneMode) {
-        args.splice(0, 1)
-    }
-    if (args.length < 2) throw new Error("syntax: autocontain [-{u,s}] pattern container proxy1 proxy2")
+    const pattern = autocontainPattern(args)
+    if (args.length < 1) throw new Error("syntax: autocontain [-{u,s}] pattern container proxy1 proxy2")
 
-    let [pattern, container, ...proxies] = args
-
-    if (!urlMode) {
-        pattern = saneMode ? `^https?://([^/]*\\.|)${pattern}/` : `^https?://[^/]*${pattern}/`
-    }
+    const [container, ...proxies] = args
 
     proxies.length && Proxy.exists(proxies)
 
     return config.set("autocontain", pattern, proxies.length ? [container, proxies.join(",")].join("+") : container)
+}
+
+/** Remove an [[autocontain]] rule.
+ *
+ * @param args an optional -s or -u flag followed by the pattern used to create the rule.
+ */
+//#background
+export function autocontaindelete(...args: string[]) {
+    if (args.length === 0) throw new Error("Invalid autocontaindelete arguments.")
+    const pattern = autocontainPattern(args)
+    if (!pattern || args.length) throw new Error("syntax: autocontaindelete [-{u,s}] pattern")
+    return config.unset("autocontain", pattern)
 }
 
 /** Add a proxy for use with [[autocontain]] or `:set proxy`
@@ -4999,7 +5242,7 @@ export function autocmddelete(event: string, url: string) {
     if (webrequests.requestEvents.includes(event)) {
         webrequests.unregisterWebRequestAutocmd(event, url)
     }
-    return config.unset("autocmds", event, url)
+    return config.set("autocmds", event, url, null)
 }
 
 /**
@@ -5022,7 +5265,11 @@ export function blacklistadd(url: string) {
 /**
    Unbind a sequence of keys so that they do nothing at all.
 
-   Accepts the flag `--recursive` to unbind all binds that start with the specified key sequence, e.g. `:unbind --recursive ;` unbinds all the binds like `;f` `;F` `;;` etc.
+   `--recursive` unbinds every bind starting with the key sequence.
+
+   `--all` unbinds every key in a mode (by default, normal mode). NB: "every key" really means "every key". You should probably immediately add a bind to `mode normal` for that mode so you can leave it again.
+
+   `--mode=*` applies the operation to every mode.
 
     See also:
 
@@ -5031,32 +5278,28 @@ export function blacklistadd(url: string) {
 */
 //#background
 export async function unbind(...args: string[]) {
-    const args_obj = parse_bind_args(...args)
-
-    if (args_obj.isRecursive) {
-        const prefix = args_obj.key
-        const maps = config.get(args_obj.configName as keyof config.default_config)
-        for (const binding in maps) {
-            if (binding.startsWith(prefix)) {
-                config.set(args_obj.configName, binding, null)
-            }
-        }
+    const isAll = args.includes("--all")
+    const args_obj = parse_bind_args(...(isAll ? args.filter(arg => arg !== "--all").concat("") : args))
+    if (args_obj.excmd !== "" || (isAll && (args_obj.key !== "" || args_obj.isRecursive))) throw new Error("unbind syntax: `unbind [--mode=mode|*] [--recursive key|--all|key]`")
+    await config.getAsync()
+    const maps = args_obj.mode === "*" ? [...new Set([...modeMaps, ...Object.keys(config.USERCONFIG).filter(map => map.endsWith("maps") && config.USERCONFIG[map] !== null && typeof config.USERCONFIG[map] === "object")])] : [args_obj.configName]
+    const matches = key => isAll || (args_obj.isRecursive ? key.startsWith(args_obj.key) : key === args_obj.key)
+    const inherits = "🕷🕷INHERITS🕷🕷"
+    const getBindings = map => {
+        const bindings = { ...config.DEFAULTS[map], ...config.USERCONFIG[map] }
+        return bindings[inherits] ? { ...getBindings(bindings[inherits]), ...bindings } : bindings
     }
-
-    if (args_obj.excmd !== "") throw new Error("unbind syntax: `unbind key`")
-    if (args_obj.mode == "browser") {
-        const commands = await browser.commands.getAll()
-
-        const command = commands.filter(c => mozMapToMinimalKey(c.shortcut).toMapstr() == args_obj.key)[0]
-
-        // Fail quietly if bind doesn't exist so people can safely run it in their RC files
-        if (command !== undefined) {
-            await browser.commands.update({ name: command.name, shortcut: "" })
-            await commandsHelper.updateListener()
-        }
+    if (maps.includes("browsermaps")) {
+        const commands = (await browser.commands.getAll()).filter(command => command.shortcut && matches(mozMapToMinimalKey(command.shortcut).toMapstr()))
+        for (const command of commands) await browser.commands.update({ name: command.name, shortcut: "" })
+        if (commands.length) await commandsHelper.updateListener()
     }
-
-    return config.set(args_obj.configName, args_obj.key, null)
+    for (const map of maps) {
+        const unbound = { ...config.USERCONFIG[map] }
+        const keys = isAll || args_obj.isRecursive ? Object.keys(getBindings(map)) : [args_obj.key]
+        for (const key of keys) if (key !== inherits && matches(key)) unbound[key] = null
+        await config.set(map, unbound)
+    }
 }
 
 /**
@@ -5117,13 +5360,15 @@ export async function reseturl(pattern: string, mode: string, key: string) {
 
 /** Deletes various bits of Firefox or Tridactyl data
 
+    When used in a tridactylrc, persisted settings may briefly apply at startup before the file is sourced.
+
     The list of possible arguments can be found here:
     https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/browsingData/DataTypeSet
 
     Additional Tridactyl-specific arguments are:
-    - `commandline`: Removes the in-memory commandline history.
-    - `tridactyllocal`: Removes all tridactyl storage local to this machine. Use it with
-        commandline if you want to delete your commandline history.
+    - `commandline`: Removes the in-memory and stored commandline history.
+    - `tridactylconfig`: Removes locally stored user configuration without removing other local Tridactyl data, such as commandline history.
+    - `tridactyllocal`: Removes all tridactyl storage local to this machine.
     - `tridactylsync`: Removes all tridactyl storage associated with your Firefox Account (i.e, all user configuration, by default).
     These arguments aren't affected by the timespan parameter.
 
@@ -5180,6 +5425,7 @@ export async function sanitise(...args: string[]) {
         serviceWorkers: false,
         // These are Tridactyl-specific
         commandline: false,
+        tridactylconfig: false,
         tridactyllocal: false,
         tridactylsync: false,
         /* When this one is activated, a lot of errors seem to pop up in
@@ -5205,7 +5451,10 @@ export async function sanitise(...args: string[]) {
     // Tridactyl-specific items
     if (dts.commandline === true) state.cmdHistory = []
     delete dts.commandline
-    if (dts.tridactyllocal === true) await browser.storage.local.clear()
+    if (dts.tridactylconfig === true && dts.tridactyllocal === false)
+        await config.clear("config")
+    delete dts.tridactylconfig
+    if (dts.tridactyllocal === true) await config.clear()
     delete dts.tridactyllocal
     if (dts.tridactylsync === true) await browser.storage.sync.clear()
     delete dts.tridactylsync
@@ -5217,6 +5466,8 @@ export async function sanitise(...args: string[]) {
 
     Afterwards use go[key], gn[key], gw[ley], or gp[key] to [[open]], [[tabopen]], [[winopen]],
     or [[winopen]] privately the URL respectively.
+
+    Remove a quickmark with [[quickmarkremove]].
 
     Example:
     - `quickmark m https://mail.google.com/mail/u/0/#inbox`
@@ -5251,6 +5502,17 @@ export async function quickmark(key: string, ...addressarr: string[]) {
         await sleep(50)
         await bind("gp" + key, "composite winopen -private", compstringwinp)
     }
+}
+
+/** Remove a quickmark from a single-character key, unbinding its `gn`, `go`, `gw`, and `gp` mappings.
+
+    Example: `quickmarkremove m`
+    See also [[quickmark]].
+*/
+//#background
+export async function quickmarkremove(key: string) {
+    if (key?.length !== 1) throw new Error("quickmarkremove syntax: `quickmarkremove key`")
+    for (const prefix of ["gn", "go", "gw", "gp"]) await unbind(prefix + key)
 }
 
 /** Puts the contents of config value with keys `keys` into the commandline and the background page console
@@ -5378,104 +5640,127 @@ export function setnull(...keys: string[]) {
 const KILL_STACK: Element[] = []
 // {{{ HINTMODE
 
-/** Hint a page.
-
-    @param args Arguments to the `:hint` command. Multiple flags can be combined as long as they don't conflict.
-    Selectors can be specified either standalone (without a flag preceding them) or with the `-c` option. Arguments that
-    take callbacks (`-F` or `-W`) should be specified last, as they consume the rest of the command line.
-
-    Hinting action flags (only one can be specified):
-        - -t open in a new foreground tab
-        - -b open in background
-        - -y copy (yank) link's target to clipboard
-        - -p copy an element's text to the clipboard
-        - -h select an element (as if you click-n-dragged over it)
-        - -P copy an element's title/alt text to the clipboard
-        - -r read an element's text with text-to-speech
-        - -i view an image
-        - -I view an image in a new tab
-        - -k irreversibly deletes an element from the page (until reload)
-        - -K hides an element on the page; hidden elements can be restored using [[elementunhide]].
-        - -s save (download) the linked resource
-        - -S save the linked image
-        - -a save-as the linked resource
-        - -A save-as the linked image
-        - -; focus an element and set it as the element or the child of the element to scroll
-        - -# yank an element's anchor URL to clipboard
-        - -w open in new window
-        - -wp open in new private window
-        - -z scroll an element to the top of the viewport
-        - `-pipe selector key` e.g, `-pipe a href` returns the URL of the chosen link on a page. Only makes sense with `composite`, e.g, `composite hint -pipe .some-class>a textContent | yank`. If you don't select a hint (i.e. press <Esc>), will return an empty string. Most useful when used like `-c` to do things other than opening links. NB: the query selector cannot contain any spaces.
-        - `-W excmd...` append hint href to excmd and execute, e.g, `hint -W mpvsafe` to open YouTube videos. NB: appending to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to to it safely. If you need to use a query selector, use `-pipe` instead.
-        - -F [callback] - run a custom callback on the selected hint, e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
-
-    Element selection flags:
-        - -c [selector] hint links that match the css selector
-          - `bind ;c hint -c [class*="expand"],[class*="togg"]` works particularly well on reddit and HN
-          - this works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
-        - -C [selector] like `-c [selector]` but also hints all elements that would normally be hinted given the other options selected
-        - -x [selector] exclude the matched elements from hinting
-        - -f [text] hint links and inputs that display the given text
-          - `bind <c-e> hint -f Edit`
-          - Backslashes can escape spaces: `bind <c-s> hint -f Save\ as`
-        - -fr [text] use RegExp to hint the links and inputs
-        - -J* disable javascript hints. Don't generate hints related to javascript events. This is particularly useful when used with the `-c` option when you want to generate only hints for the specified css selectors. Also useful on sites with plenty of useless javascript elements such as google.com
-        - -V create hints for invisible elements. By default, elements outside the viewport when calling :hint are not hinted, this includes them anyways.
-
-    Hinting mode selection:
-        - -q* quick (or rapid) hints mode. Stay in hint mode until you press <Esc>, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
-          - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
-        - -! execute all hints without waiting for a selection
-          - For example, `hint -!bf Comments` opens in background tabs all visible links whose text matches `Comments`
-
-    Deprecated options:
-        - -br deprecated, use `-qb` instead
-
-    Excepting the custom selector mode, background hint mode and the "immediate" modifier, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
-
-    To open a hint in the background, the default bind is `F`.
-
-    Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/_src_content_hinting_.html)
-
-    Related settings:
-        - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
-        - "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
-        - "relatedopenpos": "related" | "next" | "last"
-        - "hintuppercase": "true" | "false"
-        - "hintnames": "short" | "uniform" | "numeric"
-        - "hintdelay": 300
-        - "hintshift": "true" | "false"
-        - "hintautoselect": "true" | "false"
-
-          With "short" names, Tridactyl will generate short hints that
-          are never prefixes of each other. With "uniform", Tridactyl
-          will generate hints of uniform length. In either case, the
-          hints are generated from the set in "hintchars".
-
-          With "numeric" names, hints are always assigned using
-          sequential integers, and "hintchars" is ignored. This has the
-          disadvantage that some hints are prefixes of others (and you
-          need to hit space or enter to select such a hint). But it has
-          the advantage that the hints tend to be more predictable
-          (e.g., a news site will have the same hints for its
-          boilerplate each time you visit it, even if the number of
-          links in the main body changes).
-
-    There are some extra hint "modes" that are actually just normal-mode binds. We'll list them here:
-
-    - `;gv` - "open link in MPV" - only available if you have [[native]] installed and `mpv` on your PATH
-    - `;m` and `;M` - do a reverse image search using Google in the current tab and a new tab
-    - `;x` and `;X` - move cursor to element and perform a real click or ctrl-shift-click (to open in a new foreground tab). Only available on Linux, if you have [[native]] installed and `xdotool` on your PATH
-    - `;d` and `;gd` - open links in discarded background tabs (defer loading until tab is switched to)
-
-    NB: by default, hinting respects whether links say they should be opened in new tabs (i.e. `target=_blank`). If you wish to override this you can use `:hint -JW open` to force the hints to open in the current tab. JavaScript hints (grey ones) will always open wherever they want, but if you want to include these anyway you can use `:hint -W open`.
-
-*/
+/**
+ * Hint a page.
+ *
+ * Multiple flags can be used in the `:hint` command and combined as long as they don't conflict.
+ * Selectors can be specified either standalone (without a flag preceding them) or with the `-c` option. Arguments that
+ * take callbacks (`-F` or `-W`) should be specified last, as they consume the rest of the command line.
+ *
+ * #### Hinting action flags (only one can be specified):
+ *
+ * @flag -t open in a new foreground tab
+ * @flag -b open in background
+ * @flag -y copy (yank) link's target to clipboard
+ * @flag -p copy an element's text to the clipboard
+ * @flag -h select an element (as if you click-n-dragged over it)
+ * @flag -P copy an element's title/alt text to the clipboard
+ * @flag -r read an element's text with text-to-speech
+ * @flag -i view an image
+ * @flag -I view an image in a new tab
+ * @flag -k irreversibly deletes an element from the page (until reload)
+ * @flag -K hides an element on the page
+ * - Hidden elements can be restored using [[elementunhide]].
+ * @flag -s save (download) the linked resource
+ * @flag -S save the linked image
+ * @flag -a save-as the linked resource
+ * @flag -A save-as the linked image
+ * @flag -; focus an element and set it as the element or the child of the element to scroll
+ * @flag -# yank an element's anchor URL to clipboard
+ * @flag -w open in new window
+ * @flag -wp open in new private window
+ * @flag -z scroll an element to the top of the viewport
+ * @flag -pipe `selector key`, e.g, `-pipe a href` returns the URL of the chosen link on a page.
+ * - Only makes sense with `composite`, e.g, `composite hint -pipe .some-class>a textContent | yank`.
+ * - If you don't select a hint (i.e. press `<Esc>`), will return an empty string.
+ * - Most useful when used like `-c` to do things other than opening links.
+ * - NB: the query selector cannot contain any spaces.
+ * @flag -W `excmd...` pass hint href as the final argument to excmd and execute.
+ * - e.g, `hint -W mpvsafe` to open YouTube videos.
+ * - NB: passing it to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to do it safely.
+ * - The usual [[composite]] caveats for `;` and `|` in URLs apply.
+ * - If you need to use a query selector, use `-pipe` instead.
+ * @flag -F [callback] - run a custom callback on the selected hint
+ * - e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
+ *
+ * #### Element selection flags
+ *
+ * @flag -c hint links that match the css selector
+ * - `bind ;c hint -c [class*="expand"],[class*="togg"]` works particularly well on reddit and HN.
+ * - This works with most other hint modes, with the caveat that if other hint mode takes arguments your selector must contain no spaces, i.e. `hint -c[yourOtherFlag] [selector] [your other flag's arguments, which may contain spaces]`
+ * @flag -C like -c but also hints all elements that would normally be hinted given the other options selected
+ * @flag -x exclude the matched elements from hinting
+ * @flag -f hint links and inputs that display the given text
+ * - `bind <c-e> hint -f Edit`.
+ * - Backslashes can escape spaces: `bind <c-s> hint -f Save\ as`
+ * @flag -fr use RegExp to hint the links and inputs
+ * @flag -J disable javascript hints
+ * - Don't generate hints related to javascript events. This is particularly useful when used with the `-c` option when you want to generate only hints for the specified css selectors.
+ * - Also useful on sites with plenty of useless javascript elements such as google.com
+ * @flag -V create hints for invisible elements
+ * - By default, elements outside the viewport when calling :hint are not hinted; this includes them anyways.
+ *
+ * #### Hinting mode selection:
+ *
+ * - -q* quick (or rapid) hints mode. Stay in hint mode until you press `<Esc>`, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
+ *     - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
+ * - -! execute all hints without waiting for a selection
+ *     - For example, `hint -!bf Comments` opens in background tabs all visible links whose text matches `Comments`
+ *
+ * #### Deprecated options:
+ *
+ * - -br deprecated, use `-qb` instead
+ *
+ * #### Usage:
+ *
+ * Excepting the custom selector mode, background hint mode and the "immediate" modifier, each of these hint modes is available by default as `;<option character>`, so e.g. `;y` to yank a link's target; `;g<option character>` starts rapid hint mode for all modes where it makes sense, and some others.
+ *
+ * To open a hint in the background, the default bind is `F`.
+ *
+ * Ex-commands available exclusively in hint mode are listed [here](/static/docs/modules/_src_content_hinting_.html)
+ *
+ * #### Related settings:
+ *
+ * - "hintchars": "hjklasdfgyuiopqwertnmzxcvb"
+ * - "hintfiltermode": "simple" | "vimperator" | "vimperator-reflow"
+ * - "relatedopenpos": "related" | "next" | "last"
+ * - "hintuppercase": "true" | "false"
+ * - "hintnames": "short" | "uniform" | "numeric"
+ * - "hintdelay": 300
+ * - "hintshift": "true" | "false"
+ * - "hintautoselect": "true" | "false"
+ *
+ * With "short" names, Tridactyl will generate short hints that
+ * are never prefixes of each other. With "uniform", Tridactyl
+ * will generate hints of uniform length. In either case, the
+ * hints are generated from the set in "hintchars".
+ *
+ * With "numeric" names, hints are always assigned using
+ * sequential integers, and "hintchars" is ignored. This has the
+ * disadvantage that some hints are prefixes of others (and you
+ * need to hit space or enter to select such a hint). But it has
+ * the advantage that the hints tend to be more predictable
+ * (e.g., a news site will have the same hints for its
+ * boilerplate each time you visit it, even if the number of
+ * links in the main body changes).
+ *
+ * #### There are some extra hint "modes" that are actually just normal-mode binds. We'll list them here:
+ *
+ * - `;gv` - "open link in MPV" - only available if you have [[native]] installed and `mpv` on your PATH
+ * - `;m` and `;M` - do a reverse image search using Google in the current tab and a new tab
+ * - `;x` and `;X` - move cursor to element and perform a real click or ctrl-shift-click (to open in a new foreground tab). Only available on Linux, if you have [[native]] installed and `xdotool` on your PATH
+ * - `;d` and `;gd` - open links in discarded background tabs (defer loading until tab is switched to)
+ *
+ * NB: by default, hinting respects whether links say they should be opened in new tabs (i.e. `target=_blank`). If you wish to override this you can use `:hint -JW open` to force the hints to open in the current tab. JavaScript hints (grey ones) will always open wherever they want, but if you want to include these anyway you can use `:hint -W open`.
+ *
+ * @param args Arguments to the `:hint` command.
+ */
 //#content
 export async function hint(...args: string[]): Promise<any> {
     // Parse configuration and print parsing warnings
     const config = hint_util.HintConfig.parse(args)
     config.printWarnings(logger)
+    const excmd = config.excmd ? controller.resolveExCmd(config.excmd) : null
 
     const hintTabOpen = async (href, active = !config.rapid) => {
         const containerId = await activeTabContainerId()
@@ -5493,8 +5778,8 @@ export async function hint(...args: string[]): Promise<any> {
         }
     }
 
-    return new Promise((resolve, reject) => {
-        const hintables = config.hintables()
+    const hintables = await config.hintables()
+    return new Promise(async (resolve, reject) => {
 
         // If the user specified a callback, eval it, else use the default
         // action which performs the action matching the open mode
@@ -5506,11 +5791,10 @@ export async function hint(...args: string[]): Promise<any> {
                       return elem[config.pipeAttribute]
                   }
 
-                  if (config.excmd) {
+                  if (excmd) {
                       // We have an excmd to run. By spec, we append the element's href
                       if (elem.href) {
-                          // /!\ RACY RACY RACY!
-                          run_exstr(config.excmd + " " + elem.href)
+                          excmd(elem.href)
                           return elem
                       }
 
@@ -5520,10 +5804,11 @@ export async function hint(...args: string[]): Promise<any> {
 
                   switch (config.openMode) {
                       case OpenMode.Highlight:
-                          const r = document.createRange()
+                          const doc = elem.ownerDocument
+                          const r = doc.createRange()
                           r.setStart(elem, 0)
                           r.setEnd(elem, 1)
-                          const s = document.getSelection()
+                          const s = doc.getSelection()
                           s.addRange(r)
                           return elem
 
@@ -5591,11 +5876,11 @@ export async function hint(...args: string[]): Promise<any> {
                           // ???: What purpose does selecting elements with a name attribute have? Selecting values that only have meaning in forms doesn't seem very useful.
                           // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
                           anchorUrl.hash = elem.id || elem.name
-                          return anchorUrl.href
+                          return UrlUtil.decodeUrlForDisplay(anchorUrl.href)
 
                       case OpenMode.YankLink:
                           if (elem.href) {
-                              return elem.href
+                              return UrlUtil.decodeUrlForDisplay(elem.href)
                           }
 
                           return
@@ -5609,6 +5894,8 @@ export async function hint(...args: string[]): Promise<any> {
 
                       switch (config.openMode) {
                           case OpenMode.Default:
+                              const href = typeof elem.href === "string" ? elem.href : elem.href.animVal
+                              if (href.startsWith("file:")) return open(href)
                               DOM.simulateClick(elem)
                               break
                           case OpenMode.Tab:
@@ -5734,8 +6021,20 @@ export function run_exstr(...commands: string[]) {
     If numKeysOrTerminator is a number, it will read the provided amount of keys;
     If numKeysOrTerminator is a key or key combination like 'k', '<CR>' or '<C-j>';
     it will read keys until the provided key is pressed.
-    Then it will append the keypresses to `endCmd` and execute that string,
-    also appending arguments if provided.
+    It then executes `endCmd capturedKeys args`, so captured keys are inserted
+    before any extra `args`. Thus `bind a gobble 1 js -p alert(JS_ARG)` does not
+    work: after pressing `b`, it starts `js b -p ...`.
+
+    Wrap commands whose options or code must precede the captured keys in a
+    [[command]] alias. For example, this dynamic keybinding alerts the key
+    pressed after `a`:
+
+    ```
+    command alertkey js -d@ window.alert(JS_ARGS[1])@
+    bind a gobble 1 alertkey
+    ```
+
+    Pressing `ab` alerts `b`. See also [[bind]] and [[js]].
 */
 //#content
 export async function gobble(numKeysOrTerminator: string, endCmd: string, ...args: string[]) {
@@ -5785,11 +6084,17 @@ export async function goto(...selector: string[]) {
  * This looks up the next key sequence in the normal mode bindings, executes it, and switches the mode to `ignore`.
  * If the key sequence does not match a binding, it will be silently passed through to Firefox, but it will be counted
  * for the termination condition.
+ *
+ * If the first key event is a keyup, it is ignored because it almost always belongs to the key that entered nmode.
+ * Use `:nmode --strict ...` to accept it.
  */
 //#content
-export async function nmode(mode: string, n: number, ...endexArr: string[]) {
+export async function nmode(...args: string[]) {
+    const strict = args[0] === "--strict"
+    const [mode, count, ...endexArr] = args.slice(strict ? 1 : 0)
     const endex = endexArr.join(" ") || "mode ignore"
-    return nMode.init(endex, mode, n)
+    const n = count === undefined ? undefined : Number(count)
+    return nMode.init(endex, mode, n, strict)
 }
 
 // {{{TEXT TO SPEECH
@@ -5811,6 +6116,12 @@ function tssReadFromCss(selector: string): void {
 /**
  * Read the given text using the browser's text to speech functionality and
  * the settings currently set
+ *
+ * To read selected text in visual mode, run e.g.
+ *
+ * `:bind --mode=visual t composite js document.getSelection().toString() | ttsread -t`
+ *
+ * Select the text, then press `t`.
  *
  * @param mode      the command mode
  *                      -t read the following args as text
@@ -5845,20 +6156,21 @@ export async function ttsvoices() {
 }
 
 /**
- * Cancel current reading and clear pending queue
+ * Control the current reading
  *
  * Arguments:
- *   - stop:    cancel current and pending utterances
+ *   - play: resume the current utterance
+ *   - pause: pause the current utterance
+ *   - playpause: toggle between playing and paused
+ *   - stop: cancel current and pending utterances
  */
 //#content
-export async function ttscontrol(action: string) {
-    // only pause seems to be working, so only provide access to that
-    // to avoid exposing users to things that won't work
-    if (action !== "stop") {
+export async function ttscontrol(action: "stop" | "play" | "pause" | "playpause") {
+    if (!["stop", "play", "pause", "playpause"].includes(action)) {
         throw new Error("Unknown text-to-speech action: " + action)
     }
 
-    return TTS.doAction(action as TTS.Action)
+    return TTS.doAction(action)
 }
 
 //}}}
@@ -6013,6 +6325,8 @@ export function echo(...str: string[]) {
     return str.join(" ")
 }
 
+const jsRcCache = new Map<string, string>()
+
 /** helper function for js and jsb
  *
  * -p to take a single extra argument located at the end of str[]
@@ -6022,14 +6336,15 @@ export function echo(...str: string[]) {
  * @hidden
  */
 async function js_helper(str: string[]) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let JS_ARG = null
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let JS_ARGS = []
     let jsContent: string = null
 
     let doSource = false
     let fromRC = false
+    let cacheSource = false
     let separator = null
 
     while (true) {
@@ -6050,15 +6365,16 @@ async function js_helper(str: string[]) {
             continue
         }
 
-        if (flag == "-r") {
+        if (flag == "-r" || flag == "-rc") {
             doSource = true
             fromRC = true
+            cacheSource ||= flag == "-rc"
             str.shift()
             continue
         }
 
         // d for delimiter innit
-        const match = /-d(.)/.exec(flag)
+        const match = /^-d(.)/.exec(flag)
         if (match !== null) {
             separator = match[1]
             str.shift()
@@ -6086,9 +6402,14 @@ async function js_helper(str: string[]) {
             const rcPath = (await Native.getrcpath("unix")).split(sep).slice(0, -1)
             sourcePath = [...rcPath, sourcePath].join(sep)
         }
-        const file = await Native.read(sourcePath)
-        if (file.code !== 0) throw new Error("Couldn't read js file " + sourcePath)
-        jsContent = file.content
+        let source = cacheSource ? jsRcCache.get(sourcePath) : undefined
+        if (source === undefined) {
+            const file = await Native.read(sourcePath)
+            if (file.code !== 0) throw new Error("Couldn't read js file " + sourcePath)
+            source = file.content
+            if (cacheSource) jsRcCache.set(sourcePath, source)
+        }
+        jsContent = source
     }
 
     return eval(jsContent)
@@ -6107,11 +6428,11 @@ async function js_helper(str: string[]) {
  *
  *     `js -p javascript code ... arg`
  *
- *     `js [-s|-r] javascript_filename`
+ *     `js [-s|-r|-rc] javascript_filename`
  *
- *     `js -p [-s|-r] javascript_filename arg`
+ *     `js -p [-s|-r|-rc] javascript_filename arg`
  *
- *     `js -d³ [-s|-r] javascript_filename³ arg1 arg2 ...`
+ *     `js -d³ [-s|-r|-rc] javascript_filename³ arg1 arg2 ...`
  *     (where `³` is any char  that you can guarantee won't appear in your JS code)
  *
  *   - options
@@ -6119,6 +6440,7 @@ async function js_helper(str: string[]) {
  *     - `-d[delimiter character]` to take a space-separated array of arguments after the delimiter, stored in the magic variable `JS_ARGS` (array) - see below for example usage.
  *     - `-s` load the js source from a Javascript file.
  *     - `-r` load the js source from a Javascript file relative to your RC file. (NB: will throw an error if no RC file exists)
+ *     - `-rc` is the same as `-r`, but caches the source until the page (`js`) or background context (`jsb`) is unloaded. `-r` bypasses but does not update the cache.
  *
  * Some of Tridactyl's functions are accessible here via the `tri` object. Just do `console.log(tri)` in the web console on the new tab page to see what's available.
  * `tri.bg` is an object enabling access to the background script's context. It works similarly to the `tri.tabs` objects documented in the [[jsb]] documentation.
@@ -6147,10 +6469,11 @@ async function js_helper(str: string[]) {
  *
  *  You can use `-d` to make your own ex-commands:
  *
- *      `command loudecho js -d€ window.alert(JS_ARGS.join(" "))€`
- *      And use it like: `loudecho this is a message!`
+ *  `command loudecho js -d€ window.alert(JS_ARGS.join(" "))€`
  *
- *      Everything after `€` will be available in `JS_ARGS`, starting at index 1 (the first item is usually an empty string).
+ *  And use it like: `loudecho this is a message!`
+ *
+ *  Everything after `€` will be available in `JS_ARGS`, starting at index 1 (the first item is usually an empty string).
  *
  */
 /* tslint:disable:no-identical-functions */
@@ -6228,7 +6551,7 @@ export async function issue() {
     template = `Firefox version: ${info.vendor} ${info.name} ${info.version}\n` + template
 
     template = template.replace("-   Tridactyl version (`:version`):\n\n", "")
-    template = `Tridactyl version: ${TRI_VERSION}\n` + template
+    template = `Tridactyl version: ${TRI_VERSION_NAME}\n` + template
 
     textarea.value = template
 }
@@ -6324,7 +6647,7 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
     }
 
     const notify = () => {
-        fillcmdline_tmp(30000, "Tridactyl " + highestKnownVersion.version + " is available (you're on " + Updates.getInstalledVersion() + "). Visit about:addons, right click Tridactyl, click 'Find Updates'. Restart Firefox once it has downloaded.")
+        fillcmdline_tmp(30000, "Tridactyl " + highestKnownVersion.version + " is available (you're on " + Updates.getInstalledVersion() + "). Visit about:addons, click Extensions, click Tridactyl, click the cog, click 'Check for Updates'. Restart Firefox once it has downloaded.")
     }
 
     // A bit verbose, but I figured it was important to have the logic
@@ -6365,9 +6688,10 @@ export async function updatecheck(source: "manual" | "auto_polite" | "auto_impol
  */
 //#content
 export async function keyfeed(...args: string[]) {
-    const option = arg.lib({ "--page": Boolean, "--type": String }, { argv: args })
+    const parsed = arg.lib({ "--page": Boolean, "--type": String }, { argv: args })
+    const option = arg.withDefaults(parsed, { "--page": false, "--type": "keydown" })
     const usePage = option["--page"]
-    const eventType = option["--type"] || "keydown"
+    const eventType = option["--type"]
     const mapstr = option._.join(" ")
     const keyseq = mapstrToKeyseq(mapstr)
 
@@ -6384,7 +6708,7 @@ export async function keyfeed(...args: string[]) {
     }
 
     for (const k of keyseq) {
-        usePage ? spoofKey(k) : KEY_MUNCHER.next(k)
+        usePage ? spoofKey(k) : KEY_MUNCHER(k)
         await sleep(10)
     }
 }
@@ -6426,11 +6750,13 @@ import { Readability } from "@mozilla/readability"
  * @hidden
  */
 //#content_helper
-export async function readerurl() {
-    document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
-    const article = new Readability(document.cloneNode(true) as any as Document).parse()
-    article["link"] = window.location.href
-    article["favicon"] = (await ownTab()).favIconUrl
+export async function readerurl(article: any = undefined) {
+    if (!article) {
+        document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
+        article = new Readability(document.cloneNode(true) as any as Document).parse()
+        article["link"] = window.location.href
+        article["favicon"] = (await ownTab()).favIconUrl
+    }
     let hash = ""
     const article_encoded = btoa(encodeURIComponent(JSON.stringify(article)))
     if (!(await browserBg.windows.getCurrent()).incognito) {
@@ -6440,23 +6766,17 @@ export async function readerurl() {
     } else {
         hash = article_encoded
     }
-    return browser.runtime.getURL("static/reader.html#" + hash)
+    return browser.runtime.getURL(`static/reader.html${article.source ? "?source" : ""}#${hash}`)
 }
 
 /**
  * Open the current page as an article in reader view for easier reading. Flags `--tab` and `--window` open the article in new tabs and windows respectively.
  *
+ * Article content is sanitised and displayed in a sandboxed frame where scripts are disabled. Remote images and media may make cross-site authenticated requests, which could technically be exploitable to submit GET requests as a logged-in user, but I think the likelihood of anyone doing this and relying on you putting their website into reader mode is vanishingly small.
+ *
  * Use `:reader --old` to use Firefox's built-in reader mode, which Tridactyl can't run on.
  *
- * __NB:__ the reader page is a privileged environment which has access to all Tridactyl functions, notably the native messenger if you have it installed. We are parsing untrusted web-content to run in this environment. Mozilla's readability library will strip out most of these, then we use a sanitation library, `js-xss`, to strip out any remaining unsafe tags, but if there was a serious bug in this library, and a targeted attack against Tridactyl, an attacker could get remote code execution. If you're worried about this, use `:reader --old` instead or only use `:reader` on pages you trust.
- *
- * You may use [userContent.css](http://kb.mozillazine.org/index.php?title=UserContent.css&printable=yes) to enhance or override default styling of the new reader view. The `body` of the page has id `tridactyl-reader` and the article content follows in a `main` tag. Therefore to alter default styling, you can do something like this in your `userContent.css`:
- *
- * ```css
- * #tridactyl-reader > main {
- *   width: 80vw !important;
- *   text-align: left;
- * }
+ * You can use `:colourscheme --module=reader` to change the CSS of the reader view. See our [newspaper theme](https://github.com/tridactyl/tridactyl/blob/25bb2764cbb59804f9b75f79b43d21f5806f3a13/contrib/themes/reader/newspaper.css) for an example.
  * ```
  *
  * Follow [issue #4657](https://github.com/tridactyl/tridactyl/issues/4657) if you would like to find out when we have made a more user-friendly solution.
@@ -6588,6 +6908,7 @@ export async function profilerename(oldName: string, newName: string) {
         throw new Error(`Profile rename failed. Is the native messenger installed? Error: ${e}`)
     }
 }
+// }}}
 
 /**
  * Disable all hilighting of hintable elements when hinting.
@@ -6612,4 +6933,35 @@ export function hintstylesdirect() {
     ;["fg", "bg", "outline"].forEach(type => config.set("hintstyles", type, "all"))
     ;["overlay", "overlayoutline"].forEach(type => config.set("hintstyles", type, "none"))
 }
-// }}}
+
+/**
+ * Set the x and y velocities to smooth scroll until `:scrollstop` is called.
+ *
+ * Use `:set scrollduration` to adjust the speed of all `:scrollstart` binds.
+ * Smaller `scrollduration` = faster scroll speed.
+ *
+ * Use `:smoothscrollwizard` to overwrite default scroll binds automatically.
+ *
+ * Or bind manually, pairing `:scrollstart` keydown binds with `:scrollstop` keyups:
+ *
+ * ```
+ * :bind <D-j> scrollstart 0 1000
+ * :bind <U-j> scrollstop
+ * :unbind j
+ * # etc.
+ * ```
+ */
+//#content
+export async function scrollstart(xVelocity: string, yVelocity: string, mult?: string) {
+    scrolling.scrollstart(xVelocity, yVelocity, mult)
+}
+
+/**
+ * Stop scrolling initiated by `:scrollstart`.
+ *
+ * See [[scrollstart]].
+ */
+//#content
+export async function scrollstop() {
+    scrolling.scrollstop()
+}

@@ -1,10 +1,10 @@
 /** Content script entry point */
 
 // We need to grab a lock because sometimes Firefox will decide to insert the content script in the page multiple times
-if ((window as any).tridactyl_content_lock !== undefined) {
+if (window["tridactyl_content_lock"] !== undefined) {
     throw Error("Trying to load Tridactyl, but it's already loaded.")
 }
-;(window as any).tridactyl_content_lock = "locked"
+window["tridactyl_content_lock"] = "locked"
 
 // Be careful: typescript elides imports that appear not to be used if they're
 // assigned to a name.  If you want an import just for its side effects, make
@@ -27,7 +27,7 @@ import {
 import { CmdlineCmds } from "@src/content/commandline_cmds"
 import { EditorCmds } from "@src/content/editor"
 
-import { getAllDocumentFrames } from "@src/lib/dom"
+import { getSelection, activeElement } from "@src/lib/dom"
 
 import state from "@src/state"
 import { EditorCmds as editor } from "@src/content/editor"
@@ -40,47 +40,6 @@ config.getAsync("superignore").then(async TRI_DISABLE => {
 // here.
 
 if (TRI_DISABLE === "true") return
-
-try {
-
-    // Add cheap location change event
-    // Adapted from: https://stackoverflow.com/questions/6390341/how-to-detect-if-url-has-changed-after-hash-in-javascript
-    //
-    // Broken atm - on https://github.com/tridactyl/tridactyl/pull/3938 clicking onto issues doesn't do anything and we get "permission denied to access object"
-
-    const realwindow = (window as any).wrappedJSObject ?? window // wrappedJSObject not defined on extension pages
-
-    const triPushState = (hist => (
-        (...args) => {
-            const ret = hist(...args)
-            realwindow.dispatchEvent(new Event("HistoryPushState"))
-            realwindow.dispatchEvent(new Event("HistoryState"))
-            return ret
-        })
-    )(realwindow.history.pushState.bind(realwindow.history))
-
-    const triReplaceState = (hist => (
-        (...args) => {
-            const ret = hist(...args)
-            realwindow.dispatchEvent(new Event("HistoryReplaceState"))
-            realwindow.dispatchEvent(new Event("HistoryState"))
-            return ret
-        })
-    )(realwindow.history.replaceState.bind(realwindow.history))
-
-    realwindow.addEventListener("popstate", () => {
-        realwindow.dispatchEvent(new Event("HistoryState"))
-    })
-
-    history.replaceState = triReplaceState
-    history.pushState = triPushState
-
-    typeof(exportFunction) == "function" && exportFunction(triReplaceState, history, {defineAs: "replaceState"})
-    typeof(exportFunction) == "function" && exportFunction(triPushState, history, {defineAs: "pushState"})
-
-} catch (e) {
-    console.error(e)
-}
 
 const controller = await import("@src/lib/controller")
 const { omniscient_controller } = await import("@src/lib/omniscient_controller")
@@ -118,6 +77,19 @@ controller.setExCmds({
     text: EditorCmds,
     hint: hinting_content.getHintCommands(),
 })
+let modeAutocmdQueue = Promise.resolve()
+addContentStateChangedListener((property, _mode, oldValue, newValue) => {
+    if (property !== "mode") return
+    modeAutocmdQueue = modeAutocmdQueue
+        .then(async () => {
+            try {
+                await excmds.loadaucmds("ModeLeave", oldValue)
+            } finally {
+                await excmds.loadaucmds("ModeEnter", newValue)
+            }
+        })
+        .catch(error => void logger.error(error))
+})
 messaging.addListener(
     "excmd_content",
     messaging.attributeCaller(excmds_content),
@@ -126,43 +98,124 @@ messaging.addListener(
     "controller_content",
     messaging.attributeCaller(controller),
 )
+messaging.addListener("history_state", () => {
+    window.dispatchEvent(new Event("HistoryState"))
+})
 messaging.addListener("omniscient_content", messaging.attributeCaller(omniscient_controller))
 
 // eslint-disable-next-line @typescript-eslint/require-await
 messaging.addListener("alive", async () => true)
 
-const guardedAcceptKey = (keyevent: KeyboardEvent) => {
-    if (!keyevent.isTrusted) return
-    ContentController.acceptKey(keyevent)
-}
-function listen(elem) {
-    elem.removeEventListener("keydown", guardedAcceptKey, true)
+function listen(elem: Window | HTMLElement | HTMLFrameElement) {
     elem.removeEventListener(
-        "keypress",
-        ContentController.canceller.cancelKeyPress,
+        "keydown",
+        keyseq.guarded(ContentController.acceptKey),
         true,
     )
     elem.removeEventListener(
         "keyup",
-        ContentController.canceller.cancelKeyUp,
+        keyseq.guarded(ContentController.acceptKey),
         true,
     )
-    elem.addEventListener("keydown", guardedAcceptKey, true)
-    elem.addEventListener(
+    elem.removeEventListener(
         "keypress",
-        ContentController.canceller.cancelKeyPress,
+        keyseq.guarded(ContentController.canceller.cancelKeyPress),
+        true,
+    )
+    elem.removeEventListener(
+        "keyup",
+        keyseq.guarded(ContentController.canceller.cancelKeyUp),
+        true,
+    )
+    elem.removeEventListener("keydown", keyseq.guarded(protectSlash), true)
+    elem.addEventListener(
+        "keydown",
+        keyseq.guarded(ContentController.acceptKey),
         true,
     )
     elem.addEventListener(
         "keyup",
-        ContentController.canceller.cancelKeyUp,
+        keyseq.guarded(ContentController.acceptKey),
         true,
     )
+    elem.addEventListener(
+        "keypress",
+        keyseq.guarded(ContentController.canceller.cancelKeyPress),
+        true,
+    )
+    elem.addEventListener(
+        "keyup",
+        keyseq.guarded(ContentController.canceller.cancelKeyUp),
+        true,
+    )
+    elem.addEventListener("keydown", keyseq.guarded(protectSlash), true)
 }
+
 listen(window)
-document.addEventListener("readystatechange", _ =>
-    getAllDocumentFrames().forEach(f => listen(f)),
-)
+
+type FrameElement = HTMLIFrameElement | HTMLFrameElement
+type IframeRoot = Document | ShadowRoot
+let refreshStatusIndicator: (() => void) | undefined
+const observedIframeRoots = new WeakSet<IframeRoot>()
+const iframeObserver = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE)
+                discoverIframes(node as Element)
+        }
+    }
+})
+
+function listenInIframe(frame: FrameElement) {
+    frame.addEventListener("load", onIframeLoad)
+    try {
+        if (frame.src.startsWith("moz-extension:")) return
+        const doc = frame.contentDocument
+        if (!doc?.defaultView || observedIframeRoots.has(doc)) return
+        listen(doc.defaultView)
+        doc.addEventListener("selectionchange", selectionChanged)
+        observeIframeRoot(doc)
+        dom.hijackPageAttachShadow(observeIframeRoot, doc.defaultView)
+        dom.setupFocusHandler(doc, () => refreshStatusIndicator?.())
+    } catch (e) {
+        logger.warning("Could not hijack iframe due to CSP:", e)
+    }
+}
+
+function onIframeLoad(event: Event) {
+    listenInIframe(event.currentTarget as FrameElement)
+}
+
+// workaround for FF140 era bug https://bugzilla.mozilla.org/show_bug.cgi?id=2035665
+// which left inaccessible <details> shadow roots accessible but unusable
+function isUsableShadowRoot(root: ShadowRoot, host: Element) {
+    try {
+        const node = host.ownerDocument?.defaultView?.Node
+        return !!node && root instanceof node
+    } catch {
+        return false
+    }
+}
+
+function discoverIframes(root: IframeRoot | Element) {
+    for (const element of [root as Element, ...root.querySelectorAll("*")]) {
+        if (["iframe", "frame"].includes(element.localName)) {
+            listenInIframe(element as FrameElement)
+        }
+        const shadowRoot = (element as HTMLElement).openOrClosedShadowRoot
+        if (shadowRoot && isUsableShadowRoot(shadowRoot, element))
+            observeIframeRoot(shadowRoot)
+    }
+}
+
+function observeIframeRoot(root: IframeRoot) {
+    if (observedIframeRoots.has(root)) return
+    observedIframeRoots.add(root)
+    iframeObserver.observe(root, { subtree: true, childList: true })
+    discoverIframes(root)
+}
+
+observeIframeRoot(document)
 
 // Prevent pages from automatically focusing elements on load
 config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
@@ -172,8 +225,8 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     const preventAutoFocus = () => {
         // First, blur whatever element is active. This will make sure
         // activeElement is the "default" active element
-        ;(document.activeElement as any).blur()
-        const elem = document.activeElement as any
+        ;(document.activeElement as HTMLElement).blur()
+        const elem = document.activeElement as HTMLElement
         // ???: We need to set tabIndex, otherwise we won't get focus/blur events!
         elem.tabIndex = 0
         const focusElem = () => elem.focus()
@@ -207,7 +260,7 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     }
     tryPreventAutoFocus()
 })
-;(window as any).tri = Object.assign(Object.create(null), {
+window["tri"] = Object.assign(Object.create(null), {
     browserBg: webext.browserBg,
     bg: backgroundProxy.backgroundProxy,
     commandline_content,
@@ -230,7 +283,10 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     scrolling,
     visual,
     webext,
-    l: prom => prom.then(console.log).catch(console.error),
+    l: value =>
+        typeof value?.then === "function"
+            ? value.then(console.log).catch(console.error)
+            : console.log(value),
     native,
     styling,
     contentLocation: window.location,
@@ -243,7 +299,8 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
 logger.info("Loaded commandline content?", commandline_content)
 
 try {
-    dom.setupFocusHandler()
+    dom.hijackPageAttachShadow(observeIframeRoot)
+    dom.setupFocusHandler(document, () => refreshStatusIndicator?.())
     dom.hijackPageListenerFunctions()
 } catch (e) {
     logger.warning("Could not hijack due to CSP:", e)
@@ -268,8 +325,21 @@ if (
 
 // Really bad status indicator
 let statusIndicator
-config.getAsync("modeindicator").then(mode => {
-    if (mode !== "true") return
+function mountStatusIndicator() {
+    if (statusIndicator.parentNode === document.documentElement) return
+    if (config.get("modeindicator") === "true")
+        document.documentElement.appendChild(statusIndicator)
+}
+
+function addStatusIndicator() {
+    if (statusIndicator) {
+        statusIndicator.classList.toggle(
+            "TridactylInvisible",
+            config.get("modeindicatormodes", contentState.mode) === "false",
+        )
+        dom.afterPageLoad(mountStatusIndicator)
+        return
+    }
 
     // Do we want container indicators?
     const containerIndicator = config.get("containerindicator")
@@ -292,9 +362,18 @@ config.getAsync("modeindicator").then(mode => {
     statusIndicator.className =
         "cleanslate TridactylStatusIndicator " +
         privateMode +
-        " TridactylModenormal "
+        ` TridactylMode${contentState.mode || "normal"} `
+    // Firefox excludes text displayed by a collapsed select from find.
+    const statusIndicatorText = document.createElement("option")
+    const statusIndicatorSelect = document.createElement("select")
+    statusIndicatorSelect.disabled = true
+    statusIndicatorSelect.appendChild(statusIndicatorText)
+    statusIndicator.appendChild(statusIndicatorSelect)
+    if (config.get("modeindicatormodes", contentState.mode) === "false") {
+        statusIndicator.classList.add("TridactylInvisible")
+    }
 
-    // Dynamically sets the border container color.
+    // Expose the container color to themes.
     if (containerIndicator === "true") {
         webext
             .ownTabContainer()
@@ -302,11 +381,9 @@ config.getAsync("modeindicator").then(mode => {
                 webext.browserBg.contextualIdentities.get(ownTab.cookieStoreId),
             )
             .then(container => {
-                statusIndicator.setAttribute(
-                    "style",
-                    `border: ${
-                        (container as any).colorCode
-                    } var(--tridactyl-indicator-border-style, solid) var(--tridactyl-indicator-border-width, 1.5px) !important`,
+                statusIndicator.style.setProperty(
+                    "--tridactyl-container-color",
+                    container.colorCode,
                 )
             })
             .catch(error => {
@@ -334,21 +411,13 @@ config.getAsync("modeindicator").then(mode => {
         window.addEventListener("mousemove", onMouseOut)
     })
 
-    try {
-        // On quick loading pages, the document is already loaded
-        statusIndicator.textContent = contentState.mode || "normal"
-        document.body.appendChild(statusIndicator)
-        document.head.appendChild(style)
-    } catch (e) {
-        // But on slower pages we wait for the document to load
-        window.addEventListener("DOMContentLoaded", () => {
-            statusIndicator.textContent = contentState.mode || "normal"
-            document.body.appendChild(statusIndicator)
-            document.head.appendChild(style)
-        })
-    }
+    statusIndicatorText.textContent = contentState.mode || "normal"
+    dom.afterPageLoad(() => {
+        document.head?.appendChild(style)
+        mountStatusIndicator()
+    })
 
-    addContentStateChangedListener(async (property, oldMode, oldValue, newValue) => {
+    async function updateStatusIndicator(property, oldMode, _oldValue, newValue) {
         let mode = newValue
         let suffix = ""
         let result = ""
@@ -362,7 +431,7 @@ config.getAsync("modeindicator").then(mode => {
         }
 
         if (
-            dom.isTextEditable(document.activeElement) &&
+            dom.isTextEditable(activeElement()) &&
             !["input", "ignore"].includes(mode)
         ) {
             result = "insert"
@@ -371,7 +440,7 @@ config.getAsync("modeindicator").then(mode => {
             // need to fix loss of focus by click: doesn't do anything here.
         } else if (
             mode === "insert" &&
-            !dom.isTextEditable(document.activeElement)
+            !dom.isTextEditable(activeElement())
         ) {
             result = "normal"
             // statusIndicator.style.borderColor = "lightgray !important"
@@ -387,6 +456,10 @@ config.getAsync("modeindicator").then(mode => {
         if (tabGroup) {
             result = result + " | " + tabGroup
         }
+        const modeCls = `TridactylMode${result}`
+        if (config.get("modeindicatorshowlastex") === "true") {
+            result = result + " | " + (await State.getAsync("last_ex_str"))
+        }
 
         logger.debug(
             "statusindicator: ",
@@ -395,13 +468,12 @@ config.getAsync("modeindicator").then(mode => {
             "config",
             modeindicatorshowkeys,
         )
-        statusIndicator.textContent = result
+        statusIndicatorText.textContent = result
 
         const baseCls = "cleanslate TridactylStatusIndicator"
         const privateCls = browser.extension.inIncognitoContext
             ? "TridactylPrivate"
             : ""
-        const modeCls = `TridactylMode${result}`
         const invisibleCls =
             config.get("modeindicator") !== "true" ||
             config.get("modeindicatormodes", mode) === "false"
@@ -410,21 +482,42 @@ config.getAsync("modeindicator").then(mode => {
 
         statusIndicator.className =
             `${baseCls} ${privateCls} ${modeCls} ${invisibleCls}`
+    }
+    refreshStatusIndicator = () =>
+        updateStatusIndicator("mode", contentState.mode, undefined, contentState.mode)
+    addContentStateChangedListener(updateStatusIndicator)
+    controller.setExCmdListener(() => {
+        if (config.get("modeindicatorshowlastex") === "true")
+            void refreshStatusIndicator()
     })
+    config.addChangeListener("modeindicatorshowlastex", () =>
+        void refreshStatusIndicator(),
+    )
+    void refreshStatusIndicator()
+}
+
+config.getAsync("modeindicator").then(mode => {
+    if (mode === "true") addStatusIndicator()
+})
+config.addChangeListener("modeindicator", (_, newValue) => {
+    if (newValue === "true") addStatusIndicator()
+    else statusIndicator?.remove()
 })
 
 let leaveGithubAlone = false // don't wait for the config before adding the listener
 config.getAsync("leavegithubalone").then(v => {
     leaveGithubAlone = v === "true"
 });
-// attach to window instead of document as it's available earlier
-// capture: true prevents bubbling before we have had a chance to cancel it
-window.addEventListener("keydown", protectSlash, {capture: true})
-
 function protectSlash(e) {
     if (!e.isTrusted || leaveGithubAlone ) return
-    const blacklistKeys = config.get("blacklistkeys") || [];
-    if (blacklistKeys.includes(e.key) && contentState.mode === "normal") {
+    const protectedKeys = (config.get("blacklistkeys") || []).concat(
+        Object.keys(config.get("browsermaps") || {}),
+    )
+    const key = keyseq.minimalKeyFromKeyboardEvent(e)
+    if (
+        protectedKeys.some(mapstr => keyseq.mapstrMatchesKey(mapstr, key)) &&
+        contentState.mode !== "ignore"
+    ) {
         e.cancelBubble = true
         e.stopImmediatePropagation()
         e.stopPropagation()
@@ -439,12 +532,14 @@ window.addEventListener("load", () => {
     phoneHome()
 })
 
-document.addEventListener("selectionchange", () => {
-    const selection = document.getSelection()
+function selectionChanged(event: Event) {
+    const selection = (event.currentTarget as Document).getSelection()
+    if (!selection) return
     if (
         contentState.mode == "visual" &&
         config.get("visualexitauto") == "true" &&
-        selection.isCollapsed
+        selection.isCollapsed &&
+        getSelection()?.isCollapsed
     ) {
         contentState.mode = "normal"
         return
@@ -459,26 +554,27 @@ document.addEventListener("selectionchange", () => {
         const text = selection.focusNode // text node or null
         if (!text) break b
 
-        let element
-        if (text instanceof Element) element = text
-        else element = text.parentElement
+        const element =
+            text.nodeType === Node.ELEMENT_NODE
+                ? (text as HTMLElement)
+                : text.parentElement
 
         if (
-            !element.isContentEditable ||
+            !element?.isContentEditable ||
             element.contentEditable === undefined // svg
         ) {
             contentState.mode = "visual"
         }
     }
-})
+}
+document.addEventListener("selectionchange", selectionChanged)
 
 // Try to catch the iframe/status indicator being removed by a script (React again)
 const checkElemsSurvived = () => {
     if (document.readyState === "complete") {
         commandline_content.ensureIframeExists()
 
-        if (statusIndicator !== undefined)
-            document.body.appendChild(statusIndicator)
+        if (config.get("modeindicator") === "true") addStatusIndicator()
 
         // We only want to check the iframe survived between "interactive" and "complete"
         document.removeEventListener("readystatechange", checkElemsSurvived)
@@ -490,7 +586,7 @@ document.addEventListener("readystatechange", checkElemsSurvived)
 // background for collection. Attach the observer to the window object
 // since there's apparently a bug that causes performance observers to
 // be GC'd even if they're still the target of a callback.
-;(window as any).tri = Object.assign(window.tri, {
+window["tri"] = Object.assign(window.tri, {
     perfObserver: perf.listenForCounters(),
 })
 

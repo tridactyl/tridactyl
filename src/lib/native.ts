@@ -31,8 +31,8 @@ interface MessageResp {
     cmd: string
     version: string | null
     content: string | null
-    code: number | null
-    error: string | null
+    code?: number | null
+    error?: string | null
 }
 
 /**
@@ -54,7 +54,7 @@ export async function sendNativeMsg(
     } catch (e) {
         if (!quiet) {
             throw new Error(
-                "Failed to send message to native messenger. If it is correctly installed (run `:native`), please report this bug on https://github.com/tridactyl/tridactyl/issues .",
+                "Failed to send message to native messenger. If it is correctly installed (run `:native`), please report this bug on https://github.com/tridactyl/tridactyl/issues . " + e,
             )
         }
     }
@@ -65,7 +65,10 @@ export async function getrcpath(
 ): Promise<string> {
     const res = await sendNativeMsg("getconfigpath", {})
 
-    if (res.code !== 0) throw new Error("getrcpath error: " + res.code)
+    if (res.code !== 0)
+        throw new Error(
+            `No tridactylrc found in the native messenger's config search paths. See :help source for supported locations. Native error: ${res.error || res.code}`,
+        )
 
     if (
         separator == "unix" &&
@@ -232,8 +235,8 @@ export async function getBestEditor(): Promise<string> {
  * helpful error message in the command line if the native messenger is not
  * installed, or is the wrong version.
  *
- * @arg version: A string representing the minimal required version.
- * @arg interactive: True if a message should be displayed on version mismatch.
+ * @param version A string representing the minimal required version.
+ * @param interactive True if a message should be displayed on version mismatch.
  * @return false if the required version is higher than the currently available
  * native messenger version.
  */
@@ -274,6 +277,7 @@ export async function nativegate(
         if (interactive)
             logger.error(
                 "# Native messenger not found. Please run `:installnative` and follow the instructions.",
+                e,
             )
         return false
     }
@@ -329,15 +333,34 @@ export async function read(file: string) {
 }
 
 export async function write(file: string, content: string) {
-    return sendNativeMsg("write", { file, content }).catch(e => {
-        throw new Error(`Failed to write '${content}' to '${file}'. ${e}`)
-    })
+    const response = await sendNativeMsg("write", { file, content }).catch(
+        e => {
+            throw new Error(`Failed to write '${content}' to '${file}'. ${e}`)
+        },
+    )
+    if (response.error || (response.code != null && response.code !== 0)) {
+        const error =
+            response.error || `native messenger returned code ${response.code}`
+        throw new Error(`Failed to write to '${file}': ${error}.`)
+    }
+    return response
 }
 
 export async function writerc(file: string, force: boolean, content: string) {
-    return sendNativeMsg("writerc", { file, force, content }).catch(e => {
-        throw new Error(`Failed to write '${content}' to '${file}'. ${e}`)
-    })
+    const response = await sendNativeMsg("writerc", { file, force, content })
+    if (response.code === 1)
+        throw new Error(
+            `RC file '${file}' already exists. Use :mktridactylrc -f to overwrite it.`,
+        )
+    if (response.error || (response.code != null && response.code !== 0)) {
+        const error =
+            response.error ||
+            (response.code === 2
+                ? "check that its parent directory exists and is writable"
+                : `native messenger returned code ${response.code}`)
+        throw new Error(`Failed to write RC file '${file}': ${error}.`)
+    }
+    return response
 }
 
 export async function mkdir(dir: string, exist_ok: boolean) {
@@ -457,7 +480,11 @@ export async function clipboard(
     } else if (action === "set") {
         const required_version = "0.1.7"
         if (await nativegate(required_version, false)) {
-            const result = await run(`${clipcmd} -i`, str)
+            const nullDevice =
+                (await browserBg.runtime.getPlatformInfo()).os === "win"
+                    ? "NUL"
+                    : "/dev/null"
+            const result = await run(`${clipcmd} -i >${nullDevice} 2>&1`, str)
             if (result.code !== 0)
                 throw new Error(
                     `External command failed with code ${result.code}: ${clipcmd}`,
@@ -670,11 +697,16 @@ export async function getProfileUncached() {
     }
 
     // Still nothing, try to find a profile in use
-    let hacky_profile_finder = `find "${ffDir}" -maxdepth 2 -name lock`
-    if ((await browserBg.runtime.getPlatformInfo()).os === "mac")
-        hacky_profile_finder = `find "${ffDir}" -maxdepth 2 -name .parentlock`
-    const profilecmd = await run(hacky_profile_finder)
-    if (profilecmd.code === 0 && profilecmd.content.length !== 0) {
+    const os = (await browserBg.runtime.getPlatformInfo()).os
+    let profilecmd
+    if (os !== "win") {
+        const lockfile = os === "mac" ? ".parentlock" : "lock"
+        const maxdepth = os === "mac" ? 3 : 2
+        profilecmd = await run(
+            `find "${ffDir}" -maxdepth ${maxdepth} -name ${lockfile}`,
+        )
+    }
+    if (profilecmd?.code === 0 && profilecmd.content.length !== 0) {
         // Remove trailing newline
         profilecmd.content = profilecmd.content.trim()
         // If there's only one profile in use, use that to find the right profile
@@ -769,8 +801,8 @@ export function parsePrefs(prefFileContent: string) {
  *  return a promise for an empty object.
  */
 export async function loadPrefs(filename): Promise<{ [key: string]: string }> {
-    const result = await read(filename)
-    if (result.code !== 0) return {}
+    const result = await read(filename).catch(() => undefined)
+    if (result === undefined || result.code !== 0) return {}
     return parsePrefs(result.content)
 }
 

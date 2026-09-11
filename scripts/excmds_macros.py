@@ -201,5 +201,5 @@ def main():
                 print(output.rstrip(), file=sink)
 
 
-PRELUDE = "/** Generated from excmds.ts. Don't edit this file! */"
+PRELUDE = "/* Generated from excmds.ts. Don't edit this file! */"
 main()

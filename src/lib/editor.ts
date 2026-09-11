@@ -16,6 +16,7 @@
  *
  * Contrary to the main tridactyl help page, this one doesn't tell you whether a specific function is bound to something. For now, you'll have to make do with with `:bind` and `:viewconfig`.
  *
+ * @packageDocumentation
  */
 /** ignore this line */
 
@@ -244,7 +245,7 @@ export const backward_kill_line = wrap_input(
             return [
                 text.substring(0, selectionStart - 1) +
                     text.substring(selectionStart),
-                selectionStart,
+                selectionStart - 1,
                 null,
             ]
         }
@@ -331,6 +332,25 @@ export const backward_kill_word = wrap_input(
         } else {
             return [null, selectionStart, null]
         }
+    }),
+)
+
+/** Deletes back to the previous sequence of letters, or deletes the selection. */
+export const unix_word_rubout = wrap_input(
+    needs_text((text, selectionStart, selectionEnd) => {
+        if (selectionEnd === 0) return [null, selectionStart, null]
+        let deletionStart =
+            selectionStart === selectionEnd
+                ? text
+                      .substring(0, selectionStart)
+                      .search(/[a-zA-Z]+[^a-zA-Z]*$/)
+                : selectionStart
+        if (deletionStart === -1) deletionStart = 0
+        return [
+            text.substring(0, deletionStart) + text.substring(selectionEnd),
+            deletionStart,
+            null,
+        ]
     }),
 )
 

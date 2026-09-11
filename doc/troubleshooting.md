@@ -14,6 +14,16 @@ If changing one of these settings fixes your bug, please visit the corresponding
 
 If you have `privacy.resistFingerprinting` set to `true` in `about:config`, Tridactyl will have a lot of trouble understanding your keypresses. See [#760](https://github.com/tridactyl/tridactyl/issues/760#issuecomment-433679201) and [#1699](https://github.com/tridactyl/tridactyl/issues/1699). We strongly recommend setting it to `false`, as it is by default.
 
+Selecting **Never remember history** in the History section of Firefox's Privacy & Security settings enables permanent private browsing. Tridactyl then treats every window as private and cannot persist state such as command history or global marks. Choose another history setting unless this behaviour is intended.
+
+# Keyboard layout issues
+
+Tridactyl's completion-aware `<Space>` binding can interfere with dead-key composition in the command line. Run `:unbind --mode=ex <Space>` to let Firefox handle Space normally, then `:bind --mode=ex <S-Space> ex.insert_character_or_completion` to move completion to Shift-Space. [#5061](https://github.com/tridactyl/tridactyl/issues/5061)
+
+# RC file issues
+
+If `:source` loads unexpected settings or does not reflect your changes, run `:findrc` to display the local RC file selected when no path is supplied. Check that path for an old or duplicate RC file.
+
 # Native Editor/Messenger issues
 
 If you're having trouble running your editor on OSX, you might be having \$PATH issues: [#684](https://github.com/tridactyl/tridactyl/issues/684). The solution is to specify the absolute path to your editor, like this: `:set editorcmd /usr/local/bin/vimr`.

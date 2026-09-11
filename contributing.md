@@ -22,7 +22,7 @@ Tridactyl is very lucky to have a wide base of contributors, 30 at the time of w
 -   You could work on some feature that you really want to see in Tridactyl that we haven't even thought of yet.
 -   Our build process is a bit convoluted, but [excmds.ts][excmds] is probably where you want to start. Most of the business happens there.
 -   We use TypeDoc to produce the `:help` page. Look at the other functions in [excmds.ts][excmds] to get an idea of how to use it; if your function is not supposed to called from the command line, then please add `/** @hidden */` above it to prevent it being shown on the help page.
--   Our pre-commit hook runs prettier to format your code. Please don't circumvent it.
+-   Email addresses mentioned in commits must be monitored. Do not use `noreply` addresses. If you have a good reason why you cannot provide a monitored email address, you can ask a maintainer to adopt your commits under their email address.
 
 If you are making a substantial or potentially controversial change, your first port of call should be to stop by and chat to us on [Matrix][matrix] or file an issue to discuss what you would like to change. We really don't want you to waste time on a pull request (GitHub jargon for a contribution) that has no chance of being merged; that said, we are probably happy to gate even the most controversial changes behind an option.
 

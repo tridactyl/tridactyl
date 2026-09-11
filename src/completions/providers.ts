@@ -176,15 +176,21 @@ export async function getSearchUrls(query: string) {
     return searchUrls
 }
 
-function frecency(item: browser.history.HistoryItem) {
-    // Doesn't actually care about recency yet.
-    return item.visitCount * -1
+const THREE_MONTHS = 90 * 24 * 60 * 60 * 1000
+
+function historyScore(item: browser.history.HistoryItem) {
+    const sort = config.get("historysort")
+    if (sort === "recent") return -(item.lastVisitTime || 0)
+    const visits = item.visitCount || 0
+    if (sort === "frequency") return -visits
+    const age = Date.now() - (item.lastVisitTime || 0)
+    return (-visits * THREE_MONTHS) / Math.max(age, THREE_MONTHS)
 }
 
 export async function getHistory(
     query: string,
 ): Promise<browser.history.HistoryItem[]> {
-    // Search history, dedupe and sort by frecency
+    // Search history, dedupe and sort
     let history = await browserBg.history.search({
         text: query,
         maxResults: config.get("historyresults"),
@@ -206,7 +212,7 @@ export async function getHistory(
     }
     history = [...dedupe.values()]
 
-    history.sort((a, b) => frecency(a) - frecency(b))
+    history.sort((a, b) => historyScore(a) - historyScore(b))
 
     return history
 }
@@ -222,8 +228,12 @@ export async function getCombinedHistoryBmarks(
 ): Promise<Array<{ title: string; url: string }>> {
     const [history, bookmarks, searchUrls] = await Promise.all([
         getHistory(query),
-        getBookmarks(query),
-        getSearchUrls(query),
+        config.get("bmarkopen") === "true"
+            ? getBookmarks(query)
+            : Promise.resolve<Bookmark[]>([]),
+        config.get("searchurlopen") === "true"
+            ? getSearchUrls(query)
+            : Promise.resolve([]),
     ])
 
     // Join records by URL, using the title from bookmarks by preference.
@@ -250,10 +260,11 @@ export async function getCombinedHistoryBmarks(
         })
     })
 
+    const weighted = config.get("historysort") !== "recent"
     const score = x =>
-        (x.history ? frecency(x.history) : 0) -
-        (x.bmark ? config.get("bmarkweight") : 0) -
-        (x.search ? config.get("searchurlweight") : 0)
+        (x.history ? historyScore(x.history) : 0) -
+        (weighted && x.bmark ? config.get("bmarkweight") : 0) -
+        (weighted && x.search ? config.get("searchurlweight") : 0)
 
     return Array.from(combinedMap.values()).sort((a, b) => score(a) - score(b))
 }

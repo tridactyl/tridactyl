@@ -20,13 +20,14 @@ sed "1,/REPLACETHIS/ d" newtab.template.html >> "$newtabtemp"
 sed "/REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED/,$ d" "$newtabtemp"
 # Note: If you're going to change this HTML, make sure you don't break the JS in src/newtab.ts
 cat <<EOF
-<input type="checkbox"  id="spoilerbutton" />
-<label for="spoilerbutton" onclick=""><div id="nagbar-changelog">New features!</div>Changelog</label>
+<details id="changelog-details">
+<summary><span id="nagbar-changelog">New features!</span>Changelog</summary>
 <div id="changelog" class="spoiler">
 EOF
 "$(yarn bin)/marked" ../../CHANGELOG.md
 echo """
 </div>
+</details>
 """
 sed "1,/REPLACE_ME_WITH_THE_CHANGE_LOG_USING_SED/ d" "$newtabtemp"
 ) > "$newtab"

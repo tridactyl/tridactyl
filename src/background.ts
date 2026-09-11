@@ -8,6 +8,7 @@ import { omniscient_controller } from "@src/lib/omniscient_controller"
 import * as perf from "@src/perf"
 import { listenForCounters } from "@src/perf"
 import * as messaging from "@src/lib/messaging"
+import { messageTabChanges } from "@src/background/tab_changes"
 import * as excmds_background from "@src/.excmds_background.generated"
 import { CmdlineCmds } from "@src/background/commandline_cmds"
 import { EditorCmds } from "@src/background/editor"
@@ -27,6 +28,7 @@ import * as omnibox from "@src/background/omnibox"
 import * as R from "ramda"
 import * as webrequests from "@src/background/webrequests"
 import * as commands from "@src/background/commands"
+import * as browser_action from "@src/background/browser_action"
 import * as meta from "@src/background/meta"
 import * as Logging from "@src/lib/logging"
 import * as Proxy from "@src/lib/proxy"
@@ -48,7 +50,10 @@ import { tabsProxy } from "@src/lib/tabs"
     state,
     webext,
     webrequests,
-    l: (prom: Promise<any>) => prom.then(console.log).catch(console.error),
+    l: (value: any) =>
+        typeof value?.then === "function"
+            ? value.then(console.log).catch(console.error)
+            : console.log(value),
     contentLocation: window.location,
     R,
     perf,
@@ -69,22 +74,24 @@ controller.setExCmds({
 })
 
 // {{{ tri.contentLocation
-// When loading the background, use the active tab to know what the current content url is
-browser.tabs.query({ currentWindow: true, active: true }).then(t => {
-    ;(window as any).tri.contentLocation = new URL(t[0].url)
-})
-// After that, on every tab change, update the current url
 let contentLocationCount = 0
-browser.tabs.onActivated.addListener(ev => {
+function updateContentLocation(windowId = browser.windows.WINDOW_ID_CURRENT) {
     const myId = contentLocationCount + 1
     contentLocationCount = myId
-    browser.tabs.get(ev.tabId).then(t => {
-        // Note: we're using contentLocationCount and myId in order to make sure that only the last onActivated event is used in order to set contentLocation
-        // This is needed because otherWise the following chain of execution might happen: onActivated1 => onActivated2 => tabs.get2 => tabs.get1
-        if (contentLocationCount === myId) {
-            ;(window as any).tri.contentLocation = new URL(t.url)
-        }
-    })
+    browser.tabs
+        .query({ windowId, active: true })
+        .then(t => {
+            // Ignore stale queries when focus or active tabs change quickly.
+            if (contentLocationCount === myId && t[0]?.url) {
+                ;(window as any).tri.contentLocation = new URL(t[0].url)
+            }
+        })
+        .catch(() => undefined)
+}
+browser.tabs.onActivated.addListener(() => updateContentLocation())
+browser.windows.onFocusChanged.addListener(windowId => {
+    if (windowId === browser.windows.WINDOW_ID_NONE) return
+    updateContentLocation(windowId)
 })
 
 browser.proxy.onRequest.addListener(Proxy.onRequestListener, {
@@ -94,32 +101,44 @@ browser.proxy.onRequest.addListener(Proxy.onRequestListener, {
 /**
  * Declare Tab Event Listeners
  */
-browser.tabs.onRemoved.addListener(tabId => {
-    messaging.messageAllTabs("tab_changes", "tab_close", [tabId])
-})
+const tabChangeListener = (command: string) => () => messageTabChanges(command)
+browser.tabs.onRemoved.addListener(tabChangeListener("tab_close"))
 // Fired when a tab is attached to a window, for example because it was moved between windows.
-browser.tabs.onAttached.addListener(tabId => {
-    messaging.messageAllTabs("tab_changes", "tab_attached", [tabId])
-})
+browser.tabs.onAttached.addListener(tabChangeListener("tab_attached"))
 // Fired when a tab is created. Note that the tab's URL may not be set at the time this event fired.
-browser.tabs.onCreated.addListener(tabId => {
-    messaging.messageAllTabs("tab_changes", "tab_created", [tabId])
-})
+browser.tabs.onCreated.addListener(tabChangeListener("tab_created"))
 // Fired when a tab is detached from a window, for example because it is being moved between windows.
-browser.tabs.onDetached.addListener(tabId => {
-    messaging.messageAllTabs("tab_changes", "tab_detached", [tabId])
-})
+browser.tabs.onDetached.addListener(tabChangeListener("tab_detached"))
 // Fired when a tab is moved within a window.
-browser.tabs.onMoved.addListener(tabId => {
-    messaging.messageAllTabs("tab_changes", "tab_moved", [tabId])
-})
+browser.tabs.onMoved.addListener(tabChangeListener("tab_moved"))
+browser.tabs.onUpdated.addListener(
+    tabChangeListener("tab_updated"),
+    {
+        properties: [
+            "audible",
+            "discarded",
+            "favIconUrl",
+            "hidden",
+            "mutedInfo",
+            "pinned",
+            "title",
+            "url",
+        ],
+    },
+)
+browser.tabs.onActivated.addListener(tabChangeListener("tab_activated"))
 
 // Update on navigation too (but remember that sometimes people open tabs in the background :) )
 browser.webNavigation.onDOMContentLoaded.addListener(() => {
-    browser.tabs.query({ currentWindow: true, active: true }).then(t => {
-        ;(window as any).tri.contentLocation = new URL(t[0].url)
-    })
+    updateContentLocation()
 })
+const messageHistoryState = (details: { frameId: number; tabId: number }) => {
+    if (details.frameId !== 0) return
+    messaging.messageTab(details.tabId, "history_state").catch(() => undefined)
+}
+browser.webNavigation.onHistoryStateUpdated.addListener(messageHistoryState)
+browser.webNavigation.onReferenceFragmentUpdated.addListener(messageHistoryState)
+updateContentLocation()
 
 // Prevent Tridactyl from being updated while it is running in the hope of fixing #290
 browser.runtime.onUpdateAvailable.addListener(_ => undefined)
@@ -223,6 +242,7 @@ browser.webRequest.onBeforeRequest.addListener(
 )
 
 browser.tabs.onCreated.addListener(aucon.tabCreatedListener)
+browser.tabs.onRemoved.addListener(aucon.tabRemovedListener)
 
 // }}}
 
@@ -231,6 +251,18 @@ browser.tabs.onCreated.addListener(aucon.tabCreatedListener)
 // An object to collect all of our statistics in one place.
 const statsLogger: perf.StatsLogger = new perf.StatsLogger()
 const messages = {
+    browser_action_background: {
+        getState: browser_action.getState,
+        toggle: browser_action.toggle,
+    },
+    config_background: {
+        clear: config.clear,
+        pull: config.pull,
+        push: config.push,
+        ready: () => config.getAsync().then(() => undefined),
+        set: config.set,
+        unset: config.unset,
+    },
     excmd_background: excmds_background,
     controller_background: controller,
     performance_background: statsLogger,
@@ -266,9 +298,8 @@ omnibox.init()
 
 // }}}
 
-setTimeout(config.update, 5000)
-
 commands.updateListener()
+browser_action.init()
 
 // {{{ Obey Mozilla's orders https://github.com/tridactyl/tridactyl/issues/1800
 

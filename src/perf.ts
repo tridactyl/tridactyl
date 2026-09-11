@@ -58,7 +58,7 @@ export function measured(
 }
 
 /**
- * Like the @measured decorator, but properly handles async functions
+ * Like the `@measured` decorator, but properly handles async functions
  * by chaining a resolution onto the promise that marks completion
  * when the function resolves its promise.
  */
@@ -148,7 +148,9 @@ export class Marker {
  */
 export function listenForCounters(
     statsLogger?: StatsLogger,
-): PerformanceObserver {
+): PerformanceObserver | undefined {
+    if (typeof PerformanceObserver === "undefined") return
+
     let callback: (
         list: PerformanceObserverEntryList,
         observer: PerformanceObserver,

@@ -1,4 +1,5 @@
 import * as controller from "@src/lib/controller"
+import * as config from "@src/lib/config"
 import * as Native from "@src/lib/native"
 
 export async function source(filename = "auto") {
@@ -48,14 +49,16 @@ export async function writeRc(conf: string, force = false, filename = "auto") {
     } else {
         path = filename
     }
-    return await Native.writerc(path, force, conf)
+    await Native.writerc(path, force, conf)
+    return path
 }
 
 export async function runRc(rc: string) {
     for (const cmd of rcFileToExCmds(rc)) {
-        await new Promise(resolve => setTimeout(resolve, 100))
         await controller.acceptExCmd(cmd)
     }
+    // Sourced commands have already been saved to the current local config.
+    await config.update(true)
 }
 
 export function rcFileToExCmds(rcText: string): string[] {
@@ -69,10 +72,13 @@ export function rcFileToExCmds(rcText: string): string[] {
             !x.trim().startsWith('"') &&
             !x.trim().startsWith("#"),
     )
-    const res = ex.join("\n")
+    const res = ex.join("\n") + (rcText.endsWith("\n") ? "\n" : "")
 
-    // string-join lines that end with /
-    const joined = res.replace(/\\\n/g, "")
+    // Join lines ending in an unescaped backslash and unescape trailing pairs.
+    const joined = res.replace(/(\\+)\n/g, (_, backslashes: string) => {
+        const escaped = "\\".repeat(Math.floor(backslashes.length / 2))
+        return escaped + (backslashes.length % 2 === 0 ? "\n" : "")
+    })
 
-    return joined.split("\n")
+    return joined.replace(/\n$/, "").split("\n")
 }

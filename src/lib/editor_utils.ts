@@ -49,15 +49,17 @@ export function getContentEditableValues(e: any): [string, number, number] {
     while (n && n !== e) n = n.parentNode
     // The selection isn't for e, so we can't do anything
     if (!n) return [null, null, null]
-    // selection might span multiple elements, might not start with the first element in e or end with the last element in e so the easiest way to compute caret position from beginning of e is to first compute distance from caret to end of e, then move beginning of selection to beginning of e and then use distance from end of selection to compute distance from beginning of selection
-    const r = selection.getRangeAt(0).cloneRange()
-    const selectionLength = r.toString().length
-    r.setEnd(e, e.childNodes.length)
-    const lengthFromCaretToEndOfText = r.toString().length
-    r.setStart(e, 0)
-    const s = r.toString()
-    const caretPos = s.length - lengthFromCaretToEndOfText
-    return [s, caretPos, caretPos + selectionLength]
+    // Selection.toString includes rendered line breaks, unlike Range.toString.
+    const range = selection.getRangeAt(0).cloneRange()
+    const { anchorNode, anchorOffset, focusNode, focusOffset } = selection
+    selection.setBaseAndExtent(e, 0, range.startContainer, range.startOffset)
+    const start = selection.toString().length
+    selection.setBaseAndExtent(e, 0, range.endContainer, range.endOffset)
+    const end = selection.toString().length
+    selection.selectAllChildren(e)
+    const text = selection.toString()
+    selection.setBaseAndExtent(anchorNode, anchorOffset, focusNode, focusOffset)
+    return [text, start, end]
 }
 
 /**
@@ -73,8 +75,7 @@ export function setSimpleValues(e, text, start, end) {
         if (text !== null) e.value = text
         if (start !== null) {
             if (end === null) end = start
-            e.selectionStart = start
-            e.selectionEnd = end
+            e.setSelectionRange(start, end)
         }
     })
 }
@@ -87,34 +88,51 @@ export function setSimpleValues(e, text, start, end) {
  * @param end The end of the visual selection. null if you just want to move the caret.
  */
 export function setContentEditableValues(e, text, start, end) {
-    const selection = e.ownerDocument.getSelection()
-    if (selection.rangeCount < 1) {
-        const r = new Range()
-        r.setStart(e, 0)
-        r.setEnd(e, e.childNodes.length)
-        selection.addRange(r)
-    }
+    const document = e.ownerDocument
+    const selection = document.getSelection()
     if (text !== null) {
-        const range = selection.getRangeAt(0)
-        const anchorNode = selection.anchorNode
-        const focusNode = selection.focusNode
-        range.setStart(anchorNode, 0)
-        range.setEndAfter(focusNode, focusNode.length)
-        e.ownerDocument.execCommand("insertText", false, text)
+        selection.selectAllChildren(e)
+        document.execCommand("insertText", false, text)
     }
     if (start !== null) {
         if (end === null) end = start
-        let range = selection.getRangeAt(0)
-        range.setStart(range.startContainer, start)
-        range = selection.getRangeAt(0)
-        range.setEnd(range.startContainer, end)
+        // Rendered offsets include line breaks and collapsed whitespace.
+        const position = (offset: number): [Node, number] => {
+            if (offset <= 0) return [e, 0]
+            const find = (node: Node): [Node, number] | null => {
+                const size =
+                    node.nodeType === 3
+                        ? node.textContent.length
+                        : node.childNodes.length
+                for (let i = 0; i <= size; i++) {
+                    const child = node.childNodes[i]
+                    if (
+                        child &&
+                        child.nodeName !== "BR" &&
+                        (child.nodeType === 1 || child.nodeType === 3)
+                    ) {
+                        const found = find(child)
+                        if (found) return found
+                    }
+                    selection.setBaseAndExtent(e, 0, node, i)
+                    if (selection.toString().length >= offset) return [node, i]
+                }
+                return null
+            }
+            return find(e) || [e, e.childNodes.length]
+        }
+        const range = document.createRange()
+        range.setStart(...position(start))
+        if (end !== start) range.setEnd(...position(end))
+        selection.removeAllRanges()
+        selection.addRange(range)
     }
 }
 
 /**
  * Take an editor function as parameter and return it wrapped in a function that will handle grabbing text and caret position from the HTML element it takes as parameter
  *
- * @param editor_function A function that takes a [string, selectionStart, selectionEnd] tuple as argument and returns a [string, selectionStart, selectionEnd] tuple corresponding to the new state of the text.
+ * @param fn A function that takes a [string, selectionStart, selectionEnd] tuple as argument and returns a [string, selectionStart, selectionEnd] tuple corresponding to the new state of the text.
  *
  * @return boolean Whether the editor function was actually called or not
  *
@@ -139,7 +157,7 @@ export function wrap_input(
 /**
  * Take an editor function as parameter and wrap it in a function that will handle error conditions
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function needs_text(fn: editor_function, arg?: any): editor_function {
     return (
         text: string,

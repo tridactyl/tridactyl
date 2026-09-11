@@ -28,6 +28,9 @@ import * as Logging from "@src/lib/logging"
 import * as ExtensionInfo from "@src/lib/extension_info"
 
 const logger = new Logging.Logger("containers")
+const explicitlyContainedTabs = new Set<number>()
+
+export const markExplicitContainerTab = (tabId: number) => explicitlyContainedTabs.add(tabId)
 
 interface ICancelledRequest {
     requestIds: any
@@ -54,6 +57,8 @@ export class AutoContain implements IAutoContain {
         this.lastCreatedTab = tab
     }
 
+    tabRemovedListener = tabId => explicitlyContainedTabs.delete(tabId)
+
     completedRequestListener = details => {
         if (this.getCancelledRequest(details.tabId)) {
             this.clearCancelledRequests(details.tabId)
@@ -69,6 +74,10 @@ export class AutoContain implements IAutoContain {
     autoContain = async (
         details,
     ): Promise<browser.webRequest.BlockingResponse> => {
+        const explicitlyContained =
+            details.url.search("^https?://") >= 0 &&
+            explicitlyContainedTabs.delete(details.tabId)
+
         if (!this.autocontainConfigured()) return { cancel: false }
 
         // Only handle in strict mode.
@@ -82,21 +91,24 @@ export class AutoContain implements IAutoContain {
         if (details.tabId === -1) return { cancel: false }
 
         // Do all of our async lookups in parallel.
-        const [
-            tab,
-            otherExtensionHasPriority,
-            cookieStoreId,
-        ] = await Promise.all([
-            browser.tabs.get(details.tabId),
-            this.checkOtherExtensionsHavePriority(details),
-            this.getAuconForDetails(details),
-        ])
+        const [tab, otherExtensionHasPriority, cookieStoreId] =
+            await Promise.all([
+                browser.tabs.get(details.tabId),
+                this.checkOtherExtensionsHavePriority(details),
+                this.getAuconForDetails(details),
+            ])
 
         // If any other extensions claim this request, we'll ignore it and let them handle it.
         if (otherExtensionHasPriority) return { cancel: false }
 
         // Do not handle private tabs.
         if (tab.incognito) return { cancel: false }
+
+        if (explicitlyContained) {
+            const patterns = Object.keys(Config.get("autocontain"))
+            if (!patterns.some(pattern => details.url.search(pattern) >= 0))
+                return { cancel: false }
+        }
 
         // Silently return if we're already in the correct container.
         if (tab.cookieStoreId === cookieStoreId) return { cancel: false }
@@ -270,10 +282,12 @@ export class AutoContain implements IAutoContain {
         return willContainInDefault
     }
 
-    getAuconAndProxiesForUrl = async (url: string): Promise<[string, string[]]> => {
+    getConfiguredAuconAndProxiesForUrl = (url: string): [string, string[]] => {
         const aucons = Config.get("autocontain")
         const ausites = Object.keys(aucons)
-        const aukeyarr = ausites.filter(e => url.search(e) >= 0).sort((a, b) => b.length - a.length)
+        const aukeyarr = ausites
+            .filter(e => url.search(e) >= 0)
+            .sort((a, b) => b.length - a.length)
         if (!aukeyarr.length) {
             return ["firefox-default", []]
         } else {
@@ -282,26 +296,37 @@ export class AutoContain implements IAutoContain {
             const [aucon, proxies] = matches
                 ? [matches[1], matches[2].split(",")]
                 : [val, []]
-            if (aucon.toLowerCase() === "firefox-default" || aucon.toLowerCase() === "none") {
+            if (
+                aucon.toLowerCase() === "firefox-default" ||
+                aucon.toLowerCase() === "none"
+            ) {
                 return ["firefox-default", proxies]
             }
-            const containerExists = await Container.exists(aucon)
-            if (!containerExists) {
-                if (Config.get("auconcreatecontainer") === "true") {
-                    await Container.create(aucon)
-                } else {
-                    logger.error(
-                        "Specified container doesn't exist. consider setting 'auconcreatecontainer' to true",
-                    )
-                }
-            }
-            return [await Container.getId(aucon), proxies]
+            return [aucon, proxies]
         }
+    }
+
+    getAuconAndProxiesForUrl = async (
+        url: string,
+    ): Promise<[string, string[]]> => {
+        const [aucon, proxies] = this.getConfiguredAuconAndProxiesForUrl(url)
+        if (aucon === "firefox-default") return [aucon, proxies]
+
+        if (Config.get("auconcreatecontainer") === "true") {
+            return [await Container.ensure(aucon), proxies]
+        }
+        if (!(await Container.exists(aucon))) {
+            logger.error(
+                "Specified container doesn't exist. consider setting 'auconcreatecontainer' to true",
+            )
+        }
+
+        return [await Container.getId(aucon), proxies]
     }
 
     // Parses autocontain directives and returns valid cookieStoreIds or errors.
     getAuconForDetails = async (details): Promise<string> => {
-        const [aucon, ] = await this.getAuconAndProxiesForUrl(details.url)
+        const [aucon] = await this.getAuconAndProxiesForUrl(details.url)
         return aucon
     }
 }

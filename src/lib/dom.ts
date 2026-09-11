@@ -11,6 +11,14 @@ import {
 } from "@src/lib/webext"
 const logger = new Logging.Logger("dom")
 
+export function afterPageLoad(action: () => void) {
+    const run = () =>
+        window.requestIdleCallback?.(action, { timeout: 1000 }) ??
+        setTimeout(action)
+    if (document.readyState === "complete") run()
+    else window.addEventListener("load", run, { once: true })
+}
+
 // From saka-key lib/dom.js, under Apachev2
 
 /**
@@ -24,7 +32,17 @@ const logger = new Logging.Logger("dom")
  */
 export function isTextEditable(element: Element) {
     if (element) {
-        if ((element as any).readOnly === true) return false
+        // Disabled options can remain focusable, so prefer their listbox owner.
+        const keyboardWidget =
+            element.closest('[role="listbox"]') ||
+            element.closest(
+                '[role="combobox"], [role="option"], [aria-haspopup="listbox"], .ui.selection.dropdown[tabindex]:not(.disabled)',
+            )
+        if (
+            (element as any).readOnly === true ||
+            (keyboardWidget || element).closest('[aria-disabled="true"]')
+        )
+            return false
         // HTML is always upper case, but XHTML is not necessarily upper case
         if (element.nodeName.toUpperCase() === "INPUT") {
             return isEditableHTMLInput(element as HTMLInputElement)
@@ -38,8 +56,14 @@ export function isTextEditable(element: Element) {
             return true
         }
 
+        // Keyboard widgets own their input; Semantic UI does not expose a role.
+        if (keyboardWidget) {
+            return true
+        }
+
         // These properties are only defined on HTMLElements
-        if (element instanceof HTMLElement) {
+        const win = element.ownerDocument?.defaultView
+        if (win && element instanceof win.HTMLElement) {
             if (element.contentEditable === undefined) {
                 // This happens on e.g. svgs.
                 return false
@@ -85,6 +109,10 @@ function isEditableHTMLInput(element: HTMLInputElement) {
     return false
 }
 
+export function isWithinDisabledFormControl(element: Element): boolean {
+    return element.closest(":disabled:not(fieldset)") !== null
+}
+
 /**
  * Dispatch a mouse event to the target element
  * based on cVim's implementation
@@ -120,10 +148,33 @@ export function mouseEvent(
     })
 }
 
+/** Exclude whitespace and wrappers with one substantial text-bearing child. */
+function hasDistinctText(element: Element, includeInvisibleChildren: boolean) {
+    let childWithText: Element | undefined
+    for (const node of element.childNodes) {
+        if (
+            (node.nodeType === Node.TEXT_NODE ||
+                node.nodeType === Node.CDATA_SECTION_NODE) &&
+            (node as CharacterData).data.trim() !== ""
+        ) {
+            return true
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) continue
+        if (node.textContent.trim() === "") continue
+        if (childWithText) return true
+        childWithText = node as Element
+    }
+    return (
+        childWithText !== undefined &&
+        !includeInvisibleChildren &&
+        !isSubstantial(childWithText)
+    )
+}
+
 export function elementsWithText(includeInvisible = false) {
     return getElemsBySelector("*", [
         isVisibleFilter(includeInvisible),
-        hint => hint.textContent !== "",
+        hint => hasDistinctText(hint, includeInvisible),
     ])
 }
 
@@ -153,10 +204,10 @@ type ElementFilter = (element: Element) => boolean
  */
 export function isSubstantial(element: Element) {
     const clientRect = element.getClientRects()[0]
+    if (!clientRect) return false
     const computedStyle = getComputedStyle(element)
     // remove elements that are barely within the viewport, tiny, or invisible
     switch (true) {
-        case !clientRect:
         case clientRect.width < 3:
         case clientRect.height < 3:
         case computedStyle.visibility !== "visible":
@@ -238,7 +289,7 @@ export function isVisible(thing: Element | Range) {
             return false
     }
 
-    if (thing instanceof Range) return true
+    if ("startContainer" in thing) return true
 
     const element = thing
     // remove elements that are barely within the viewport, tiny, or invisible
@@ -288,13 +339,133 @@ export function isVisible(thing: Element | Range) {
     /* return true */
 }
 
+/** More accurate element visibility checking than isVisible.
+ */
+export async function getVisibleElemsBySelector(selector: string | null = "*", filters: ElementFilter[] = [], elements: Element[] = []): Promise<HTMLElement[]> {
+    const hideObscured = config.get("hinthideobscured") === "true"
+    // Get frames with an accessible ItersectionObserver constructor (including top window)
+    const frameWins = [window as any].concat(
+        ...getAllDocumentFrames()
+            .filter(frame => {
+                try {
+                    return (
+                        (frame.contentWindow as Window & typeof globalThis).IntersectionObserver &&
+                        isVisible(frame)
+                    )
+                } catch (e) {
+                    return false
+                }
+            })
+            .map(frame => frame.contentWindow),
+    )
+
+    // Create IntersectionObservers in all frames
+    return Promise.all(
+        frameWins.map(async win => {
+            const elems = selector
+                ? Array.from(
+                    win.document.querySelectorAll(selector),
+                ).concat(...getShadowElementsBySelector(selector, win.document))
+                : elements.filter(elem => elem.ownerDocument === win.document)
+            if (elems.length === 0) {
+                return []
+            }
+
+            // Entries won't be available immediately, wait for a promise
+            return new Promise(resolve => {
+                const visible: HTMLElement[] = []
+                let observer
+                let started = false
+                try {
+                    observer = new win.IntersectionObserver(
+                        entries => {
+                            started = true
+                            for (const entry of entries) {
+                                if (
+                                    entry.isIntersecting &&
+                                    entry.boundingClientRect.width > 3 &&
+                                    entry.boundingClientRect.height > 3
+                                ) {
+                                    visible.push(entry.target)
+                                }
+                            }
+                            observer.disconnect()
+
+                            resolve(visible)
+                        },
+                        { threshold: 0.01 },
+                    )
+                    elems.forEach(elem => observer.observe(elem))
+                } catch (e) {
+                    resolve([])
+                }
+
+                // Just in case the IntersectionObserver fails somehow (can this happen?)
+                setTimeout(() => {
+                    if (!started) {
+                        logger.error("IntersectionObserver failed to observe")
+                        observer.disconnect()
+                        resolve([])
+                    }
+                }, 500)
+            })
+        }),
+    ).then(intersectingElems =>
+        intersectingElems
+            .flat()
+            .filter(el => isPainted(el as HTMLElement) &&
+                (!hideObscured || isUnobscured(el as Element)) &&
+                filters.every(filter => filter(el as HTMLElement))
+            ) as HTMLElement[]
+    )
+}
+
+export function isUnobscured(element: Element) {
+    const win = element.ownerDocument.defaultView
+    if (!win) return true
+    const targetAtPoint = (x: number, y: number) => {
+        let target = element
+        while (true) {
+            const root = target.getRootNode() as Document | ShadowRoot
+            const hit = root.elementFromPoint(x, y)
+            const svgAncestor = hit instanceof win.SVGElement && hit.contains(target)
+            if (!target.contains(hit) && !svgAncestor) return false
+            if (root === element.ownerDocument) return true
+            target = (root as ShadowRoot).host
+        }
+    }
+    const samplePoints = [0.5, 0.25, 0.75]
+    return Array.from(element.getClientRects()).some(rect => {
+        const left = Math.max(0, rect.left)
+        const right = Math.min(win.innerWidth, rect.right)
+        const top = Math.max(0, rect.top)
+        const bottom = Math.min(win.innerHeight, rect.bottom)
+        const width = right - left
+        const height = bottom - top
+        if (width <= 0 || height <= 0) return false
+        return samplePoints.some(x =>
+            samplePoints.some(y => targetAtPoint(left + width * x, top + height * y)),
+        )
+    })
+}
+
+// Like isVisible with no rect checks
+// Useful to catch "visibility: hidden;" css rule which eludes the IntersectionObserver
+export function isPainted(elem: HTMLElement) {
+    const s = getComputedStyle(elem)
+    return (
+        s.visibility !== "hidden" && s.display !== "none" && s.opacity !== "0"
+    )
+}
+
 /** Return all frames that belong to the document (frames that belong to
  * extensions are ignored).
  *
  * @param doc   The document the frames should be fetched from
  */
 export function getAllDocumentFrames(doc = document) {
-    if (!(doc instanceof HTMLDocument)) return []
+    const win = doc?.defaultView as any
+    if (!win || !(doc instanceof win.HTMLDocument)) return []
     const frames = (
         Array.from(doc.getElementsByTagName("iframe")) as HTMLIFrameElement[] &
             HTMLFrameElement[]
@@ -314,11 +485,24 @@ export function getAllDocumentFrames(doc = document) {
     )
 }
 
+/** Return the first non-collapsed selection in this document or an accessible frame. */
+export function getSelection(doc = document) {
+    const selection = doc.getSelection()
+    if (selection && !selection.isCollapsed) return selection
+    for (const frame of getAllDocumentFrames(doc)) {
+        try {
+            const frameSelection = frame.contentDocument?.getSelection()
+            if (frameSelection && !frameSelection.isCollapsed) return frameSelection
+        } catch {}
+    }
+    return selection
+}
+
 /** Computes the unique CSS selector of a specific HTMLElement */
 export function getSelector(e: HTMLElement) {
     function uniqueSelector(e: HTMLElement) {
         // Only matching alphanumeric selectors because others chars might have special meaning in CSS
-        if (e.id && /^[a-zA-Z0-9]+$/.exec(e.id)) return "#" + e.id
+        if (e.id && /^[a-zA-Z0-9]+$/.exec(e.id)) return `[id="${e.id}"]`
         // If we reached the top of the document
         if (!e.parentElement) return "HTML"
         // Compute the position of the element
@@ -335,18 +519,20 @@ export function getSelector(e: HTMLElement) {
 }
 
 /* Get all the elements that match the given selector inside shadow DOM */
-function getShadowElementsBySelector(selector: string) {
+function getShadowElementsBySelector(selector: string, within = document) {
     let elems = []
-    const roots: (Document | ShadowRoot)[] = [document]
+    const roots: (Document | ShadowRoot)[] = [within]
 
     while (roots.length) {
-        const root = roots.pop()
+        const root = roots.pop() as ShadowRoot
         root.querySelectorAll("*").forEach(elem => {
-            if ((elem as any).openOrClosedShadowRoot) {
-                roots.push((elem as any).openOrClosedShadowRoot)
-                elems = elems.concat(
-                    ...roots[roots.length - 1].querySelectorAll(selector),
-                )
+            if ((elem as HTMLElement).openOrClosedShadowRoot) {
+                roots.push((elem as HTMLElement).openOrClosedShadowRoot)
+                try {
+                    elems = elems.concat(
+                        ...roots[roots.length - 1].querySelectorAll(selector),
+                    )
+                } catch {}
             }
         })
     }
@@ -416,6 +602,21 @@ export function compareElementArea(a: HTMLElement, b: HTMLElement): number {
 }
 
 export const hintworthy_js_elems: Set<Element> = new Set()
+const MAX_HINTWORTHY_JS_ELEMS = 1000
+const HINTWORTHY_JS_ELEMS_PRUNE_INTERVAL = 100
+let hintworthy_js_elems_additions = 0
+
+export function pruneHintworthyJSElems() {
+    for (const elem of hintworthy_js_elems) {
+        if (!elem.isConnected) {
+            hintworthy_js_elems.delete(elem)
+        }
+    }
+    while (hintworthy_js_elems.size > MAX_HINTWORTHY_JS_ELEMS) {
+        hintworthy_js_elems.delete(hintworthy_js_elems.values().next().value)
+    }
+    hintworthy_js_elems_additions = 0
+}
 
 /** Adds or removes an element from the hintworthy_js_elems array of the
  *  current tab.
@@ -472,6 +673,14 @@ export function registerEvListenerAction(
         case "mouseover":
             if (add) {
                 hintworthy_js_elems.add(elem)
+                hintworthy_js_elems_additions += 1
+                if (
+                    hintworthy_js_elems_additions >=
+                        HINTWORTHY_JS_ELEMS_PRUNE_INTERVAL ||
+                    hintworthy_js_elems.size > MAX_HINTWORTHY_JS_ELEMS
+                ) {
+                    pruneHintworthyJSElems()
+                }
             } else {
                 // Possible bug: If a page adds an event listener for "click" and
                 // "mousedown" and removes "mousedown" twice, we lose track of the
@@ -512,6 +721,45 @@ export function hijackPageListenerFunctions(): void {
     window.eval(eval_str + `;delete ${exportedName}`)
 }
 
+const hijackedAttachShadows = new WeakSet()
+export function hijackPageAttachShadow(
+    onShadowRoot: (root: ShadowRoot) => void,
+    win = window,
+): void {
+    if (!inContentScript()) return
+    try {
+        const prototype = win.Element.prototype
+        const attachShadow = win.eval("p => p.attachShadow")(prototype)
+        if (typeof attachShadow !== "function" || hijackedAttachShadows.has(attachShadow)) return
+
+        const observeShadowRoot = (host: HTMLElement) => {
+            try {
+                // Xray input plus a native brand check rejects fake Elements.
+                Element.prototype.hasAttributes.apply(host)
+                const root = host.openOrClosedShadowRoot
+                if (root) onShadowRoot(root)
+            } catch {}
+        }
+        const wrapped = win.eval(`(prototype, realFunction, observe, apply) => {
+            const wrapped = function (...args) {
+                const result = apply(realFunction, this, args)
+                try { observe(this) } catch {}
+                return result
+            }
+            prototype.attachShadow = wrapped
+            return wrapped
+        }`)(
+            prototype,
+            attachShadow,
+            exportFunction(observeShadowRoot, win),
+            exportFunction(Reflect.apply, win),
+        )
+        hijackedAttachShadows.add(wrapped)
+    } catch (e) {
+        logger.warning("Could not hijack attachShadow:", e)
+    }
+}
+
 /** Focuses an input element and makes sure the cursor is put at the end of the input */
 export function focus(e: HTMLElement): void {
     e.focus()
@@ -550,10 +798,12 @@ export function getLastUsedInput(): HTMLElement {
  *  https://bugzilla.mozilla.org/show_bug.cgi?id=1406825
  * */
 function onPageFocus(elem: HTMLElement): boolean {
-    elem = elem.shadowRoot
-        ? (elem.shadowRoot.activeElement as HTMLElement)
-        : elem
-    if (isTextEditable(elem)) {
+    try {
+        elem = elem.openOrClosedShadowRoot
+            ? elem.openOrClosedShadowRoot.activeElement as HTMLElement
+            : elem
+    } catch {}
+    if (isTextEditable(elem) && isSubstantial(elem)) {
         LAST_USED_INPUT = elem
     }
     const setting =
@@ -563,6 +813,7 @@ function onPageFocus(elem: HTMLElement): boolean {
 }
 
 async function setInput(el) {
+    state.lastInputSelector = getSelector(el)
     const tab = await activeTabId()
     // store maximum of 10 elements to stop this getting bonkers huge
     const arr = (await State.getAsync("prevInputs")).concat({
@@ -573,9 +824,9 @@ async function setInput(el) {
 }
 
 /** Replaces the page's HTMLElement.prototype.focus with our own, onPageFocus */
-function hijackPageFocusFunction(): void {
+function hijackPageFocusFunction(win = window): void {
     const exportedName = "onPageFocus"
-    exportFunction(onPageFocus, window, { defineAs: exportedName })
+    exportFunction(onPageFocus, win, { defineAs: exportedName })
 
     const eval_str = `HTMLElement.prototype.focus = ((realFocus, ${exportedName}) => {
         return function (...args) {
@@ -584,16 +835,23 @@ function hijackPageFocusFunction(): void {
         }
      })(HTMLElement.prototype.focus, ${exportedName})`
 
-    window.eval(eval_str + `;delete ${exportedName}`)
+    win.eval(eval_str + `;delete ${exportedName}`)
 }
 
-export function setupFocusHandler(): void {
+const focusListenerDocs = new WeakSet()
+export function setupFocusHandler(doc = document, onFocus?: () => void): void {
+    const win = doc?.defaultView
+    if (!win || focusListenerDocs.has(doc)) return
+    let focusoutTimer = 0
+
     // Handles when a user selects an input
     const setFocus = elem => {
+        win.clearTimeout(focusoutTimer)
         if (isTextEditable(elem)) {
             LAST_USED_INPUT = elem
             setInput(elem)
         }
+        onFocus?.()
     }
     const knownRoot = new WeakSet()
     const listen = root => {
@@ -602,7 +860,7 @@ export function setupFocusHandler(): void {
     }
     const handler = e => {
         let elem = e.target as HTMLElement
-        const r = elem.shadowRoot
+        const r = elem.openOrClosedShadowRoot
         if (!r) {
             setFocus(elem)
             return
@@ -611,17 +869,36 @@ export function setupFocusHandler(): void {
             // r[handler] will handle it
             return
         }
-        while (elem.shadowRoot) {
-            listen(elem.shadowRoot)
-            elem = elem.shadowRoot.activeElement as HTMLElement
+        while (elem.openOrClosedShadowRoot) {
+            try {
+                listen(elem.openOrClosedShadowRoot)
+                elem = elem.openOrClosedShadowRoot.activeElement as HTMLElement
+            } catch {
+                // Inaccessible closed shadow
+                knownRoot.add(r)
+                break
+            }
             if (!elem) return
         }
         setFocus(elem)
     }
-    listen(document)
+
+    listen(doc)
+    // Wait for any replacement focus to settle before reading activeElement.
+    if (onFocus)
+        doc.addEventListener("focusout", () => {
+            focusoutTimer = win.setTimeout(onFocus)
+        })
+    focusListenerDocs.add(doc)
+
+    // Run handler immediately if the newly found frame has focus
+    if (doc.hasFocus() && doc.activeElement) {
+        handler({ target: doc.activeElement })
+    }
+
     // Handles when the page tries to select an input
     if (inContentScript()) {
-        hijackPageFocusFunction()
+        hijackPageFocusFunction(win)
     }
 }
 
@@ -778,10 +1055,39 @@ export function simulateClick(
 export function deepestShadowRoot(sr: ShadowRoot | null): ShadowRoot | null {
     if (sr === null) return sr
     let shadowRoot = sr
-    while (shadowRoot.activeElement?.shadowRoot != null) {
-        shadowRoot = shadowRoot.activeElement.shadowRoot
+    while ((shadowRoot.activeElement as HTMLElement)?.openOrClosedShadowRoot != null) {
+        try {
+            shadowRoot = (shadowRoot.activeElement as HTMLElement).openOrClosedShadowRoot
+        } catch {
+            // Restricted shadow, may not be able to access its properties
+            break
+        }
     }
     return shadowRoot
+}
+
+/** Return the active element, within shadow DOMs or iframes if necessary. */
+export function activeElement(elem = document.activeElement) {
+    while (elem !== null) {
+        while ((elem as HTMLElement).openOrClosedShadowRoot !== null) {
+            try {
+                elem = (elem as HTMLElement).openOrClosedShadowRoot.activeElement
+            } catch {
+                // Restricted shadow root, can't access activeElement property
+                return elem
+            }
+            if (!elem) return null
+        }
+        if (elem.tagName !== "IFRAME") return elem
+        // Search within iframes if they're accessible
+        try {
+            const iframeActiveElem = (elem as HTMLIFrameElement).contentDocument.activeElement
+            if (!iframeActiveElem) return elem
+            elem = iframeActiveElem
+        } catch (e) {
+            return elem
+        }
+    }
 }
 
 export function getElementCentre(el) {
@@ -791,6 +1097,13 @@ export function getElementCentre(el) {
 
 export function getAbsoluteCentre(el) {
     const pos = getElementCentre(el)
+    let frame = el.ownerDocument.defaultView.frameElement
+    while (frame) {
+        const framePos = frame.getBoundingClientRect()
+        pos.x += framePos.left
+        pos.y += framePos.top
+        frame = frame.ownerDocument.defaultView.frameElement
+    }
     return {
         x: pos.x + (window as any).mozInnerScreenX,
         y: pos.y + (window as any).mozInnerScreenY,

@@ -249,7 +249,7 @@ td.title {
 }
 
 /* tridactyl changelog on new tab page */
-:root.TridactylOwnNamespace input[id^="spoiler"] ~ .spoiler {
+:root.TridactylOwnNamespace #changelog-details > .spoiler {
     border-color: var(--tritheme-changelog-border-colour);
 }
 

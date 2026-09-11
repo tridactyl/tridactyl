@@ -12,6 +12,19 @@ on:
       - '/readme.md'
 
 jobs:
+  commit-emails:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Check commits for noreply addresses
+      env:
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: sh ./ci/check-commit-emails.sh
   lint:
     runs-on: ubuntu-latest
     strategy:
@@ -20,8 +33,12 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: 'yarn'
     - name: Setup
-      run: yarn install
+      run: yarn install --frozen-lockfile
     - name: ${{ matrix.step }}
       env:
         STEP: ${{ matrix.step }}

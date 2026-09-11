@@ -15,11 +15,13 @@ export type TabMessageType =
     | "state"
     | "lock"
     | "alive"
+    | "history_state"
     | "tab_changes"
     | "stop_buffering_page_keys"
     | "commandline_frame_ready_to_receive_messages"
 
 export type NonTabMessageType =
+    | "browser_action_background"
     | "owntab_background"
     | "excmd_background"
     | "controller_background"
@@ -74,28 +76,33 @@ export function attributeCaller(obj) {
     return handler
 }
 
+type AnyHandler = (...args: any[]) => any
+
 interface TypedMessage<
-    Root,
-    Type extends keyof Root,
-    Command extends keyof Root[Type]
+    Type,
+    Command,
+    Handler extends AnyHandler
 > {
     type: Type
     command: Command
-    args: Parameters<Root[Type][Command]>
+    args: Parameters<Handler>
 }
 
 function backgroundHandler<
     Root,
     Type extends keyof Root,
-    Command extends keyof Root[Type]
+    Command extends keyof Root[Type],
+    Handler extends AnyHandler & Root[Type][Command]
 >(
     root: Root,
-    message: TypedMessage<Root, Type, Command>,
-): ReturnType<Root[Type][Command]> {
-    return root[message.type][message.command](...message.args)
+    message: TypedMessage<Type, Command, Handler>,
+): ReturnType<Handler> {
+    const receiver = root[message.type]
+    const handler = receiver[message.command] as unknown as Handler
+    return handler.apply(receiver, message.args)
 }
 
-export function setupListener<Root>(root: Root) {
+export function setupListener<Root extends object>(root: Root) {
     browser.runtime.onMessage.addListener(
         (message: any) => {
             if (message.type in root) {
@@ -119,9 +126,9 @@ export function setupListener<Root>(root: Root) {
 export async function message<
     Type extends keyof Messages.Background,
     Command extends keyof Messages.Background[Type],
-    F extends ((...args: any[]) => any) & Messages.Background[Type][Command]
->(type: Type, command: Command, ...args: Parameters<F>) {
-    const message: TypedMessage<Messages.Background, Type, Command> = {
+    Handler extends AnyHandler & Messages.Background[Type][Command]
+>(type: Type, command: Command, ...args: Parameters<Handler>) {
+    const message: TypedMessage<Type, Command, Handler> = {
         type,
         command,
         args,
@@ -129,7 +136,18 @@ export async function message<
 
     // Typescript didn't like this
     // return browser.runtime.sendMessage<typeof message, StripPromise<ReturnType<F>>>(message)
-    return browser.runtime.sendMessage(message)
+    try {
+        return await browser.runtime.sendMessage(message)
+    } catch (error) {
+        // Closing the sender can tear down Firefox's response channel.
+        if (
+            type !== "excmd_background" ||
+            command !== "tabclose" ||
+            args.length > 0 ||
+            error?.message !== "Message manager disconnected"
+        )
+            throw error
+    }
 }
 
 /** Message the active tab of the currentWindow */

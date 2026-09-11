@@ -79,10 +79,10 @@ export async function downloadUrl(url: string, saveAs: boolean) {
  *
  * Note: this requires a native messenger >=0.1.9. Make sure to nativegate for this.
  *
- * @param URL the URL to download
+ * @param url the URL to download
  * @param saveAs If beginning with a slash, this is the absolute path the document should be moved to. If the first character of the string is a tilda, it will be expanded to an absolute path to the user's home directory. If saveAs begins with any other character, it will be considered a path relative to where the native messenger binary is located (e.g. "$HOME/.local/share/tridactyl" on linux).
- * @param If true, overwrite the destination file, returns error code 1 otherwise if file exists
- * @param If true, cleans up temporary downloaded source file e.g. in $HOME/Downlods/downloaded.doc when the move operation fails e.g. due to target destination exists, OS error etc.
+ * @param overwrite If true, overwrite the destination file, returns error code 1 otherwise if file exists
+ * @param cleanup If true, cleans up temporary downloaded source file e.g. in $HOME/Downlods/downloaded.doc when the move operation fails e.g. due to target destination exists, OS error etc.
  */
 export async function downloadUrlAs(
     url: string,

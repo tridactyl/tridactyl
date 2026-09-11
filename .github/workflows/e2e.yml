@@ -26,10 +26,12 @@ jobs:
       matrix:
         os: [ubuntu, windows]
         # os: [ubuntu, macos, windows]
-        browser: [firefox, firefoxesr]
+        browser: ${{ fromJSON(github.event_name == 'schedule' && '["latest", "latest-esr", "latest-beta"]' || '["latest", "latest-esr"]') }}
         exclude:
           - os: windows
-            browser: firefoxesr
+            browser: latest-esr
+          - os: windows
+            browser: latest-beta
 
     runs-on: ${{ matrix.os }}-latest
 
@@ -42,12 +44,12 @@ jobs:
         cache: 'yarn'
 
     - name: Install deps
-      run: yarn install
+      run: yarn install --frozen-lockfile
 
     - name: Setup Firefox
       uses: browser-actions/setup-firefox@v1
       with:
-        firefox-version: ${{ matrix.browser == 'firefox' && 'latest' || 'latest-esr' }}
+        firefox-version: ${{ matrix.browser }}
 
     - name: Cache build outputs
       uses: actions/cache@v4
@@ -66,8 +68,6 @@ jobs:
 
     - name: Build and test (Firefox)
       uses: nick-fields/retry@v3
-      env:
-        HEADLESS: 1
       with: 
         max_attempts: ${{ github.event_name == 'pull_request' && ( github.event.pull_request.draft && 1 || 5 ) || 10 }}
         timeout_minutes: 10

@@ -18,16 +18,43 @@
     If a key is represented by a single character then the shift modifier state
     is ignored unless other modifiers are also present.
 
+    @packageDocumentation
 */
 
 /** */
-import { filter, find, izip } from "@src/lib/itertools"
+import * as R from "ramda"
+import { filter, find } from "@src/lib/itertools"
 import { Parser } from "@src/lib/nearley_utils"
 import * as config from "@src/lib/config"
-import * as R from "ramda"
 import grammar from "@src/grammars/.bracketexpr.generated"
+import { memoise } from "@src/lib/memoise"
 const bracketexpr_grammar = grammar
 const bracketexpr_parser = new Parser(bracketexpr_grammar)
+
+// unspoofable keyboard events
+// this should be ~the only place in the code that accepts KeyboardEvent
+// eslint-disable-next-line @typescript-eslint/no-restricted-types
+export type TrustedKeyboardEvent = KeyboardEvent & { readonly isTrusted: true }
+
+export const guarded = memoise(
+    (accept: (keyevent: TrustedKeyboardEvent) => unknown) =>
+        (keyevent: Event) => {
+            if (!isTrustedKeyboardEvent(keyevent)) return
+            return accept(keyevent)
+        },
+)
+
+export function isTrustedKeyboardEvent(ke: unknown): ke is TrustedKeyboardEvent {
+    if (!ke || typeof ke !== "object") return false
+    try {
+        const event = ke as Event
+        if (event.isTrusted !== true) return false
+        KeyboardEvent.prototype.getModifierState.call(event, "")
+        return true
+    } catch {
+        return false
+    }
+}
 
 let KEYCODETRANSLATEMAP = {}
 
@@ -38,6 +65,10 @@ export interface KeyModifiers {
     ctrlKey?: boolean
     metaKey?: boolean
     shiftKey?: boolean
+    keyup?: boolean
+    keydown?: boolean
+    optional?: boolean
+    repeat?: boolean
 }
 
 // Format modifiers
@@ -47,13 +78,21 @@ const modifiers = new Map([
     ["M", "metaKey"],
     ["S", "shiftKey"],
 ])
+const mapstrModifiers = new Map([...modifiers, ["D", "keydown"], ["U", "keyup"], ["?", "optional"]])
 export class MinimalKey {
     readonly altKey = false
     readonly ctrlKey = false
     readonly metaKey = false
     readonly shiftKey = false
+    readonly keyup = false
+    readonly keydown = false
+    readonly optional = false
+    readonly repeat = false
     translated = false
-    constructor(readonly key: string, modifiers?: KeyModifiers) {
+    constructor(
+        readonly key: string,
+        modifiers?: KeyModifiers,
+    ) {
         if (modifiers !== undefined) {
             for (const mod of Object.keys(modifiers)) {
                 if (
@@ -68,14 +107,22 @@ export class MinimalKey {
     }
 
     /** Does this key match another MinimalKey */
-    public match(keyevent: MinimalKey) {
-        if (this.key !== keyevent.key) return false
+    // NB: not symmetric!
+    public match(keyevent: MinimalKey): true | false | "skip" {
+        const fail = () => (this.optional ? "skip" as const : false)
+        if (this.key !== keyevent.key) return fail()
         for (const [_, attr] of modifiers.entries()) {
-            if (this[attr] !== keyevent[attr]) return false
+            if (
+                attr === "shiftKey" &&
+                this.key.length === 1 &&
+                this.key !== " "
+            )
+                continue
+            if (this[attr] !== keyevent[attr]) return fail()
         }
-        return true
+        if (this.keyup !== keyevent.keyup) return fail()
+        return !(this.keydown && keyevent.repeat)
     }
-
     public translate(keytranslatemap: { [inkey: string]: string }): MinimalKey {
         let newkey = keytranslatemap[this.key]
         if (newkey === undefined || this.translated) newkey = this.key
@@ -84,6 +131,9 @@ export class MinimalKey {
             ctrlKey: this.ctrlKey,
             metaKey: this.metaKey,
             shiftKey: this.shiftKey,
+            keyup: this.keyup,
+            keydown: this.keydown,
+            repeat: this.repeat,
         })
         result.translated = true
         return result
@@ -93,7 +143,7 @@ export class MinimalKey {
         let str = ""
         let needsBrackets = this.key.length > 1
 
-        for (const [letter, attr] of modifiers.entries()) {
+        for (const [letter, attr] of mapstrModifiers.entries()) {
             if (this[attr]) {
                 str += letter
                 needsBrackets = true
@@ -122,7 +172,7 @@ export class MinimalKey {
     }
 }
 
-export type KeyEventLike = MinimalKey | KeyboardEvent
+export type KeyEventLike = MinimalKey | TrustedKeyboardEvent
 
 // }}}
 
@@ -139,24 +189,33 @@ export interface ParserResponse {
     numericPrefix?: number
 }
 
+const isDigit = (d: string) => d.length === 1 && d >= "0" && d <= "9"
+
+const isKeyup = (k: MinimalKey) => k.keyup
+
 function splitNumericPrefix(
     keyseq: MinimalKey[],
 ): [MinimalKey[], MinimalKey[]] {
-    // If the first key is in 1:9, partition all numbers until you reach a non-number.
     if (
         !hasModifiers(keyseq[0]) &&
-        [1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(keyseq[0].key))
+        !isKeyup(keyseq[0]) &&
+        isDigit(keyseq[0].key) &&
+        keyseq[0].key !== "0"
     ) {
         const prefix = [keyseq[0]]
+        let skipcount = 0
         for (const ke of keyseq.slice(1)) {
-            if (
-                !hasModifiers(ke) &&
-                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(ke.key))
-            )
+            if (isKeyup(ke)) {
+                if (!isDigit(ke.key)) break
+                skipcount++
+                continue
+            }
+            if (!hasModifiers(ke) && isDigit(ke.key)) {
                 prefix.push(ke)
-            else break
+                skipcount++
+            } else break
         }
-        const rest = keyseq.slice(prefix.length)
+        const rest = keyseq.slice(skipcount + 1)
         return [prefix, rest]
     } else {
         return [[], keyseq]
@@ -170,7 +229,29 @@ export function stripOnlyModifiers(keyseq) {
     )
 }
 
-export function parse(keyseq: MinimalKey[], map: KeyMap): ParserResponse {
+function isPerfectMatch(input: MinimalKey[], mapEntry: MinimalKey[]): boolean {
+    let i = 0
+    const remaining = [...mapEntry]
+    while (input[i] !== undefined && remaining.length > 0) {
+        const mapKey = remaining.shift()
+        switch (mapKey.match(input[i])) {
+            case false:
+                return false
+            case "skip":
+                continue
+            case true:
+                i++
+                break
+        }
+    }
+    return remaining.every(k => k.optional)
+}
+
+export function parse(
+    keyseq: MinimalKey[],
+    map: KeyMap,
+    allowNumericPrefix = true,
+): ParserResponse {
     // Remove bare modifiers
     keyseq = stripOnlyModifiers(keyseq)
 
@@ -178,25 +259,64 @@ export function parse(keyseq: MinimalKey[], map: KeyMap): ParserResponse {
     if (keyseq.length === 0) return { keys: [], isMatch: false }
 
     // Split into numeric prefix and non-numeric suffix
-    let numericPrefix: MinimalKey[]
-    ;[numericPrefix, keyseq] = splitNumericPrefix(keyseq)
+    const [originalNumericPrefix, originalKeyseq] = allowNumericPrefix
+        ? splitNumericPrefix(keyseq)
+        : [[], keyseq]
+    let numericPrefix = originalNumericPrefix
+    keyseq = originalKeyseq.slice()
 
     // If keyseq is a prefix of a key in map, proceed, else try dropping keys
     // from keyseq until it is empty or is a prefix.
     let possibleMappings = completions(keyseq, map)
+    // Don't let a held key's non-extending repeats abandon a valid prefix.
+    const repeated = keyseq[keyseq.length - 1]
+    if (possibleMappings.size === 0 && repeated?.repeat && !repeated.keyup) {
+        const withoutRepeat = keyseq.slice(0, -1)
+        const hasDown = originalNumericPrefix
+            .concat(withoutRepeat)
+            .some(
+                key =>
+                    !key.keyup && !key.repeat && key.match(repeated) === true,
+            )
+        const mappingsBeforeRepeat = completions(withoutRepeat, map)
+        if (hasDown && mappingsBeforeRepeat.size > 0) {
+            keyseq = withoutRepeat
+            possibleMappings = mappingsBeforeRepeat
+        }
+    }
     while (possibleMappings.size === 0 && keyseq.length > 0) {
         keyseq.shift()
         numericPrefix = []
         possibleMappings = completions(keyseq, map)
     }
 
+    // Retry unmatched late keyups where ordinary mappings expect them.
+    if (keyseq.length === 0) {
+        const released = originalKeyseq.pop()
+        const isDown = key =>
+            key.key === released?.key && !key.keyup && !key.repeat
+        const downIndex = R.findLastIndex(isDown, originalKeyseq)
+        if (released?.keyup && downIndex >= 0) {
+            const mappingsBeforeRelease = completions(originalKeyseq, map)
+            originalKeyseq.splice(downIndex + 1, 0, released)
+            const reorderedMappings = completions(
+                originalKeyseq,
+                mappingsBeforeRelease,
+            )
+            if (reorderedMappings.size > 0) {
+                numericPrefix = originalNumericPrefix
+                keyseq = originalKeyseq
+                possibleMappings = reorderedMappings
+            }
+        }
+    }
+
     if (possibleMappings.size > 0) {
         // Check if any of the mappings is a perfect match (this will only
         // happen if some sequences in the KeyMap are prefixes of other seqs).
         try {
-            const perfect = find(
-                possibleMappings,
-                ([k, _v]) => k.length === keyseq.length,
+            const perfect = find(possibleMappings, ([k, _v]) =>
+                isPerfectMatch(keyseq, k),
             )
             return {
                 value: perfect[1],
@@ -224,8 +344,19 @@ function prefixes(seq1: MinimalKey[], seq2: MinimalKey[]) {
     if (seq1.length > seq2.length) {
         return false
     } else {
-        for (const [key1, key2] of izip(seq1, seq2)) {
-            if (!key2.match(key1)) return false
+        let i = 0
+        for (const desired_key of seq2) {
+            if (seq1[i] == undefined) break
+            switch (desired_key.match(seq1[i])) {
+                case false:
+                    return false
+                case "skip":
+                    i = i - 1 // if skipped, we want to try the real key again against the next thing in the sequence
+                    break
+                case true:
+                    break
+            }
+            i = i + 1
         }
         return true
     }
@@ -236,6 +367,53 @@ export function completions(keyseq: MinimalKey[], map: KeyMap): KeyMap {
     return new Map(
         filter(map.entries(), ([ks, _maptarget]) => prefixes(keyseq, ks)),
     )
+}
+
+function printableKey(k: MinimalKey, showDirection: boolean) {
+    if (["Control", "Meta", "Alt", "Shift", "OS"].includes(k.key)) return ""
+
+    let modstr = Array.from(modifiers, ([letter, attr]) => k[attr] ? letter : "").join("")
+    if (showDirection) modstr += k.keyup ? "U" : "D"
+    const result = modstr ? modstr + "-" + k.key : k.key
+    return result.length > 1 ? "<" + result + ">" : result
+}
+
+export function formatKeysForModeIndicator(
+    keys: MinimalKey[],
+    mapstrs: Iterable<string> = [],
+) {
+    const showDirection = Array.from(mapstrs)
+        .map(parseMapstr)
+        .some(({ keyseq, hasExplicitDirection }) =>
+            hasExplicitDirection && prefixes(keys, keyseq),
+        )
+    return keys
+        .filter(key => showDirection || !key.keyup)
+        .map(key => printableKey(key, showDirection))
+        .join("")
+}
+
+/** Return the first existing mapstr that would match before mapstr can complete. */
+export function findShadowingMapstr(
+    mapstr: string,
+    existingMapstrs: Iterable<string>,
+): string | undefined {
+    const keyseq = mapstrToKeyseq(mapstr)
+    const existing = Array.from(existingMapstrs)
+        .filter(existingMapstr => existingMapstr !== mapstr)
+        .map(existingMapstr =>
+            [existingMapstr, mapstrToKeyseq(existingMapstr)] as [
+                string,
+                MinimalKey[],
+            ],
+        )
+
+    for (let i = 1; i <= keyseq.length; i++) {
+        const prefix = keyseq.slice(0, i)
+        for (const [existingMapstr, existingKeyseq] of existing) {
+            if (isPerfectMatch(prefix, existingKeyseq)) return existingMapstr
+        }
+    }
 }
 
 // }}}
@@ -354,24 +532,41 @@ export function bracketexprToKey(inputStr) {
 
     (All four {modifier}Key flags are actually provided on all MinimalKeys)
 */
-export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
+const hasDirection = (key: MinimalKey) => key.keyup || key.keydown
+
+export function parseMapstr(mapstr: string) {
     const keyseq: MinimalKey[] = []
-    let key: MinimalKey
-    // Reduce mapstr by one character or one bracket expression per iteration
+    let hasExplicitDirection = false
+
     while (mapstr.length) {
+        let key: MinimalKey
         if (mapstr[0] === "<") {
             ;[key, mapstr] = bracketexprToKey(mapstr)
-            keyseq.push(key)
         } else {
-            keyseq.push(new MinimalKey(mapstr[0]))
+            key = new MinimalKey(mapstr[0])
             mapstr = mapstr.slice(1)
         }
+        const explicitDirection = hasDirection(key)
+        hasExplicitDirection = hasExplicitDirection || explicitDirection
+        keyseq.push(explicitDirection ? key : new MinimalKey(key.key, key))
+        if (mapstr.length > 0 && !explicitDirection)
+            keyseq.push(new MinimalKey(key.key, R.mergeRight(key, { keyup: true, optional: true })))
     }
-    return keyseq
+    return { keyseq, hasExplicitDirection }
+}
+
+export function mapstrToKeyseq(mapstr: string): MinimalKey[] {
+    return parseMapstr(mapstr).keyseq
+}
+
+export function mapstrMatchesKey(mapstr: string, key: MinimalKey): boolean {
+    const keyseq = mapstrToKeyseq(mapstr)
+    return keyseq.length === 1 && keyseq[0].match(key) === true
 }
 
 export function canonicaliseMapstr(mapstr: string): string {
     return mapstrToKeyseq(mapstr)
+        .filter(k => !k.optional)
         .map(k => k.toMapstr())
         .join("")
 }
@@ -486,13 +681,15 @@ function numericPrefixToExstrSuffix(numericPrefix: MinimalKey[]) {
  * code if config says so.
  */
 export function minimalKeyFromKeyboardEvent(
-    keyEvent: KeyboardEvent,
+    keyEvent: TrustedKeyboardEvent,
 ): MinimalKey {
     const modifiers = {
         altKey: keyEvent.altKey,
         ctrlKey: keyEvent.ctrlKey,
         metaKey: keyEvent.metaKey,
         shiftKey: keyEvent.shiftKey,
+        keyup: keyEvent.type === "keyup",
+        repeat: keyEvent.repeat,
     }
     if (config.get("keyboardlayoutforce") === "true") {
         Object.keys(KEYCODETRANSLATEMAP).length === 0 && updateBaseLayout()

@@ -18,12 +18,12 @@ function updateChangelogStatus() {
         browser.extension.inIncognitoContext ||
         localStorage.changelogContent === changelogContent
     ) {
-        const changelogButton = document.querySelector('input[id^="spoiler"]')
-        if (!changelogButton) {
-            console.error("Couldn't find changelog button!")
+        const changelogDetails = document.getElementById("changelog-details")
+        if (!changelogDetails) {
+            console.error("Couldn't find changelog details element!")
             return
         }
-        changelogButton.classList.add("seen")
+        changelogDetails.classList.add("seen")
     }
 }
 
@@ -35,12 +35,15 @@ function readChangelog() {
 
 window.addEventListener("load", updateChangelogStatus)
 window.addEventListener("load", _ => {
-    const spoilerbutton = document.getElementById("spoilerbutton")
-    if (!spoilerbutton) {
-        console.error("Couldn't find spoiler button!")
+    const changelogDetails =
+        document.querySelector<HTMLDetailsElement>("#changelog-details")
+    if (!changelogDetails) {
+        console.error("Couldn't find changelog details element!")
         return
     }
-    spoilerbutton.addEventListener("click", readChangelog)
+    changelogDetails.addEventListener("toggle", () => {
+        if (changelogDetails.open) readChangelog()
+    })
 })
 
 // Periodically nag people about updates.

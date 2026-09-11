@@ -2,6 +2,7 @@ import { browserBg } from "@src/lib/webext"
 import Fuse from "fuse.js"
 import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("containers")
+const ensurePromises = new Map<string, Promise<string>>()
 
 // As per Mozilla specification: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
 const ContainerColor = [
@@ -39,11 +40,13 @@ export const DefaultContainer = Object.freeze(
     @param name  The container name.
     @param color  The container color, must be one of: "blue", "turquoise", "green", "yellow", "orange", "red", "pink" or "purple". If nothing is supplied, it selects one at random.
     @param icon  The container icon, must be one of: "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation", "food", "fruit", "pet", "tree", "chill"
+    @param orUpdate  Update an existing case-insensitive match instead of failing.
  */
 export async function create(
     name: string,
     color = "random",
     icon = "fingerprint",
+    orUpdate = false,
 ): Promise<string> {
     if (color === "random") color = chooseRandomColor()
     const container = fromString(name, color, icon)
@@ -52,6 +55,11 @@ export async function create(
     logger.debug(container)
 
     if (await exists(name)) {
+        if (orUpdate) {
+            const id = await getId(name)
+            await update(id, container)
+            return id
+        }
         logger.debug(`[Container.create] container already exists ${container}`)
         throw new Error(
             `[Container.create] container already exists, aborting.`,
@@ -60,6 +68,29 @@ export async function create(
         const res = await browser.contextualIdentities.create(container)
         return res.cookieStoreId
     }
+}
+
+export async function ensure(
+    name: string,
+    color = "random",
+    icon = "fingerprint",
+): Promise<string> {
+    const key = name.toLowerCase()
+    const existingId = await getExistingId(name)
+    if (existingId) return existingId
+
+    let promise = ensurePromises.get(key)
+    if (promise === undefined) {
+        promise = create(name, color, icon)
+            .catch(async e => {
+                const id = await getExistingId(name)
+                if (id) return id
+                throw e
+            })
+            .finally(() => ensurePromises.delete(key))
+        ensurePromises.set(key, promise)
+    }
+    return promise
 }
 
 /** Removes specified container. No fuzzy matching is intentional here. If there are multiple containers with the same name (allowed by other container plugins), it chooses the one with the lowest cookieStoreId
@@ -76,9 +107,7 @@ export async function remove(name: string) {
     TODO: pass an object to this when tridactyl gets proper flag parsing
     NOTE: while browser.contextualIdentities.create does check for valid color/icon combos, browser.contextualIdentities.update does not.
     @param containerId Expects a cookieStringId e.g. "firefox-container-n".
-    @param name the new name of the container
-    @param color the new color of the container
-    @param icon the new icon of the container
+    @param updateObj the new name, color, and icon of the container
  */
 export function update(
     containerId: string,
@@ -97,7 +126,11 @@ export function update(
         logger.debug(updateObj)
         throw new Error("[Container.update] invalid container icon: " + icon)
     }
-    browser.contextualIdentities.update(containerId, { name, color, icon })
+    return browser.contextualIdentities.update(containerId, {
+        name,
+        color,
+        icon,
+    })
 }
 
 /** Gets a container object from a supplied container id string. If no container corresponds to containerId, returns a default empty container.
@@ -115,7 +148,7 @@ export async function getFromId(
 
 /** Fetches all containers from Firefox's contextual identities API and checks if one exists with the specified name.
     Note: This operation is entirely case-insensitive.
-    @param string cname
+    @param cname
     @returns boolean Returns true when cname matches an existing container or on query error.
  */
 export async function exists(cname: string): Promise<boolean> {
@@ -165,18 +198,21 @@ export async function getAll(): Promise<any[]> {
  Note: all checks are case insensitive.
 
  @param name The container name
- @returns The cookieStoreId of the first match of the query.
+ @returns The lowest cookieStoreId matching the name.
  */
 export async function getId(name: string): Promise<string> {
-    const containers = await getAll()
-    const res = containers.filter(
-        c => c.name.toLowerCase() === name.toLowerCase(),
-    )
-    if (res.length !== 1) {
+    const id = await getExistingId(name)
+    if (id === undefined) {
         throw new Error(`Container '${name}' does not exist.`)
-    } else {
-        return res[0].cookieStoreId
     }
+    return id
+}
+
+async function getExistingId(name: string): Promise<string> {
+    const container = (await getAll())
+        .filter(c => c.name.toLowerCase() === name.toLowerCase())
+        .sort((a, b) => a.cookieStoreId.localeCompare(b.cookieStoreId))[0]
+    return container?.cookieStoreId
 }
 
 /** Tries some simple ways to match containers to your input.

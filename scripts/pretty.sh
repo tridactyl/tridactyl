@@ -10,6 +10,10 @@ echoe() {
   echo "$@" >&2
 }
 
+staged() {
+  git show :"$1"
+}
+
 lock() {
   local lockfile="$1"
   if [ -e "$lockfile" ]; then
@@ -27,13 +31,14 @@ unlock() {
 trap 'unlock $(git rev-parse --show-toplevel)/.git/index.lock || true' ERR
 
 main() {
-  local stagedFiles
+  local stagedFiles originalIndex
   stagedFiles="$(cachedTSLintFiles)"$'\n'"$(cachedPrettierFiles)"
 
   if [ -n "$stagedFiles" ]; then
     # Could use git-update-index --cacheinfo to add a file without creating directories and stuff.
     IFS=$'\n'
     for file in $stagedFiles; do
+      originalIndex=$(git write-tree)
       if cmp -s <(staged "$file") "$file"; then
 	echo "WARN: Staged copy of '$file' matches working copy. Modifying both"
 	echo "WARN: Modifications may break builds: check that your code still builds"
@@ -70,6 +75,8 @@ main() {
 	  rm -rf "$tmpdir"
 	)
       fi
+      echo "Changes made by pretty to '$file':"
+      git diff --cached "$originalIndex" -- "$file"
     done
   fi
 }

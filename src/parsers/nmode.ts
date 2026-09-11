@@ -10,22 +10,33 @@ class NModeState {
     public curCommands = 0
     public mode = "normal"
     public endCommand = ""
+    public ignoreInitialKeyup = true
 }
 
 let modeState: NModeState
 
 /** Init n [mode] mode. After parsing the defined number of commands, execute
 `endCmd`. `Escape` cancels the mode and executes `endCmd`. */
-export function init(endCommand: string, mode = "normal", numCommands = 1) {
+export function init(
+    endCommand: string,
+    mode = "normal",
+    numCommands = 1,
+    strict = false,
+) {
     contentState.mode = "nmode"
     modeState = new NModeState()
     modeState.endCommand = endCommand
     modeState.numCommands = numCommands
     modeState.mode = mode
+    modeState.ignoreInitialKeyup = !strict
 }
 
 /** Receive keypress. If applicable, execute a command. */
 export function parser(keys: keyseq.MinimalKey[]) {
+    if (modeState.ignoreInitialKeyup) {
+        modeState.ignoreInitialKeyup = false
+        if (keys[0]?.keyup) keys = keys.slice(1)
+    }
     keys = keyseq.stripOnlyModifiers(keys)
     if (keys.length === 0) return { keys: [], isMatch: false }
     const conf = mode2maps.get(modeState.mode) || modeState.mode + "maps"

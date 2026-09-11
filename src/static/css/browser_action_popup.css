@@ -1,0 +1,56 @@
+@import url("../themes/auto/auto.css");
+
+body {
+    box-sizing: border-box;
+    width: 18rem;
+    margin: 0;
+    padding: 1rem;
+    border-top: 0.25rem solid var(--tridactyl-url-fg);
+    color: var(--tridactyl-fg);
+    background: var(--tridactyl-bg);
+    font-family: var(--tridactyl-font-family-sans);
+    font-size: var(--tridactyl-font-size);
+}
+
+h1 {
+    margin: 0 0 0.75rem;
+    font-family: var(--tridactyl-font-family);
+    font-size: 1.25rem;
+}
+
+.state {
+    margin: 0 0 1rem;
+    font-weight: bold;
+}
+
+button {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.65rem;
+    border: 1px solid var(--tridactyl-fg);
+    border-radius: var(--tridactyl-status-border-radius);
+    color: var(--tridactyl-bg);
+    background: var(--tridactyl-fg);
+    font: inherit;
+    cursor: pointer;
+}
+
+button:focus-visible {
+    outline: 2px solid var(--tridactyl-url-fg);
+    outline-offset: 2px;
+}
+
+button:disabled {
+    cursor: wait;
+    opacity: 0.55;
+}
+
+.secondary {
+    margin-top: 0.25rem;
+    color: var(--tridactyl-fg);
+    background: var(--tridactyl-bg);
+}
+
+.help {
+    font-size: var(--tridactyl-small-font-size);
+}

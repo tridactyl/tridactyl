@@ -1,8 +1,8 @@
 {
     "manifest_version": 2,
     "name": "Tridactyl",
-    "version": "1.24.6",
-    "version_name": "1.24.6",
+    "version": "1.25.1",
+    "version_name": "1.25.1 Carpenter",
     "icons": {
         "64": "static/logo/Tridactyl_64px.png",
         "100": "static/logo/Tridactyl_100px.png",
@@ -12,6 +12,12 @@
         "scripts": [
             "background.js"
         ]
+    },
+    "browser_action": {
+        "default_area": "navbar",
+        "default_icon": "static/logo/Tridactyl_32px.png",
+        "default_popup": "static/browser_action_popup.html",
+        "default_title": "Tridactyl controls"
     },
     "chrome_url_overrides": {
         "newtab": "static/newtab.html"
@@ -140,8 +146,7 @@
     ],
     "applications": {
         "gecko": {
-            "id": "tridactyl.vim.betas@cmcaine.co.uk",
-            "strict_min_version": "138.0"
+            "id": "tridactyl.vim.betas@cmcaine.co.uk"
         }
     },
     "options_ui": {

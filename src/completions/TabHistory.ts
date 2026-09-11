@@ -18,9 +18,9 @@ class TabHistoryCompletionOption
         this.html = html`<tr class="TabHistoryCompletionOption option">
             <td class="prefix">${index}</td>
             <td class="container"></td>
-            <td class="title">${tab.prefix}${tab.title}</td>
+            <td class="title">${Completions.treePrefix(tab.level)}${tab.title}</td>
             <td class="content">
-                <a class="url" href="${tab.href}">${tab.href}</a>
+                <a class="url" href="${tab.href}">${Completions.decodeUrlForDisplay(tab.href)}</a>
             </td>
             <td class="time">${timeSpan}</td>
         </tr>`
@@ -68,13 +68,24 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             href: node["href"],
             parent: node["parent"],
             id: node["id"],
-            level: node["level"] === 0 ? node["level"] : node["level"] - 1,
+            level: node["level"],
             time: node["time"],
         })
         for (const child of node["children"]) {
             this.flattenTree(child, flat)
         }
         return flat
+    }
+
+    private sortPathsOldestFirst(tree) {
+        for (const node of tree) {
+            this.sortPathsOldestFirst(node["children"])
+            node["latestTime"] = Math.max(
+                node["time"],
+                ...node["children"].map(child => child["latestTime"]),
+            )
+        }
+        tree.sort((a, b) => a["latestTime"] - b["latestTime"])
     }
 
     private addFormatTimeSpan(tree) {
@@ -100,23 +111,6 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         else return `${day} day${day == 1 ? "" : "s"} ago`
     }
 
-    private addIndicies(tree) {
-        for (const node of tree) {
-            const parentCount = node["level"]
-            let string = "  "
-            for (let i = 0; i <= parentCount; ++i) {
-                if (i === parentCount - 1) {
-                    string += "┌─"
-                } else if ( i < parentCount ) {
-                    string += "  " // NB: non-breaking space
-                } else {
-                    string += "· "
-                }
-            }
-            node["prefix"] = string
-        }
-    }
-
     private async updateOptions(exstr = "") {
         this.lastExstr = exstr
 
@@ -128,9 +122,9 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         if (!history) history = { list: [] }
         const tree = this.makeTree(history["list"])
         if (tree.length > 0) {
+            this.sortPathsOldestFirst(tree[0]["children"])
             history["list"] = this.flattenTree(tree[0]).reverse()
         }
-        this.addIndicies(history["list"])
         this.addFormatTimeSpan(history["list"])
 
         this.options = this.scoreOptions(
@@ -140,8 +134,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
                         href: item.href,
                         id: item.index,
                         title: item.title,
-                        prefix: item.prefix,
-                        index: item.level,
+                        level: item.level,
                         formatTimeSpan: item.formatTimeSpan,
                     }),
             ),

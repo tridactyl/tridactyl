@@ -10,6 +10,7 @@
  *
  * Contrary to the main tridactyl help page, this one doesn't tell you whether a specific function is bound to something. For now, you'll have to make do with `:bind` and `:viewconfig`.
  *
+ * @packageDocumentation
  */
 /** ignore this line */
 
@@ -33,7 +34,7 @@ import {
     izip,
     map,
 } from "@src/lib/itertools"
-import { contentState } from "@src/content/state_content"
+import { contentState, addContentStateChangedListener } from "@src/content/state_content"
 import * as config from "@src/lib/config"
 import Logger from "@src/lib/logging"
 import * as R from "ramda"
@@ -401,6 +402,7 @@ class HintState {
                 )
             }
         }
+        this.changeFocusedHintIndex(distance)
 
         // All done!
     }
@@ -497,22 +499,24 @@ export function hintPage(
 
     if (!rapid) {
         buildHints(hintableElements, hint => {
-            modeState.cleanUpHints()
+            const state = modeState
+            state.cleanUpHints()
             hint.result = onSelect(hint.target)
-            modeState.selectedHints.push(hint)
-            reset()
+            state.selectedHints.push(hint)
+            if (modeState === state) reset()
         })
     } else {
         buildHints(hintableElements, hint => {
+            const state = modeState
             hint.result = onSelect(hint.target)
-            modeState.selectedHints.push(hint)
+            state.selectedHints.push(hint)
             if (
-                modeState.selectedHints.length > 1 &&
+                state.selectedHints.length > 1 &&
                 config.get("hintshift") === "true"
             ) {
-                modeState.shiftHints()
+                state.shiftHints()
             }
-            removeFilteredCharClass()
+            removeFilteredCharClass(state)
         })
     }
 
@@ -555,9 +559,10 @@ export function hintPage(
     ) {
         // There is just a single link or all the links point to the same
         // place. Select it unless `hintautoselect` is set to `false`.
-        modeState.cleanUpHints()
-        modeState.hints[0].select()
-        reset()
+        const state = modeState
+        state.cleanUpHints()
+        state.hints[0].select()
+        if (modeState === state) reset()
         return
     }
 
@@ -572,6 +577,11 @@ export function hintPage(
     modeState.hudTranslate.appendChild(modeState.hintHost)
     modeState.hud.appendChild(modeState.hudTranslate)
     document.documentElement.appendChild(modeState.hud)
+    const hud = modeState.hud as any
+    if (typeof hud.showPopover === "function") {
+        hud.setAttribute("popover", "manual")
+        hud.showPopover()
+    }
     modeState.deOverlap()
     window.removeEventListener("scroll", updateHudOffset)
     window.addEventListener("scroll", updateHudOffset)
@@ -605,6 +615,9 @@ function defaultHintFilter() {
 function defaultHintChars() {
     if (config.get("hintnames") === "numeric") {
         return "1234567890"
+    }
+    if (config.get("hintnames") === "words") {
+        return "abcdefghijklmnopqrstuvwxyz" // protect users from changing hintchars and not being able to type the words
     }
     return config.get("hintchars")
 }
@@ -681,6 +694,74 @@ function* hintnames_numeric(n: number): IterableIterator<string> {
     }
 }
 
+/** Common short English words for word hint names.
+ * @hidden */
+const HINT_WORDS = [
+    "ace", "age", "ago", "aid", "aim", "air", "all", "and", "ant", "any",
+    "ape", "arc", "ark", "arm", "art", "ash", "ask", "ate", "axe", "bad",
+    "bag", "ban", "bar", "bat", "bay", "bed", "bee", "bet", "big", "bin",
+    "bit", "bow", "box", "boy", "bud", "bug", "bun", "bus", "but", "cab",
+    "can", "cap", "car", "cat", "cop", "cow", "cry", "cub", "cup", "cur",
+    "cut", "dab", "dad", "dam", "day", "den", "dew", "did", "dig", "dim",
+    "dip", "dog", "dot", "dry", "dub", "dud", "due", "dug", "dye", "ear",
+    "eat", "eel", "egg", "ego", "elm", "emu", "end", "era", "eve", "ewe",
+    "eye", "fad", "fan", "far", "fat", "fax", "fed", "fee", "fen", "few",
+    "fig", "fin", "fir", "fit", "fix", "fly", "fob", "foe", "fog", "fop",
+    "for", "fox", "fry", "fun", "fur", "gag", "gap", "gas", "gay", "gel",
+    "gem", "get", "gin", "gnu", "god", "got", "gum", "gun", "gut", "guy",
+    "gym", "had", "ham", "has", "hat", "hay", "hen", "her", "hew", "hex",
+    "hid", "him", "hip", "his", "hit", "hob", "hog", "hop", "hot", "how",
+    "hub", "hue", "hug", "hum", "hut", "ice", "icy", "ill", "imp", "ink",
+    "inn", "ion", "ire", "irk", "ivy", "jab", "jag", "jam", "jar", "jaw",
+    "jay", "jet", "jig", "job", "jog", "jot", "joy", "jug", "jut", "keg",
+    "ken", "key", "kid", "kin", "kit", "lab", "lad", "lag", "lap", "law",
+    "lay", "lea", "led", "leg", "let", "lid", "lie", "lip", "lit", "log",
+    "lot", "low", "lug", "mad", "man", "map", "mar", "mat", "maw", "max",
+    "may", "men", "met", "mid", "mix", "mob", "mod", "mom", "mop", "mow",
+    "mud", "mug", "nab", "nag", "nap", "net", "new", "nil", "nip", "nit",
+    "nod", "nor", "not", "now", "nun", "nut", "oak", "oar", "oat", "odd",
+    "ode", "off", "oft", "oil", "old", "one", "opt", "orb", "ore", "our",
+    "out", "owe", "owl", "own", "pad", "pal", "pan", "pap", "par", "pat",
+    "paw", "pay", "pea", "peg", "pen", "pep", "per", "pet", "pie", "pig",
+    "pin", "pit", "ply", "pod", "pop", "pot", "pow", "pro", "pry", "pub",
+    "pug", "pun", "pup", "pus", "put", "rag", "ram", "ran", "rap", "rat",
+    "raw", "ray", "red", "ref", "rib", "rid", "rig", "rim", "rip", "rob",
+    "rod", "roe", "rot", "row", "rub", "rug", "rum", "run", "rut", "rye",
+    "sac", "sad", "sag", "sap", "sat", "saw", "say", "sea", "set", "sew",
+    "she", "shy", "sin", "sip", "sir", "sis", "sit", "six", "ski", "sky",
+    "sly", "sob", "sod", "son", "sop", "sot", "sow", "soy", "spa", "spy",
+    "sty", "sub", "sue", "sum", "sun", "sup", "tab", "tad", "tag", "tan",
+    "tap", "tar", "tat", "tax", "tea", "ten", "the", "thy", "tie", "tin",
+    "tip", "toe", "ton", "too", "top", "tot", "tow", "toy", "try", "tub",
+    "tug", "tun", "two", "urn", "use", "van", "vat", "vet", "vex", "via",
+    "vie", "vim", "vow", "wad", "wag", "war", "was", "wax", "way", "web",
+    "wed", "wet", "who", "why", "wig", "win", "wit", "woe", "wok", "won",
+    "woo", "wow", "yak", "yam", "yap", "yaw", "yea", "yes", "yet", "yew",
+    "yin", "you", "zap", "zed", "zen", "zig", "zip", "zoo",
+]
+
+/** Fisher-Yates shuffle an array (copy). @hidden */
+function shuffleArray<T>(arr: T[]): T[] {
+    const a = arr.slice()
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[a[i], a[j]] = [a[j], a[i]]
+    }
+    return a
+}
+
+/** Random hintnames from a built-in word list.
+ * @hidden */
+function* hintnames_words(n: number): IterableIterator<string> {
+    const shuffled = shuffleArray(HINT_WORDS)
+    const wordCount = Math.max(1, Math.ceil(log(n, shuffled.length)))
+    yield* map(
+        islice(permutationsWithReplacement(shuffled, wordCount), n),
+        // Keep neighbouring hints from sharing the same first word.
+        words => words.reverse().join(""),
+    )
+}
+
 /** @hidden */
 function* hintnames(
     n: number,
@@ -691,6 +772,8 @@ function* hintnames(
             yield* hintnames_numeric(n)
         case "uniform":
             yield* hintnames_uniform(n, hintchars)
+        case "words":
+            yield* hintnames_words(n)
         default:
             yield* hintnames_short(n, hintchars)
     }
@@ -705,8 +788,9 @@ class Hint {
     public readonly flag = document.createElement("span")
     public readonly highlight: HTMLElement | null = null
     public readonly outline: HTMLElement | null = null
-    public readonly rect: ClientRect = null
+    public readonly rect: Omit<ClientRect, "x" | "y" | "toJSON"> = null
     public result: any = null
+    private unfilteredName: string
 
     public width = 0
     public height = 0
@@ -720,6 +804,7 @@ class Hint {
         private readonly onSelect: HintSelectedCallback,
         classes?: string[],
     ) {
+        this.unfilteredName = name
         // We need to compute the offset for elements that are in an iframe
         let offsetTop = 0
         let offsetLeft = 0
@@ -815,6 +900,7 @@ class Hint {
     }
 
     setName(n: string) {
+        this.unfilteredName = n
         this.name = n
         this.flag.textContent = ""
         for (const ch of n) {
@@ -822,6 +908,10 @@ class Hint {
             charspan.textContent = ch
             this.flag.appendChild(charspan)
         }
+    }
+
+    restoreName() {
+        if (this.name !== this.unfilteredName) this.setName(this.unfilteredName)
     }
 
     // These styles would be better with pseudo selectors. Can we do custom ones?
@@ -973,8 +1063,7 @@ export const vimpHelper = {
 
     matchHint: function matchHint(str, key) {
         // Match a hint key to hint text
-        // match every part of key splited by space.
-        return key.split(/\s+/).every(keyi => str.includes(keyi))
+        return str.includes(key)
     },
 }
 
@@ -1033,8 +1122,8 @@ function addFilteredCharClass(hint: Hint, fstr: string) {
 
 /** Remove the filtered char class from all hints - for resetting the style when rapid hinting
 @hidden */
-function removeFilteredCharClass() {
-    const pressed = modeState.hintHost.querySelectorAll(".TridactylHintCharPressed");
+function removeFilteredCharClass(state = modeState) {
+    const pressed = state.hintHost.querySelectorAll(".TridactylHintCharPressed");
     for (const el of pressed) {
         el.classList.remove("TridactylHintCharPressed");
     }
@@ -1122,6 +1211,7 @@ function filterHintsVimperator(query: string, reflow = false) {
 
     // Start with all hints
     let active = modeState.hints
+    if (reflow) active.forEach(hint => hint.restoreName())
 
     // Filter down (renaming as required)
     for (const run of partitionquery(query)) {
@@ -1155,9 +1245,9 @@ function filterHintsVimperator(query: string, reflow = false) {
         }
     }
 
-    // Focus first hint
+    // Focus exact name or first hint
     if (active.length) {
-        modeState.focusedHint = active[0]
+        modeState.focusedHint = active.find(h => h.name === query) || active[0]
         modeState.focusedHint.focused = true
     }
 
@@ -1170,19 +1260,29 @@ function filterHintsVimperator(query: string, reflow = false) {
 /**
  * Remove all hints, reset STATE.
  **/
-function reset() {
-    if (modeState) {
-        modeState.cleanUpHints()
-        modeState.resolveHinting()
-    }
+function cleanup() {
+    const state = modeState
     modeState = undefined
-    contentState.mode = "normal"
+    if (state) state.cleanUpHints()
+    contentState.suffix = ""
     window.removeEventListener("scroll", updateHudOffset)
+    return state
 }
+
+function reset() {
+    cleanup()?.resolveHinting()
+    contentState.mode = "normal"
+}
+
+addContentStateChangedListener((property, oldMode) => {
+    const state = property === "mode" && oldMode === "hint" ? cleanup() : undefined
+    if (state) queueMicrotask(() => state.resolveHinting())
+})
 
 function popKey() {
     modeState.filter = modeState.filter.slice(0, -1)
     modeState.filterFunc(modeState.filter)
+    contentState.suffix = modeState?.filter || ""
 }
 
 /** Add key to filtstr and filter */
@@ -1197,6 +1297,7 @@ function pushKey(key) {
         modeState.filter = originalFilter
         modeState.filterFunc(modeState.filter)
     }
+    contentState.suffix = modeState?.filter || ""
 }
 
 /** Covert to char and pushKey(). This is needed because ex commands ignore whitespace. */
@@ -1223,23 +1324,38 @@ function pushSpace() {
 
     @hidden
 */
-export function hintables(
+export async function hintables(
     selectors = DOM.HINTTAGS_selectors,
     withjs = false,
     includeInvisible = false,
 ) {
-    const visibleFilter = DOM.isVisibleFilter(includeInvisible)
+    if (withjs) DOM.pruneHintworthyJSElems()
+    const jsElems = withjs
+        ? Array.from(
+              new Set([
+                  ...DOM.hintworthy_js_elems,
+                  ...DOM.getElemsBySelector("*", [
+                      el => Boolean((el as HTMLElement).onclick),
+                  ]),
+              ]),
+          )
+        : []
+    const visibleJSElems = withjs && !includeInvisible
+        ? DOM.getVisibleElemsBySelector(null, [], jsElems)
+        : jsElems
     const elems = changeHintablesToLargestChild(
-        DOM.getElemsBySelector(selectors, []).filter(visibleFilter),
+        includeInvisible
+            ? DOM.getElemsBySelector(selectors, [])
+            : ((await DOM.getVisibleElemsBySelector(selectors))),
+        includeInvisible,
     )
     const hintables: Hintables[] = [{ elements: elems }]
     if (withjs) {
         hintables.push({
             elements: changeHintablesToLargestChild(
-                Array.from(DOM.hintworthy_js_elems).filter(
-                    el => visibleFilter(el) && !elems.includes(el),
-                ),
-            ),
+                await visibleJSElems,
+                includeInvisible,
+            ).filter(el => !elems.includes(el)),
             hintclasses: ["TridactylJSHint"],
         })
     }
@@ -1251,7 +1367,8 @@ export function hintables(
  * if it is larger than the element in the array.
  * @hidden
  */
-function changeHintablesToLargestChild(elements: Element[]): Element[] {
+function changeHintablesToLargestChild(elements: Element[], includeInvisible: boolean): Element[] {
+    const hideObscured = config.get("hinthideobscured") === "true"
     elements.forEach((element, index) => {
         if (element.childNodes.length === 0) return
         let largestChild: Element
@@ -1266,11 +1383,16 @@ function changeHintablesToLargestChild(elements: Element[]): Element[] {
             }
         })
         // Change element if child is larger
-        if (isElementLargerThan(largestChild, element)) {
+        if (
+            isElementLargerThan(largestChild, element) &&
+            (includeInvisible ||
+                (DOM.isPainted(largestChild as HTMLElement) &&
+                    (!hideObscured || DOM.isUnobscured(largestChild))))
+        ) {
             elements[index] = largestChild
         }
     })
-    return elements
+    return Array.from(new Set(elements))
 }
 
 /**
@@ -1365,7 +1487,11 @@ function selectFocusedHint(delay = false) {
     const focused = modeState.focusedHint
     const selectFocusedHintInternal = () => {
         modeState.filter = ""
-        modeState.hints.forEach(h => (h.hidden = false))
+        contentState.suffix = ""
+        modeState.hints.forEach(h => {
+            h.restoreName()
+            h.hidden = false
+        })
         focused.select()
     }
     if (delay) setTimeout(selectFocusedHintInternal, config.get("hintdelay"))
@@ -1413,6 +1539,7 @@ export function parser(keys: keyseq.MinimalKey[]) {
                 ),
             ),
         ),
+        false,
     )
     if (parsed.isMatch === true) {
         return parsed

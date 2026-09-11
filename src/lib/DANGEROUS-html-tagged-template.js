@@ -445,7 +445,7 @@
                                             encodeURIEntities(
                                                 substitutionValue,
                                             ),
-                                        )
+                                        ).replace(/%25(?=[0-9a-f]{2})/gi, "%")
 
                                         // only allow the : when used after http or https otherwise reject
                                         // the entire url (will not allow any 'javascript:' or filter

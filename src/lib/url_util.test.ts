@@ -2,6 +2,14 @@
 
 import * as UrlUtil from "@src/lib/url_util"
 
+test.each([
+    ["https://example.com/%D0%9F%20%41", "https://example.com/П%20%41"],
+    ["https://example.com/%2F%26%3F", "https://example.com/%2F%26%3F"],
+    ["https://example.com/%", "https://example.com/%"],
+    ["https://example.com/%E2%80%AE%E2%80%A8", "https://example.com/%E2%80%AE%E2%80%A8"],
+])("display %s as %s", (url, displayUrl) =>
+    expect(UrlUtil.decodeUrlForDisplay(url)).toEqual(displayUrl))
+
 function test_increment() {
     let cases = [
         // simple increment
@@ -16,6 +24,18 @@ function test_increment() {
         [1, "http://example.com/book1", "http://example.com/book2"],
         // test urls with no incrementable parts return null
         [1, "http://example.com", null],
+        // test percent encoding is preserved
+        [
+            1,
+            "https://example.com/?q=is%3Aopen&page=15",
+            "https://example.com/?q=is%3Aopen&page=16",
+        ],
+        // test encoded bytes are not mistaken for numbers
+        [1, "http://example.com/%20", null],
+        // test encoded digits are incremented
+        [1, "http://example.com/%31", "http://example.com/2"],
+        // test encoding after the number is preserved
+        [1, "http://example.com/item/1%20", "http://example.com/item/2%20"],
     ]
 
     for (let [step, input, output] of cases) {
@@ -326,17 +346,33 @@ function test_url_graft_path() {
 
 function test_url_query_interpolation() {
     let cases = [
+        ["http://example.com/%s000", "a/query", "http://example.com/a%2Fquery000"],
         [
-            // not percent-encoded and appended
-            "http://example.com",
-            "a/query",
-            "http://example.com/a/query",
+            "https://%s1.wikipedia.org/wiki/%s2",
+            "en Tridactyl",
+            "https://en.wikipedia.org/wiki/Tridactyl",
         ],
         [
-            // not percent-encoded and interpolated
+            "https://%s.wikipedia.org/wiki/Tridactyl",
+            "en",
+            "https://en.wikipedia.org/wiki/Tridactyl",
+        ],
+        [
+            "https://%s[1:2].wikipedia.org/wiki/%s[2:]",
+            "en Main Page",
+            "https://en.wikipedia.org/wiki/Main%20Page",
+        ],
+        [
+            // appended to the path
+            "http://example.com",
+            "a/query",
+            "http://example.com/a%2Fquery",
+        ],
+        [
+            // interpolated into the path
             "http://example.com/%s/path",
             "a/query",
-            "http://example.com/a/query/path",
+            "http://example.com/a%2Fquery/path",
         ],
         [
             // percent-encoded and appended
@@ -363,12 +399,26 @@ function test_url_query_interpolation() {
     ]
 
     for (let [url, qy, exp_res] of cases) {
-        let modified = UrlUtil.interpolateSearchItem(new URL(url), qy)
+        let modified = UrlUtil.interpolateSearchItem(url, qy)
 
         test(`interpolate ${qy} into ${url} --> ${exp_res}`, () =>
             expect(modified.href).toEqual(exp_res))
     }
 }
+
+test.each([
+    ["google", "https://example.com/?q=%s&source=test", "a query"],
+    ["wiki", "https://example.com/wiki/", "an/article"],
+])("convert an interpolated %s URL back to arguments", (engine, pattern, query) => {
+    const searchurls = { [engine]: pattern }
+    const url = UrlUtil.interpolateSearchItem(pattern, query).href
+    expect(UrlUtil.searchUrlToArgs(url, searchurls)).toEqual(`${engine} ${query}`)
+})
+
+test("leave a URL that does not match a search URL unchanged", () => {
+    const url = "https://example.com/"
+    expect(UrlUtil.searchUrlToArgs(url, { google: "https://google.com/?q=" })).toEqual(url)
+})
 
 test_increment()
 test_root()

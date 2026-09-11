@@ -3,9 +3,10 @@ import * as path from "path"
 import * as os from "os"
 import * as process from "process"
 import { Browser, Builder, By, Key, WebDriver } from "selenium-webdriver"
-import { Driver, Options } from "selenium-webdriver/firefox"
+import { Driver, Options, ServiceBuilder } from "selenium-webdriver/firefox"
 import * as Until from "selenium-webdriver/lib/until"
 const env = process.env
+const drivers = new Set<Driver>()
 
 /** Returns the path of the newest file in directory */
 export async function getNewestFileIn(directory: string): Promise<string> {
@@ -41,18 +42,19 @@ export async function getDriver() {
     )
 
     const options = new Options()
-    if (env["HEADLESS"]) {
+    if (!env["HEADED"]) {
         options.addArguments("--headless")
     }
     const driver = new Builder()
         .forBrowser(Browser.FIREFOX)
         .setFirefoxOptions(options)
+        // Required to evaluate scripts in extension pages; only for test browsers.
+        .setFirefoxService(new ServiceBuilder().addArguments("--allow-system-access"))
         .build() as unknown as Driver
+    drivers.add(driver)
 
     // This will be the default tab.
     await driver.installAddon(extensionPath, true)
-    // Wait until addon is loaded and :tutor is displayed
-    await iframeLoaded(driver)
     // Wait for multiple window handles to be available (extension may open in new tab)
     await driver.wait(async () => {
         const handles = await driver.getAllWindowHandles()
@@ -74,8 +76,7 @@ export async function getDriver() {
     await driver.close()
     // Switch to the new tab (extension opens in new tab)
     await driver.switchTo().window(handles[1])
-    // Wait for Tridactyl iframe to appear - ensures extension is fully loaded
-    await driver.wait(Until.elementLocated(By.id("cmdline_iframe")), 10000)
+    await driver.wait(() => driver.executeScript<boolean>("return Boolean(window.tri)"), 10000)
     // Now return the window that we want to use.
     return driver
 }
@@ -96,6 +97,18 @@ export async function getDriverAndProfileDirs() {
     }
 
     return { driver, newProfiles }
+}
+
+export async function quitDrivers() {
+    const results = await Promise.allSettled(
+        [...drivers].map(driver =>
+            driver.quit().finally(() => drivers.delete(driver)),
+        ),
+    )
+    const failure = results.find(result => result.status === "rejected")
+    if (failure?.status === "rejected") {
+        throw failure.reason
+    }
 }
 
 const vimToSelenium = {

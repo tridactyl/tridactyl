@@ -7,6 +7,7 @@ class ExtensionsCompletionOption extends Completions.CompletionOptionHTML
 
     constructor(public name: string, public optionsUrl: string) {
         super()
+        this.value = name
         this.fuseKeys.push(this.name)
 
         this.html = html`<tr class="option">
@@ -58,12 +59,6 @@ export class ExtensionsCompletionSource extends Completions.CompletionSourceFuse
         this.options.forEach(option => (option.state = "normal"))
 
         return this.updateDisplay()
-    }
-
-    select(option: ExtensionsCompletionOption) {
-        this.completion = "extoptions " + option.name
-        option.state = "focused"
-        this.lastFocused = option
     }
 
     private scoreOptions(options: ExtensionsCompletionOption[]) {

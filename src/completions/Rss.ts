@@ -16,7 +16,7 @@ class RssCompletionOption
         this.html = html`<tr class="RssCompletionOption option">
             <td class="title">${title}</td>
             <td class="content">
-                <a class="url" target="_blank" href=${url}>${url}</a>
+                <a class="url" target="_blank" href=${url}>${Completions.decodeUrlForDisplay(url)}</a>
             </td>
             <td class="type">${type}</td>
         </tr>`

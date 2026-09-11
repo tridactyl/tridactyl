@@ -14,6 +14,8 @@ Your code will be reviewed by a time-pressed human. Pull requests that do not fo
 
 ## Patch contents
 
+- All listed commit authors and co-authors must be human and their git email addresses must be monitored. Do not use `noreply` email addresses.
+
 - CRITICAL: your patch must _ONLY_ make changes to relevant files and lines. Pull requests that change formatting on unrelated lines or add cruft to the repository will be rejected without review.
 
 - CRITICAL: your first pull request _MUST_ be FEWER than 50 lines of code. Once a pull request has been merged, _SUBSEQUENT_ pull requests may be up to 100 lines of code. If it is not possible to fix the issue within these limits, choose a different issue.

@@ -51,12 +51,7 @@ export function readText(text: string): void {
  */
 export type Action = "stop" | "play" | "pause" | "playpause"
 
-/**
- * Control any reading in progress
- *
- * Note: pause() doesn't seem to work, so play, pause and playpause arent going
- * to be very useful right now
- */
+/** Control any reading in progress */
 export function doAction(action: Action): void {
     const synth = window.speechSynthesis
 

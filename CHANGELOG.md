@@ -1,5 +1,308 @@
 # Tridactyl changelog
 
+# Release 1.25.1 / 2026-09-08
+
+- New features
+
+    - `:tabmove [amount] [index]` added for use primarily in ex-mode binds ([#5045](https://github.com/tridactyl/tridactyl/issues/5045))
+
+- Bug fixes
+
+    - `:mode [custom]` now works again ([#5518](https://github.com/tridactyl/tridactyl/issues/5518))
+    - `:mkt` is now noisier about paths and failure
+    - `:set logging.` works again ([#5513](https://github.com/tridactyl/tridactyl/issues/5513))
+    - `searchurls` can now have `%s` in their subdomains ([#5523](https://github.com/tridactyl/tridactyl/issues/5523))
+
+- Miscellaneous
+
+    - noreply email addresses are henceforth banned from commits ([#5517](https://github.com/tridactyl/tridactyl/issues/5517))
+    - flag documentation formalised to preserve metadata for eventual reuse ([#5511](https://github.com/tridactyl/tridactyl/issues/5511))
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, Robert Hill, dependabot[bot] and Marc González Moratona.
+
+Extra special thanks go to Marc González Moratona and Robert Hill who both contributed for the first time.
+
+Last, but not least - thank you to everyone who reported the issues we closed in this release: bovine3dom, pennae, stevium, syntaxenjoyer and veivataan.
+
+# Release 1.25.0 / 2026-08-28
+
+Codename "Carpenter"
+
+- New features
+
+    - `:bind` can now distinguish keydown and keyup events with `<D-...>` and `<U-...>` ([#1645](https://github.com/tridactyl/tridactyl/issues/1645))
+    - `:smoothscrollwizard` sets up true smooth scrolling key bindings ([#2170](https://github.com/tridactyl/tridactyl/issues/2170))
+    - `:tabclose --match` can now close multiple tabs with literal, case-sensitive title or URL matches ([#4777](https://github.com/tridactyl/tridactyl/issues/4777))
+    - `:find -r` now supports JavaScript regular expressions ([#1612](https://github.com/tridactyl/tridactyl/issues/1612))
+    - `:find` has completions once more
+    - `gr` is now bound to newly sandboxed `:reader` where our binds work ([#5453](https://github.com/tridactyl/tridactyl/issues/5453))
+    - `modeindicatorshowlastex` can now show the Ex command that `:repeat` would execute in the mode indicator ([#1234](https://github.com/tridactyl/tridactyl/issues/1234))
+    - `gI` lets you choose an input using hints ([#3209](https://github.com/tridactyl/tridactyl/issues/3209))
+    - `#` in visual mode now yanks a link to the selected text fragment ([#5407](https://github.com/tridactyl/tridactyl/issues/5407))
+    - `<C-o>x` executes the current ex-command on all completions ([#3133](https://github.com/tridactyl/tridactyl/issues/3133))
+    - `:fillcmdline --wait` waits for the command line to close before returning for use in `:composite` ([#5423](https://github.com/tridactyl/tridactyl/issues/5423))
+    - `:help` now falls back to `:apropos` matches when prefix matching finds nothing ([#5478](https://github.com/tridactyl/tridactyl/issues/5478))
+    - `:abbreviate` expands command-line abbreviations as you type ([#675](https://github.com/tridactyl/tridactyl/issues/675))
+    - `:define` now looks up glossary terms, which are also searchable via `:help` and `:apropos` ([#2980](https://github.com/tridactyl/tridactyl/issues/2980))
+    - `:set historysort frequency | recent | frecency` lets you control `:open` completions ([#2276](https://github.com/tridactyl/tridactyl/issues/2276))
+    - `repeatblacklist` lets you exclude ex commands from `:repeat` ([#4159](https://github.com/tridactyl/tridactyl/issues/4159))
+    - `:set` completions now find settings containing the query when no names start with it ([#1175](https://github.com/tridactyl/tridactyl/issues/1175))
+    - `<PageUp>` and `<PageDown>` now page (ish) through ex completions ([#4164](https://github.com/tridactyl/tridactyl/issues/4164))
+    - `ga` now switches to the tab that most recently stopped playing audio when none is audible ([#5049](https://github.com/tridactyl/tridactyl/issues/5049))
+    - `:tabnext --skip-discarded` and `:tabprev --skip-discarded` skip discarded tabs ([#5246](https://github.com/tridactyl/tridactyl/issues/5246))
+    - `:findrc` displays the local RC file selected by automatic RC discovery ([#3806](https://github.com/tridactyl/tridactyl/issues/3806))
+    - `DocFocus` and `DocBlur` autocmds can run commands when pages gain or lose focus ([#1109](https://github.com/tridactyl/tridactyl/issues/1109))
+    - `:recontain`, `:containerclose`, `:containerdelete`, and `:containerupdate` now get completions ([#5066](https://github.com/tridactyl/tridactyl/issues/5066))
+    - `:containercreate --or-update` creates missing containers or updates existing ones ([#3025](https://github.com/tridactyl/tridactyl/issues/3025))
+    - `]]` and `[[` now recognise next/previous links in more languages ([#324](https://github.com/tridactyl/tridactyl/issues/324))
+    - `:set themeprivacy true` hides the active theme from page root elements ([#1586](https://github.com/tridactyl/tridactyl/issues/1586))
+    - `:find -s` and `:find -i` now override `findcase` for case-sensitive and case-insensitive searches ([#2286](https://github.com/tridactyl/tridactyl/issues/2286))
+    - `ModeEnter` and `ModeLeave` autocmds run when Tridactyl changes mode ([#997](https://github.com/tridactyl/tridactyl/issues/997))
+    - `:autocontaindelete` removes individual `autocontain` rules ([#3649](https://github.com/tridactyl/tridactyl/issues/3649))
+    - `<C-o>` in insert mode now executes a single normal mode binding ([#2370](https://github.com/tridactyl/tridactyl/issues/2370))
+    - ex-mode completions now fall back to documentation search for unknown commands ([#944](https://github.com/tridactyl/tridactyl/issues/944))
+    - `:quickmarkremove` removes a quickmark and its associated `gn`, `go`, `gw`, and `gp` bindings ([#4724](https://github.com/tridactyl/tridactyl/issues/4724))
+    - `:set modeindicatorshowkeys` now shows Vimperator hint filters in the mode indicator ([#1669](https://github.com/tridactyl/tridactyl/issues/1669))
+    - `:sanitise tridactylconfig` clears stored user configuration without removing commandline history or custom themes ([#5472](https://github.com/tridactyl/tridactyl/issues/5472))
+    - `:unkeymap` removes key translations set with `:keymap` ([#1169](https://github.com/tridactyl/tridactyl/issues/1169))
+    - `completions.History.autoselect` can now select the first history completion automatically ([#1370](https://github.com/tridactyl/tridactyl/issues/1370))
+    - `:set searchurlopen` controls whether searchurls appear in `:open`, `:tabopen` and `:winopen` completions ([#4741](https://github.com/tridactyl/tridactyl/issues/4741))
+    - `:set bmarkopen` can now exclude bookmarks from `:open`, `:tabopen`, and `:winopen` completions ([#1817](https://github.com/tridactyl/tridactyl/issues/1817))
+    - `:urlmodify -s` now supports setting multiple query parameters ([#3361](https://github.com/tridactyl/tridactyl/issues/3361))
+    - `:reader` now shows the word count and estimated reading time ([#4681](https://github.com/tridactyl/tridactyl/issues/4681))
+    - `:tgroupswitch` now autoselects matching tab groups ([#4649](https://github.com/tridactyl/tridactyl/issues/4649))
+    - `:set completions.Tab.initialposition top|auto|active` added to control where `:tab` completions open ([#4177](https://github.com/tridactyl/tridactyl/issues/4177))
+    - `<ArrowUp>` and `<ArrowDown>` navigate completions when one is selected ([#3732](https://github.com/tridactyl/tridactyl/issues/3732))
+    - `:tabdetach` now accepts `#/%` magic indices
+    - `:find` uses much less washed-out native CSS highlights in Firefox 140+
+    - Commands starting with a space are no longer saved to command history ([#4763](https://github.com/tridactyl/tridactyl/issues/4763))
+    - `:js -rc` caches JavaScript source until the page or background context unloads ([#3839](https://github.com/tridactyl/tridactyl/issues/3839))
+    - `:set hinthideobscured true` hides hints for elements obscured by other elements ([#4746](https://github.com/tridactyl/tridactyl/issues/4746))
+    - `countaware` can now enable or disable counts per URL or mode with `:seturl` and `:setmode` ([#4993](https://github.com/tridactyl/tridactyl/issues/4993))
+    - `:urlmodify --safe` prevents repeated navigation to the same URL within one second, avoiding redirect loops in `:autocmd`s ([#516](https://github.com/tridactyl/tridactyl/issues/516))
+    - `:set hintnames words` uses random short words for hints ([#5482](https://github.com/tridactyl/tridactyl/issues/5482))
+    - `superignore` can now be toggled globally from the toolbar popup ([#822](https://github.com/tridactyl/tridactyl/issues/822))
+    - `:colourscheme --url` reuses downloaded themes unless given `--update` to ease use in RC files
+    - `:ttscontrol` now supports `play`, `pause`, `playpause`, and `stop` ([#217](https://github.com/tridactyl/tridactyl/issues/217))
+    - `:downloads` now opens `about:downloads` in a new tab ([#615](https://github.com/tridactyl/tridactyl/issues/615))
+    - `:dialog` opens Firefox `about:` pages, with `:d` as an alias ([#137](https://github.com/tridactyl/tridactyl/issues/137))
+    - unambiguous prefixes of ex-commands are now accepted as ex-commands ([#3416](https://github.com/tridactyl/tridactyl/issues/3416))
+    - `:guiset sidebar hide` hides the Firefox sidebar ([#5232](https://github.com/tridactyl/tridactyl/issues/5232))
+    - `:unbind --all` unbinds every key in a mode, while `--mode=*` targets every mode ([#1774](https://github.com/tridactyl/tridactyl/issues/1774))
+    - `text.unix_word_rubout` deletes back to the previous sequence of letters ([#3407](https://github.com/tridactyl/tridactyl/issues/3407))
+    - `Tab` now highlights the selected hint label as well as the element ([#3751](https://github.com/tridactyl/tridactyl/issues/3751))
+    - `,i` in the exemplar `.tridactylrc` opens Tridactyl GitHub issues by number
+
+- Bug fixes
+
+    - `:undo` should never randomly restore an older window rather than your most recently closed tab ([#772](https://github.com/tridactyl/tridactyl/issues/772))
+    - `blacklistkeys` now supports keyseq syntax such as `<C-,>`; `:bind --mode=browser` binds are protected automatically ([#2712](https://github.com/tridactyl/tridactyl/issues/2712))
+    - `leavegithubalone` now applies in all modes except ignore mode ([#2082](https://github.com/tridactyl/tridactyl/issues/2082))
+    - `sanitise` no longer causes lines in RC files to be skipped ([#1409](https://github.com/tridactyl/tridactyl/issues/1409))
+    - hints now appear above newfangled modal dialogs ([#4954](https://github.com/tridactyl/tridactyl/issues/4954))
+    - `noiframe` now defaults to `lazy`, fixing a few pathological websites ([#639](https://github.com/tridactyl/tridactyl/issues/639))
+    - `:jsonview` works again in FF152+
+    - `:tab` and `:taball` no longer move the command line up when closing tabs ([#3174](https://github.com/tridactyl/tridactyl/issues/3174))
+    - commands using `fillcmdline_tmp` no longer wait for its temporary message to disappear ([#5422](https://github.com/tridactyl/tridactyl/issues/5422))
+    - `w` no longer collapses selections in visual mode ([#2100](https://github.com/tridactyl/tridactyl/issues/2100))
+    - `:help` once again shows the full ex-command for related binds ([#1352](https://github.com/tridactyl/tridactyl/issues/1352))
+    - `g;` now skips closed tabs ([#3506](https://github.com/tridactyl/tridactyl/issues/3506))
+    - `gi` now remembers the last input across page loads ([#3124](https://github.com/tridactyl/tridactyl/issues/3124))
+    - `:taball` now respects `:set tabsort mru` ([#4668](https://github.com/tridactyl/tridactyl/issues/4668))
+    - JS hints now include elements with `onclick` handlers ([#5364](https://github.com/tridactyl/tridactyl/issues/5364))
+    - tab changes are now batched and sent only to the active tab, reducing memory use when restoring large sessions ([#3973](https://github.com/tridactyl/tridactyl/issues/3973))
+    - JS hints should no longer cause tabs to leak memory on pages with lots of dynamic content ([#5230](https://github.com/tridactyl/tridactyl/issues/5230))
+    - mode indicator now updates correctly when focus changes ([#414](https://github.com/tridactyl/tridactyl/issues/414))
+    - tab completions no longer accumulate listeners and objects, reducing memory usage ([#1302](https://github.com/tridactyl/tridactyl/issues/1302))
+    - binds now work in same-origin iframes, including dynamically added frames (mostly Google Docs) ([#1971](https://github.com/tridactyl/tridactyl/issues/1971))
+    - visual mode now works in same-origin iframes
+    - scroll positions now restore correctly when going back or forward in history ([#834](https://github.com/tridactyl/tridactyl/issues/834))
+    - `:keyfeed` can now be used in keybinds ([#5403](https://github.com/tridactyl/tridactyl/issues/5403))
+    - `zz` now resets page zoom to Firefox's default zoom level ([#3581](https://github.com/tridactyl/tridactyl/issues/3581))
+    - `:colourscheme --url` now infers the theme name from the URL filename ([#3289](https://github.com/tridactyl/tridactyl/issues/3289))
+    - numeric `vimperator-reflow` hints no longer clash after filtering ([#5279](https://github.com/tridactyl/tridactyl/issues/5279))
+    - `:find` highlights now stay aligned when pages resize, scroll, or update dynamically ([#2666](https://github.com/tridactyl/tridactyl/issues/2666))
+    - `:tabfirst` and `:tablast` now always use Firefox's tab order, regardless of `tabsort` ([#4714](https://github.com/tridactyl/tridactyl/issues/4714))
+    - `:unseturl` now completes URL patterns ([#3862](https://github.com/tridactyl/tridactyl/issues/3862))
+    - `:guiset` now reports the profile path where it wrote `userChrome.css` ([#3064](https://github.com/tridactyl/tridactyl/issues/3064))
+    - JS hints should no longer leak memory when pages replace elements ([#5425](https://github.com/tridactyl/tridactyl/issues/5425))
+    - `;p` now filters out empty, whitespace-only and redundant text hints ([#5178](https://github.com/tridactyl/tridactyl/issues/5178))
+    - `:tabdetach` now errors instead of moving a private tab into a non-private window when detaching fails
+    - `:nmode` now ignores an initial keyup by default (`:nmode --strict` accepts it) ([#5475](https://github.com/tridactyl/tridactyl/issues/5475))
+    - `:setpref` completions work again on Windows ([#1103](https://github.com/tridactyl/tridactyl/issues/1103))
+    - `text.beginning_of_line` works again on inputs with selection-handling scripts ([#3890](https://github.com/tridactyl/tridactyl/issues/3890))
+    - `:help` setting inputs now apply changes when pressing Enter ([#3129](https://github.com/tridactyl/tridactyl/issues/3129))
+    - command completions now work correctly with aliases ([#5464](https://github.com/tridactyl/tridactyl/issues/5464))
+    - `autocontain` now follows the configured proxy order, including failover proxies ([#4917](https://github.com/tridactyl/tridactyl/issues/4917))
+    - `:tabdiscard --all` now discards all tabs even when a tab title contains 'all' (lol) ([#5147](https://github.com/tridactyl/tridactyl/issues/5147))
+    - non-ASCII URLs now display correctly in completion panes and copy correctly ([#4519](https://github.com/tridactyl/tridactyl/issues/4519))
+    - `:tabmove +1` and `:tabmove -1` now work correctly with hidden and pinned tabs ([#5441](https://github.com/tridactyl/tridactyl/issues/5441))
+    - configuration changes no longer get lost when made in quick succession ([#5431](https://github.com/tridactyl/tridactyl/issues/5431))
+    - `:hint` no longer shows hints for hidden or off-screen elements ([#5434](https://github.com/tridactyl/tridactyl/issues/5434))
+    - Page keypresses should no longer be swallowed after cancelling a keybinding ([#4958](https://github.com/tridactyl/tridactyl/issues/4958))
+    - `:autocontain` no longer loops when multiple containers share a name ([#2293](https://github.com/tridactyl/tridactyl/issues/2293))
+    - Command-line messages and update checks no longer replace the command used by `:repeat`
+    - `:editor` now reports errors instead of silently failing, including when no editable element was previously focused ([#4697](https://github.com/tridactyl/tridactyl/issues/4697))
+    - `insert` and `input` modes no longer interpret leading numbers as numeric prefixes ([#4492](https://github.com/tridactyl/tridactyl/issues/4492))
+    - `<C-u>` now works in multiline contenteditable elements ([#1151](https://github.com/tridactyl/tridactyl/issues/1151))
+    - `<Space>` in the command line no longer inserts spaces out of order when input arrives quickly ([#5447](https://github.com/tridactyl/tridactyl/issues/5447))
+    - `f` hint mode now ignores disabled form controls
+    - `:urlincrement` preserves percent encoding ([#4723](https://github.com/tridactyl/tridactyl/issues/4723))
+    - `:bind` now reports binds for the focused window's URL ([#5092](https://github.com/tridactyl/tridactyl/issues/5092))
+    - site-specific settings now update correctly when switching between Firefox windows ([#5443](https://github.com/tridactyl/tridactyl/issues/5443))
+    - `:autocontain` no longer creates duplicate containers when multiple matching tabs open at once ([#5290](https://github.com/tridactyl/tridactyl/issues/5290))
+    - config migration now runs immediately, so settings changed during startup are no longer overwritten ([#5449](https://github.com/tridactyl/tridactyl/issues/5449))
+    - `:mode` now reports an error instead of breaking Tridactyl when called without a mode ([#5388](https://github.com/tridactyl/tridactyl/issues/5388))
+    - `:tabdetach` works again when Firefox cannot resolve the default new-window URI ([#5454](https://github.com/tridactyl/tridactyl/issues/5454))
+    - `:tabopen` now matches autocontainer rules against canonicalised URLs
+    - `:editor` now works with textareas that require input events to accept changes ([#5359](https://github.com/tridactyl/tridactyl/issues/5359))
+    - insert mode now works for input elements in closed shadow DOMs ([#5412](https://github.com/tridactyl/tridactyl/issues/5412))
+    - `:unbind` can now unbind binds inherited from other modes ([#5389](https://github.com/tridactyl/tridactyl/issues/5389))
+    - `:reader` no longer overrides syntax highlighting in code blocks ([#4931](https://github.com/tridactyl/tridactyl/issues/4931))
+    - `\\` in RC files now preserves a literal `\` ([#2334](https://github.com/tridactyl/tridactyl/issues/2334))
+    - `:nmode` works when called from insert mode ([#4437](https://github.com/tridactyl/tridactyl/issues/4437))
+    - `:open` and `:tabopen` now work with `file:` URLs from `searchurls` ([#1415](https://github.com/tridactyl/tridactyl/issues/1415))
+    - expired `:reader` tabs now explain how to return with `:back` and run `:reader` again ([#5320](https://github.com/tridactyl/tridactyl/issues/5320))
+    - `:set hintshift true` now automatically highlights the shifted hint ([#2418](https://github.com/tridactyl/tridactyl/issues/2418))
+    - `:bmarks -b` now shows bookmark completions ([#4166](https://github.com/tridactyl/tridactyl/issues/4166))
+    - hints no longer remain on the page after leaving `hint` mode, no matter how you left ([#1236](https://github.com/tridactyl/tridactyl/issues/1236))
+    - more non-standard dropdowns now enter insert mode when focused ([#281](https://github.com/tridactyl/tridactyl/issues/281))
+    - Vimperator hint filtering now matches spaces literally when Space is unbound ([#3029](https://github.com/tridactyl/tridactyl/issues/3029))
+    - `:taball`, `:tabgrab`, and window completions now update when tabs change ([#2645](https://github.com/tridactyl/tridactyl/issues/2645))
+    - custom themes no longer require a `tridactylrc` file ([#1378](https://github.com/tridactyl/tridactyl/issues/1378))
+    - `:colourscheme --url` now more reliably applies newly downloaded custom themes ([#5307](https://github.com/tridactyl/tridactyl/issues/5307))
+    - `gg` and `G` now scroll smoothly when `:set smoothscroll true` is enabled ([#3639](https://github.com/tridactyl/tridactyl/issues/3639))
+    - `:gobble` now accepts `Tab` as part of the key sequence
+    - `:bindwizard` now includes `<Tab>` in the generated key sequence ([#4772](https://github.com/tridactyl/tridactyl/issues/4772))
+    - `:set modeindicatormodes.normal false` now hides the mode indicator immediately on page load ([#5085](https://github.com/tridactyl/tridactyl/issues/5085))
+    - `:setnull` now offers setting completions ([#3673](https://github.com/tridactyl/tridactyl/issues/3673))
+    - `<S-Space>` bindings now work ([#4175](https://github.com/tridactyl/tridactyl/issues/4175))
+    - Vimperator hints now prefer exact matches over longer hints with the same prefix ([#2935](https://github.com/tridactyl/tridactyl/issues/2935))
+    - `:source --url` no longer shows filesystem completions ([#2331](https://github.com/tridactyl/tridactyl/issues/2331))
+    - `<C-o>w` now works with `:bmarks ` completions ([#5451](https://github.com/tridactyl/tridactyl/issues/5451))
+    - scrolling works better on pages using CSS smooth scrolling ([#5452](https://github.com/tridactyl/tridactyl/issues/5452))
+    - `:winopen -popup -c` now opens popup windows in the specified container ([#4959](https://github.com/tridactyl/tridactyl/issues/4959))
+    - `fillcmdline` bindings now buffer page keypresses reliably, including aliases and `:composite` commands ([#5436](https://github.com/tridactyl/tridactyl/issues/5436))
+    - `:hint` now reports invalid CSS selectors instead of hanging
+    - `auconcreatecontainer` no longer creates containers just to look up proxies
+    - `:focusinput -l` no longer remembers insubstantial inputs on page focus ([#5413](https://github.com/tridactyl/tridactyl/issues/5413))
+    - `:winopen` no longer opens an extra dummy tab when using container plugins ([#4000](https://github.com/tridactyl/tridactyl/issues/4000))
+    - Command line sessions no longer block each other after a command gets stuck ([#3411](https://github.com/tridactyl/tridactyl/issues/3411))
+    - `blacklistkeys` now protects keys pressed in iframes (e.g. Google Docs!) ([#5480](https://github.com/tridactyl/tridactyl/issues/5480))
+    - `file:` hints now open via `:open` instead of failing silently ([#5080](https://github.com/tridactyl/tridactyl/issues/5080))
+    - hints no longer make animated elements disappear ([#3548](https://github.com/tridactyl/tridactyl/issues/3548))
+    - `modeindicator` now updates without reloading the page ([#4738](https://github.com/tridactyl/tridactyl/issues/4738))
+    - `<C-o>yy` now closes the command line after copying a completion ([#3256](https://github.com/tridactyl/tridactyl/issues/3256))
+    - `:back` branches are now sorted by newest members ([#5492](https://github.com/tridactyl/tridactyl/issues/5492))
+    - `modeindicator` now works on pages without a `<body>` ([#1163](https://github.com/tridactyl/tridactyl/issues/1163))
+    - dark theme hint highlights now remain readable on light pages ([#4420](https://github.com/tridactyl/tridactyl/issues/4420))
+    - mode indicator text no longer appears in Firefox's find results ([#2089](https://github.com/tridactyl/tridactyl/issues/2089))
+    - `;x` and `;X` now work in same-origin iframes ([#3261](https://github.com/tridactyl/tridactyl/issues/3261))
+    - counts are no longer interpreted in ex, ignore, or hint mode ([#1658](https://github.com/tridactyl/tridactyl/issues/1658))
+    - content state listeners no longer run when nothing changed ([#2360](https://github.com/tridactyl/tridactyl/issues/2360))
+    - completions update when navigating ex command history ([#5109](https://github.com/tridactyl/tridactyl/issues/5109))
+    - `:autocmddelete` now works on default autocmds ([#4605](https://github.com/tridactyl/tridactyl/issues/4605))
+    - `:tabopen -c` no longer loses its specified container in strict `autocontainmode` ([#3562](https://github.com/tridactyl/tridactyl/issues/3562))
+    - `searchurls` now always encode search terms, including `#` ([#5122](https://github.com/tridactyl/tridactyl/issues/5122))
+    - `:source` for local files and `:mktridactylrc` now show a helpful error when native is missing ([#3730](https://github.com/tridactyl/tridactyl/issues/3730))
+    - `modeindicator` breaks fewer pages ([#821](https://github.com/tridactyl/tridactyl/issues/821))
+    - `:tabopen` should no longer open tabs in the wrong window ([#1019](https://github.com/tridactyl/tridactyl/issues/1019))
+    - completion results should no longer appear out of order when filtering is slow ([#4584](https://github.com/tridactyl/tridactyl/issues/4584))
+    - `:native` now reports detailed native messenger errors ([#1555](https://github.com/tridactyl/tridactyl/issues/1555))
+    - commandline now works on more pages with restrictive CSP ([#5474](https://github.com/tridactyl/tridactyl/issues/5474))
+    - `:keymap .` works ([#2333](https://github.com/tridactyl/tridactyl/issues/2333))
+    - `:extoptions` completions work again ([#5459](https://github.com/tridactyl/tridactyl/issues/5459))
+    - `:winopen -c` now opens URLs directly in the specified container ([#5439](https://github.com/tridactyl/tridactyl/issues/5439))
+    - configuration saving now preserves values that JSON stringification would discard
+    - JS hints now use the same visibility checks as regular hints
+    - `:fillcmdline_tmp` no longer blocks completions until its timeout expires ([#5402](https://github.com/tridactyl/tridactyl/issues/5402))
+    - `followpagepatterns` now accepts ordered pattern arrays so `]]` and `[[` are less likely to jump straight to the first/last page ([#1730](https://github.com/tridactyl/tridactyl/issues/1730))
+    - `:guiset` now reports native messenger write errors ([#2094](https://github.com/tridactyl/tridactyl/issues/2094))
+    - beta builds now use the next release's version number rather than claiming to be pre-releases of the previous version
+    - `HistoryState` autocmds now trigger reliably on same-document navigation ([#4329](https://github.com/tridactyl/tridactyl/issues/4329))
+    - `:q` can no longer report “Message manager disconnected” when closing tabs ([#1528](https://github.com/tridactyl/tridactyl/issues/1528))
+    - `:set newtab about:blank` now shows `&centerdot;` rather than `New Tab` as the tab title ([#5021](https://github.com/tridactyl/tridactyl/issues/5021))
+    - macOS Firefox profile detection now finds profiles three directories deep ([#1627](https://github.com/tridactyl/tridactyl/issues/1627))
+    - Missing `tridactylrc` errors now point to `:help source` and include native error details ([#4088](https://github.com/tridactyl/tridactyl/issues/4088))
+    - `xclip` processes now exit after setting the clipboard ([#4822](https://github.com/tridactyl/tridactyl/issues/4822))
+    - Native messenger errors now include the underlying error instead of hiding it ([#4827](https://github.com/tridactyl/tridactyl/issues/4827))
+    - `:nativeopen` now works with Firefox Nightly on macOS ([#1113](https://github.com/tridactyl/tridactyl/issues/1113))
+    - `:tabdiscard` now reports an error when no tab index is provided ([#5400](https://github.com/tridactyl/tridactyl/issues/5400))
+    - `modeindicatormodes` now applies to the mode indicator on page load ([#2690](https://github.com/tridactyl/tridactyl/issues/2690))
+    - ex-mode (commandline) help works again ([#5044](https://github.com/tridactyl/tridactyl/issues/5044))
+    - hidden mode indicators no longer flash while scrolling ([#4760](https://github.com/tridactyl/tridactyl/issues/4760))
+    - `find` no longer (fails to) run on Windows during Firefox profile detection ([#2130](https://github.com/tridactyl/tridactyl/issues/2130))
+    - `:editor` now works in inputs inside elements with IDs starting with digits ([#2676](https://github.com/tridactyl/tridactyl/issues/2676))
+    - `searchurls` now only interpolates documented `%s1-9` placeholders ([#3868](https://github.com/tridactyl/tridactyl/issues/3868))
+    - `:js` now works with JavaScript filenames containing `-d` ([#3684](https://github.com/tridactyl/tridactyl/issues/3684))
+    - `:guiset hoverlink left` works again after using `none` ([#1957](https://github.com/tridactyl/tridactyl/issues/1957))
+    - `halloween` theme no longer breaks commands such as `:hint -y` ([#2025](https://github.com/tridactyl/tridactyl/issues/2025))
+
+- Miscellaneous
+
+    - `:bind` docs now explain how to use Firefox-reserved keys such as `<C-n>` via `about:keyboard` ([#5335](https://github.com/tridactyl/tridactyl/issues/5335))
+    - `:help` navigation pane now links to commands, settings, tutorial, editor functions, hint mode commands, and the wiki ([#5194](https://github.com/tridactyl/tridactyl/issues/5194))
+    - `:tutor` now has a navigation pane for jumping between tutorial pages ([#5311](https://github.com/tridactyl/tridactyl/issues/5311))
+    - `:back` and `:forward` documentation now explains counts and the tab history tree ([#4737](https://github.com/tridactyl/tridactyl/issues/4737))
+    - the changelog on the new tab now uses an accessible `<details>` toggle ([#5029](https://github.com/tridactyl/tridactyl/issues/5029))
+    - `--tridactyl-search-highlight-color` and `--tridactyl-search-highlight-active-color` can now customise normal and active `:find` highlights ([#3040](https://github.com/tridactyl/tridactyl/issues/3040))
+    - `:set` completions can now show column headings for settings, current values, possible values, and documentation ([#966](https://github.com/tridactyl/tridactyl/issues/966))
+    - `:goto` completions now show heading trees like `:back` ([#5456](https://github.com/tridactyl/tridactyl/issues/5456))
+    - `--tridactyl-container-border` lets themes style mode indicator borders in container tabs ([#3897](https://github.com/tridactyl/tridactyl/issues/3897))
+    - `--mode` completions now show descriptions for each binding mode ([#3312](https://github.com/tridactyl/tridactyl/issues/3312))
+    - `tri.l` now logs non-promises as well ([#4352](https://github.com/tridactyl/tridactyl/issues/4352))
+    - `:tutor` previous-page links are now visible and labelled ([#5026](https://github.com/tridactyl/tridactyl/issues/5026))
+    - `:set` now handles arrays in deep settings ([#2918](https://github.com/tridactyl/tridactyl/issues/2918))
+    - `:hint -W` now uses the content script where possible ([#3569](https://github.com/tridactyl/tridactyl/issues/3569))
+    - `:source` now runs config updaters after importing an RC file ([#1905](https://github.com/tridactyl/tridactyl/issues/1905))
+    - builds now work in Git worktrees ([#5442](https://github.com/tridactyl/tridactyl/issues/5442))
+    - `scripts/sign nosignbeta` no longer includes an `update_url` in unsigned beta builds ([#2720](https://github.com/tridactyl/tridactyl/issues/2720))
+    - `:drawingstart` now shows a cursor to help you aim better ([#4006](https://github.com/tridactyl/tridactyl/issues/4006))
+    - Tridactyl no longer errors when `PerformanceObserver` is unavailable ([#1757](https://github.com/tridactyl/tridactyl/issues/1757))
+    - `wine-pyinstaller.sh` now supports newer versions of Wine and 7-Zip ([#1240](https://github.com/tridactyl/tridactyl/issues/1240))
+    - `:tutor` no longer breaks the troubleshooting guide link ([#5209](https://github.com/tridactyl/tridactyl/issues/5209))
+    - `scripts/version.js bump` now adds release notes to release commits and dates the matching changelog entry ([#517](https://github.com/tridactyl/tridactyl/issues/517))
+    - `:source` and `:mkt` now document RC file syntax, search precedence, and one-time loading ([#3902](https://github.com/tridactyl/tridactyl/issues/3902))
+    - `:tutor` now documents container commands, settings, and automatic container assignment ([#3008](https://github.com/tridactyl/tridactyl/issues/3008))
+    - `:mode ignore` docs now explain its toggle shortcuts and how to bind custom toggles ([#2108](https://github.com/tridactyl/tridactyl/issues/2108))
+    - website builds work again ([#5144](https://github.com/tridactyl/tridactyl/issues/5144))
+    - `:colourscheme` docs now link to the custom theme guide and explain flashes while themes load ([#3466](https://github.com/tridactyl/tridactyl/issues/3466))
+    - `profiledir` docs now explain automatic detection, absolute paths, and Firefox `-P`/`--profile` launch options ([#4149](https://github.com/tridactyl/tridactyl/issues/4149))
+    - `:ttsread` docs now explain how to read selected text in visual mode ([#3848](https://github.com/tridactyl/tridactyl/issues/3848))
+    - `yarn pretty` now shows the changes it makes to staged files ([#2514](https://github.com/tridactyl/tridactyl/issues/2514))
+    - Firefox's "Never remember history" setting now has a troubleshooting note explaining its effect on Tridactyl's persistent state ([#4302](https://github.com/tridactyl/tridactyl/issues/4302))
+    - daily E2E runs now test the latest Firefox beta to help us catch broken stuff before it reaches most users ([#5241](https://github.com/tridactyl/tridactyl/issues/5241))
+    - `:open site [query]` jsurl added to example .tridactylrc for searching the current website ([#5358](https://github.com/tridactyl/tridactyl/issues/5358))
+    - `:tutor` now explains how to inspect current bindings with `:viewconfig` and `:bind --mode=` ([#3228](https://github.com/tridactyl/tridactyl/issues/3228))
+    - e2e tests now exit reliably after cleaning up all WebDriver instances
+    - `browser-targets.json` now shares minimum browser versions between build targets
+    - `:hint -k` and `:hint -K` documentation now clearly distinguishes deleting from hiding ([#5052](https://github.com/tridactyl/tridactyl/issues/5052))
+    - TypeScript 6 and TypeDoc 0.28 are now used for builds and documentation (I had been putting this off for ~5 years) ([#5450](https://github.com/tridactyl/tridactyl/issues/5450))
+    - `proxy` now documents that `none` disables the proxy and works with `:autocontain` ([#4226](https://github.com/tridactyl/tridactyl/issues/4226))
+    - `:updatenag` now gives the correct steps for checking Tridactyl updates in Firefox ([#5415](https://github.com/tridactyl/tridactyl/issues/5415))
+    - `:rssexec` e2e test is less flaky ([#5426](https://github.com/tridactyl/tridactyl/issues/5426))
+    - on Windows `:nativeinstall` now suggests running cmd.exe as Administrator if installation fails ([#4512](https://github.com/tridactyl/tridactyl/issues/4512))
+    - AMO credentials are now hidden from `scripts/sign` logs ([#3633](https://github.com/tridactyl/tridactyl/issues/3633))
+    - `:guiset` help now explains how to find and set `profiledir` on Windows ([#4462](https://github.com/tridactyl/tridactyl/issues/4462))
+    - `:bind` and `:gobble` docs now explain dynamic keybindings and the `:command` alias workaround ([#1985](https://github.com/tridactyl/tridactyl/issues/1985))
+    - `profiledir` docs now warn against surrounding paths with quotes ([#4726](https://github.com/tridactyl/tridactyl/issues/4726))
+    - E2E tests no longer fail when Google blocks CI
+    - argument parsing now applies default option values consistently to `:find`, `:findnext`, `:tabprev`, and `:keyfeed` ([#4711](https://github.com/tridactyl/tridactyl/issues/4711))
+    - `editorcmd` now documents `start /wait` for Windows editors ([#5072](https://github.com/tridactyl/tridactyl/issues/5072))
+    - `:source` and `:sanitise` docs now warn that persisted settings may briefly apply at startup ([#1179](https://github.com/tridactyl/tridactyl/issues/1179))
+    - RC file documentation now links to GitHub code search for other `tridactylrc` files ([#4736](https://github.com/tridactyl/tridactyl/issues/4736))
+    - `<C-[>` is now unbound in the exemplar `.tridactylrc`, freeing it for back navigation ([#5365](https://github.com/tridactyl/tridactyl/issues/5365))
+    - Normal mode tutorial now clearly explains keyword searches ([#5051](https://github.com/tridactyl/tridactyl/issues/5051))
+    - `:discardall` now aliases the built-in `:tabdiscard --all` command in the example config ([#5479](https://github.com/tridactyl/tridactyl/issues/5479))
+    - `:js` help now correctly displays examples for custom ex-commands
+    - `searchurls.julia` has been removed from the example RC
+
+Thanks to all of our contributors for this release: Oliver Blanthorn, Chic-Tweetz, mmustafasenoglu, gholk, glacambre, paris and wskozel.
+
+Extra special thanks go to mmustafasenoglu and wskozel who both contributed for the first time.
+
+Last, but not least - thank you to everyone who reported the issues we closed in this release: bovine3dom, glacambre, people who have since deleted their GitHub accounts, notJerl, cmcaine, GHolk, Rummskartoffel, indeedwatson, Monirzadeh, mozbugbox, alerque, antonva, avalonv, Chic-Tweetz, eboth, ELLIOTTCABLE, guy-who-googles, hejops, jkavalec, laur89, MoltenMonster, ok-nick, pataquets, rodrigo-morales-1, saulrh, utsekaj42, wavexx, a7u8, aavogt, abo-abo, adamency, alanoliveira, albert-ying, Alice-Null, allanwind, anmolmathias, antran22, Artikool5, asteroidcow, azatoth, bambams, basbebe, Betelgeuse1, bew, b-jazz, bodograumann, booxter, borazan, boriselec, bpmcl, braham-snyder, caputchinefrobles, cheonhyangzhang, codesoverhill, CoelacanthusHex, Corallus-Caninus, cprn, davidsierradz, dioobspm, dmpetroff, dotancohen, dwawlyn, dwolf42, e00E, farnoy, Flimm, frenchbeard, gcmurray1990, Geobert, glm4610, glyh, groundstation1, gsbabil, henk84, henkworks, herrsimon, heyzec, HiPhish, hnorkowski, hpfr, IceAsteroid, In-line, j-a-m-l, jcrowgey, jimrs, jjeffrey, j-lakeman, Jonta, jumper047, KAGEYAM4, kartynnik, kpeejp, kwstannard, lyterk, madduck, make-github-pseudonymous-again, Massimo-B, Mercvre80, mesaprotector, mightyiam, MilanV, minhduc0711, mist, mocamp3, mornfall, Nampuk, natefabian18, newbould5, nicksavoie, nkitsaini, noctuid, noib3, nullpointseven, numirias, nvkrishna77, otterlover24, OwenAR, oxysoft, pengowen123, pickfire, pmaziere, pnelson, pufferfish-connoisseur, pzzxqj, quisquama, Qwyntex, radgeRayden, raffaelemancuso, ricardoseriani, robertgzr, russsharek, rutgersc, scottjad, silmeth, solna86, stagnation, StarTroop, stef, synaps13, Terx37, ThinkChaos, timokau, timss, tom-mi, user471, Utopiah, vaibhav423, Vftdan, vulns-are-features-too, waterbear5, whnr, winchendonsprings, WloHu, Wolfbeta, WolodiaM, x-ji, xNyfPtx, ybc37, yegle and zsugabubus!
+
 # Release 1.24.6 / 2026-05-17
 
 Emergency release to work around broken themes in FF152+ (we did get a couple of months of prior warning, but I forgot :( )

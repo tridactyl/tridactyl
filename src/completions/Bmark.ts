@@ -24,7 +24,7 @@ class BmarkCompletionOption
             <td class="title">${bmark.path}${bmark.title}</td>
             <td class="content">
                 <a class="url" target="_blank" href=${bmark.url}
-                    >${bmark.url}</a
+                    >${Completions.decodeUrlForDisplay(bmark.url)}</a
                 >
             </td>
         </tr>`
@@ -70,6 +70,11 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
             option += " "
             query = args.slice(2).join(" ")
         }
+        if (query.startsWith("-b")) {
+            const args = query.split(" ")
+            option += args.slice(0, 1).join(" ") + " "
+            query = args.slice(1).join(" ")
+        }
 
         this.completion = undefined
         this.options = (await providers.getBookmarks(query))
@@ -95,16 +100,6 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
 
         // Call concrete class
         return this.updateDisplay()
-    }
-
-    select(option: Completions.CompletionOption) {
-        if (this.lastExstr !== undefined && option !== undefined) {
-            this.completion = "bmarks " + option.value
-            option.state = "focused"
-            this.lastFocused = option
-        } else {
-            throw new Error("lastExstr and option must be defined!")
-        }
     }
 }
 

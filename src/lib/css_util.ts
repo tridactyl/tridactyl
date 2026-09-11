@@ -53,7 +53,7 @@ export const potentialRules = {
         options: {
             none: `display: none !important;`,
             right: `right: 0; display: inline;`,
-            left: ``,
+            left: `right: auto; top: auto; left: 0; display: inline`,
             "top-left": `top: 2em; z-index: 2; display: inline;`,
             "top-right": `top: 2em; z-index: 2; right: 0; display: inline;`,
         },
@@ -167,6 +167,13 @@ export const potentialRules = {
             show: ``,
         },
     },
+    sidebar: {
+        name: `#sidebar-main`,
+        options: {
+            hide: `display: none !important;`,
+            show: ``,
+        },
+    },
     padwhenmaximised: {
         name: `#main-window[sizemode="maximized"] #content-deck`,
         options: {
@@ -210,6 +217,7 @@ export const metaRules = {
             tabs: "always",
             navbar: "always",
             menubar: "default",
+            sidebar: "show",
             padwhenmaximised: "none",
         },
     },
