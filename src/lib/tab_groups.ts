@@ -68,6 +68,113 @@ async function getGroupIdFromName(
     }
 }
 
+/** Activate a native group: expand it and focus its most recently used tab. */
+export async function activateNativeGroup(
+    groupId: number,
+    windowId: number,
+): Promise<void> {
+    await browserBg.tabGroups.update(groupId, { collapsed: false })
+    const tabs = await browserBg.tabs.query({ windowId, groupId })
+    if (tabs.length > 0) {
+        tabs.sort((a, b) => (b.lastAccessed || 0) - (a.lastAccessed || 0))
+        await browserBg.tabs.update(tabs[0].id, { active: true })
+    }
+}
+
+/** Groups in the window ordered by position in the tab strip. */
+export async function orderedNativeGroups(
+    windowId?: number,
+): Promise<browser.tabGroups.TabGroup[]> {
+    if (windowId === undefined) {
+        windowId = await activeWindowId()
+    }
+    const [groups, tabs] = await Promise.all([
+        browserBg.tabGroups.query({ windowId }),
+        browserBg.tabs.query({ windowId }),
+    ])
+    const firstIndex = new Map<number, number>()
+    for (const tab of tabs) {
+        if (tab.groupId !== undefined && tab.groupId !== -1) {
+            const prev = firstIndex.get(tab.groupId)
+            if (prev === undefined || tab.index < prev) {
+                firstIndex.set(tab.groupId, tab.index)
+            }
+        }
+    }
+    return groups.sort(
+        (a, b) =>
+            (firstIndex.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+            (firstIndex.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+    )
+}
+
+/** Cycle to the next/previous native group with wraparound. */
+export async function cycleNativeGroup(
+    direction: 1 | -1,
+): Promise<string | undefined> {
+    const windowId = await activeWindowId()
+    const ordered = await orderedNativeGroups(windowId)
+    if (ordered.length === 0) return undefined
+    const current = await windowTgroup(windowId)
+    let idx = ordered.findIndex(g => g.title === current)
+    if (idx === -1) {
+        idx = direction === 1 ? -1 : 0
+    }
+    const next =
+        ordered[(idx + direction + ordered.length) % ordered.length]
+    await activateNativeGroup(next.id, windowId)
+    return next.title
+}
+
+/** Collapse, expand or toggle a native group (default: current group). */
+export async function setNativeGroupCollapsed(
+    name: string | undefined,
+    collapsed: boolean | "toggle",
+): Promise<string> {
+    const windowId = await activeWindowId()
+    const target = name ?? (await windowTgroup(windowId))
+    if (!target) {
+        throw new Error("No tab group specified and current tab is not in a group")
+    }
+    const groupId = await getGroupIdFromName(target, windowId)
+    if (groupId === undefined) {
+        throw new Error(`No tab group named "${target}"`)
+    }
+    if (collapsed === "toggle") {
+        const group = await browserBg.tabGroups.get(groupId)
+        collapsed = !group.collapsed
+    }
+    await browserBg.tabGroups.update(groupId, { collapsed })
+    return target
+}
+
+/** Move the current native group next to the target group. */
+export async function moveNativeGroup(
+    targetName: string,
+): Promise<string> {
+    const windowId = await activeWindowId()
+    const current = await windowTgroup(windowId)
+    if (!current) {
+        throw new Error("Current tab is not in a tab group")
+    }
+    if (current === targetName) {
+        throw new Error(`Group "${current}" is already at "${targetName}"`)
+    }
+    const ordered = await orderedNativeGroups(windowId)
+    const currentGroup = ordered.find(g => g.title === current)
+    const targetGroup = ordered.find(g => g.title === targetName)
+    if (!currentGroup) throw new Error(`No tab group named "${current}"`)
+    if (!targetGroup) throw new Error(`No tab group named "${targetName}"`)
+    let targetIdx = ordered.findIndex(g => g.id === targetGroup.id)
+    const currentIdx = ordered.findIndex(g => g.id === currentGroup.id)
+    if (currentIdx < targetIdx) targetIdx -= 1
+    await browserBg.tabGroups.move(currentGroup.id, {
+        index: targetIdx,
+        windowId,
+    })
+    return current
+}
+
 async function getOrCreateGroupId(
     name: string,
     windowId?: number,
@@ -358,9 +465,11 @@ export async function setTabTgroup(name: string, id?: number | number[]) {
         const windowId = tab.windowId
         const groupId = await getOrCreateGroupId(name, windowId)
         if (groupId === -1) {
-            return ids.map(id => {
-                browserBg.sessions.setTabValue(id, "tridactyl-tgroup", name)
-            })
+            return Promise.all(
+                ids.map(id =>
+                    browserBg.sessions.setTabValue(id, "tridactyl-tgroup", name),
+                ),
+            )
         }
         try {
             return await browserBg.tabs.group({
@@ -372,9 +481,11 @@ export async function setTabTgroup(name: string, id?: number | number[]) {
         }
     }
 
-    return ids.map(id => {
-        browserBg.sessions.setTabValue(id, "tridactyl-tgroup", name)
-    })
+    return Promise.all(
+        ids.map(id =>
+            browserBg.sessions.setTabValue(id, "tridactyl-tgroup", name),
+        ),
+    )
 }
 
 /**
@@ -394,9 +505,11 @@ export async function clearTabTgroup(id?: number | number[]) {
         }
     }
 
-    return ids.map(id => {
-        browserBg.sessions.removeTabValue(id, "tridactyl-tgroup")
-    })
+    return Promise.all(
+        ids.map(id =>
+            browserBg.sessions.removeTabValue(id, "tridactyl-tgroup"),
+        ),
+    )
 }
 
 /**

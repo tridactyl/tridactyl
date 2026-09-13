@@ -71,7 +71,7 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent: any) {
         super(
-            ["tgroupswitch", "tgroupmove", "tgroupclose"],
+            ["tgroupswitch", "tgroupmove", "tgroupattach", "tgroupclose", "tgroupcollapse", "tgroupexpand", "tgrouptoggle", "tgroupmovegroup"],
             "TabGroupCompletionSource",
             "Tab Groups",
         )
