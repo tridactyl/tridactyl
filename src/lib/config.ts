@@ -254,6 +254,11 @@ export class default_config {
     superignore: "true" | "false" = "false"
 
     /**
+     * Whether gg/G should scroll the root document or the focused nested document like j/k
+     */
+    ggscrollsroot: "true" | "false" = "true"
+
+    /**
      * nmaps contain all of the bindings for "normal mode".
      *
      * They consist of key sequences mapped to ex commands.
