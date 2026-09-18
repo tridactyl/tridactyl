@@ -290,6 +290,7 @@ window["tri"] = Object.assign(Object.create(null), {
     native,
     styling,
     contentLocation: window.location,
+    contentMode: contentState.mode,
     perf,
     R,
     updates,
