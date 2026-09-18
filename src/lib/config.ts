@@ -2298,8 +2298,9 @@ export function unsetURL(pattern, ...target) {
 export async function unset(...target) {
     if (IN_BACKGROUND && EXCLUSIVE_PENDING) await EXCLUSIVE_QUEUE
     if (IN_BACKGROUND && !INITIALISED) await getAsync()
-    const parent = getDeepProperty(USERCONFIG, target.slice(0, -1))
-    if (parent !== undefined) delete parent[target[target.length - 1]]
+    // Use the stored object, not the copy returned by inheritance.
+    const parent = R.path(target.slice(0, -1), USERCONFIG)
+    if (parent != null) delete parent[target[target.length - 1]]
     if (!IN_BACKGROUND) return mutateInBackground("unset", target)
     return save()
 }
