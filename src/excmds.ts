@@ -3915,7 +3915,8 @@ export async function tgroupcreate(name: string, color?: string) {
  *
  */
 //#background
-export async function tgroupswitch(name: string) {
+export async function tgroupswitch(...nameParts: string[]) {
+    const name = nameParts.join(" ")
     if (name === "#") {
         return tgrouplast().then(() => name)
     }
@@ -4795,7 +4796,23 @@ export async function tabrename(index: string, ...name: string[]) {
 //#background
 export async function tab_helper(interactive: boolean, anyWindow: boolean, ...key: string[]) {
     const id = key.join(" ")
-    if (Number.isInteger(Number(id))) return tabIndexSetActive(Number(id))
+    if (Number.isInteger(Number(id))) {
+        const index = Number(id)
+
+        // `:tab` completions display numbers relative to the active native
+        // group, so resolve numerics the same way. `:taball` stays global,
+        // as do ungrouped tabs and legacy groups.
+        if (!anyWindow && hasNativeTabGroups()) {
+            const current = await activeTab()
+            if (current.groupId !== undefined && current.groupId !== -1) {
+                const tabs = (await getSortedTabs()).filter(tab => tab.groupId === current.groupId)
+                const wrappedIndex = (index - 1).mod(tabs.length) + 1
+                return tabSetActive(tabs[wrappedIndex - 1].id)
+            }
+        }
+
+        return tabIndexSetActive(index)
+    }
     if (id === "#") return tabIndexSetActive(id)
 
     if (id !== null && id !== undefined && !/\d+\.\d+/.exec(id)) {
