@@ -1,0 +1,43 @@
+" Gmail example
+"
+" Some basic configuration examples to make tridactyl work with gmail.
+"
+" A few examples below are more advanced and esoteric, so they're commented out
+" by default.
+
+" We want to use various native gmail keybinds rather than shadowing them with
+" tridactyl keybinds.
+unbindurl mail.google.com/mail r
+unbindurl mail.google.com/mail j
+unbindurl mail.google.com/mail k
+unbindurl mail.google.com/mail c
+unbindurl mail.google.com/mail x
+unbindurl mail.google.com/mail u
+
+" If a multikey keybind shares a prefix with another multikey keybind, then
+" simply unbinding it will not work correctly, so for some of these we use a bit
+" of a hack to ensure they are properly passed through to gmail
+"
+" goto inbox
+bindurl mail.google.com/mail gi js \
+[...'gi'].forEach(c => document.dispatchEvent(new KeyboardEvent('keydown',{key: c})))
+
+" goto sent
+bindurl mail.google.com/mail gt js \
+[...'gi'].forEach(c => document.dispatchEvent(new KeyboardEvent('keydown',{key: c})))
+
+" archive message (or marked messages)
+bindurl mail.google.com/mail e js \
+document.dispatchEvent(new KeyboardEvent('keydown',{key:'e'}));
+
+" " Filter out some of the hints we don't want to see in hint mode
+" seturl mail.google.com/mail badSelectors \
+" tr[role=row],\
+" td[role=gridcell]
+"
+" bindurl mail.google.com/mail f js hint('-x', get('badSelectors'))
+"
+" " But also preserve the default hint mode for refereence
+" bindurl mail.google.com/mail ;f hint
+
+" " vim: set filetype=tridactyl
