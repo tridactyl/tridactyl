@@ -16,7 +16,7 @@ If you have `privacy.resistFingerprinting` set to `true` in `about:config`, Trid
 
 Selecting **Never remember history** in the History section of Firefox's Privacy & Security settings enables permanent private browsing. Tridactyl then treats every window as private and cannot persist state such as command history or global marks. Choose another history setting unless this behaviour is intended.
 
-If you have `permissions.default.shortcuts` set to `2` in `about:config`, websites are blocked from overriding keyboard shortcuts, but keys like `ESC` may also stop working in Tridactyl (for example, `ESC` no longer exits hint mode). Set it back to the default `0` unless you need the block. [#5504](https://github.com/tridactyl/tridactyl/issues/5504)
+If you have `permissions.default.shortcuts` set to `2` in `about:config`, keys like `<Esc>` may stop working in Tridactyl (for example, `<Esc>` no longer exits hint mode). It must remain set to the default: `0`. [#5504](https://github.com/tridactyl/tridactyl/issues/5504)
 
 # Keyboard layout issues
 
