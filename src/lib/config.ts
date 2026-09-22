@@ -254,9 +254,9 @@ export class default_config {
     superignore: "true" | "false" = "false"
 
     /**
-     * Whether gg/G should scroll the root document or the focused nested document like j/k
+     * Whether gg/G should the focused nested document like j/k or scroll the root document (default)
      */
-    ggscrollsroot: "true" | "false" = "true"
+    scrolltofollowfocus: "true" | "false" = "false"
 
     /**
      * nmaps contain all of the bindings for "normal mode".
