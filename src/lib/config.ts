@@ -325,6 +325,10 @@ export class default_config {
         K: "tabnext",
         gt: "tabnext_gt",
         gT: "tabprev",
+        gsh: "splitnext", // c-w w is reserved for closing windows
+        gsl: "splitnext",
+        gsw: "splitnext",
+        // let's keep gss for making a split once we're allowed
         // "<c-n>": "tabnext_gt", // c-n is reserved for new window
         // "<c-p>": "tabprev",
         "g^": "tabfirst",
