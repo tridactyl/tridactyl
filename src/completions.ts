@@ -16,6 +16,12 @@ import { backoff } from "@src/lib/patience"
 import * as config from "@src/lib/config"
 export { decodeUrlForDisplay } from "@src/lib/url_util"
 
+export function matchesAllWords(text: string, query: string) {
+    const lowerText = text.toLowerCase()
+    const words = query.toLowerCase().split(" ")
+    return words.every(word => lowerText.includes(word))
+}
+
 export function treePrefix(level: number) {
     return `  ${"  ".repeat(Math.max(level - 1, 0))}${level ? "┌─" : ""}· `
 }

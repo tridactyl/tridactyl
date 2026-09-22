@@ -8,9 +8,10 @@ export function glossaryOptions(createOption, query: string, prefix: boolean) {
         .filter(entry =>
             prefix
                 ? entry.word.toLowerCase().startsWith(needle)
-                : (entry.word + entry.definition)
-                      .toLowerCase()
-                      .includes(needle),
+                : Completions.matchesAllWords(
+                      entry.word + entry.definition,
+                      query,
+                  ),
         )
         .map(entry =>
             createOption(entry.word, `Glossary. ${entry.definition}`, "-g"),
