@@ -1448,7 +1448,7 @@ export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
             done = scrolling.recursiveScroll(
                 0,
                 percentage === 0 ? -Infinity : Infinity,
-                config.getAsync("ggscrollsroot") === "true" ? document.documentElement : undefined,
+                config.get("ggscrollsroot") === "true" ? document.documentElement : undefined,
             )
         else {
             scrolling.stop()
