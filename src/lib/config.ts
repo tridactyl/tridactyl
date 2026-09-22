@@ -435,24 +435,24 @@ export class default_config {
         "#": "composite js document.location + '#:~:text=' + encodeURIComponent(tri.dom.getSelection().toString()) | clipboard yank",
         s: "composite js tri.dom.getSelection().toString() | fillcmdline open search",
         S: "composite js tri.dom.getSelection().toString() | fillcmdline tabopen search",
-        l: `js
+        l: `js -d@
             const sel = tri.dom.getSelection();
-            tri.visual.extendByCharacter(sel, "forward");
-        `,
-        h: `js
+            for (let i = 0; i < (JS_ARGS[1] || 1); i++) tri.visual.extendByCharacter(sel, "forward");
+        @`,
+        h: `js -d@
             const sel = tri.dom.getSelection();
-            tri.visual.extendByCharacter(sel, "backward");
-        `,
-        e: 'js tri.dom.getSelection().modify("extend","forward","word")',
-        w: "js tri.visual.extendByWord(tri.dom.getSelection())",
-        b: 'js let s=tri.dom.getSelection(); s.modify("extend","backward","character"); s.modify("extend","backward","word"); s.modify("extend","forward","character")',
-        j: 'js tri.dom.getSelection().modify("extend","forward","line")',
+            for (let i = 0; i < (JS_ARGS[1] || 1); i++) tri.visual.extendByCharacter(sel, "backward");
+        @`,
+        e: 'js -d@ for (let i = 0; i < (JS_ARGS[1] || 1); i++) tri.dom.getSelection().modify("extend","forward","word") @',
+        w: "js -d@ for (let i = 0; i < (JS_ARGS[1] || 1); i++) tri.visual.extendByWord(tri.dom.getSelection()) @",
+        b: 'js -d@ let s=tri.dom.getSelection(); for (let i = 0; i < (JS_ARGS[1] || 1); i++) { s.modify("extend","backward","character"); s.modify("extend","backward","word"); s.modify("extend","forward","character"); } @',
+        j: 'js -d@ for (let i = 0; i < (JS_ARGS[1] || 1); i++) tri.dom.getSelection().modify("extend","forward","line") @',
         q: "composite js tri.dom.getSelection().toString() | text2qr --timeout 5",
         // "j": 'js document.getSelection().modify("extend","forward","paragraph")', // not implemented in Firefox
-        k: 'js tri.dom.getSelection().modify("extend","backward","line")',
+        k: 'js -d@ for (let i = 0; i < (JS_ARGS[1] || 1); i++) tri.dom.getSelection().modify("extend","backward","line") @',
         $: 'js tri.dom.getSelection().modify("extend","forward","lineboundary")',
         "0": 'js tri.dom.getSelection().modify("extend","backward","lineboundary")',
-        "=": "js let s = tri.dom.getSelection(); let n = s.anchorNode.parentNode; let r = n.ownerDocument.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r)",
+        "=": "js -d@ let s = tri.dom.getSelection(); for (let i = 0; i < (JS_ARGS[1] || 1); i++) { let n = s.anchorNode.parentNode; let r = n.ownerDocument.createRange(); s.removeAllRanges(); r.selectNodeContents(n); s.addRange(r); } @",
         o: "js tri.visual.reverseSelection(tri.dom.getSelection())",
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
