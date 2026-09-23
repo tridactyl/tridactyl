@@ -88,14 +88,20 @@ class KeyCanceller {
         kes: TrustedKeyboardEvent[],
     ) {
         const index = kes.findIndex(
-            ke2 =>
-                ke.altKey === ke2.altKey &&
-                ke.code === ke2.code &&
-                ke.composed === ke2.composed &&
-                ke.ctrlKey === ke2.ctrlKey &&
-                ke.metaKey === ke2.metaKey &&
-                ke.shiftKey === ke2.shiftKey &&
-                (ke.type === "keyup" || ke.target === ke2.target),
+            ke2 => {
+                try {
+                    return ke.altKey === ke2.altKey &&
+                        ke.code === ke2.code &&
+                        ke.composed === ke2.composed &&
+                        ke.ctrlKey === ke2.ctrlKey &&
+                        ke.metaKey === ke2.metaKey &&
+                        ke.shiftKey === ke2.shiftKey &&
+                        (ke.type === "keyup" || ke.target === ke2.target)
+                } catch {
+                    // Presumably key event originated from now dead element
+                    return true
+                }
+            }
         )
         if (index < 0) return false
         kes.splice(index, 1)

@@ -608,7 +608,7 @@ let hintworthy_js_elems_additions = 0
 
 export function pruneHintworthyJSElems() {
     for (const elem of hintworthy_js_elems) {
-        if (!elem.isConnected) {
+        if (!isConnected(elem)) {
             hintworthy_js_elems.delete(elem)
         }
     }
@@ -1107,5 +1107,13 @@ export function getAbsoluteCentre(el) {
     return {
         x: pos.x + (window as any).mozInnerScreenX,
         y: pos.y + (window as any).mozInnerScreenY,
+    }
+}
+
+export function isConnected(element: Element) {
+    try {
+        return element.isConnected
+    } catch {
+        return false
     }
 }

@@ -920,11 +920,13 @@ class Hint {
         this.flag.hidden = hide
         if (hide) {
             this.focused = false
-            this.target.classList.remove("TridactylHintElem")
+            if (DOM.isConnected(this.target))
+                this.target.classList.remove("TridactylHintElem")
             this.highlight?.setAttribute("hidden", "")
             this.outline?.setAttribute("hidden", "")
         } else {
-            this.target.classList.add("TridactylHintElem")
+            if (DOM.isConnected(this.target))
+                this.target.classList.add("TridactylHintElem")
             this.highlight?.removeAttribute("hidden")
             this.outline?.removeAttribute("hidden")
         }
@@ -932,8 +934,10 @@ class Hint {
 
     set focused(focus: boolean) {
         if (focus) {
-            this.target.classList.add("TridactylHintActive")
-            this.target.classList.remove("TridactylHintElem")
+            if (DOM.isConnected(this.target)) {
+                this.target.classList.add("TridactylHintActive")
+                this.target.classList.remove("TridactylHintElem")
+            }
 
             if (this.highlight)
                 this.highlight.classList.add("TridactylHintHighlightActive")
@@ -943,8 +947,10 @@ class Hint {
 
             this.flag.classList.add("TridactylHintSpanActive")
         } else {
-            this.target.classList.add("TridactylHintElem")
-            this.target.classList.remove("TridactylHintActive")
+            if (DOM.isConnected(this.target)) {
+                this.target.classList.add("TridactylHintElem")
+                this.target.classList.remove("TridactylHintActive")
+            }
 
             if (this.highlight)
                 this.highlight.classList.remove("TridactylHintHighlightActive")

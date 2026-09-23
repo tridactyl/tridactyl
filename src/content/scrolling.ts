@@ -1,4 +1,5 @@
 import * as config from "@src/lib/config"
+import { isConnected } from "@src/lib/dom"
 
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
@@ -255,6 +256,12 @@ export function setCurrentFocus(v) {
     currentFocused = v
 }
 
+export function getCurrentFocus() {
+    if (currentFocused && !isConnected(currentFocused))
+        currentFocused = null
+    return currentFocused
+}
+
 document.addEventListener("mousedown", event => {
     currentFocused = event.target
 })
@@ -279,7 +286,7 @@ export async function recursiveScroll(
     if (!node) {
         const sameSignX = xDistance < 0 === lastX < 0
         const sameSignY = yDistance < 0 === lastY < 0
-        const sameElement = lastFocused == currentFocused
+        const sameElement = lastFocused == getCurrentFocus()
         if (lastRecursiveScrolled && sameSignX && sameSignY && sameElement) {
             // We're scrolling in the same direction as the previous time so
             // let's try to pick up from where we left
@@ -289,7 +296,7 @@ export async function recursiveScroll(
             // Try scrolling the active node or one of its parent elements
 
             // If nothing has been given focus explicitly use the activeElement
-            if (!currentFocused || currentFocused.nodeName == "#document")
+            if (!getCurrentFocus() || currentFocused.nodeName == "#document")
                 currentFocused = document.activeElement
 
             node = currentFocused
