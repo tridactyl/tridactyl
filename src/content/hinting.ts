@@ -959,7 +959,7 @@ class Hint {
     }
 
     select() {
-        if (DOM.isNodeAlive(this.target)) this.onSelect(this)
+        this.onSelect(this)
     }
 
     set x(X: number) {
