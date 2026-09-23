@@ -896,7 +896,7 @@ class Hint {
     }
 
     public static isHintable(target: Element): boolean {
-        return target.getClientRects().length > 0
+        return DOM.isNodeAlive(target) && target.getClientRects().length > 0
     }
 
     setName(n: string) {
@@ -917,23 +917,25 @@ class Hint {
     // These styles would be better with pseudo selectors. Can we do custom ones?
     // If not, do a state machine.
     set hidden(hide: boolean) {
+        const classes = DOM.isNodeAlive(this.target) ? this.target.classList : undefined
         this.flag.hidden = hide
         if (hide) {
             this.focused = false
-            this.target.classList.remove("TridactylHintElem")
+            classes?.remove("TridactylHintElem")
             this.highlight?.setAttribute("hidden", "")
             this.outline?.setAttribute("hidden", "")
         } else {
-            this.target.classList.add("TridactylHintElem")
+            classes?.add("TridactylHintElem")
             this.highlight?.removeAttribute("hidden")
             this.outline?.removeAttribute("hidden")
         }
     }
 
     set focused(focus: boolean) {
+        const classes = DOM.isNodeAlive(this.target) ? this.target.classList : undefined
         if (focus) {
-            this.target.classList.add("TridactylHintActive")
-            this.target.classList.remove("TridactylHintElem")
+            classes?.add("TridactylHintActive")
+            classes?.remove("TridactylHintElem")
 
             if (this.highlight)
                 this.highlight.classList.add("TridactylHintHighlightActive")
@@ -943,8 +945,8 @@ class Hint {
 
             this.flag.classList.add("TridactylHintSpanActive")
         } else {
-            this.target.classList.add("TridactylHintElem")
-            this.target.classList.remove("TridactylHintActive")
+            classes?.add("TridactylHintElem")
+            classes?.remove("TridactylHintActive")
 
             if (this.highlight)
                 this.highlight.classList.remove("TridactylHintHighlightActive")
