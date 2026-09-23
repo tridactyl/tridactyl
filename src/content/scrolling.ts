@@ -1,4 +1,5 @@
 import * as config from "@src/lib/config"
+import { isNodeAlive } from "@src/lib/dom"
 
 type scrollingDirection = "scrollLeft" | "scrollTop"
 
@@ -172,6 +173,7 @@ class ScrollingData {
 
     /** Updates the position of this.elem, returns true if the element has been scrolled, false otherwise. */
     private scrollStep(): boolean {
+        if (!isNodeAlive(this.elem)) return false
         const prevScrollPos: number = this.elem[this.scrollDirection]
         const target = this.getStep()
         const options: ScrollToOptions = { behavior: "instant" }
@@ -221,6 +223,7 @@ export async function scroll(
     if (smooth === "false") duration = 0
     else if (duration === undefined) duration = await getDuration()
     if (generation !== scrollGeneration) return true
+    if (!isNodeAlive(e)) return false
 
     let didScroll = false
     if (xDistance !== 0) {
@@ -275,6 +278,9 @@ export async function recursiveScroll(
     node?: Element,
     generation = scrollGeneration,
 ) {
+    if (!isNodeAlive(currentFocused)) currentFocused = document.activeElement
+    if (!isNodeAlive(lastRecursiveScrolled)) lastRecursiveScrolled = null
+    if (node && !isNodeAlive(node)) return false
     let startingFromCached = false
     if (!node) {
         const sameSignX = xDistance < 0 === lastX < 0
@@ -295,7 +301,7 @@ export async function recursiveScroll(
             node = currentFocused
             while (true) {
                 if (await scroll(xDistance, yDistance, node, undefined, generation)) return true
-                node = node.parentElement
+                node = isNodeAlive(node) ? node.parentElement : null
                 if (!node) break
             }
 
@@ -311,7 +317,8 @@ export async function recursiveScroll(
         // If node is undefined or if we managed to scroll it
         if (
             (await scroll(xDistance, yDistance, treeWalker.currentNode, undefined, generation)) ||
-            ((treeWalker.currentNode as any).contentDocument &&
+            (isNodeAlive(treeWalker.currentNode) &&
+                (treeWalker.currentNode as any).contentDocument &&
                 !(treeWalker.currentNode as any).src?.startsWith(
                     "moz-extension://",
                 ) &&

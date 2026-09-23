@@ -404,7 +404,11 @@ export async function getVisibleElemsBySelector(selector: string | null = "*", f
                 setTimeout(() => {
                     if (!started) {
                         logger.error("IntersectionObserver failed to observe")
-                        observer.disconnect()
+                        try {
+                            observer.disconnect()
+                        } catch {
+                            // A removed frame can leave a dead observer.
+                        }
                         resolve([])
                     }
                 }, 500)
@@ -413,7 +417,7 @@ export async function getVisibleElemsBySelector(selector: string | null = "*", f
     ).then(intersectingElems =>
         intersectingElems
             .flat()
-            .filter(el => isPainted(el as HTMLElement) &&
+            .filter(el => isNodeAlive(el as Node) && isPainted(el as HTMLElement) &&
                 (!hideObscured || isUnobscured(el as Element)) &&
                 filters.every(filter => filter(el as HTMLElement))
             ) as HTMLElement[]
@@ -601,6 +605,15 @@ export function compareElementArea(a: HTMLElement, b: HTMLElement): number {
     return aArea - bArea
 }
 
+/** Return false if Firefox no longer permits access to a node. */
+export function isNodeAlive(node: Node): boolean {
+    try {
+        return !!node?.nodeType
+    } catch {
+        return false
+    }
+}
+
 export const hintworthy_js_elems: Set<Element> = new Set()
 const MAX_HINTWORTHY_JS_ELEMS = 1000
 const HINTWORTHY_JS_ELEMS_PRUNE_INTERVAL = 100
@@ -608,7 +621,7 @@ let hintworthy_js_elems_additions = 0
 
 export function pruneHintworthyJSElems() {
     for (const elem of hintworthy_js_elems) {
-        if (!elem.isConnected) {
+        if (!isNodeAlive(elem) || !elem.isConnected) {
             hintworthy_js_elems.delete(elem)
         }
     }
