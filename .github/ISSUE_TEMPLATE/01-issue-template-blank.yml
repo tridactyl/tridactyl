@@ -1,0 +1,118 @@
+name: Bug
+description: File a bug/issue
+title: "[BUG] <title>"
+labels: ["Bug", "Needs Triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "## Thank you for reporting an issue!"
+  - type: checkboxes
+    attributes:
+      label: Does an issue for this already exist?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
+        - label: I have ensured my environment (operating system, app launcher, etc) is up to date
+          required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: What browser are you using?
+      multiple: false
+      options:
+        - Firefox
+        - Firefox-ESR
+        - Librewolf
+        - Zen Browser
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Browser Installation
+      description: How is the browser installed?
+      multiple: false
+      options:
+        - AppImage
+        - Compiled Binary
+        - Flatpak
+        - Native
+        - Other
+      default: 3
+    validations:
+      required: true
+  - type: input
+    id: other-install
+    attributes:
+      label: Other Install
+      description: If 'Other' was selected, please tell us how the app launcher was installed
+  - type: input
+    id: browser-version
+    attributes:
+      label: Browser Version
+      description: What is your Browser version?
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Tridactyl Version
+      description: What version of Tridactyl?  Use `:version` in your browser to find it.
+      placeholder: 1.24.4
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please describe the issue as cleary as you can.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Please list each step taken to reproduce the bug.
+      placeholder: |
+        1. First I install...
+        2. Then I run...
+        3. Next I click...
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: Please describe what you expect to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Paste or attach any relevant screenshots or videos here.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Paste any relevant logs or errors here. If none available, type N/A.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Config
+      description: Paste or attach any relevant config files here. Run `:viewconfig` and save the file to your desktop.
+  - type: checkboxes
+    id: self-service
+    attributes:
+      label: Self-service
+      description:
+      options:
+        - label: I'd be willing to fix this issue myself.
