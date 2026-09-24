@@ -5,6 +5,7 @@ import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import { TabCompletionSource } from "@src/completions/TabBase"
+import { hasNativeTabGroups, windowTgroup } from "@src/lib/tab_groups"
 
 class BufferCompletionOption
     extends Completions.CompletionOptionHTML
@@ -206,6 +207,19 @@ export class BufferCompletionSource extends TabCompletionSource {
         ])
         if (!this.isCurrentUpdate(generation)) return
         let tabs = sortedTabs
+        if (hasNativeTabGroups()) {
+            const currentGroup = await windowTgroup()
+            if (currentGroup !== undefined) {
+                const groups = await browserBg.tabGroups.query({
+                    windowId: tabs[0]?.windowId,
+                    title: currentGroup,
+                })
+                if (groups.length > 0) {
+                    const currentGroupId = groups[0].id
+                    tabs = tabs.filter(tab => tab.groupId === currentGroupId)
+                }
+            }
+        }
         if (prefix === "tabmove") {
             const activeTab = tabs.find(tab => tab.active)
             tabs = tabs.filter(tab => tab.pinned === activeTab.pinned)
