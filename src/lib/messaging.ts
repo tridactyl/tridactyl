@@ -12,6 +12,8 @@ export type TabMessageType =
     | "omniscient_content"
     | "commandline_cmd"
     | "commandline_frame"
+    | "whichkey_content"
+    | "whichkey_frame"
     | "state"
     | "lock"
     | "alive"

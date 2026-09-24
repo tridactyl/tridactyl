@@ -7,6 +7,7 @@ import {
     ParserResponse,
     minimalKeyFromKeyboardEvent,
     MinimalKey,
+    hasModifiers,
     formatKeysForModeIndicator,
     isTrustedKeyboardEvent,
     TrustedKeyboardEvent,
@@ -18,6 +19,7 @@ import * as generic from "@src/parsers/genericmode"
 import * as nmode from "@src/parsers/nmode"
 import * as Messaging from "@src/lib/messaging"
 import * as config from "@src/lib/config"
+import * as WhichKeyContent from "@src/content/whichkey_content"
 import { mode2maps } from "@src/lib/binding"
 
 const logger = new Logger("controller")
@@ -114,6 +116,23 @@ class KeyCanceller {
 }
 
 export const canceller = new KeyCanceller()
+
+let commandlineFrameReadyToReceiveMessages = false
+config.getAsync("noiframe").then(noiframe => {
+    if (noiframe === "true") {
+        commandlineFrameReadyToReceiveMessages = true
+    } else {
+        Messaging.addListener(
+            "commandline_frame_ready_to_receive_messages",
+            () => {
+                logger.debug(
+                    "Received commandline_frame_ready_to_receive_messages",
+                )
+                commandlineFrameReadyToReceiveMessages = true
+            },
+        )
+    }
+})
 
 let mustBufferPageKeysForClInput = false
 let bufferedPageKeys: string[] = []
@@ -260,9 +279,24 @@ function* ParserController() {
                         previousSuffix = suffix
                     }
                     logger.debug("suffix: ", suffix)
+
+                    const isPureCount =
+                        keyEvents.length > 0 &&
+                        keyEvents.every(
+                            k => !hasModifiers(k) && /^\d$/.test(k.key),
+                        )
+                    if (
+                        (response.isMatch || isPureCount) &&
+                        keyEvents.length > 0
+                    ) {
+                        WhichKeyContent.show(contentState.mode, keyEvents)
+                    } else {
+                        WhichKeyContent.hide()
+                    }
                 }
             }
             contentState.suffix = ""
+            WhichKeyContent.hide()
             controller.acceptExCmd(exstr, "content")
         } catch (e) {
             // Rumsfeldian errors are caught here
@@ -295,6 +329,17 @@ export function keyMuncher(...keys: KeyEventLike[]) {
 export function acceptKey(keyevent: TrustedKeyboardEvent) {
     function tryBufferingPageKeyForClInput(keyevent: TrustedKeyboardEvent) {
         if (!mustBufferPageKeysForClInput) return false
+        if (!commandlineFrameReadyToReceiveMessages) {
+            // Without a ready commandline frame, stop_buffering_page_keys will never
+            // arrive, so we'd buffer (and eat) keys forever. Bail out instead.
+            logger.debug(
+                "controller_content Abandoning buffering for clInput since commandline frame is not yet ready to receive messages",
+                keyevent,
+            )
+            mustBufferPageKeysForClInput = false
+            bufferedPageKeys = []
+            return false
+        }
         const key = minimalKeyFromKeyboardEvent(keyevent)
         if (
             keyevent.type === "keydown" &&
