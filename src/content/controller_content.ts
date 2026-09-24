@@ -34,25 +34,27 @@ function isCountAware() {
     ) === "true"
 }
 
-class CancelledKeyEvent {
-    public readonly altKey: boolean
-    public readonly code: string
-    public readonly composed: boolean
-    public readonly ctrlKey: boolean
-    public readonly metaKey: boolean
-    public readonly shiftKey: boolean
-    public readonly target: EventTarget
-    public readonly type: string
+type CancelledKeyboardEvent = Readonly<{
+    altKey: boolean
+    code: string
+    composed: boolean
+    ctrlKey: boolean
+    metaKey: boolean
+    shiftKey: boolean
+    target: EventTarget
+    type: string
+}>
 
-    constructor (ke: TrustedKeyboardEvent) {
-        this.altKey = ke.altKey
-        this.code = ke.code
-        this.composed = ke.composed
-        this.ctrlKey = ke.ctrlKey
-        this.metaKey = ke.metaKey
-        this.shiftKey = ke.shiftKey
-        this.target = ke.target
-        this.type = ke.type
+function copyKeyboardEventData(ke: TrustedKeyboardEvent): CancelledKeyboardEvent {
+    return {
+        altKey: ke.altKey,
+        code: ke.code,
+        composed: ke.composed,
+        ctrlKey: ke.ctrlKey,
+        metaKey: ke.metaKey,
+        shiftKey: ke.shiftKey,
+        target: ke.target,
+        type: ke.type,
     }
 }
 
@@ -67,8 +69,8 @@ class CancelledKeyEvent {
  * A, then B, releases B and then A).
  */
 class KeyCanceller {
-    private keyPress: CancelledKeyEvent[] = []
-    private keyUp: CancelledKeyEvent[] = []
+    private keyPress: CancelledKeyboardEvent[] = []
+    private keyUp: CancelledKeyboardEvent[] = []
 
     constructor() {
         this.cancelKeyUp = this.cancelKeyUp.bind(this)
@@ -80,8 +82,8 @@ class KeyCanceller {
         ke.stopImmediatePropagation()
 
         if (ke.type === "keydown") {
-            this.keyPress.push(new CancelledKeyEvent(ke))
-            this.keyUp.push(new CancelledKeyEvent(ke))
+            this.keyPress.push(copyKeyboardEventData(ke))
+            this.keyUp.push(copyKeyboardEventData(ke))
         } else if (ke.type === "keyup") {
             // only need to bookkeep, the keyup will be cancelled by the keydown
             this.removeKeys(ke, this.keyUp)
@@ -99,7 +101,7 @@ class KeyCanceller {
         this.removeKeys(ke, this.keyPress)
     }
 
-    private removeKeys(ke: TrustedKeyboardEvent, kes: CancelledKeyEvent[]) {
+    private removeKeys(ke: TrustedKeyboardEvent, kes: CancelledKeyboardEvent[]) {
         while (this.removeKey(ke, kes)) {
             // Repeat keydowns can add duplicate cancellations.
         }
@@ -107,7 +109,7 @@ class KeyCanceller {
 
     private removeKey(
         ke: TrustedKeyboardEvent,
-        kes: CancelledKeyEvent[],
+        kes: CancelledKeyboardEvent[],
     ) {
         const index = kes.findIndex(
             ke2 =>
@@ -126,7 +128,7 @@ class KeyCanceller {
 
     private cancelKey(
         ke: TrustedKeyboardEvent,
-        kes: CancelledKeyEvent[],
+        kes: CancelledKeyboardEvent[],
     ) {
         if (this.removeKey(ke, kes)) {
             ke.preventDefault()
