@@ -45,19 +45,6 @@ type CancelledKeyboardEvent = Readonly<{
     type: string
 }>
 
-function copyKeyboardEventData(ke: TrustedKeyboardEvent): CancelledKeyboardEvent {
-    return {
-        altKey: ke.altKey,
-        code: ke.code,
-        composed: ke.composed,
-        ctrlKey: ke.ctrlKey,
-        metaKey: ke.metaKey,
-        shiftKey: ke.shiftKey,
-        target: ke.target,
-        type: ke.type,
-    }
-}
-
 /**
  * KeyCanceller: keep track of keys that have been cancelled in the keydown
  * handler (which takes care of dispatching ex commands) and also cancel them
@@ -82,8 +69,18 @@ class KeyCanceller {
         ke.stopImmediatePropagation()
 
         if (ke.type === "keydown") {
-            this.keyPress.push(copyKeyboardEventData(ke))
-            this.keyUp.push(copyKeyboardEventData(ke))
+            const cancelledCopy: CancelledKeyboardEvent = {
+                altKey: ke.altKey,
+                code: ke.code,
+                composed: ke.composed,
+                ctrlKey: ke.ctrlKey,
+                metaKey: ke.metaKey,
+                shiftKey: ke.shiftKey,
+                target: ke.target,
+                type: ke.type,
+            }
+            this.keyPress.push(cancelledCopy)
+            this.keyUp.push(cancelledCopy)
         } else if (ke.type === "keyup") {
             // only need to bookkeep, the keyup will be cancelled by the keydown
             this.removeKeys(ke, this.keyUp)
