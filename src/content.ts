@@ -92,7 +92,9 @@ addContentStateChangedListener((property, _mode, oldValue, newValue) => {
 })
 messaging.addListener(
     "excmd_content",
-    messaging.attributeCaller(excmds_content),
+    messaging.attributeCaller(excmds_content, (handler, args, message) =>
+        controller.invokeExCmd(handler, args, message.excmdSource),
+    ),
 )
 messaging.addListener(
     "controller_content",

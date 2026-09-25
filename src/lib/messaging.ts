@@ -33,6 +33,7 @@ export type MessageType = TabMessageType | NonTabMessageType
 export interface Message {
     [key: string]: any
     type: MessageType
+    excmdSource?: "commandline" | "content" | "native"
     // and other unknown attributes...
 }
 
@@ -43,7 +44,14 @@ export type listener = (
 ) => void | Promise<any>
 
 // Calls methods on obj that match .command and sends responses back
-export function attributeCaller(obj) {
+export function attributeCaller(
+    obj,
+    invoke?: (
+        handler: (...args: any[]) => any,
+        args: any[],
+        message: Message,
+    ) => any,
+) {
     function handler(message: Message, sender, sendResponse) {
         logger.debug(message)
 
@@ -52,7 +60,10 @@ export function attributeCaller(obj) {
 
         // Call command on obj
         try {
-            const response = obj[message.command](...message.args)
+            const handler = obj[message.command]
+            const response = invoke
+                ? invoke(handler, message.args, message)
+                : handler.apply(obj, message.args)
 
             // Return response to sender
             if (response instanceof Promise) {
@@ -155,8 +166,9 @@ export async function messageActiveTab(
     type: TabMessageType,
     command?: string,
     args?: any[],
+    excmdSource?: Message["excmdSource"],
 ) {
-    return messageTab(await activeTabId(), type, command, args)
+    return messageTab(await activeTabId(), type, command, args, excmdSource)
 }
 
 export async function messageTab(
@@ -164,12 +176,14 @@ export async function messageTab(
     type: TabMessageType,
     command?,
     args?,
+    excmdSource?: Message["excmdSource"],
 ): Promise<any> {
     const message: Message = {
         type,
         command,
         args,
     }
+    if (excmdSource !== undefined) message.excmdSource = excmdSource
     return browserBg.tabs.sendMessage(tabId, message)
 }
 

@@ -276,6 +276,39 @@ const messages = {
 export type Messages = typeof messages
 
 messaging.setupListener(messages)
+
+let nativeControl: ReturnType<typeof native.createNativeControl>
+let nativeControlGeneration = 0
+async function configureNativeControl(enabled: "true" | "false") {
+    const generation = ++nativeControlGeneration
+    nativeControl?.stop()
+    nativeControl = undefined
+    if (enabled !== "true") return
+
+    const control = native.createNativeControl({
+        enabled: true,
+        dispatchExCmd: command => controller.acceptExCmd(command, "native"),
+    })
+    nativeControl = control
+    try {
+        await control.start()
+    } catch (_) {
+        control.stop()
+        if (nativeControl === control) nativeControl = undefined
+    }
+    if (generation !== nativeControlGeneration) control.stop()
+}
+void config
+    .getAsync()
+    .then(() =>
+        configureNativeControl(
+            config.USERCONFIG.nativecontrol ?? config.DEFAULTS.nativecontrol,
+        ),
+    )
+    .catch(() => undefined)
+config.addChangeListener("nativecontrol", (_, enabled) => {
+    void configureNativeControl(enabled)
+})
 // Listen for statistics from the background script and store
 // them. Set this one up to log directly to the statsLogger instead of
 // going through messaging.
