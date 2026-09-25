@@ -334,7 +334,7 @@ yarn run build
 
 Each time package.json or yarn.lock change after you checkout or pull, our git hook will try to run `yarn install` again. If it doesn't you should do it manually.
 
-Addon is built in `build/`. Load it as a [temporary addon](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/) in firefox with `about:debugging` or see [Development loop](#Development-loop).
+The desktop add-on is built in `build/`, and the experimental Firefox Android add-on is built in `build-android/`. Load the desktop build as a [temporary addon](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/) with `about:debugging` or see [Development loop](#Development-loop). Run the Android build on a connected device with `yarn rundroid <device_id>`, or package it with `yarn make-zip:android`.
 
 If you want to install a local copy of the add-on into your developer or nightly build of Firefox then you can enable installing unsigned add-ons and then build it like so:
 

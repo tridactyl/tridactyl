@@ -1,6 +1,11 @@
 import { browserBg, activeTabId, ownTabId, getContext } from "@src/lib/webext"
 import * as Messages from "@src/message_protocols"
+import {
+    sendMessageResponse,
+    unwrapMessageResponse,
+} from "@src/lib/message_response"
 import Logger from "@src/lib/logging"
+export { sendMessageResponse }
 const logger = new Logger("messaging")
 
 export type TabMessageType =
@@ -40,7 +45,7 @@ export type listener = (
     message: Message,
     sender?,
     sendResponse?,
-) => void | Promise<any>
+) => void | boolean | Promise<any>
 
 // Calls methods on obj that match .command and sends responses back
 export function attributeCaller(obj) {
@@ -55,22 +60,14 @@ export function attributeCaller(obj) {
             const response = obj[message.command](...message.args)
 
             // Return response to sender
-            if (response instanceof Promise) {
-                logger.debug("Returning promise...", response)
-                sendResponse(response)
-                // Docs say you should be able to return a promise, but that
-                // doesn't work.
-                /* return response */
-            } else if (response !== undefined) {
-                logger.debug("Returning synchronously...", response)
-                sendResponse(response)
-            }
+            if (response !== undefined)
+                return sendMessageResponse(sendResponse, response)
         } catch (e) {
             logger.error(
                 `Error processing ${message.command}(${message.args})`,
                 e,
             )
-            return Promise.reject(e)
+            return sendMessageResponse(sendResponse, Promise.reject(e))
         }
     }
     return handler
@@ -104,18 +101,22 @@ function backgroundHandler<
 
 export function setupListener<Root extends object>(root: Root) {
     browser.runtime.onMessage.addListener(
-        (message: any) => {
-            if (message.type in root) {
-                if (!(message.command in root[message.type]))
-                    throw new Error(
-                        `missing handler in protocol ${message.type} ${message.command}`,
-                    )
-                if (!Array.isArray(message.args))
-                    throw new Error(
-                        `wrong arguments in protocol ${message.type} ${message.command}`,
-                    )
-                return Promise.resolve(backgroundHandler(root, message))
-            }
+        (message: any, _sender, sendResponse) => {
+            if (!message || !(message.type in root)) return
+            return sendMessageResponse(
+                sendResponse,
+                Promise.resolve().then(() => {
+                    if (!(message.command in root[message.type]))
+                        throw new Error(
+                            `missing handler in protocol ${message.type} ${message.command}`,
+                        )
+                    if (!Array.isArray(message.args))
+                        throw new Error(
+                            `wrong arguments in protocol ${message.type} ${message.command}`,
+                        )
+                    return backgroundHandler(root, message)
+                }),
+            )
         },
     )
 }
@@ -137,7 +138,7 @@ export async function message<
     // Typescript didn't like this
     // return browser.runtime.sendMessage<typeof message, StripPromise<ReturnType<F>>>(message)
     try {
-        return await browser.runtime.sendMessage(message)
+        return await unwrapMessageResponse(browser.runtime.sendMessage(message))
     } catch (error) {
         // Closing the sender can tear down Firefox's response channel.
         if (
@@ -170,7 +171,7 @@ export async function messageTab(
         command,
         args,
     }
-    return browserBg.tabs.sendMessage(tabId, message)
+    return unwrapMessageResponse(browserBg.tabs.sendMessage(tabId, message))
 }
 
 let _ownTabId
@@ -227,17 +228,19 @@ if (getContext() === "background") {
             Object.create(null),
             sender.tab.sharingState,
         )
-        sendResponse(Promise.resolve(x))
+        return sendMessageResponse(sendResponse, x)
     })
 }
 
 /** Recv a message from runtime.onMessage and send to all listeners */
 function onMessage(message, sender, sendResponse) {
+    let pending = false
     if (listeners.get(message.type)) {
         for (const listener of listeners.get(message.type)) {
-            listener(message, sender, sendResponse)
+            if (listener(message, sender, sendResponse) === true) pending = true
         }
     }
+    return pending || undefined
 }
 
 browser.runtime.onMessage.addListener(onMessage)

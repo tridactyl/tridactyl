@@ -377,9 +377,6 @@ function addStatusIndicator() {
     if (containerIndicator === "true") {
         webext
             .ownTabContainer()
-            .then(ownTab =>
-                webext.browserBg.contextualIdentities.get(ownTab.cookieStoreId),
-            )
             .then(container => {
                 statusIndicator.style.setProperty(
                     "--tridactyl-container-color",

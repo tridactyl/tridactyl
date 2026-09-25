@@ -1,10 +1,16 @@
 import * as Perf from "@src/perf"
-import { browserBg, getSortedTabs, prevActiveTab } from "@src/lib/webext"
+import {
+    getFirefoxBg,
+    getSortedTabs,
+    prevActiveTab,
+    requireDesktopBg,
+} from "@src/lib/webext"
 import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import { tabTgroup } from "@src/lib/tab_groups"
 import { TabCompletionSource } from "@src/completions/TabBase"
+import * as compat from "@src/lib/compat"
 
 class TabAllCompletionOption
     extends Completions.CompletionOptionHTML
@@ -40,14 +46,19 @@ class TabAllCompletionOption
         let pre = preplain
         if (tab.pinned) preplain += "P"
         if (tab.audible) preplain += "A"
-        if (tab.mutedInfo.muted) preplain += "M"
-        if (tab.discarded) preplain += "D"
+        const muted =
+            tab.mutedInfo &&
+            "muted" in tab.mutedInfo &&
+            tab.mutedInfo.muted
+        if (muted) preplain += "M"
+        const discarded = "discarded" in tab && tab.discarded
+        if (discarded) preplain += "D"
 
         if (config.get("completions", "Tab", "statusstylepretty") === "true") {
             if (tab.pinned) pre += "\uD83D\uDCCC"
             if (tab.audible) pre += "\uD83D\uDD0A"
-            if (tab.mutedInfo.muted) pre += "\uD83D\uDD07"
-            if (tab.discarded) pre += "\u2296"
+            if (muted) pre += "\uD83D\uDD07"
+            if (discarded) pre += "\u2296"
         } else {
             pre = preplain
         }
@@ -63,10 +74,12 @@ class TabAllCompletionOption
         this.fuseKeys.push(String(tab.index + 1), tab.title, tab.url)
 
         // Create HTMLElement
-        const favIconUrl = tab.favIconUrl
-            ? tab.favIconUrl
-            : Completions.DEFAULT_FAVICON
-        const faviconLoading = tab.favIconUrl ? "lazy" : "eager"
+        const tabFavIconUrl =
+            "favIconUrl" in tab && typeof tab.favIconUrl === "string"
+                ? tab.favIconUrl
+                : undefined
+        const favIconUrl = tabFavIconUrl || Completions.DEFAULT_FAVICON
+        const faviconLoading = tabFavIconUrl ? "lazy" : "eager"
         this.html = html`<tr
             class="BufferAllCompletionOption option container_${container.color} container_${container.icon} container_${container.name} ${incognito
                 ? "incognito"
@@ -129,8 +142,6 @@ export class TabAllCompletionSource extends TabCompletionSource {
     //     return this.options[option.tab.index]
     // }
 
-    // Eslint doesn't like this decorator but there's nothing we can do about it
-    // eslint-disable-next-line @typescript-eslint/member-ordering
     @Perf.measuredAsync
     private async updateOptions(exstr = "", preserveSelection = false) {
         const generation = this.beginUpdate()
@@ -158,13 +169,21 @@ export class TabAllCompletionSource extends TabCompletionSource {
         }
 
         const mru = config.get("tabsort") == "mru"
-        const [tabs, altTab, currentWindow, containerList] =
-            await Promise.all([
-                getSortedTabs(mru ? "mru" : "default", true),
-                prevActiveTab(),
-                browserBg.windows.getCurrent(),
-                browserBg.contextualIdentities.query({}).catch(() => []),
-            ])
+        const firefox = await getFirefoxBg()
+        const [tabs, altTab, containerList] = await Promise.all([
+            getSortedTabs(mru ? "mru" : "default", true),
+            prevActiveTab(),
+            firefox.kind === "firefox"
+                ? firefox.api.contextualIdentities.query({}).catch(() => [])
+                : [],
+        ])
+        let currentWindow: { id?: number }
+        if (await compat.isAndroid()) {
+            currentWindow = { id: tabs.find(tab => tab.active)?.windowId }
+        } else {
+            const desktop = await requireDesktopBg()
+            currentWindow = await desktop.windows.getCurrent()
+        }
         if (!this.isCurrentUpdate(generation)) return
 
         if (!mru) {
@@ -203,7 +222,9 @@ export class TabAllCompletionSource extends TabCompletionSource {
                     tab.id === altTab?.id,
                     tab.active && tab.windowId === currentWindow.id,
                     windowIndices.get(tab.windowId),
-                    containerMap.get(tab.cookieStoreId) ||
+                    containerMap.get(
+                        "cookieStoreId" in tab ? tab.cookieStoreId : undefined,
+                    ) ||
                         Containers.DefaultContainer,
                     tab.incognito,
                     tabGroups[index],

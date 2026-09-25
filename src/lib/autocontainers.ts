@@ -26,6 +26,7 @@ import * as Config from "@src/lib/config"
 import * as Container from "@src/lib/containers"
 import * as Logging from "@src/lib/logging"
 import * as ExtensionInfo from "@src/lib/extension_info"
+import { requireFirefoxDesktopBg } from "@src/lib/webext"
 
 const logger = new Logging.Logger("containers")
 const explicitlyContainedTabs = new Set<number>()
@@ -91,9 +92,10 @@ export class AutoContain implements IAutoContain {
         if (details.tabId === -1) return { cancel: false }
 
         // Do all of our async lookups in parallel.
+        const tabs = (await requireFirefoxDesktopBg()).tabs
         const [tab, otherExtensionHasPriority, cookieStoreId] =
             await Promise.all([
-                browser.tabs.get(details.tabId),
+                tabs.get(details.tabId),
                 this.checkOtherExtensionsHavePriority(details),
                 this.getAuconForDetails(details),
             ])
@@ -131,7 +133,7 @@ export class AutoContain implements IAutoContain {
             tab.cookieStoreId,
             cookieStoreId,
         )
-        browser.tabs
+        tabs
             .create({
                 url: details.url,
                 cookieStoreId,

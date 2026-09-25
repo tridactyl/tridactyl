@@ -46,7 +46,8 @@ Object.assign(browser.tabs, {
     onActivated: tabEvent,
 })
 Object.assign(browser.runtime, {
-    getPlatformInfo: jest.fn(),
+    getBrowserInfo: jest.fn(),
+    getPlatformInfo: jest.fn().mockResolvedValue({ os: "linux" }),
     sendNativeMessage: jest.fn(),
 })
 Object.assign(browser.commands, { update: jest.fn() })
@@ -63,8 +64,16 @@ Object.defineProperty(browser, "sessions", {
 
 webext.initLastAudibleTabTracking()
 const backgroundExcmds = require("@src/.excmds_background.generated")
-const { jsb, nativeopen, quickmarkremove, set, tabopen, unbind, winopen } =
-    backgroundExcmds
+const {
+    jsb,
+    nativeopen,
+    quickmarkremove,
+    set,
+    tabgrab,
+    tabopen,
+    unbind,
+    winopen,
+} = backgroundExcmds
 const { followpage, js, ttscontrol } = require("@src/.excmds_content.generated")
 const { focusinput, setmode } = require("@src/.excmds_content.generated")
 
@@ -208,6 +217,61 @@ test("`winopen` creates a neutral tab before navigating it", async () => {
     expect(browser.tabs.update).toHaveBeenCalledWith(42, {
         loadReplace: true,
         url: "https://example.com/",
+    })
+})
+
+test("`yankimage` propagates asynchronous clipboard failures", async () => {
+    const error = new Error("clipboard failed")
+    const originalClipboard = browser.clipboard
+    const originalFetch = window.fetch
+    Object.defineProperty(browser, "clipboard", {
+        configurable: true,
+        value: { setImageData: jest.fn().mockRejectedValue(error) },
+    })
+    Object.defineProperty(window, "fetch", {
+        configurable: true,
+        value: jest.fn().mockResolvedValue({
+            blob: async () => ({
+                type: "image/png",
+                arrayBuffer: async () => new ArrayBuffer(0),
+            }),
+        }),
+    })
+
+    try {
+        await expect(backgroundExcmds.yankimage("image.png")).rejects.toBe(error)
+    } finally {
+        Object.defineProperty(browser, "clipboard", {
+            configurable: true,
+            value: originalClipboard,
+        })
+        Object.defineProperty(window, "fetch", {
+            configurable: true,
+            value: originalFetch,
+        })
+    }
+})
+
+test("`tabgrab` inserts after the active tab in its destination window", async () => {
+    Object.assign(browser.windows, {
+        getAll: jest.fn(options =>
+            Promise.resolve(options ? [{ id: 7 }] : [{ id: 3 }, { id: 7 }]),
+        ),
+        getLastFocused: jest.fn().mockResolvedValue({ id: 9, type: "popup" }),
+    })
+    jest.mocked(browser.tabs.query).mockImplementation(async query =>
+        query.active
+            ? ([{ id: 70, index: 4, windowId: 7 }] as browser.tabs.Tab[])
+            : ([{ id: 30, index: 0, windowId: 3 }] as browser.tabs.Tab[]),
+    )
+    browser.tabs.move = jest.fn()
+    await config.set("tabopenpos", "next")
+
+    await tabgrab("1.1")
+
+    expect(browser.tabs.move).toHaveBeenCalledWith(30, {
+        index: 5,
+        windowId: 7,
     })
 })
 

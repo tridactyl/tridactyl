@@ -5,3 +5,5 @@ coverage
 test_utils.ts
 e2e_tests
 compiler
+generated
+scripts/browser_type_stubs

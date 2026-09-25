@@ -38,6 +38,7 @@ fi
 
 export PATH
 
+rm -rf build-android build-android-temp
 mkdir -p build
 mkdir -p build/static
 mkdir -p generated/static
@@ -76,7 +77,10 @@ if [ "$QUICK_BUILD" != "1" ]; then
     scripts/make_tutorial.sh
     scripts/make_docs.sh
 
+    node scripts/generate_browser_types.js
     tsc --project tsconfig.json --noEmit
+    tsc --project tsconfig.firefox.json --noEmit
+    tsc --project tsconfig.firefox-android.json --noEmit
 else
 
     echo "Warning: dirty rebuild. Skipping docs, metadata and type checking..."
@@ -92,7 +96,6 @@ rmdir buildtemp
 
 # Copy extra static files across
 
-node scripts/generate_manifest.js firefox src/manifest.json build/manifest.json
 cp -r src/static build
 cp -r generated/static build
 cp issue_template.md build/
@@ -122,3 +125,8 @@ if [ -e "$CLEANSLATE" ] ; then
 else
 	echo "Couldn't find cleanslate.css. Try running 'yarn install'"
 fi
+
+node scripts/generate_manifest.js firefox src/manifest.json build/manifest.json
+cp -r build build-android-temp
+node scripts/generate_manifest.js firefox_android src/manifest.json build-android-temp/manifest.json
+mv build-android-temp build-android

@@ -4,7 +4,7 @@
 
 import semverCompare from "semver-compare"
 import * as config from "@src/lib/config"
-import { browserBg, getContext } from "@src/lib/webext"
+import { browserBg, getContext, isAndroid, requireDesktopBg } from "@src/lib/webext"
 
 import Logger from "@src/lib/logging"
 const logger = new Logger("native")
@@ -48,7 +48,11 @@ export async function sendNativeMsg(
     logger.info(`Sending message: ${JSON.stringify(send)}`)
 
     try {
-        resp = await browserBg.runtime.sendNativeMessage(NATIVE_NAME, send)
+        if (await isAndroid()) {
+            throw new Error("no native on android")
+        }
+        const desktop = await requireDesktopBg()
+        resp = await desktop.runtime.sendNativeMessage(NATIVE_NAME, send)
         logger.info(`Received response:`, resp)
         return resp as MessageResp
     } catch (e) {
