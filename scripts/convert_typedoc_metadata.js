@@ -40,13 +40,16 @@ function convertMetadata(project) {
                 .map(part => part.text || "")
                 .join("")
             const flagText = text.split(/\r?\n[ \t]*\r?\n/, 1)[0]
-            const m = /^(-\S+)[ \t]+([^\n]+)\n*([\s\S]*)$/.exec(flagText.trim())
+            const m = /^(-\S+)(?:[ \t]+\{(\w+)\})?[ \t]+([^\n]+)\n*([\s\S]*)$/.exec(
+                flagText.trim(),
+            )
             if (!m) continue
-            const [, flag, short, rest] = m
+            const [, flag, group, short, rest] = m
             const elaboration = rest.trim()
             flags[flag] = {
                 short,
                 description: elaboration ? `${short}\n\n${elaboration}` : short,
+                ...(group ? { group } : {}),
             }
         }
         return flags

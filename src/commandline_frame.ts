@@ -34,6 +34,7 @@ import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { ExtensionsCompletionSource } from "@src/completions/Extensions"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
 import { FindCompletionSource } from "@src/completions/Find"
+import { FlagCompletionSource } from "@src/completions/Flag"
 import { GotoCompletionSource } from "@src/completions/Goto"
 import { GuisetCompletionSource } from "@src/completions/Guiset"
 import { GlossaryCompletionSource } from "@src/completions/Glossary"
@@ -148,6 +149,7 @@ export function enableCompletions() {
             TabAllCompletionSource,
             BufferCompletionSource,
             ExcmdCompletionSource,
+            FlagCompletionSource,
             ThemeCompletionSource,
             TabHistoryCompletionSource,
             CompositeCompletionSource,

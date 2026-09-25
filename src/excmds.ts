@@ -5545,38 +5545,38 @@ const KILL_STACK: Element[] = []
  *
  * #### Hinting action flags (only one can be specified):
  *
- * @flag -t open in a new foreground tab
- * @flag -b open in background
- * @flag -y copy (yank) link's target to clipboard
- * @flag -p copy an element's text to the clipboard
- * @flag -h select an element (as if you click-n-dragged over it)
- * @flag -P copy an element's title/alt text to the clipboard
- * @flag -r read an element's text with text-to-speech
- * @flag -i view an image
- * @flag -I view an image in a new tab
- * @flag -k irreversibly deletes an element from the page (until reload)
- * @flag -K hides an element on the page
+ * @flag -t {action} open in a new foreground tab
+ * @flag -b {action} open in background
+ * @flag -y {action} copy (yank) link's target to clipboard
+ * @flag -p {action} copy an element's text to the clipboard
+ * @flag -h {action} select an element (as if you click-n-dragged over it)
+ * @flag -P {action} copy an element's title/alt text to the clipboard
+ * @flag -r {action} read an element's text with text-to-speech
+ * @flag -i {action} view an image
+ * @flag -I {action} view an image in a new tab
+ * @flag -k {action} irreversibly deletes an element from the page (until reload)
+ * @flag -K {action} hides an element on the page
  * - Hidden elements can be restored using [[elementunhide]].
- * @flag -s save (download) the linked resource
- * @flag -S save the linked image
- * @flag -a save-as the linked resource
- * @flag -A save-as the linked image
- * @flag -; focus an element and set it as the element or the child of the element to scroll
- * @flag -# yank an element's anchor URL to clipboard
- * @flag -w open in new window
- * @flag -wp open in new private window
- * @flag -z scroll an element to the top of the viewport
- * @flag -pipe `selector key`, e.g, `-pipe a href` returns the URL of the chosen link on a page.
+ * @flag -s {action} save (download) the linked resource
+ * @flag -S {action} save the linked image
+ * @flag -a {action} save-as the linked resource
+ * @flag -A {action} save-as the linked image
+ * @flag -; {action} focus an element and set it as the element or the child of the element to scroll
+ * @flag -# {action} yank an element's anchor URL to clipboard
+ * @flag -w {action} open in new window
+ * @flag -wp {action} open in new private window
+ * @flag -z {action} scroll an element to the top of the viewport
+ * @flag -pipe {action} `selector key`, e.g, `-pipe a href` returns the URL of the chosen link on a page.
  * - Only makes sense with `composite`, e.g, `composite hint -pipe .some-class>a textContent | yank`.
  * - If you don't select a hint (i.e. press `<Esc>`), will return an empty string.
  * - Most useful when used like `-c` to do things other than opening links.
  * - NB: the query selector cannot contain any spaces.
- * @flag -W `excmd...` pass hint href as the final argument to excmd and execute.
+ * @flag -W {action} `excmd...` pass hint href as the final argument to excmd and execute.
  * - e.g, `hint -W mpvsafe` to open YouTube videos.
  * - NB: passing it to bare [[exclaim]] is dangerous - see `get exaliases.mpvsafe` for an example of how to do it safely.
  * - The usual [[composite]] caveats for `;` and `|` in URLs apply.
  * - If you need to use a query selector, use `-pipe` instead.
- * @flag -F [callback] - run a custom callback on the selected hint
+ * @flag -F {action} [callback] - run a custom callback on the selected hint
  * - e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
  *
  * #### Element selection flags
@@ -5598,10 +5598,10 @@ const KILL_STACK: Element[] = []
  *
  * #### Hinting mode selection:
  *
- * - -q* quick (or rapid) hints mode. Stay in hint mode until you press `<Esc>`, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
- *     - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
- * - -! execute all hints without waiting for a selection
- *     - For example, `hint -!bf Comments` opens in background tabs all visible links whose text matches `Comments`
+ * @flag -q quick (or rapid) hints mode. Stay in hint mode until you press `<Esc>`, e.g. `:hint -qb` to open multiple hints in the background or `:hint -qW excmd` to execute excmd once for each hint. This will return an array containing all elements or the result of executed functions (e.g. `hint -qpipe a href` will return an array of links).
+ * - For example, use `bind ;jg hint -Jc .rc > .r > a` on google.com to generate hints only for clickable search results of a given query
+ * @flag -! execute all hints without waiting for a selection
+ * - For example, `hint -!bf Comments` opens in background tabs all visible links whose text matches `Comments`
  *
  * #### Deprecated options:
  *
