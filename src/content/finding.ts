@@ -26,11 +26,63 @@ function getFindHost() {
 
 const NATIVE_HIGHLIGHTS = typeof Highlight === "function" && "highlights" in CSS
 
+class SharedRangeView {
+    private static shared = document.createRange()
+    private _staticRange: StaticRange
+    constructor(rangeSpec: {
+        startContainer: Node,
+        startOffset: number,
+        endContainer: Node,
+        endOffset: number,
+    }) {
+        this._staticRange = new StaticRange(rangeSpec)
+    }
+    public toString() {
+        return this.moveSharedRange().toString()
+    }
+    public cloneRange() {
+        return this.moveSharedRange().cloneRange()
+    }
+    public getBoundingClientRect() {
+        return this.moveSharedRange().getBoundingClientRect()
+    }
+    public getClientRects() {
+        return this.moveSharedRange().getClientRects()
+    }
+    public isVisible() {
+        return DOM.isVisible(this.moveSharedRange())
+    }
+    get commonAncestorContainer() {
+        return this.moveSharedRange().commonAncestorContainer
+    }
+    get staticRange() {
+        return this._staticRange
+    }
+    get startContainer() {
+        return this._staticRange.startContainer
+    }
+    get startOffset() {
+        return this._staticRange.startOffset
+    }
+    get endContainer() {
+        return this._staticRange.endContainer
+    }
+    get endOffset() {
+        return this._staticRange.endOffset
+    }
+    private moveSharedRange() {
+        SharedRangeView.shared.setStart(this.startContainer, this.startOffset)
+        SharedRangeView.shared.setEnd(this.endContainer, this.endOffset)
+        return SharedRangeView.shared
+    }
+}
+
 class FindHighlight extends HTMLSpanElement {
     public top = Infinity
     private background = `var(--tridactyl-search-highlight-color)`
+    private staticRange: StaticRange
 
-    constructor(public range: Range) {
+    constructor(public rangeView: SharedRangeView) {
         super()
         {
             // https://bugzilla.mozilla.org/show_bug.cgi?id=1716685
@@ -39,6 +91,7 @@ class FindHighlight extends HTMLSpanElement {
                 this[key] = proto[key]
             }
         }
+        this.staticRange = rangeView.staticRange
         this.style.position = "absolute"
         this.style.top = "0px"
         this.style.left = "0px"
@@ -49,10 +102,14 @@ class FindHighlight extends HTMLSpanElement {
     }
 
     static fromFindApi(found, allTextNode: Text[]) {
-        const range = allTextNode[0].ownerDocument.createRange()
-        range.setStart(allTextNode[found.startTextNodePos], found.startOffset)
-        range.setEnd(allTextNode[found.endTextNodePos], found.endOffset)
-        return new this(range)
+        return new this(
+            new SharedRangeView({
+                startContainer: allTextNode[found.startTextNodePos],
+                startOffset: found.startOffset,
+                endContainer: allTextNode[found.endTextNodePos],
+                endOffset: found.endOffset,
+            })
+        )
     }
 
     updateRectsPosition(rects = this.getClientRects()) {
@@ -91,13 +148,16 @@ class FindHighlight extends HTMLSpanElement {
     }
 
     getBoundingClientRect() {
-        return this.range.getBoundingClientRect()
+        return this.rangeView.getBoundingClientRect()
     }
     getClientRects() {
-        return this.range.getClientRects()
+        return this.rangeView.getClientRects()
+    }
+    cloneRange() {
+        return this.rangeView.cloneRange()
     }
     unfocus() {
-        setNativeFocus(this.range, false)
+        setNativeFocus(this.staticRange, false)
         this.background = `var(--tridactyl-search-highlight-color)`
         for (const node of this.children) {
             ;(node as HTMLElement).style.background = this.background
@@ -116,7 +176,7 @@ class FindHighlight extends HTMLSpanElement {
             getBoundingClientRect: () => this.getBoundingClientRect(),
             parentElement: null,
         }
-        let parent = this.range.commonAncestorContainer
+        let parent = this.rangeView.commonAncestorContainer
         if (parent.nodeType !== Node.ELEMENT_NODE) {
             parent = parent.parentElement
         }
@@ -138,7 +198,7 @@ class FindHighlight extends HTMLSpanElement {
         }
         const focusable = this.queryInRange("a,input,button,details")
         if (focusElement && focusable) focusable.focus()
-        setNativeFocus(this.range, true)
+        setNativeFocus(this.staticRange, true)
         this.background = `var(--tridactyl-search-highlight-active-color)`
         for (const node of this.children) {
             const element = node as HTMLElement
@@ -146,7 +206,7 @@ class FindHighlight extends HTMLSpanElement {
         }
     }
     queryInRange(selector: string): HTMLElement | null {
-        const range = this.range
+        const range = this.staticRange
         const rangeEndNode = range.endContainer
         if (range.startContainer.ownerDocument !== document) return null
 
@@ -192,10 +252,10 @@ let nativeHighlights: { normal: Highlight; active: Highlight }
 let nativeRegistry = CSS.highlights
 
 function isHighlightVisible(highlight: FindHighlight) {
-    return DOM.isVisible(nativeHighlights ? highlight.range : highlight)
+    return nativeHighlights ? highlight.rangeView.isVisible() : DOM.isVisible(highlight)
 }
 
-function setNativeFocus(range: Range, active: boolean) {
+function setNativeFocus(range: Range | StaticRange, active: boolean) {
     if (!nativeHighlights) return
     nativeHighlights.normal[active ? "delete" : "add"](range)
     nativeHighlights.active[active ? "add" : "delete"](range)
@@ -365,11 +425,16 @@ export async function jumpToMatch(searchQuery, option) {
                     const end = match.index + match[0].length
                     while (match.index >= nodeOffset + lengths[nodeIndex])
                         nodeOffset += lengths[nodeIndex++]
-                    const range = nodes[0].ownerDocument.createRange()
-                    range.setStart(nodes[nodeIndex], match.index - nodeOffset)
+                    const startContainer = nodes[nodeIndex]
+                    const startOffset = match.index - nodeOffset
                     while (end > nodeOffset + lengths[nodeIndex])
                         nodeOffset += lengths[nodeIndex++]
-                    range.setEnd(nodes[nodeIndex], end - nodeOffset)
+                    const range = new SharedRangeView({
+                        startContainer,
+                        startOffset,
+                        endContainer: nodes[nodeIndex],
+                        endOffset: end - nodeOffset,
+                    })
                     if (range.toString() !== match[0]) continue
                     found.push(new FindHighlight(range))
                 } catch (_) {}
@@ -415,10 +480,10 @@ export async function jumpToMatch(searchQuery, option) {
 
 function drawHighlights(highlights) {
     if (NATIVE_HIGHLIGHTS) {
-        const doc = highlights[0].range.startContainer.ownerDocument
+        const doc = highlights[0].staticRange.startContainer.ownerDocument
         const win: any = doc.defaultView
         const normal = new win.Highlight()
-        highlights.forEach(highlight => normal.add(highlight.range))
+        highlights.forEach(highlight => normal.add(highlight.staticRange))
         const active = new win.Highlight()
         nativeRegistry = win.CSS.highlights
         normal.priority = 2147483646
@@ -466,7 +531,7 @@ async function findCompletionMatches(generation) {
     const headingIndexes = new Map()
     for (let index = 0; index < highlights.length; ++index) {
         const highlight = highlights[index]
-        const range = highlight.range
+        const range = highlight.rangeView
         const doc: Document = range.startContainer.ownerDocument
         const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT)
         walker.currentNode = range.startContainer
@@ -671,5 +736,5 @@ export async function jumpToNextMatch(n: number, searchFromView = false) {
 }
 
 export function currentMatchRange(): Range {
-    return lastHighlights[selected].range.cloneRange()
+    return lastHighlights[selected].rangeView.cloneRange()
 }
