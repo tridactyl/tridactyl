@@ -16,12 +16,22 @@ async function updatePage() {
     const isuuid = isuuidv4(hash)
     let encoded = hash
     if (isuuid) {
-        encoded = await config.getAsync("reader_articles", hash)
-        if (encoded != undefined) {
-            config.unset("reader_articles", hash)
-            sessionStorage.setItem(hash, encoded)
-        } else {
-            encoded = sessionStorage.getItem(hash)
+        encoded = undefined
+        if (browser.storage.session) {
+            encoded = (await browser.storage.session.get(hash))[hash]
+            if (encoded != undefined) {
+                await browser.storage.session.remove(hash)
+                sessionStorage.setItem(hash, encoded)
+            }
+        }
+        if (encoded == undefined) {
+            encoded = await config.getAsync("reader_articles", hash)
+            if (encoded != undefined) {
+                await config.unset("reader_articles", hash)
+                sessionStorage.setItem(hash, encoded)
+            } else {
+                encoded = sessionStorage.getItem(hash)
+            }
         }
     }
     const article =

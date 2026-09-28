@@ -2232,6 +2232,7 @@ export async function push() {
         if (!INITIALISED) await getAsync()
         const userconfig = structuredClone(USERCONFIG)
         delete userconfig["customthemes"]
+        delete userconfig["reader_articles"]
         return browser.storage.sync.set({ [CONFIGNAME]: userconfig })
     })
 }
@@ -2245,6 +2246,7 @@ export async function pull() {
         if (!INITIALISED) await getAsync()
         const synced = await browser.storage.sync.get(CONFIGNAME)
         USERCONFIG = synced[CONFIGNAME] || o({})
+        delete USERCONFIG["reader_articles"]
         return save()
     })
 }

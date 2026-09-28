@@ -6657,7 +6657,13 @@ export async function readerurl(article: any = undefined) {
     const article_encoded = btoa(encodeURIComponent(JSON.stringify(article)))
     if (!(await browserBg.windows.getCurrent()).incognito) {
         const article_uuid = uuidv4()
-        await set("reader_articles." + article_uuid, article_encoded)
+        const stored = await Messaging.message(
+            "browser_proxy_background",
+            "setReaderArticle",
+            article_uuid,
+            article_encoded,
+        )
+        if (!stored) await set("reader_articles." + article_uuid, article_encoded)
         hash = article_uuid
     } else {
         hash = article_encoded

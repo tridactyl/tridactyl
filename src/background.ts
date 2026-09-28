@@ -270,7 +270,10 @@ const messages = {
         downloadUrl: download_background.downloadUrl,
         downloadUrlAs: download_background.downloadUrlAs,
     },
-    browser_proxy_background: { shim: proxy_background.shim },
+    browser_proxy_background: {
+        shim: proxy_background.shim,
+        setReaderArticle: proxy_background.setReaderArticle,
+    },
     omniscient_background: omniscient_controller,
 }
 export type Messages = typeof messages
