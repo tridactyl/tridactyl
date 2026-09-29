@@ -75,3 +75,12 @@ jobs:
         shell: bash
         command: |
           yarn run build --old-native && yarn make-zip && yarn jest
+
+    - name: why did windows fail again
+      if: failure() && matrix.os == 'windows'
+      shell: pwsh
+      run: |
+        Get-Process firefox, geckodriver -ErrorAction SilentlyContinue |
+          Format-List Id, ProcessName, StartTime, CPU, WorkingSet64, Responding
+        Get-ChildItem $env:TEMP -Directory -Filter 'rust_mozprofile*' |
+          Select-Object FullName, LastWriteTime
