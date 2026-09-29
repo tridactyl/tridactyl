@@ -49,7 +49,11 @@ export async function getDriver() {
         .forBrowser(Browser.FIREFOX)
         .setFirefoxOptions(options)
         // Required to evaluate scripts in extension pages; only for test browsers.
-        .setFirefoxService(new ServiceBuilder().addArguments("--allow-system-access"))
+        .setFirefoxService(
+            new ServiceBuilder()
+                .addArguments("--allow-system-access")
+                .enableVerboseLogging(os.platform() === "win32"),
+        )
         .build() as unknown as Driver
     drivers.add(driver)
 
