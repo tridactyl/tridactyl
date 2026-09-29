@@ -59,7 +59,7 @@ export async function getDriver() {
     await driver.wait(async () => {
         const handles = await driver.getAllWindowHandles()
         return handles.length >= 2
-    }, 10000)
+    }, 10000, "Timed out waiting for two tabs after extension installation")
     // Give the extension a bit more time to initialize
     await driver.sleep(500)
     let handles = await driver.getAllWindowHandles()
@@ -68,7 +68,7 @@ export async function getDriver() {
         await driver.wait(async () => {
             const newHandles = await driver.getAllWindowHandles()
             return newHandles.length >= 2
-        }, 10000)
+        }, 10000, "Timed out waiting for two tabs after initialization")
         handles = await driver.getAllWindowHandles()
     }
     // Kill the original tab.
@@ -76,7 +76,11 @@ export async function getDriver() {
     await driver.close()
     // Switch to the new tab (extension opens in new tab)
     await driver.switchTo().window(handles[1])
-    await driver.wait(() => driver.executeScript<boolean>("return Boolean(window.tri)"), 10000)
+    await driver.wait(
+        () => driver.executeScript<boolean>("return Boolean(window.tri)"),
+        60000,
+        "Timed out waiting for window.tri in the selected tab",
+    )
     // Now return the window that we want to use.
     return driver
 }
