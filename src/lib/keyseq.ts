@@ -193,7 +193,7 @@ const isDigit = (d: string) => d.length === 1 && d >= "0" && d <= "9"
 
 const isKeyup = (k: MinimalKey) => k.keyup
 
-function splitNumericPrefix(
+export function splitNumericPrefix(
     keyseq: MinimalKey[],
 ): [MinimalKey[], MinimalKey[]] {
     if (
