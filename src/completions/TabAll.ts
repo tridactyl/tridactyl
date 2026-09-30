@@ -3,7 +3,7 @@ import { browserBg, getSortedTabs, prevActiveTab } from "@src/lib/webext"
 import * as Containers from "@src/lib/containers"
 import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
-import { tabTgroup } from "@src/lib/tab_groups"
+import { hasNativeTabGroups, tabTgroup } from "@src/lib/tab_groups"
 import { TabCompletionSource } from "@src/completions/TabBase"
 
 class TabAllCompletionOption
@@ -185,11 +185,24 @@ export class TabAllCompletionSource extends TabCompletionSource {
         const includedTabs = tabs.filter(
             tab => !excludeCurrentWindow || tab.windowId !== currentWindow.id,
         )
-        const tabGroups = await Promise.all(
-            includedTabs.map(tab =>
-                tabTgroup(tab.id).catch(() => undefined),
-            ),
-        )
+        // Native groups expose groupId on every tab: one tabGroups.query
+        // builds the whole id->title map locally instead of calling
+        // tabTgroup() (itself several API round trips) once per tab.
+        let tabGroups: string[]
+        if (hasNativeTabGroups()) {
+            const titleById = new Map(
+                (await browserBg.tabGroups.query({})).map(g => [g.id, g.title]),
+            )
+            tabGroups = includedTabs.map(tab =>
+                tab.groupId === -1 ? undefined : titleById.get(tab.groupId),
+            )
+        } else {
+            tabGroups = await Promise.all(
+                includedTabs.map(tab =>
+                    tabTgroup(tab.id).catch(() => undefined),
+                ),
+            )
+        }
         const containerMap = new Map()
         containerList.forEach(container =>
             containerMap.set(container.cookieStoreId, container),

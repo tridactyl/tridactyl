@@ -76,7 +76,7 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab, getLastAudibleTab } from "@src/lib/webext"
+import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, activeTab, activeTabOnWindow, activeTabId, activeWindowId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab, getLastAudibleTab } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -185,7 +185,7 @@ import * as Updates from "@src/lib/updates"
 import * as Extensions from "@src/lib/extension_info"
 import * as webrequests from "@src/background/webrequests"
 import * as commandsHelper from "@src/background/commands"
-import { tgroups, tgroupActivate, setTabTgroup, setWindowTgroup, setTgroups, windowTgroup, windowLastTgroup, tgroupClearOldInfo, tgroupLastTabId, tgroupTabs, clearAllTgroupInfo, tgroupActivateLast, tgroupHandleTabActivated, tgroupHandleTabCreated, tgroupHandleTabAttached, tgroupHandleTabUpdated, tgroupHandleTabRemoved, tgroupHandleTabDetached } from "./lib/tab_groups"
+import { tgroups, tgroupActivate, setTabTgroup, setWindowTgroup, setTgroups, windowTgroup, windowLastTgroup, tgroupClearOldInfo, tgroupLastTabId, tgroupTabs, clearAllTgroupInfo, tgroupActivateLast, tgroupHandleTabActivated, tgroupHandleTabCreated, tgroupHandleTabAttached, tgroupHandleTabUpdated, tgroupHandleTabRemoved, tgroupHandleTabDetached, hasNativeTabGroups, normalizeColor, NATIVE_TAB_GROUP_COLORS, TabGroupColor, migrateToNativeGroups, activateNativeGroup, cycleNativeGroup, setNativeGroupCollapsed, moveNativeGroup } from "./lib/tab_groups"
 
 ALL_EXCMDS = {
     "": BGSELF,
@@ -2819,8 +2819,21 @@ export async function tabprev(...args: string[]) {
         "--skip-discarded": false,
     })
     const increment = (parseInt(argOpt._.join(" "), 10) || 1) * (option["--reverse"] ? -1 : 1)
-    return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
+    return browser.tabs.query({ currentWindow: true, hidden: false }).then(async tabs => {
         if (option["--skip-discarded"]) tabs = tabs.filter(tab => !tab.discarded)
+        // With native tab groups, gt/gT wrap within the current group
+        // instead of crossing group boundaries (pentadactyl/tabgroupmanager
+        // behaviour).
+        if (hasNativeTabGroups()) {
+            const cur = tabs.find(t => t.active)
+            if (cur) {
+                const gid = (cur as browser.tabs.Tab & { groupId?: number }).groupId ?? -1
+                const inGroup = tabs.filter(
+                    t => ((t as browser.tabs.Tab & { groupId?: number }).groupId ?? -1) === gid,
+                )
+                if (inGroup.length > 0) tabs = inGroup
+            }
+        }
         tabs.sort((t1, t2) => t1.index - t2.index)
         const curTab = tabs.findIndex(t => t.active)
         const prevTab = !option["--nowrap"] ? (curTab - increment + tabs.length) % tabs.length : Math.min(Math.max(curTab - increment, 0), tabs.length - 1)
@@ -3792,9 +3805,12 @@ export function setContentStateGroup(name: string) {
  *
  * Tab groups exist only for a single window.
  *
+ * For native tab groups (Firefox 137+), also supports setting a color:
+ * :tgroupcreate mygroup blue
+ *
  */
 //#background
-export async function tgroupcreate(name: string) {
+export async function tgroupcreate(name: string, color?: string) {
     const promises = []
     const groups = await tgroups()
 
@@ -3802,7 +3818,76 @@ export async function tgroupcreate(name: string) {
         throw new Error(`Tab group "${name}" already exists`)
     }
 
-    if (groups.size > 0) {
+    if (hasNativeTabGroups()) {
+        const windowId = await activeWindowId()
+        const currentTab = await activeTab()
+        const existingGroupId = currentTab.groupId
+
+        const normalizedColor = normalizeColor(color)
+        const updatePropsFor = (): { title: string; color?: TabGroupColor } => {
+            const props: { title: string; color?: TabGroupColor } = {
+                title: name,
+            }
+            if (normalizedColor) {
+                props.color = normalizedColor
+            }
+            return props
+        }
+
+        // First group in the window: absorb existing ungrouped tabs, like
+        // legacy tgroupcreate assigns all tabs when no groups exist yet.
+        // Otherwise only seed the new group with the current tab (if it is
+        // ungrouped) or a fresh tab. Use :tgroupcollect to sweep *all*
+        // ungrouped tabs into a group explicitly.
+        if (groups.size === 0) {
+            const ungroupedTabs = await browserBg.tabs.query({
+                windowId,
+                pinned: false,
+                groupId: -1,
+            })
+
+            if (ungroupedTabs.length > 0) {
+                const tabIds = ungroupedTabs.map(t => t.id).filter((id): id is number => id !== undefined)
+                const groupId = await browserBg.tabs.group({
+                    tabIds,
+                    createProperties: { windowId },
+                })
+                await browserBg.tabGroups.update(groupId, updatePropsFor())
+                setContentStateGroup(name)
+                return name
+            }
+        }
+
+        if (existingGroupId === -1 && !currentTab.pinned) {
+            // Current tab is ungrouped: seed the new group with it instead
+            // of opening a fresh tab.
+            const groupId = await browserBg.tabs.group({
+                tabIds: [currentTab.id],
+                createProperties: { windowId },
+            })
+            await browserBg.tabGroups.update(groupId, updatePropsFor())
+            setContentStateGroup(name)
+            return name
+        }
+
+        const initialUrl = await config.get("tabgroupnewtaburls")[name]
+        const newTab = await tabopen(initialUrl)
+
+        const groupId = await browserBg.tabs.group({
+            tabIds: [newTab.id],
+            createProperties: { windowId },
+        })
+
+        await browserBg.tabGroups.update(groupId, updatePropsFor())
+
+        if (existingGroupId !== -1) {
+            await browserBg.tabGroups.update(existingGroupId, { collapsed: true })
+        }
+
+        await browserBg.tabs.update(newTab.id, { active: true })
+
+        setContentStateGroup(name)
+    } else if (groups.size > 0) {
         await setWindowTgroup(name)
         const initialUrl = await config.get("tabgroupnewtaburls")[name]
         await tabopen(initialUrl)
@@ -3840,7 +3925,8 @@ export async function tgroupcreate(name: string) {
  *
  */
 //#background
-export async function tgroupswitch(name: string) {
+export async function tgroupswitch(...nameParts: string[]) {
+    const name = nameParts.join(" ")
     if (name === "#") {
         return tgrouplast().then(() => name)
     }
@@ -3851,6 +3937,18 @@ export async function tgroupswitch(name: string) {
     const groups = await tgroups()
     if (groups.size > 0) {
         if (groups.has(name)) {
+            if (hasNativeTabGroups()) {
+                const windowId = await activeWindowId()
+                const tabGroup = await browserBg.tabGroups.query({
+                    windowId,
+                    title: name,
+                })
+                if (tabGroup.length > 0) {
+                    await activateNativeGroup(tabGroup[0].id, windowId)
+                }
+                setContentStateGroup(name)
+                return name
+            }
             return tgroupActivate(name).then(() => name)
         } else {
             return tgroupcreate(name).then(() => name)
@@ -3892,7 +3990,10 @@ export async function tgrouprename(name: string) {
 }
 
 /**
- * Close all tabs in a tab group and delete the group.
+ * DANGER: permanently close all tabs in a tab group and delete the group.
+ *
+ * This deletes tabs. To merely hide a group without closing anything, use
+ * [[tgroupcollapse]] instead.
  *
  * @param name The name of the tab group to close. If not specified, close the
  * current tab group and switch to the previously active tab group.
@@ -3933,7 +4034,27 @@ export async function tgroupclose(name?: string) {
 }
 
 /**
+ * Attach the current tab to another tab group, creating it if it does not exist.
+ *
+ * This is the explicit "add tab to group" command. [[tgroupmove]] is kept as
+ * an alias for backwards compatibility.
+ *
+ * @param name The name of the tab group to attach the tab to.
+ *
+ * If this is the last tab in the tab group, also switch to tab group, keeping
+ * the current tab active.
+ *
+ */
+//#background
+export async function tgroupattach(name: string) {
+    return tgroupmoveTab(name)
+}
+
+/**
  * Move the current tab to another tab group, creating it if it does not exist.
+ *
+ * Prefer [[tgroupattach]] for adding tabs to groups. To reorder whole groups
+ * in the tab strip, use [[tgroupmovegroup]].
  *
  * @param name The name of the tab group to move the tab to.
  *
@@ -3943,6 +4064,12 @@ export async function tgroupclose(name?: string) {
  */
 //#background
 export async function tgroupmove(name: string) {
+    return tgroupmoveTab(name)
+}
+
+/** Shared implementation for [[tgroupattach]] and [[tgroupmove]]. */
+//#background_helper
+async function tgroupmoveTab(name: string) {
     const groups = await tgroups()
     const currentGroup = await windowTgroup()
 
@@ -3974,14 +4101,19 @@ export async function tgroupmove(name: string) {
     if (tabCount == 1) {
         return Promise.all([
             tgroupClearOldInfo(currentGroup, name),
-            tgroupTabs(name).then(tabs => {
-                browserBg.tabs.show(tabs.map(tab => tab.id))
-            }),
+            hasNativeTabGroups()
+                ? Promise.resolve()
+                : tgroupTabs(name).then(tabs => {
+                      browserBg.tabs.show(tabs.map(tab => tab.id))
+                  }),
         ]).then(() => name)
     } else {
         const lastTabId = await tgroupLastTabId(currentGroup)
         await tabSetActive(lastTabId)
-        return browser.tabs.hide(currentTabId).then(() => currentGroup)
+        if (!hasNativeTabGroups()) {
+            return browser.tabs.hide(currentTabId).then(() => currentGroup)
+        }
+        return currentGroup
     }
 }
 
@@ -3996,6 +4128,181 @@ export async function tgroupabort() {
     }
 
     return clearAllTgroupInfo().then(() => undefined)
+}
+
+/**
+ * Migrate legacy tab groups to native tab groups (Firefox 137+).
+ *
+ * This command is only available when the native tab groups API is present.
+ * It converts groups stored in browser.sessions to native Firefox groups.
+ *
+ */
+//#background
+export async function tgroupmigrate() {
+    if (!hasNativeTabGroups()) {
+        throw new Error("Native tab groups API not available. Requires Firefox 137+.")
+    }
+
+    return migrateToNativeGroups()
+}
+
+/**
+ * List available tab group colors for native tab groups.
+ *
+ */
+//#background
+export function tgroupcolors() {
+    if (hasNativeTabGroups()) {
+        fillcmdline_notrail("Available colors: " + NATIVE_TAB_GROUP_COLORS.join(", "))
+    } else {
+        fillcmdline_notrail("Colors only supported with native tab groups (Firefox 137+)")
+    }
+}
+
+/**
+ * Collect all ungrouped tabs in the current window into the named group.
+ *
+ * This is the explicit version of the "sweep ungrouped tabs" behaviour:
+ * [[tgroupcreate]] and [[tgroupswitch]] deliberately only touch the current
+ * tab (or a fresh tab), so use this when you really do want to gather every
+ * loose tab at once.
+ *
+ * @param name The name of the tab group to collect tabs into.
+ * @param color Optional native group color (see [[tgroupcolors]]).
+ *
+ */
+//#background
+export async function tgroupcollect(name: string, color?: string) {
+    if (!hasNativeTabGroups()) {
+        throw new Error("Native tab groups API not available. Requires Firefox 137+.")
+    }
+    const groups = await tgroups()
+    if (groups.has(name) || name === "#") {
+        throw new Error(`Tab group "${name}" already exists`)
+    }
+    const windowId = await activeWindowId()
+    const ungroupedTabs = await browserBg.tabs.query({
+        windowId,
+        pinned: false,
+        groupId: -1,
+    })
+    if (ungroupedTabs.length === 0) {
+        throw new Error("No ungrouped tabs to collect")
+    }
+    const tabIds = ungroupedTabs.map(t => t.id).filter((id): id is number => id !== undefined)
+    const groupId = await browserBg.tabs.group({
+        tabIds,
+        createProperties: { windowId },
+    })
+    const updateProps: { title: string; color?: TabGroupColor } = {
+        title: name,
+    }
+    const normalizedColor = normalizeColor(color)
+    if (normalizedColor) {
+        updateProps.color = normalizedColor
+    }
+    await browserBg.tabGroups.update(groupId, updateProps)
+    setContentStateGroup(name)
+    return name
+}
+
+/**
+ * Collapse (minimize) a tab group without closing any tabs.
+ *
+ * @param name The name of the group to collapse. Defaults to the current group.
+ *
+ */
+//#background
+export async function tgroupcollapse(name?: string) {
+    if (!hasNativeTabGroups()) {
+        throw new Error("Collapsing tab groups requires native tab groups (Firefox 137+).")
+    }
+    return setNativeGroupCollapsed(name, true)
+}
+
+/**
+ * Expand (unminimize) a tab group.
+ *
+ * @param name The name of the group to expand. Defaults to the current group.
+ *
+ */
+//#background
+export async function tgroupexpand(name?: string) {
+    if (!hasNativeTabGroups()) {
+        throw new Error("Expanding tab groups requires native tab groups (Firefox 137+).")
+    }
+    return setNativeGroupCollapsed(name, false)
+}
+
+/**
+ * Toggle a tab group's collapsed state.
+ *
+ * @param name The name of the group to toggle. Defaults to the current group.
+ *
+ */
+//#background
+export async function tgrouptoggle(name?: string) {
+    if (!hasNativeTabGroups()) {
+        throw new Error("Toggling tab groups requires native tab groups (Firefox 137+).")
+    }
+    return setNativeGroupCollapsed(name, "toggle")
+}
+
+/**
+ * Switch to the next tab group in tab-strip order, wrapping round.
+ *
+ * The group equivalent of [[tabnext_gt]]: expands the group and activates
+ * its most recently used tab.
+ *
+ */
+//#background
+export async function tgroupnext() {
+    if (!hasNativeTabGroups()) {
+        return tgroupActivateLast()
+    }
+    if ((await tgroups()).size === 0) {
+        throw new Error("No tab groups exist")
+    }
+    const name = await cycleNativeGroup(1)
+    if (name !== undefined) setContentStateGroup(name)
+    return name
+}
+
+/**
+ * Switch to the previous tab group in tab-strip order, wrapping round.
+ *
+ * The group equivalent of [[tabprev]].
+ *
+ */
+//#background
+export async function tgroupprev() {
+    if (!hasNativeTabGroups()) {
+        return tgroupActivateLast()
+    }
+    if ((await tgroups()).size === 0) {
+        throw new Error("No tab groups exist")
+    }
+    const name = await cycleNativeGroup(-1)
+    if (name !== undefined) setContentStateGroup(name)
+    return name
+}
+
+/**
+ * Move the current tab group next to another tab group in the tab strip.
+ *
+ * Unlike [[tgroupmove]] (which moves the current *tab* into a group), this
+ * reorders whole groups. The current group is placed immediately before the
+ * target group.
+ *
+ * @param name The name of the target tab group.
+ *
+ */
+//#background
+export async function tgroupmovegroup(name: string) {
+    if (!hasNativeTabGroups()) {
+        throw new Error("Moving tab groups requires native tab groups (Firefox 137+).")
+    }
+    return moveNativeGroup(name)
 }
 
 // }}}
@@ -4443,6 +4750,10 @@ export async function yankimage(url: string): Promise<void> {
  * "%" denotes the current tab and "#" denotes the tab that was last accessed in this window.  "P", "A", "M" and "D" indicate tab status (i.e. a pinned, audible, muted or discarded tab).  Use `:set completions.Tab.statusstylepretty true` to display unicode characters instead.  "P","A","M","D" can be used to filter by tab status in either setting.
  *
  * A non integer string means to search the URL and title for matches, in this window if called from tab, all windows if called from taball. Title matches can contain '*' as a wildcard.
+ *
+ * With native tab groups, `:tab` completions list only tabs in the current
+ * group; use `:taball` (bind `B`) to list and jump to tabs in other groups.
+ * Jumping this way automatically expands the target group.
  */
 //#background
 export async function tab(...id: string[]) {
@@ -4495,7 +4806,23 @@ export async function tabrename(index: string, ...name: string[]) {
 //#background
 export async function tab_helper(interactive: boolean, anyWindow: boolean, ...key: string[]) {
     const id = key.join(" ")
-    if (Number.isInteger(Number(id))) return tabIndexSetActive(Number(id))
+    if (Number.isInteger(Number(id))) {
+        const index = Number(id)
+
+        // `:tab` completions display numbers relative to the active native
+        // group, so resolve numerics the same way. `:taball` stays global,
+        // as do ungrouped tabs and legacy groups.
+        if (!anyWindow && hasNativeTabGroups()) {
+            const current = await activeTab()
+            if (current.groupId !== undefined && current.groupId !== -1) {
+                const tabs = (await getSortedTabs()).filter(tab => tab.groupId === current.groupId)
+                const wrappedIndex = (index - 1).mod(tabs.length) + 1
+                return tabSetActive(tabs[wrappedIndex - 1].id)
+            }
+        }
+
+        return tabIndexSetActive(index)
+    }
     if (id === "#") return tabIndexSetActive(id)
 
     if (id !== null && id !== undefined && !/\d+\.\d+/.exec(id)) {
@@ -4513,6 +4840,13 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
             if (interactive && results.size > 1) return fillcmdline_notrail(anyWindow ? "taball" : "tab", id)
             const firstTab = results.values().next().value
             await browser.windows.update(firstTab.windowId, { focused: true })
+            // Jumping to a tab in a collapsed native group must expand the
+            // group first, otherwise :tab/:taball can't reach other groups.
+            if (hasNativeTabGroups() && firstTab.groupId !== undefined && firstTab.groupId !== -1) {
+                try {
+                    await browserBg.tabGroups.update(firstTab.groupId, { collapsed: false })
+                } catch (e) {}
+            }
             return browser.tabs.update(firstTab.id, { active: true })
         }
         throw new Error("No tab found matching: " + id)
@@ -4521,6 +4855,14 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
     const [winid, tabindex_number] = await parseWinTabIndex(id)
     const tabid = (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
     await browser.windows.update(winid, { focused: true })
+    if (hasNativeTabGroups()) {
+        try {
+            const target = await browser.tabs.get(tabid)
+            if ((target as browser.tabs.Tab & { groupId?: number }).groupId !== undefined && (target as browser.tabs.Tab & { groupId?: number }).groupId !== -1) {
+                await browserBg.tabGroups.update((target as browser.tabs.Tab & { groupId?: number }).groupId, { collapsed: false })
+            }
+        } catch (e) {}
+    }
     return browser.tabs.update(tabid, { active: true })
 }
 
