@@ -105,6 +105,7 @@ def content(lines, context):
                        "excmd_content",
                        "{sig.name}",
                        [{message_params}],
+                       controller.getCurrentExCmdSource(),
                    )
                }}\n""".format(**locals()))
     else:

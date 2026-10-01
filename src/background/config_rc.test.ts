@@ -25,8 +25,12 @@ test("runRc updates and saves versioned config", async () => {
         await config.set(key, value)
     })
 
-    await runRc("set configversion 1.0\nset vimium-gi false")
+    await runRc("set configversion 1.0\nset vimium-gi false", "native")
 
+    expect(controller.acceptExCmd).toHaveBeenCalledWith(
+        "set configversion 1.0",
+        "native",
+    )
     expect(browser.storage.local.set).toHaveBeenLastCalledWith(
         expect.objectContaining({
             userconfig: expect.objectContaining({

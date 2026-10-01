@@ -5,7 +5,7 @@ import * as State from "@src/state"
 
 const logger = new Logger("controller")
 
-type ExCmdSource = "commandline" | "content"
+type ExCmdSource = "commandline" | "content" | "native"
 let currentExCmdSource: ExCmdSource
 let exCmdListener: () => void
 
@@ -22,6 +22,20 @@ export function getCurrentExCmdSource() {
     return currentExCmdSource
 }
 
+export function invokeExCmd(
+    func: (...args: any[]) => any,
+    args: any[],
+    source?: ExCmdSource,
+) {
+    const previousExCmdSource = currentExCmdSource
+    currentExCmdSource = source || previousExCmdSource
+    try {
+        return func(...args)
+    } finally {
+        currentExCmdSource = previousExCmdSource
+    }
+}
+
 /** Resolve an ExCmd for direct invocation without changing repeat state. */
 export function resolveExCmd(exstr: string) {
     const [func, args] = exmode_parser(exstr, stored_excmds)
@@ -36,8 +50,7 @@ export function resolveExCmd(exstr: string) {
 
 /** Parse and execute ExCmds */
 export async function acceptExCmd(exstr: string, source?: ExCmdSource): Promise<any> {
-    const previousExCmdSource = currentExCmdSource
-    currentExCmdSource = source || previousExCmdSource
+    const effectiveSource = source || currentExCmdSource
     let lastExUpdate = Promise.resolve()
     // TODO: Errors should go to CommandLine.
     try {
@@ -61,16 +74,18 @@ export async function acceptExCmd(exstr: string, source?: ExCmdSource): Promise<
             })
         }
         try {
-            return await func(...args)
+            const result = invokeExCmd(func, args, effectiveSource)
+            return await result
         } catch (e) {
             // Errors from func are caught here (e.g. no next tab)
             logger.error("controller in excmd: ", e)
+            if (effectiveSource === "native") throw e
         }
     } catch (e) {
         // Errors from parser caught here
         logger.error("controller while accepting: ", e)
+        if (effectiveSource === "native") throw e
     } finally {
-        currentExCmdSource = previousExCmdSource
         void lastExUpdate.then(
             () => exCmdListener?.(),
             () => exCmdListener?.(),

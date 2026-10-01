@@ -54,6 +54,8 @@ Tridactyl stable can be installed from the [Mozilla add-ons website (the AMO)][a
 
 If you want to use advanced features such as edit-in-Vim, you'll also need to install the native messenger or executable, instructions for which can be found by typing `:nativeinstall` and hitting enter once you are in Tridactyl. Arch users can install the [AUR package](https://aur.archlinux.org/packages/firefox-tridactyl-native/) `firefox-tridactyl-native` instead.
 
+Native messenger 0.6.0 and newer can also send commands to Tridactyl. This is disabled by default. Enable it in Firefox with `:set nativecontrol true`, then run the installed `native_main --request 'EX-COMMAND'`. See the [native messenger README](https://github.com/tridactyl/native_messenger) for more details.
+
 #### Containerized/sandboxed Firefox Installations
 
 **Snap and Flatpak:** Native Messaging support here is fairly recent and may require:

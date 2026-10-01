@@ -33,6 +33,280 @@ interface MessageResp {
     content: string | null
     code?: number | null
     error?: string | null
+    capabilities?: string[]
+}
+
+const CONTROL_PROTOCOL = 1
+const CONTROL_CAPABILITY = "control-port-v1"
+const MAX_CONTROL_RESPONSE_BYTES = 900_000
+
+function utf8Length(value: string) {
+    let length = 0
+    for (const character of value) {
+        const codepoint = character.codePointAt(0)
+        length +=
+            codepoint <= 0x7f
+                ? 1
+                : codepoint <= 0x7ff
+                  ? 2
+                  : codepoint <= 0xffff
+                    ? 3
+                    : 4
+    }
+    return length
+}
+
+interface NativeControl {
+    start(): Promise<void>
+    reprobe(): Promise<void>
+    disconnect(reprobe?: boolean): void
+    stop(): void
+}
+const nativeControls = new Set<NativeControl>()
+let nativeControlsSuspended = false
+
+export function disconnectNativeControls() {
+    nativeControlsSuspended = true
+    nativeControls.forEach(control => control.disconnect(true))
+}
+
+export function reconnectNativeControls(reprobe = false) {
+    nativeControlsSuspended = false
+    nativeControls.forEach(control => {
+        void (reprobe ? control.reprobe() : control.start())
+    })
+}
+
+export function createNativeControl({
+    enabled = false,
+    dispatchExCmd,
+}: {
+    enabled?: boolean
+    dispatchExCmd: (excmd: string) => Promise<unknown>
+}) {
+    let port: browser.runtime.Port | undefined
+    let starting: Promise<void> | undefined
+    let startingSession = 0
+    let supported: boolean | undefined
+    let stopped = false
+    let session = 0
+    let busy = false
+    const pending = new Set<string>()
+
+    const respond = (target: browser.runtime.Port, response: object) => {
+        const payload = {
+            type: "control.response",
+            protocol: CONTROL_PROTOCOL,
+            ...response,
+        }
+        try {
+            if (
+                utf8Length(JSON.stringify(payload)) > MAX_CONTROL_RESPONSE_BYTES
+            )
+                throw new Error("control response is too large")
+            target.postMessage(payload)
+        } catch (error) {
+            try {
+                target.postMessage({
+                    type: "control.response",
+                    protocol: CONTROL_PROTOCOL,
+                    id: (response as any).id,
+                    ok: false,
+                    error: "control response is not serializable",
+                })
+            } catch (_) {
+                logger.error("Failed to answer native control request", error)
+            }
+        }
+    }
+
+    const onMessage = async (
+        target: browser.runtime.Port,
+        targetSession: number,
+        message: any,
+    ) => {
+        if (message?.type === "control.handshake") {
+            if (
+                message.protocol !== CONTROL_PROTOCOL ||
+                message.enabled !== true
+            ) {
+                logger.error(
+                    "Native control handshake failed",
+                    message.error || "invalid response",
+                )
+                if (port === target) {
+                    port = undefined
+                    session++
+                }
+                target.disconnect()
+            }
+            return
+        }
+        if (message?.type !== "control.request") return
+        if (stopped || port !== target || session !== targetSession) return
+        if (typeof message.id !== "string") return
+        if (message.protocol !== CONTROL_PROTOCOL)
+            return respond(target, {
+                id: message.id,
+                ok: false,
+                error: "unsupported control protocol",
+            })
+        if (message.operation !== "ex")
+            return respond(target, {
+                id: message.id,
+                ok: false,
+                error: "unsupported control operation",
+            })
+        if (typeof message.command !== "string")
+            return respond(target, {
+                id: message.id,
+                ok: false,
+                error: "control command must be a string",
+            })
+        if (pending.has(message.id))
+            return respond(target, {
+                id: message.id,
+                ok: false,
+                error: "duplicate control request",
+            })
+        if (busy)
+            return respond(target, {
+                id: message.id,
+                ok: false,
+                error: "native control is busy",
+            })
+
+        pending.add(message.id)
+        busy = true
+        try {
+            const result = await dispatchExCmd(message.command)
+            let serializableResult: unknown
+            try {
+                const serialized =
+                    result === undefined ? undefined : JSON.stringify(result)
+                serializableResult =
+                    serialized === undefined
+                        ? undefined
+                        : JSON.parse(serialized)
+            } catch (_) {
+                return respond(target, {
+                    id: message.id,
+                    ok: false,
+                    error: "control result is not serializable",
+                })
+            }
+            respond(target, {
+                id: message.id,
+                ok: true,
+                result: serializableResult,
+            })
+        } catch (error) {
+            respond(target, {
+                id: message.id,
+                ok: false,
+                error: (error instanceof Error
+                    ? error.message
+                    : String(error)
+                ).slice(0, 4096),
+            })
+        } finally {
+            pending.delete(message.id)
+            busy = false
+        }
+    }
+
+    const start = async (): Promise<void> => {
+        if (!enabled || stopped || port) return
+        nativeControls.add(control)
+        if (nativeControlsSuspended) return
+        const requestedSession = session
+        if (starting !== undefined) {
+            const activeSession = startingSession
+            await starting
+            if (
+                requestedSession !== activeSession &&
+                session === requestedSession &&
+                !stopped &&
+                !port &&
+                supported !== false
+            )
+                return start()
+            return
+        }
+        const targetSession = session
+        startingSession = targetSession
+        starting = (async () => {
+            if (supported === undefined) {
+                try {
+                    const response = (await browser.runtime.sendNativeMessage(
+                        NATIVE_NAME,
+                        { cmd: "version" },
+                    )) as MessageResp
+                    if (session !== targetSession || stopped) return
+                    supported =
+                        response.capabilities?.includes(CONTROL_CAPABILITY) ===
+                        true
+                } catch (_) {
+                    return
+                }
+            }
+            if (
+                !supported ||
+                stopped ||
+                port ||
+                nativeControlsSuspended ||
+                session !== targetSession
+            )
+                return
+
+            const connected = browser.runtime.connectNative(NATIVE_NAME)
+            const connectedSession = ++session
+            connected.onMessage.addListener(message =>
+                onMessage(connected, connectedSession, message),
+            )
+            connected.onDisconnect.addListener(() => {
+                if (port === connected) {
+                    port = undefined
+                    session++
+                }
+            })
+            port = connected
+            try {
+                connected.postMessage({
+                    type: "control.handshake",
+                    protocol: CONTROL_PROTOCOL,
+                    enable: true,
+                })
+            } catch (error) {
+                port = undefined
+                connected.disconnect()
+                throw error
+            }
+        })().finally(() => (starting = undefined))
+        return starting
+    }
+
+    const control: NativeControl = {
+        start,
+        async reprobe() {
+            if (port) return
+            control.disconnect(true)
+            await control.start()
+        },
+        disconnect(reprobe = false) {
+            session++
+            if (reprobe) supported = undefined
+            const connected = port
+            port = undefined
+            connected?.disconnect()
+        },
+        stop() {
+            stopped = true
+            nativeControls.delete(control)
+            control.disconnect()
+        },
+    }
+    return control
 }
 
 /**
