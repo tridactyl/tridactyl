@@ -1448,7 +1448,7 @@ export function scrollto(a: number | string, b: number | "x" | "y" = "y") {
             done = scrolling.recursiveScroll(
                 0,
                 percentage === 0 ? -Infinity : Infinity,
-                document.documentElement,
+                config.get("scrolltofollowfocus") === "false" ? document.documentElement : undefined,
             )
         else {
             scrolling.stop()
