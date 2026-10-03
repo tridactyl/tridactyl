@@ -69,6 +69,8 @@ export interface KeyModifiers {
     keydown?: boolean
     optional?: boolean
     repeat?: boolean
+    shiftKeyRaw?: boolean // can't be stripped like shiftKey
+    code?: string, // not a modifier, but is useful
 }
 
 // Format modifiers
@@ -88,6 +90,8 @@ export class MinimalKey {
     readonly keydown = false
     readonly optional = false
     readonly repeat = false
+    readonly shiftKeyRaw: boolean = false
+    readonly code: string = ""
     translated = false
     constructor(
         readonly key: string,
@@ -99,10 +103,13 @@ export class MinimalKey {
                     this.key.length === 1 &&
                     this.key !== " " &&
                     mod === "shiftKey"
-                )
+                ) {
+                    this.shiftKeyRaw = modifiers[mod]
                     continue
+                }
                 this[mod] = modifiers[mod]
             }
+            this.shiftKeyRaw = this.shiftKeyRaw || this.shiftKey
         }
     }
 
@@ -134,9 +141,33 @@ export class MinimalKey {
             keyup: this.keyup,
             keydown: this.keydown,
             repeat: this.repeat,
+            shiftKeyRaw: this.shiftKeyRaw,
+            code: this.code,
         })
         result.translated = true
         return result
+    }
+
+    /**
+     * Attempts to return a key string with a flipped "case", including non-alpha chars.
+     * e.g. if key is "!", returns "1" and vice versa (layout dependant).
+     *
+     * Attempts to use the key translation map, regardless of `:set keyboardlayoutforce`.
+     * Failing that, if key is one char returns that char with the opposite case.
+     * Otherwise returns the original key string unchanged.
+     */
+    public flippedShiftKey() {
+        Object.keys(KEYCODETRANSLATEMAP).length === 0 && updateBaseLayout()
+        const pair = KEYCODETRANSLATEMAP[this.code]
+        if (pair?.includes(this.key))
+            return this.key === pair[0] ? pair[1] : pair[0]
+
+        if (this.key.length === 1)
+            return this.key === this.key.toUpperCase()
+                ? this.key.toLowerCase()
+                : this.key.toUpperCase()
+
+        return this.key
     }
 
     public toMapstr() {
@@ -690,6 +721,7 @@ export function minimalKeyFromKeyboardEvent(
         shiftKey: keyEvent.shiftKey,
         keyup: keyEvent.type === "keyup",
         repeat: keyEvent.repeat,
+        code: keyEvent.code,
     }
     if (config.get("keyboardlayoutforce") === "true") {
         Object.keys(KEYCODETRANSLATEMAP).length === 0 && updateBaseLayout()

@@ -5578,6 +5578,8 @@ const KILL_STACK: Element[] = []
  * - If you need to use a query selector, use `-pipe` instead.
  * @flag -F [callback] - run a custom callback on the selected hint
  * - e.g. `hint -JF e => {tri.excmds.tabopen("-b",e.href); e.remove()}`.
+ * - the second arg is an "ACMS"-like string representing the modifier keys held when the hint was selected.
+ * - e.g. `hint -F (elem, mods) => { if (mods === "C") console.log("Control!", elem); else console.log(elem) }`
  *
  * #### Element selection flags
  *
@@ -5654,11 +5656,11 @@ const KILL_STACK: Element[] = []
 //#content
 export async function hint(...args: string[]): Promise<any> {
     // Parse configuration and print parsing warnings
-    const config = hint_util.HintConfig.parse(args)
-    config.printWarnings(logger)
-    const excmd = config.excmd ? controller.resolveExCmd(config.excmd) : null
+    const hintConfig = hint_util.HintConfig.parse(args)
+    hintConfig.printWarnings(logger)
+    const excmd = hintConfig.excmd ? controller.resolveExCmd(hintConfig.excmd) : null
 
-    const hintTabOpen = async (href, active = !config.rapid) => {
+    const hintTabOpen = async (href, active = !hintConfig.rapid) => {
         const containerId = await activeTabContainerId()
         if (containerId) {
             return openInNewTab(href, {
@@ -5674,17 +5676,28 @@ export async function hint(...args: string[]): Promise<any> {
         }
     }
 
-    const hintables = await config.hintables()
+    const hintables = await hintConfig.hintables()
     return new Promise(async (resolve, reject) => {
 
         // If the user specified a callback, eval it, else use the default
         // action which performs the action matching the open mode
-        const action = config.callback
-            ? eval(config.callback)
-            : (elem: any) => {
-                  if (config.pipeAttribute !== null) {
+        const action = hintConfig.callback
+            ? eval(hintConfig.callback)
+            : (elem: any, modifiers?: string) => {
+                  // Convert openMode according to modifiers and config if applicable
+                  // Callbacks will also be passed an "ACMS"-like string
+                  const openModeMods = config.get("hintmodifiers")
+                  const openModeConfKey = hintConfig.openMode || "default"
+
+                  let openMode = openModeMods[openModeConfKey]?.[modifiers]
+                    || openModeMods["all"]?.[modifiers]
+                    || hintConfig.openMode
+
+                  if (openMode === "default") openMode = OpenMode.Default
+
+                  if (hintConfig.pipeAttribute !== null) {
                       // We have an attribute to pipe
-                      return elem[config.pipeAttribute]
+                      return elem[hintConfig.pipeAttribute]
                   }
 
                   if (excmd) {
@@ -5698,7 +5711,7 @@ export async function hint(...args: string[]): Promise<any> {
                       return
                   }
 
-                  switch (config.openMode) {
+                  switch (openMode) {
                       case OpenMode.Highlight:
                           const doc = elem.ownerDocument
                           const r = doc.createRange()
@@ -5712,7 +5725,7 @@ export async function hint(...args: string[]): Promise<any> {
                       case OpenMode.ImagesTab:
                           const src = elem.getAttribute("src")
                           if (src) {
-                              if (config.openMode === OpenMode.ImagesTab) {
+                              if (openMode === OpenMode.ImagesTab) {
                                   // TODO: await? Other hintTabOpen calls don't seem to use one
                                   hintTabOpen(new URL(src, window.location.href).href)
                               } else {
@@ -5736,8 +5749,8 @@ export async function hint(...args: string[]): Promise<any> {
                       case OpenMode.SaveImage:
                       case OpenMode.SaveAsResource:
                       case OpenMode.SaveAsImage:
-                          const saveAs = config.openMode === OpenMode.SaveAsResource || config.openMode === OpenMode.SaveAsImage
-                          const attr = config.openMode === OpenMode.SaveImage || config.openMode === OpenMode.SaveAsImage ? "src" : "href"
+                          const saveAs = openMode === OpenMode.SaveAsResource || openMode === OpenMode.SaveAsImage
+                          const attr = openMode === OpenMode.SaveImage || openMode === OpenMode.SaveAsImage ? "src" : "href"
                           Messaging.message("download_background", "downloadUrl", new URL(elem[attr], window.location.href).href, saveAs)
                           return elem
 
@@ -5788,7 +5801,7 @@ export async function hint(...args: string[]): Promise<any> {
                   if (elem.href) {
                       elem.focus()
 
-                      switch (config.openMode) {
+                      switch (openMode) {
                           case OpenMode.Default:
                               const href = typeof elem.href === "string" ? elem.href : elem.href.animVal
                               if (href.startsWith("file:")) return open(href)
@@ -5808,7 +5821,7 @@ export async function hint(...args: string[]): Promise<any> {
                               break
                       }
                   } else {
-                      if (config.openMode === OpenMode.WindowPrivate) {
+                      if (openMode === OpenMode.WindowPrivate) {
                           // We want a private window, but the element doesn't have an href, so
                           // we avoid opening the target by accident
                           return
@@ -5821,7 +5834,7 @@ export async function hint(...args: string[]): Promise<any> {
                   return elem
               }
 
-        if (config.immediate) {
+        if (hintConfig.immediate) {
             // Immediate mode, perform the target action on all matching nodes
             const results = []
 
@@ -5838,11 +5851,11 @@ export async function hint(...args: string[]): Promise<any> {
             resolve(results)
         } else {
             // Perform hinting
-            hinting.hintPage(hintables, action, resolve, reject, config.rapid)
+            hinting.hintPage(hintables, action, resolve, reject, hintConfig.rapid)
         }
     }).then(value => {
         // Fix #1374 for all types of yanks: join returned results
-        if (config.isYank) {
+        if (hintConfig.isYank) {
             if (Array.isArray(value)) {
                 yank(value.join("\n"))
             } else {
