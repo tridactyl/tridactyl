@@ -44,6 +44,25 @@ async function updatePage() {
             else if (link.target.toLowerCase() === "_blank") link.relList.add("noopener")
             else link.target = "_top"
         })
+    if (article.image) {
+        let coverUrl: URL | undefined
+        try {
+            coverUrl = new URL(article.image, article.link ?? document.baseURI)
+        } catch {
+            coverUrl = undefined
+        }
+        const cover = document.createElement("img")
+        if (
+            coverUrl !== undefined &&
+            ["http:", "https:", "data:"].includes(coverUrl.protocol) &&
+            !Array.from(content.content.querySelectorAll("img")).some(
+                image => image.src === coverUrl.href,
+            )
+        ) {
+            cover.src = coverUrl.href
+            content.content.prepend(cover)
+        }
+    }
     article.content = content.innerHTML
     let headerHtml = ""
     if (article.title !== undefined) {
@@ -55,22 +74,22 @@ async function updatePage() {
             !(article.title ?? "").includes(article.link)
         ) {
             document.title =
-                [article.siteName, article.title].filter(Boolean).join(": ") +
+                [article.site, article.title].filter(Boolean).join(": ") +
                 " :: " +
                 article.link
         } else {
-            document.title = [article.siteName, article.title]
+            document.title = [article.site, article.title]
                 .filter(Boolean)
                 .join(": ")
         }
         title.textContent = article.title
         header.appendChild(title)
-        if (article.byline !== undefined) {
+        if (article.author !== undefined) {
             const author = document.createElement("p")
-            author.textContent = article.byline
+            author.textContent = article.author
             header.appendChild(author)
         }
-        const {text, words} = readingTime(article.textContent ?? "")
+        const { text, words } = readingTime(content.content.textContent ?? "")
         const readingtime = document.createElement("p")
         readingtime.textContent = `${words} words, ${text}`
         header.appendChild(readingtime)
