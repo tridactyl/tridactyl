@@ -68,6 +68,7 @@ class HintState {
     public selectedHints: Hint[] = []
     public filter = ""
     public hintchars = ""
+    public modifierKeys = ""
 
     constructor(
         public filterFunc: HintFilter,
@@ -501,14 +502,14 @@ export function hintPage(
         buildHints(hintableElements, hint => {
             const state = modeState
             state.cleanUpHints()
-            hint.result = onSelect(hint.target)
+            hint.result = onSelect(hint.target, state.modifierKeys)
             state.selectedHints.push(hint)
             if (modeState === state) reset()
         })
     } else {
         buildHints(hintableElements, hint => {
             const state = modeState
-            hint.result = onSelect(hint.target)
+            hint.result = onSelect(hint.target, state.modifierKeys)
             state.selectedHints.push(hint)
             if (
                 state.selectedHints.length > 1 &&
@@ -780,7 +781,7 @@ function* hintnames(
 }
 
 /** @hidden */
-type HintSelectedCallback = (x: any) => any
+type HintSelectedCallback = (x: any, modifiers?: string) => any
 
 /** Place a flag by each hintworthy element
 @hidden */
@@ -1444,7 +1445,7 @@ export function hintByText(match: string | RegExp) {
 /** Return a predicate that checks whether an element matches a given text hinting filter
  * @hidden
  */
-export function hintByTextFilter(match: string | RegExp): HintSelectedCallback {
+export function hintByTextFilter(match: string | RegExp): (hint: Element) => boolean {
     return hint => {
         let text
         if (hint instanceof HTMLInputElement) {
@@ -1546,19 +1547,36 @@ export function parser(keys: keyseq.MinimalKey[]) {
     if (parsed.isMatch === true) {
         return parsed
     }
-    // Ignore modifiers since they can't match text
-    const simplekeys = keys.filter(key => !keyseq.hasModifiers(key))
-    let exstr
-    if (simplekeys.length > 1) {
-        exstr = simplekeys.reduce(
-            (acc, key) => `hint.pushKey ${key.key};`,
-            "composite ",
-        )
-    } else if (simplekeys.length === 1) {
-        exstr = `hint.pushKeyCodePoint ${simplekeys[0].key.codePointAt(0)}`
-    } else {
+
+    // Single-char keys only
+    const simpleKeys = keys.filter(ke => ke.key.length === 1)
+
+    if (simpleKeys.length === 0)
         return { keys: [], isMatch: false }
+
+    const lastKeyEvent = simpleKeys[simpleKeys.length - 1]
+    let key = lastKeyEvent.key
+
+    // Modifiers to "ACSM" string to pass to pushKey
+    let modstr = ["altKey", "ctrlKey", "metaKey", "shiftKeyRaw"]
+        .reduce((acc, mod) => acc + (lastKeyEvent[mod] ? mod[0].toUpperCase() : ""), "")
+
+    // Flip key case if shift is held and key is not a hint char
+    if (lastKeyEvent.shiftKeyRaw && !lastKeyEvent.shiftKey) {
+        if (defaultHintChars().includes(lastKeyEvent.key)) {
+            modstr = modstr.replace("S", "")
+        } else {
+            key = lastKeyEvent.flippedShiftKey()
+        }
     }
+
+    // Store last held modifier keys as "ACMS" string
+    modeState.modifierKeys = modstr
+
+    const exstr = simpleKeys.length === 1
+        ? `hint.pushKey ${key}`
+        : simpleKeys.reduce((acc, key) => `hint.pushKey ${key.key};`, "composite ")
+
     return { exstr, value: exstr, isMatch: true }
 }
 

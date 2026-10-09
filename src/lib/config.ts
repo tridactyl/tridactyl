@@ -1530,6 +1530,31 @@ export class default_config {
      * Internal temporary storage for :reader, mapping UUIDs to base64 encoded html strings of articles
      */
     reader_articles: { [id: string]: string } = {}
+
+    /**
+     * Alternate actions for hinting when using modifier keys.
+     *
+     * Set using action flags (-t, -b, etc., see `:help hint` for more), "default" or "all" and any combination of modifier keys, "ACMS".
+     * Multiple modifiers must be in the correct order ("ACMS") - "AC" will work, but not "CA".
+     *
+     * `:set hintmodifiers.[flag|default|any].[mods] [flag|default]`
+     *
+     * e.g. `:set hintmodifiers.-b.C -t` will have `:hint -b` open hints in a foreground tab rather than a background tab when holding control.
+     *
+     * Actions set using "all" will be overridden by specific flags.
+     * `:set hintmodifiers.all.C default`
+     * `:set hintmodifiers.default.C -t`
+     *
+     * If using capital letter [[hintchars]], holding shift will not affect the action.
+     *
+     * Does not affect `:hint -W`, `:hint -pipe` or `:hint -F`.
+     * `:hint -F` callbacks will however be passed the held modifiers as an "ACMS"-like string as the second arg.
+     */
+    hintmodifiers: { [actionFlag: string]: { [mods: string]: string } } = {
+        "default": {
+            "S": "-t",
+        },
+    }
 }
 
 const platform_defaults = {
