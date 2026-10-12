@@ -3,14 +3,17 @@ import {
     activeWindowId,
     browserBg,
     removeActiveWindowValue,
+    requireFirefoxDesktopBg,
+    sessionsBg,
 } from "./webext"
+import * as compat from "@src/lib/compat"
 
 /**
  * Return a set of the current window's tab groups (empty if there are none).
  *
  */
 export async function tgroups() {
-    const groups = await browserBg.sessions.getWindowValue(
+    const groups = await sessionsBg.getWindowValue(
         await activeWindowId(),
         "tridactyl-tgroups",
     )
@@ -24,7 +27,7 @@ export async function tgroups() {
  *
  */
 export async function setTgroups(groups: Set<string>) {
-    return browserBg.sessions.setWindowValue(
+    return sessionsBg.setWindowValue(
         await activeWindowId(),
         "tridactyl-tgroups",
         [...groups],
@@ -49,7 +52,7 @@ export async function windowTgroup(id?: number) {
     if (id === undefined) {
         id = await activeWindowId()
     }
-    return browserBg.sessions.getWindowValue(
+    return sessionsBg.getWindowValue(
         id,
         "tridactyl-active-tgroup",
     ) as unknown as string
@@ -66,7 +69,7 @@ export async function setWindowTgroup(name: string, id?: number) {
     if (id === undefined) {
         id = await activeWindowId()
     }
-    return browserBg.sessions.setWindowValue(
+    return sessionsBg.setWindowValue(
         id,
         "tridactyl-active-tgroup",
         name,
@@ -107,7 +110,7 @@ export async function tabTgroup(id?: number) {
     if (id === undefined) {
         id = await activeTabId()
     }
-    return browserBg.sessions.getTabValue(
+    return sessionsBg.getTabValue(
         id,
         "tridactyl-tgroup",
     ) as unknown as string
@@ -139,9 +142,9 @@ async function tabIdsOrCurrent(ids?: number | number[]): Promise<number[]> {
  */
 export async function setTabTgroup(name: string, id?: number | number[]) {
     const ids = await tabIdsOrCurrent(id)
-    return ids.map(id => {
-        browserBg.sessions.setTabValue(id, "tridactyl-tgroup", name)
-    })
+    return Promise.all(
+        ids.map(id => sessionsBg.setTabValue(id, "tridactyl-tgroup", name)),
+    )
 }
 
 /**
@@ -152,9 +155,9 @@ export async function setTabTgroup(name: string, id?: number | number[]) {
  */
 export async function clearTabTgroup(id?: number | number[]) {
     const ids = await tabIdsOrCurrent(id)
-    return ids.map(id => {
-        browserBg.sessions.removeTabValue(id, "tridactyl-tgroup")
-    })
+    return Promise.all(
+        ids.map(id => sessionsBg.removeTabValue(id, "tridactyl-tgroup")),
+    )
 }
 
 /**
@@ -234,12 +237,12 @@ export async function tgroupClearOldInfo(
     if (newName) {
         promises.push(setWindowTgroup(newName, id))
         promises.push(
-            tgroupTabs(oldName, false, id).then(tabs => {
+            tgroupTabs(oldName, false, id).then(tabs =>
                 setTabTgroup(
                     newName,
                     tabs.map(tab => tab.id),
-                )
-            }),
+                ),
+            ),
         )
     }
     return Promise.all(promises)
@@ -277,8 +280,9 @@ export async function clearAllTgroupInfo() {
         clearTgroups(),
         clearWindowTgroup(),
         browser.tabs.query({ currentWindow: true }).then(async tabs => {
+            const firefoxDesktop = await requireFirefoxDesktopBg()
             const ids = tabs.map(tab => tab.id)
-            await browser.tabs.show(ids)
+            await firefoxDesktop.tabs.show(ids)
             return clearTabTgroup(ids)
         }),
     ])
@@ -331,15 +335,16 @@ export async function tgroupHandleTabActivated(activeInfo) {
     const promises = []
     if (windowGroup && tabGroup && windowGroup != tabGroup) {
         await setWindowTgroup(tabGroup, activeInfo.windowId)
+        const firefoxDesktop = await requireFirefoxDesktopBg()
 
         promises.push(
             tgroupTabs(tabGroup, false, activeInfo.windowId).then(tabs =>
-                browserBg.tabs.show(tabs.map(tab => tab.id)),
+                firefoxDesktop.tabs.show(tabs.map(tab => tab.id)),
             ),
         )
         promises.push(
             tgroupTabs(tabGroup, true, activeInfo.windowId).then(tabs =>
-                browserBg.tabs.hide(tabs.map(tab => tab.id)),
+                firefoxDesktop.tabs.hide(tabs.map(tab => tab.id)),
             ),
         )
     }
@@ -375,7 +380,11 @@ export async function tgroupHandleTabUpdated(
  * Clear its information.
  *
  */
-export async function tgroupHandleTabRemoved(_tabId: number, removeInfo) {
+export async function tgroupHandleTabRemoved(tabId: number, removeInfo) {
+    compat.clearTabSessionValues(tabId)
+    if (removeInfo.isWindowClosing) {
+        compat.clearWindowSessionValues(removeInfo.windowId)
+    }
     if (!removeInfo.isWindowClosing) {
         const windowGroup = await windowTgroup(removeInfo.windowId)
         const tabCount = await tgroupTabs(

@@ -1,11 +1,13 @@
-export {}
+import { unwrapMessageResponse } from "@src/lib/message_response"
 
 function message(command: "getState" | "toggle") {
-    return browser.runtime.sendMessage({
-        type: "browser_action_background",
-        command,
-        args: [],
-    })
+    return unwrapMessageResponse(
+        browser.runtime.sendMessage({
+            type: "browser_action_background",
+            command,
+            args: [],
+        }),
+    )
 }
 
 const state = document.querySelector<HTMLElement>("#state")

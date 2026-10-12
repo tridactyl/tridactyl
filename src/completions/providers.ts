@@ -1,5 +1,6 @@
 import * as config from "@src/lib/config"
-import { browserBg } from "@src/lib/webext"
+import * as compat from "@src/lib/compat"
+import { compatBg } from "@src/lib/webext"
 import Fuse from "fuse.js"
 
 export function newtaburl() {
@@ -15,6 +16,7 @@ export type Bookmark = { path: string } & browser.bookmarks.BookmarkTreeNode
  * Search bookmarks, deduplicate and sort by most recent.
  */
 export async function getBookmarks(query: string): Promise<Bookmark[]> {
+    if (await compat.isAndroid()) return []
     let bookmarks =
         config.get("bmarkfoldersearch") == "true"
             ? await fuseBookmarksSearch(query)
@@ -37,7 +39,7 @@ export async function getBookmarks(query: string): Promise<Bookmark[]> {
  * Uses Browser API to search for bookmark by name and URL.
  */
 async function builtInBookmarksSearch(query: string): Promise<Bookmark[]> {
-    const bookmarks = await browserBg.bookmarks.search({ query })
+    const bookmarks = await compatBg.bookmarks.search({ query })
     return bookmarks
         .filter(isValidBookmark)
         .map(b => ({ path: "", ...b }))
@@ -118,6 +120,7 @@ function isValidBookmark(
 let bookmarkPaths: string[]
 
 export async function getBookmarkFolders(query: string) {
+    if (await compat.isAndroid()) return []
     bookmarkPaths = bookmarkPaths || [
         ...new Set(
             (await collectBookmarkFolders())
@@ -148,7 +151,7 @@ async function collectBookmarkFolders(): Promise<Bookmark[]> {
 async function collectBookmarksAndFolders(): Promise<
     browser.bookmarks.BookmarkTreeNode[]
 > {
-    const root = await browserBg.bookmarks.getTree()
+    const root = await compatBg.bookmarks.getTree()
     return root.flatMap(flattenChildren)
 }
 
@@ -191,7 +194,7 @@ export async function getHistory(
     query: string,
 ): Promise<browser.history.HistoryItem[]> {
     // Search history, dedupe and sort
-    let history = await browserBg.history.search({
+    let history = await compatBg.history.search({
         text: query,
         maxResults: config.get("historyresults"),
         startTime: 0,
@@ -218,7 +221,7 @@ export async function getHistory(
 }
 
 export async function getTopSites() {
-    return (await browserBg.topSites.get()).filter(
+    return (await compatBg.topSites.get()).filter(
         page => page.url !== newtaburl(),
     )
 }

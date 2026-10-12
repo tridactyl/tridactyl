@@ -55,6 +55,10 @@ async function beta_number() {
     return (await fs.promises.readFile(".build_cache/count", {encoding: "utf8"})).trim()
 }
 
+function beta_version(versionstr, count) {
+    return versionstr + "pre" + String(count).trim()
+}
+
 async function get_hash() {
     await fs.promises.mkdir(".build_cache", {recursive: true})
     try {
@@ -177,7 +181,7 @@ async function main() {
             validate_release_version(manifest)
             if (tagged(manifest.version)) throw new Error(`Version ${manifest.version} is already tagged`)
             set_beta_version(manifest, await beta_number(), await get_hash())
-            manifest.applications.gecko.update_url =
+            manifest.browser_specific_settings.gecko.update_url =
                 "https://tridactyl.cmcaine.co.uk/betas/updates.json"
 
             try {
@@ -200,4 +204,4 @@ async function main() {
 
 if (require.main === module) main()
 
-module.exports = { set_beta_version, set_release_version }
+module.exports = { beta_version, set_beta_version, set_release_version }

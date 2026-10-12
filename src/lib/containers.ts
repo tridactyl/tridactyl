@@ -1,4 +1,4 @@
-import { browserBg } from "@src/lib/webext"
+import { requireFirefoxBg, requireFirefoxDesktopBg } from "@src/lib/webext"
 import Fuse from "fuse.js"
 import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("containers")
@@ -65,7 +65,7 @@ export async function create(
             `[Container.create] container already exists, aborting.`,
         )
     } else {
-        const res = await browser.contextualIdentities.create(container)
+        const res = await (await requireFirefoxDesktopBg()).contextualIdentities.create(container)
         return res.cookieStoreId
     }
 }
@@ -99,7 +99,7 @@ export async function ensure(
 export async function remove(name: string) {
     logger.debug(name)
     const id = await getId(name)
-    const res = await browser.contextualIdentities.remove(id)
+    const res = await (await requireFirefoxDesktopBg()).contextualIdentities.remove(id)
     logger.debug("[Container.remove] removed container:", res.cookieStoreId)
 }
 
@@ -109,7 +109,7 @@ export async function remove(name: string) {
     @param containerId Expects a cookieStringId e.g. "firefox-container-n".
     @param updateObj the new name, color, and icon of the container
  */
-export function update(
+export async function update(
     containerId: string,
     updateObj: {
         name: string
@@ -126,7 +126,7 @@ export function update(
         logger.debug(updateObj)
         throw new Error("[Container.update] invalid container icon: " + icon)
     }
-    return browser.contextualIdentities.update(containerId, {
+    return (await requireFirefoxDesktopBg()).contextualIdentities.update(containerId, {
         name,
         color,
         icon,
@@ -140,7 +140,7 @@ export async function getFromId(
     containerId: string,
 ): Promise<browser.contextualIdentities.ContextualIdentity> {
     try {
-        return await browserBg.contextualIdentities.get(containerId)
+        return await (await requireFirefoxDesktopBg()).contextualIdentities.get(containerId)
     } catch (e) {
         return DefaultContainer
     }
@@ -189,8 +189,8 @@ export function fromString(name: string, color: string, icon: string, id = "") {
 /**
  *  @returns An array representation of all containers.
  */
-export async function getAll(): Promise<any[]> {
-    return browser.contextualIdentities.query({})
+export async function getAll(): Promise<browser.contextualIdentities.ContextualIdentity[]> {
+    return (await requireFirefoxBg()).contextualIdentities.query({})
 }
 
 /** Fetches the cookieStoreId of a given container

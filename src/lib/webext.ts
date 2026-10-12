@@ -1,7 +1,16 @@
 import * as convert from "@src/lib/convert"
-import browserProxy from "@src/lib/browser_proxy"
+import browserProxy, {
+    CompatApis,
+    compatProxy,
+    desktopProxy,
+    firefoxDesktopProxy,
+    firefoxProxy,
+    hasCapability,
+} from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
+import * as compat from "@src/lib/compat"
+import { unwrapMessageResponse } from "@src/lib/message_response"
 import { sleep } from "@src/lib/patience"
 import * as R from "ramda"
 
@@ -15,14 +24,16 @@ export async function getSortedTabs(
             ? (a, b) =>
                   +a.active || -b.active || b.lastAccessed - a.lastAccessed
             : (a, b) => a.index - b.index
-    const hiddenVal = config.get("tabshowhidden") === "true" ? undefined : false
-    const query: Parameters<typeof browser.tabs.query>[0] = {
-        hidden: hiddenVal,
-    }
+    const showHidden = config.get("tabshowhidden") === "true"
+    const query: Parameters<typeof browser.tabs.query>[0] = {}
     if (!allWindows) {
-        query.currentWindow = true
+        if (inContentScript()) query.windowId = (await ownTab()).windowId
+        else query.currentWindow = true
     }
-    return browserBg.tabs.query(query).then(tabs => tabs.sort(comp))
+    const tabs = await browserBg.tabs.query(query)
+    return tabs
+        .filter(tab => showHidden || !("hidden" in tab && tab.hidden))
+        .sort(comp)
 }
 
 export function inContentScript() {
@@ -73,6 +84,59 @@ export function getContext() {
 
 // Make this library work for both content and background.
 export const browserBg = inContentScript() ? browserProxy : browser
+export const compatBg: CompatApis = inContentScript() ? compatProxy : compat
+export const sessionsBg: typeof compat.sessions =
+    getContext() === "background" ? compat.sessions : compatProxy.sessions
+
+export function isAndroid() {
+    if (!inContentScript()) return compat.isAndroid()
+    return browserBg.runtime.getPlatformInfo().then(info => info.os === "android")
+}
+
+export async function getDesktopBg(): Promise<compat.DesktopCapability> {
+    if (inContentScript())
+        return (await hasCapability("desktop"))
+            ? { kind: "desktop", api: desktopProxy() }
+            : { kind: "unavailable" }
+    return compat.getDesktop()
+}
+
+export async function requireDesktopBg(): Promise<compat.DesktopApis> {
+    const capability = await getDesktopBg()
+    if (capability.kind === "unavailable")
+        return compat.unsupportedApi("This operation requires a desktop browser.")
+    return capability.api
+}
+
+export async function getFirefoxBg(): Promise<compat.FirefoxCapability> {
+    if (inContentScript())
+        return (await hasCapability("firefox"))
+            ? { kind: "firefox", api: firefoxProxy() }
+            : { kind: "unavailable" }
+    return compat.getFirefox()
+}
+
+export async function requireFirefoxBg(): Promise<compat.FirefoxApis> {
+    const capability = await getFirefoxBg()
+    if (capability.kind === "unavailable")
+        return compat.unsupportedApi("This operation requires Firefox.")
+    return capability.api
+}
+
+export async function getFirefoxDesktopBg(): Promise<compat.FirefoxDesktopCapability> {
+    if (inContentScript())
+        return (await hasCapability("firefoxDesktop"))
+            ? { kind: "firefoxDesktop", api: firefoxDesktopProxy() }
+            : { kind: "unavailable" }
+    return compat.getFirefoxDesktop()
+}
+
+export async function requireFirefoxDesktopBg(): Promise<compat.FirefoxDesktopApis> {
+    const capability = await getFirefoxDesktopBg()
+    if (capability.kind === "unavailable")
+        return compat.unsupportedApi("This operation requires Firefox desktop.")
+    return capability.api
+}
 
 let lastAudibleTabId: number | undefined
 
@@ -81,7 +145,6 @@ export function initLastAudibleTabTracking() {
         (tabId, changeInfo) => {
             if (changeInfo.audible === false) lastAudibleTabId = tabId
         },
-        { properties: ["audible"] },
     )
     browser.tabs.onRemoved.addListener(tabId => {
         if (tabId === lastAudibleTabId) lastAudibleTabId = undefined
@@ -101,12 +164,14 @@ export async function getLastAudibleTab() {
  *
  */
 export async function activeTab() {
-    return (
-        await browserBg.tabs.query({
-            active: true,
-            currentWindow: true,
-        })
-    )[0]
+    if (inContentScript()) return ownTab()
+    const [active] = await browserBg.tabs.query({
+        active: true,
+        currentWindow: true,
+    })
+    if (active) return active
+    const tabs = await browserBg.tabs.query({ currentWindow: true })
+    return tabs.find(tab => tab.active) ?? tabs[0]
 }
 
 export async function activeTabOnWindow(windowId?: number) {
@@ -123,10 +188,11 @@ export async function activeTabId() {
 }
 
 export async function prevActiveTab() {
+    const query = inContentScript()
+        ? { windowId: (await ownTab()).windowId }
+        : { currentWindow: true }
     const tabs = (
-        await browserBg.tabs.query({
-            currentWindow: true,
-        })
+        await browserBg.tabs.query(query)
     ).sort((a, b) => b.lastAccessed - a.lastAccessed)
 
     if (tabs.length > 1) return tabs[1]
@@ -138,20 +204,31 @@ export async function prevActiveTab() {
  *
  */
 export async function activeWindowId() {
-    return (await browserBg.windows.getCurrent()).id
+    if (inContentScript()) return (await ownTab()).windowId
+    if (await isAndroid()) return (await activeTab()).windowId
+    return (await (await requireDesktopBg()).windows.getCurrent()).id
 }
 
 export async function removeActiveWindowValue(value) {
-    browserBg.sessions.removeWindowValue(await activeWindowId(), value)
+    return sessionsBg.removeWindowValue(
+        await activeWindowId(),
+        value,
+    )
 }
 
 export async function activeTabContainerId() {
-    return (await activeTab()).cookieStoreId
+    if (await isAndroid()) return undefined
+    const tab = await activeTab()
+    return tab && "cookieStoreId" in tab && typeof tab.cookieStoreId === "string"
+        ? tab.cookieStoreId
+        : undefined
 }
 
 export async function ownTab() {
     // Warning: this relies on the owntab_background listener being set in messaging.ts in order to work
-    return browser.runtime.sendMessage({ type: "owntab_background" })
+    return unwrapMessageResponse(
+        browser.runtime.sendMessage({ type: "owntab_background" }),
+    )
 }
 
 export async function ownTabId() {
@@ -159,7 +236,7 @@ export async function ownTabId() {
 }
 
 async function windows() {
-    return (await browserBg.windows.getAll())
+    return (await compatBg.windows.getAll())
         .map(w => w.id)
         .sort((a, b) => a - b)
 }
@@ -175,13 +252,15 @@ export async function getWinIdFromIndex(index: string) {
 }
 
 export async function ownTabContainer() {
-    return browserBg.contextualIdentities.get((await ownTab()).cookieStoreId)
+    return (await requireFirefoxDesktopBg()).contextualIdentities.get(
+        (await ownTab()).cookieStoreId,
+    )
 }
 
 export async function activeTabContainer() {
     const containerId = await activeTabContainerId()
     if (containerId !== "firefox-default")
-        return browserBg.contextualIdentities.get(containerId)
+        return (await requireFirefoxDesktopBg()).contextualIdentities.get(containerId)
     else
         throw new Error(
             "firefox-default is not a valid contextualIdentity (activeTabContainer)",
@@ -242,12 +321,10 @@ export async function openInNewTab(
 
     const thisTab = await activeTab()
     const delayedUrl = kwargs.beforeNavigate && !kwargs.discarded && url
-    const options: Parameters<typeof browser.tabs.create>[0] = {
+    const options: compat.DesktopCreateProperties = {
         active: kwargs.bypassFocusHack,
         windowId: thisTab.windowId,
         url: delayedUrl ? "about:blank" : url,
-        cookieStoreId: kwargs.cookieStoreId,
-        discarded: kwargs.discarded,
         pinned: kwargs.pinned,
     }
 
@@ -258,28 +335,54 @@ export async function openInNewTab(
     switch (pos) {
         case "next":
             options.index = thisTab.index + 1
-            if (kwargs.related && (await firefoxVersionAtLeast(57)))
-                options.openerTabId = thisTab.id
+            if (kwargs.related) options.openerTabId = thisTab.id
             break
         case "last":
             // Infinity can't be serialised, apparently.
             options.index = (
                 await browserBg.tabs.query({
-                    currentWindow: true,
+                    windowId: thisTab.windowId,
                 })
             ).length
             break
         case "related":
-            if (await firefoxVersionAtLeast(57)) {
-                options.openerTabId = thisTab.id
-            } else {
-                options.index = thisTab.index + 1
-            }
+            options.openerTabId = thisTab.id
             break
     }
 
     const tabCreateWrapper = async options => {
-        const tab = await browserBg.tabs.create(options)
+        const android = await isAndroid()
+        if (
+            android &&
+            (kwargs.cookieStoreId || kwargs.discarded || kwargs.pinned)
+        )
+            return compat.unsupportedApi(
+                "Containers, discarded tabs, and pinned tabs are unavailable on Android.",
+            )
+        const needsFirefox =
+            kwargs.cookieStoreId || kwargs.discarded || kwargs.beforeNavigate
+        const firefoxDesktopTabs =
+            !android && needsFirefox
+                ? (await requireFirefoxDesktopBg()).tabs
+                : undefined
+        const desktopTabs =
+            !android && !firefoxDesktopTabs
+                ? (await requireDesktopBg()).tabs
+                : undefined
+        const tab = await (android
+            ? browserBg.tabs.create({
+                  active: options.active,
+                  index: options.index,
+                  url: options.url,
+                  windowId: options.windowId,
+              })
+            : firefoxDesktopTabs
+              ? firefoxDesktopTabs.create({
+                    ...options,
+                    cookieStoreId: kwargs.cookieStoreId,
+                    discarded: kwargs.discarded,
+                })
+              : desktopTabs.create(options))
         let result = tab
         let listener
         const answer: Promise<browser.tabs.Tab> = new Promise(resolve => {
@@ -304,10 +407,12 @@ export async function openInNewTab(
         if (kwargs.beforeNavigate) {
             kwargs.beforeNavigate(tab.id)
             if (delayedUrl)
-                result = await browserBg.tabs.update(tab.id, {
-                    url: delayedUrl,
-                    loadReplace: true,
-                })
+                result = await (firefoxDesktopTabs
+                    ? firefoxDesktopTabs.update(tab.id, {
+                          url: delayedUrl,
+                          loadReplace: true,
+                      })
+                    : browserBg.tabs.update(tab.id, { url: delayedUrl }))
         }
         // Return on slow- / extremely quick- loading pages anyway
         await Promise.race([
@@ -333,8 +438,12 @@ export async function openInNewTab(
 
 // lazily copied from excmds.ts' winopen - forceURI really ought to be moved to lib/webext
 // Should consider changing interface of this to match openInNewTab or vice versa
-export function openInNewWindow(createData = {}) {
-    browserBg.windows.create(createData)
+export async function openInNewWindow(
+    createData: browser.windows._CreateCreateData = {},
+) {
+    if (await isAndroid())
+        return compat.unsupportedApi("no windows on android")
+    return (await requireDesktopBg()).windows.create(createData)
 }
 
 // Returns object if we should use the search engine instead
@@ -400,9 +509,9 @@ export async function queryAndURLwrangler(
         return eval(js)(rest)
     }
 
-    const searchEngines = await browserBg.search.get()
+    const searchEngines = await compatBg.search.get()
     let engine = searchEngines.find(engine => engine.alias === firstWord)
-    // Maybe firstWord is the name of a firefox search engine?
+    // Maybe firstWord is the name of a Firefox search engine?
     if (engine !== undefined) {
         return { engine: engine.name, query: rest }
     }
@@ -457,27 +566,53 @@ export async function queryAndURLwrangler(
         }
     }
 
+    if (!searchEngines.length) {
+        const fallbackName = enginename || "google"
+        const fallback = searchurls[fallbackName]
+        if (!fallback) {
+            throw new Error(
+                `Search API unavailable. Set searchengine to a searchurls entry.`,
+            )
+        }
+        return UrlUtil.interpolateSearchItem(
+            new URL(fallback),
+            queryString,
+        ).href
+    }
+
     // No search engine has been defined in Tridactyl, let's use firefox's default search engine
     return { query: queryString }
 }
 
-export async function openInTab(tab, opts = {}, strarr: string[]) {
+export async function openInTab(
+    tab,
+    opts: { loadReplace?: boolean } = {},
+    strarr: string[],
+) {
+    const update = async (url: string) => {
+        const firefoxDesktop = opts.loadReplace
+            ? inContentScript()
+                ? await hasCapability("firefoxDesktop")
+                : (await compat.getFirefoxDesktop()).kind === "firefoxDesktop"
+            : false
+        if (firefoxDesktop)
+            return (await requireFirefoxDesktopBg()).tabs.update(tab.id, {
+                url,
+                loadReplace: true,
+            })
+        return browserBg.tabs.update(tab.id, { url })
+    }
     const maybeURL = await queryAndURLwrangler(strarr)
     if (typeof maybeURL === "string") {
-        return browserBg.tabs.update(
-            tab.id,
-            Object.assign({ url: maybeURL }, opts),
-        )
+        return update(maybeURL)
     }
-    if (typeof maybeURL === "object") {
-        return browserBg.search.search({ tabId: tab.id, ...maybeURL })
+    if (!(await isAndroid()) && typeof maybeURL === "object") {
+        const { search } = await requireFirefoxDesktopBg()
+        return search.search({ tabId: tab.id, ...maybeURL })
     }
 
     // Fall back to our new tab page
-    return browserBg.tabs.update(
-        tab.id,
-        Object.assign({ url: "/static/newtab.html" }, opts),
-    )
+    return update("/static/newtab.html")
 }
 
 /**
@@ -486,6 +621,9 @@ export async function openInTab(tab, opts = {}, strarr: string[]) {
  */
 export async function goToTab(tabId: number) {
     const tab = await browserBg.tabs.update(tabId, { active: true })
-    await browserBg.windows.update(tab.windowId, { focused: true })
+    if (!(await isAndroid())) {
+        const { windows } = await requireDesktopBg()
+        await windows.update(tab.windowId, { focused: true })
+    }
     return tab
 }

@@ -76,7 +76,8 @@
 
 // Shared
 import * as Messaging from "@src/lib/messaging"
-import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab, getLastAudibleTab } from "@src/lib/webext"
+import * as compat from "@src/lib/compat"
+import { ownWinTriIndex, getTriVersion, getTriVersionName, browserBg, sessionsBg, activeTab, activeTabOnWindow, activeTabId, activeTabContainerId, openInNewTab, openInNewWindow, openInTab, queryAndURLwrangler, goToTab, getSortedTabs, prevActiveTab, getLastAudibleTab, getDesktopBg, isAndroid, requireDesktopBg, requireFirefoxBg, requireFirefoxDesktopBg } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 import state from "@src/state"
 import * as State from "@src/state"
@@ -657,6 +658,7 @@ export async function nativeopen(...args: string[]) {
     const url = args.slice(firefoxArgs.length).join(" ")
 
     if (await Native.nativegate()) {
+        const desktop = await requireDesktopBg()
         // First compute where the tab should be
         const pos = await config.getAsync("tabopenpos")
         let index = (await activeTab()).index + 1
@@ -673,13 +675,13 @@ export async function nativeopen(...args: string[]) {
         const selecttab = tab => {
             browser.tabs.onCreated.removeListener(selecttab)
             tabSetActive(tab.id)
-            browser.tabs.move(tab.id, { index })
+            desktop.tabs.move(tab.id, { index })
         }
         browser.tabs.onCreated.addListener(selecttab)
 
         try {
             if ((await browser.runtime.getPlatformInfo()).os === "mac") {
-                if ((await browser.windows.getCurrent()).incognito) {
+                if ((await desktop.windows.getCurrent()).incognito) {
                     throw new Error("nativeopen isn't supported in private mode on OSX. Consider installing Linux or Windows :).")
                 }
                 const appName = /(?:^|\/)([^/]+)\.app\/Contents\/MacOS\//.exec((await Native.ff_cmdline().catch(() => [])).join(" "))?.[1] ?? "Firefox"
@@ -1076,20 +1078,31 @@ export function getJumpPageId() {
 /** @hidden */
 //#content_helper
 export async function saveJumps(jumps) {
-    return browserBg.sessions.setTabValue(await activeTabId(), "jumps", jumps)
+    return sessionsBg.setTabValue(
+        await activeTabId(),
+        "jumps",
+        jumps,
+    )
 }
 
 /** @hidden */
 //#content_helper
 export async function saveTabHistory(history) {
-    return browserBg.sessions.setTabValue((await ownTab()).id, "history", history)
+    return sessionsBg.setTabValue(
+        (await ownTab()).id,
+        "history",
+        history,
+    )
 }
 
 /** Returns a promise for an object with history list, index of a current, previous and next pages */
 /** @hidden */
 //#content_helper
 export async function curTabHistory() {
-    return browserBg.sessions.getTabValue((await ownTab()).id, "history")
+    return sessionsBg.getTabValue(
+        (await ownTab()).id,
+        "history",
+    )
 }
 
 /** Returns a promise for an object containing the jumplist of all pages accessed in the current tab.
@@ -1099,7 +1112,7 @@ export async function curTabHistory() {
 //#content_helper
 export async function curJumps() {
     const tabid = await activeTabId()
-    let jumps = await browserBg.sessions.getTabValue(tabid, "jumps")
+    let jumps = await sessionsBg.getTabValue(tabid, "jumps")
     if (!jumps) jumps = {}
     // This makes sure that `key` exists in `obj`, setting it to `def` if it doesn't
     const ensure = (obj, key, def) => {
@@ -1284,7 +1297,8 @@ export async function scrolltab(tabId: number, scrollX: number, scrollY: number,
  */
 //#background
 export async function markadd(key: string) {
-    if ((await browser.windows.getCurrent()).incognito) {
+    const desktop = await requireDesktopBg()
+    if ((await desktop.windows.getCurrent()).incognito) {
         throw new Error("Marks cannot be set in private mode")
     }
     // TODO: i18n: this should only ban numbers, not e.g. cyrillic
@@ -1531,7 +1545,9 @@ export function scrollpage(n = 1, count = 1) {
  *  Known bugs: find will currently happily jump to a non-visible element, and pressing n or N without having searched for anything will cause an error.
  */
 //#content
-export function find(...args: string[]) {
+export async function find(...args: string[]) {
+    if (await isAndroid())
+        return fillcmdline_tmp(3000, ":find is not supported on android :(")
     // Completion previews pass session metadata as a non-user argument.
     const preview =
         typeof (args[0] as any) === "object" ? (args.shift() as any) : undefined
@@ -2306,10 +2322,10 @@ export async function urlmodify(mode: "--safe" | "-t" | "-r" | "-s" | "-q" | "-Q
             const tabId = (await ownTab()).id
             const now = Date.now()
             const target = newUrl.toString()
-            const recent = ((await browserBg.sessions.getTabValue(tabId, "urlmodify-safe")) as [string, number][] || []).filter(([, time]) => now - time < 1000)
+            const recent = ((await sessionsBg.getTabValue(tabId, "urlmodify-safe")) as [string, number][] || []).filter(([, time]) => now - time < 1000)
             if (recent.some(([url]) => url === target)) return
             recent.push([target, now])
-            await browserBg.sessions.setTabValue(tabId, "urlmodify-safe", recent)
+            await sessionsBg.setTabValue(tabId, "urlmodify-safe", recent)
         }
         window.location.replace(newUrl)
     }
@@ -2426,8 +2442,9 @@ export async function zoom(level = 0, rel = "false", tabId = "auto") {
     if (rel === "false" && level !== 0 && (level > 5 || level < 0.3)) {
         throw new Error(`[zoom] level out of range: ${level}`)
     }
+    const desktop = await requireDesktopBg()
     if (rel === "true") {
-        level += await browser.tabs.getZoom()
+        level += await desktop.tabs.getZoom()
 
         // Handle overshooting of zoom level.
         if (level > 5) level = 5
@@ -2435,9 +2452,9 @@ export async function zoom(level = 0, rel = "false", tabId = "auto") {
     }
 
     if (tabId === "auto") {
-        return browser.tabs.setZoom(level)
+        return desktop.tabs.setZoom(level)
     } else {
-        return browser.tabs.setZoom(parseInt(tabId, 10), level)
+        return desktop.tabs.setZoom(parseInt(tabId, 10), level)
     }
 }
 
@@ -2451,9 +2468,13 @@ export async function zoom(level = 0, rel = "false", tabId = "auto") {
 //#background
 export async function readerold() {
     if (await firefoxVersionAtLeast(58)) {
-        const aTab = await activeTab()
+        const firefoxDesktop = await requireFirefoxDesktopBg()
+        const [aTab] = await firefoxDesktop.tabs.query({
+            active: true,
+            currentWindow: true,
+        })
         if (aTab.isArticle) {
-            return browser.tabs.toggleReaderMode()
+            return firefoxDesktop.tabs.toggleReaderMode()
         } // else {
         //  // once a statusbar exists an error can be displayed there
         // }
@@ -2819,8 +2840,10 @@ export async function tabprev(...args: string[]) {
         "--skip-discarded": false,
     })
     const increment = (parseInt(argOpt._.join(" "), 10) || 1) * (option["--reverse"] ? -1 : 1)
-    return browser.tabs.query({ currentWindow: true, hidden: false }).then(tabs => {
-        if (option["--skip-discarded"]) tabs = tabs.filter(tab => !tab.discarded)
+    return getSortedTabs("default").then(tabs => {
+        tabs = tabs.filter(tab => !("hidden" in tab && tab.hidden))
+        if (option["--skip-discarded"])
+            tabs = tabs.filter(tab => !("discarded" in tab && tab.discarded))
         tabs.sort((t1, t2) => t1.index - t2.index)
         const curTab = tabs.findIndex(t => t.active)
         const prevTab = !option["--nowrap"] ? (curTab - increment + tabs.length) % tabs.length : Math.min(Math.max(curTab - increment, 0), tabs.length - 1)
@@ -2838,18 +2861,19 @@ export async function tabprev(...args: string[]) {
  */
 //#background
 export async function tabpush(windowId?: number) {
-    const currentWindow = await browser.windows.getCurrent()
-    const windows = (await browser.windows.getAll()).filter(w => w.incognito === currentWindow.incognito)
+    const desktop = await requireDesktopBg()
+    const currentWindow = await desktop.windows.getCurrent()
+    const windows = (await compat.windows.getAll()).filter(w => w.incognito === currentWindow.incognito)
     windows.sort((w1, w2) => w1.id - w2.id)
     const nextWindow = windows[(windows.findIndex(window => window.id === currentWindow.id) + 1) % windows.length]
     const tabId = await activeTabId()
     const winId = windowId ?? nextWindow.id
     const pos = await config.getAsync("tabopenpos")
     if (pos == "last") {
-        return browser.tabs.move(tabId, { index: -1, windowId: winId })
+        return desktop.tabs.move(tabId, { index: -1, windowId: winId })
     } else {
         const index = (await activeTabOnWindow(winId)).index + 1
-        return browser.tabs.move(tabId, { index, windowId: winId })
+        return desktop.tabs.move(tabId, { index, windowId: winId })
     }
 }
 
@@ -2858,7 +2882,7 @@ export async function tabpush(windowId?: number) {
 export async function tabaudio() {
     const tab = await getLastAudibleTab()
     if (tab) {
-        await browser.windows.update(tab.windowId, { focused: true })
+        await (await requireDesktopBg()).windows.update(tab.windowId, { focused: true })
         return browser.tabs.update(tab.id, { active: true })
     }
 }
@@ -2869,16 +2893,17 @@ export async function tabaudio() {
  */
 //#background
 export async function winmerge(...windowIds: string[]) {
-    const target_wins = windowIds.length > 0 ? await Promise.all(windowIds.map(windowId => browser.windows.get(parseInt(windowId, 10), { populate: true }))) : await browser.windows.getAll({ populate: true })
-    const active_win = await browser.windows.getCurrent()
+    const desktop = await requireDesktopBg()
+    const target_wins = windowIds.length > 0 ? await Promise.all(windowIds.map(windowId => desktop.windows.get(parseInt(windowId, 10), { populate: true }))) : await compat.windows.getAll({ populate: true })
+    const active_win = await desktop.windows.getCurrent()
     return target_wins.forEach(target_win => {
         const [pinned_tabs, other_tabs] = R.splitWhen(t => !t.pinned, target_win.tabs)
         return Promise.all([
-            browser.tabs.move(
+            desktop.tabs.move(
                 pinned_tabs.map(t => t.id),
                 { index: 0, windowId: active_win.id },
             ),
-            browser.tabs.move(
+            desktop.tabs.move(
                 other_tabs.map(t => t.id),
                 { index: -1, windowId: active_win.id },
             ),
@@ -2893,7 +2918,7 @@ export async function winmerge(...windowIds: string[]) {
  */
 //#background_helper
 async function parseWinTabIndex(id: string) {
-    const windows = (await browser.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
+    const windows = (await compat.windows.getAll()).map(w => w.id).sort((a, b) => a - b)
     if (id === null || id === undefined || !/\d+\.\d+/.exec(id)) {
         const tab = await activeTab()
         const prevId = id
@@ -2911,18 +2936,25 @@ async function parseWinTabIndex(id: string) {
  */
 //#background
 export async function tabgrab(id: string) {
+    const desktop = await requireDesktopBg()
     // Figure out what tab should be grabbed
     const [winid, tabindex_number] = await parseWinTabIndex(id)
     const tabid = (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
     // Figure out where it should be put
-    const windowId = (await browser.windows.getLastFocused({ windowTypes: ["normal"] })).id
+    const lastFocused = await desktop.windows.getLastFocused()
+    const destination =
+        lastFocused.type === "normal"
+            ? lastFocused
+            : (await desktop.windows.getAll({ windowTypes: ["normal"] }))[0]
+    if (!destination) throw new Error("No normal browser window found")
+    const windowId = destination.id
     // Move window
     const pos = await config.getAsync("tabopenpos")
     if (pos == "last") {
-        return browser.tabs.move(tabid, { index: -1, windowId })
+        return desktop.tabs.move(tabid, { index: -1, windowId })
     } else {
-        const index = (await activeTab()).index + 1
-        return browser.tabs.move(tabid, { index, windowId })
+        const index = (await activeTabOnWindow(windowId)).index + 1
+        return desktop.tabs.move(tabid, { index, windowId })
     }
 }
 
@@ -2974,6 +3006,7 @@ export async function tabopenwait(...addressarr: string[]): Promise<browser.tabs
  */
 //#background_helper
 export async function tabopen_helper({ addressarr = [], waitForDom = false }): Promise<browser.tabs.Tab> {
+    const desktop = await getDesktopBg()
     let active
     let container
     let explicitlyContained = false
@@ -2981,7 +3014,9 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     let discarded = false
     let pinned = false
 
-    const win = await browser.windows.getCurrent()
+    const win = desktop.kind === "desktop"
+        ? await desktop.api.windows.getCurrent()
+        : await activeTab()
 
     // Lets us pass both -b and -c in no particular order as long as they are up front.
     async function argParse(args: string[]): Promise<string[]> {
@@ -3067,13 +3102,17 @@ export async function tabopen_helper({ addressarr = [], waitForDom = false }): P
     }
 
     if (typeof maybeURL === "object") {
-        // browser.search.search(tabId, ...) sometimes does not work when it is executed
+        const firefoxDesktop = await requireFirefoxDesktopBg()
+        // firefoxDesktop.search.search(tabId, ...) sometimes does not work when it is executed
         // right after openInNewTab(). Calling browser.tabs.get() between openInNewTab()
-        // and browser.search.search() seems to fix that problem.
-            // See https://github.com/tridactyl/tridactyl/pull/4791.
-            return openInNewTab("about:blank", args, waitForDom)
+        // and firefoxDesktop.search.search() seems to fix that problem.
+        // See https://github.com/tridactyl/tridactyl/pull/4791.
+        return openInNewTab("about:blank", args, waitForDom)
             .then(tab => browser.tabs.get(tab.id))
-            .then(tab => browser.search.search({ tabId: tab.id, ...maybeURL }))
+            .then(async tab => {
+                await firefoxDesktop.search.search({ tabId: tab.id, ...maybeURL })
+                return tab
+            })
     }
 
     // Fall back to about:newtab
@@ -3173,11 +3212,10 @@ export async function tabonly(...args: string[]) {
         return
     }
 
-    const tabs = await browser.tabs.query({
-        pinned: false,
+    const tabs = (await browser.tabs.query({
         active: false,
         currentWindow: true,
-    })
+    })).filter(tab => !tab.pinned)
     const tabsIds = tabs.map(tab => tab.id)
     return browser.tabs.remove(tabsIds)
 }
@@ -3189,7 +3227,7 @@ export async function tabonly(...args: string[]) {
 */
 //#background
 export async function tabduplicate(index?: number) {
-    return browser.tabs.duplicate(await idFromIndex(index))
+    return (await requireDesktopBg()).tabs.duplicate(await idFromIndex(index))
 }
 
 /** Detach a tab, opening it in a new window.
@@ -3199,23 +3237,25 @@ export async function tabduplicate(index?: number) {
 */
 //#background
 export async function tabdetach(index?: string) {
+    if (await isAndroid()) return compat.unsupportedApi("tabdetach is not supported on Android")
+    const desktop = await requireDesktopBg()
     // Workaround for detached tabs not getting focus (issue #5273)
     const tabId = await idFromIndex(index)
     const currentTab = await browser.tabs.get(tabId)
     let tempWin
     try {
-        tempWin = await browser.windows.create({ incognito: currentTab.incognito, url: "about:blank" })
+        tempWin = await desktop.windows.create({ incognito: currentTab.incognito, url: "about:blank" })
     } catch (error) {
         if (currentTab.incognito) throw error
         // Some Firefox setups can fail to resolve the default new-window URI.
         // Fall back to the simplest guaranteed-valid create call.
-        tempWin = await browser.windows.create({ url: "about:blank" })
+        tempWin = await desktop.windows.create({ url: "about:blank" })
     }
     const tempTab = tempWin.tabs[0]
-    await browser.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
+    await desktop.tabs.move(tabId, { index: -1, windowId: tempTab.windowId })
     await browser.tabs.remove(tempTab.id)
     await browser.tabs.update(tabId, { active: true })
-    return browser.windows.get(tempTab.windowId)
+    return desktop.windows.get(tempTab.windowId)
 }
 
 /** Toggle fullscreen state
@@ -3223,12 +3263,13 @@ export async function tabdetach(index?: string) {
 */
 //#background
 export async function fullscreen() {
+    const desktop = await requireDesktopBg()
     // Could easily extend this to fullscreen / minimise any window but seems like that would be a tiny use-case.
-    const currwin = await browser.windows.getCurrent()
+    const currwin = await desktop.windows.getCurrent()
     const wid = currwin.id
     // This might have odd behaviour on non-tiling window managers, but no-one uses those, right?
     const state = currwin.state === "fullscreen" ? "normal" : "fullscreen"
-    return browser.windows.update(wid, { state })
+    return desktop.windows.update(wid, { state })
 }
 
 /** Close a tab.
@@ -3275,10 +3316,9 @@ export async function tabcloseallto(side: string) {
     if (!["left", "right"].includes(side)) {
         throw new Error("side argument must be left or right")
     }
-    const tabs = await browser.tabs.query({
-        pinned: false,
+    const tabs = (await browser.tabs.query({
         currentWindow: true,
-    })
+    })).filter(tab => !tab.pinned)
 
     const atab = await activeTab()
     const comp = side == "right" ? tab => tab.index > atab.index : tab => tab.index < atab.index
@@ -3294,15 +3334,14 @@ export async function tabcloseallto(side: string) {
  */
 //#background
 export async function tabdiscard(index: string) {
-    let id: number
-    if (index === "--all") {
-        return browser.tabs.query({}).then(ts => browser.tabs.discard(ts.map(t => t.id)))
-    } else if (index === undefined) {
+    if (index === undefined) {
         throw new Error("tabdiscard requires a tab index or --all")
-    } else {
-        id = await idFromIndex(index)
     }
-    return browser.tabs.discard(id)
+    const desktop = await requireDesktopBg()
+    if (index === "--all") {
+        return browser.tabs.query({}).then(ts => desktop.tabs.discard(ts.map(t => t.id)))
+    }
+    return desktop.tabs.discard(await idFromIndex(index))
 }
 
 /** Restore the most recently closed item.
@@ -3319,8 +3358,10 @@ export async function tabdiscard(index: string) {
  */
 //#background
 export async function undo(item = "recent"): Promise<number> {
-    const current_win_id: number = (await browser.windows.getCurrent()).id
-    const sessions = await browser.sessions.getRecentlyClosed()
+    if (await isAndroid()) return -1
+    const desktop = await requireDesktopBg()
+    const current_win_id: number = (await desktop.windows.getCurrent()).id
+    const sessions = await sessionsBg.getRecentlyClosed()
 
     // Pick the first session object ("recent"), a tab ("tab"), a tab
     // from this window ("tab_strict"), a window ("window") or pick by sessionId.
@@ -3334,14 +3375,15 @@ export async function undo(item = "recent"): Promise<number> {
                 : item === "window"
                   ? s => s.window
                   : !isNaN(parseInt(item, 10))
-                    ? s => (s.tab || s.window).sessionId === item
+                    ? s => compat.getSessionId(s) === item
                     : () => {
                           throw new Error(`[undo] Invalid argument: ${item}. Must be one of "recent, "tab", "tab_strict", "window" or a sessionId (by selecting a session using the undo completion).`)
                       } // this won't throw an error if there isn't anything in the session list, but I don't think that matters
     const session = sessions.find(predicate)
 
     if (session) {
-        const restore = await browser.sessions.restore((session.tab || session.window).sessionId)
+        const restore = await desktop.sessions.restore(compat.getSessionId(session))
+        if (!restore) return -1
         return (restore.tab || restore.window).id
     }
     return -1
@@ -3371,10 +3413,10 @@ export async function tabmove(index = "$", tabToMove?: string) {
             // current tab is already right before the previously active tab
             return []
         }
-        return browser.tabs.move(aTab.id, { index: previousTab.index })
+        return (await requireDesktopBg()).tabs.move(aTab.id, { index: previousTab.index })
     }
     const windowTabs = await browser.tabs.query({ currentWindow: true })
-    const windowPinnedTabs = await browser.tabs.query({ currentWindow: true, pinned: true })
+    const windowPinnedTabs = (await browser.tabs.query({ currentWindow: true })).filter(tab => tab.pinned)
     const maxPinnedIndex = windowPinnedTabs.length - 1
 
     let minindex: number
@@ -3424,7 +3466,7 @@ export async function tabmove(index = "$", tabToMove?: string) {
         } else newindex = minindex
     }
 
-    return browser.tabs.move(aTab.id, { index: newindex })
+    return (await requireDesktopBg()).tabs.move(aTab.id, { index: newindex })
 }
 
 /**
@@ -3442,8 +3484,9 @@ export async function tabsort(...callbackchunks: string[]) {
     const comparator = argument == "--containers" ? (l, r) => l.cookieStoreId < r.cookieStoreId : argument == "--title" ? (l, r) => l.title < r.title : argument == "--url" || argument == "" ? (l, r) => l.url < r.url : eval(argument)
     const windowTabs = await browser.tabs.query({ currentWindow: true })
     windowTabs.sort(comparator)
+    const desktop = await requireDesktopBg()
     Object.entries(windowTabs).forEach(([index, tab]) => {
-        browser.tabs.move(tab.id, { index: parseInt(index, 10) })
+        desktop.tabs.move(tab.id, { index: parseInt(index, 10) })
     })
 }
 
@@ -3451,7 +3494,9 @@ export async function tabsort(...callbackchunks: string[]) {
 //#background
 export async function pin(index: string) {
     const aTab = await (index == "" ? activeTab() : tabFromIndex(index))
-    return browser.tabs.update(aTab.id, { pinned: !aTab.pinned })
+    return (await requireDesktopBg()).tabs.update(aTab.id, {
+        pinned: !aTab.pinned,
+    })
 }
 
 /**  Mute current tab or all tabs.
@@ -3490,6 +3535,7 @@ export async function mute(...muteArgs: string[]): Promise<void> {
 
     argParse(muteArgs)
 
+    const desktopTabs = (await requireDesktopBg()).tabs
     const updateObj = { muted: false }
     if (mute) {
         updateObj.muted = true
@@ -3500,17 +3546,25 @@ export async function mute(...muteArgs: string[]): Promise<void> {
         const promises = []
         for (const tab of tabs) {
             if (toggle) {
-                updateObj.muted = !tab.mutedInfo.muted
+                updateObj.muted = !(
+                    tab.mutedInfo &&
+                    "muted" in tab.mutedInfo &&
+                    tab.mutedInfo.muted
+                )
             }
-            promises.push(browser.tabs.update(tab.id, updateObj))
+            promises.push(desktopTabs.update(tab.id, updateObj))
         }
         done = Promise.all(promises)
     } else {
         const tab = await activeTab()
         if (toggle) {
-            updateObj.muted = !tab.mutedInfo.muted
+            updateObj.muted = !(
+                tab.mutedInfo &&
+                "muted" in tab.mutedInfo &&
+                tab.mutedInfo.muted
+            )
         }
-        done = browser.tabs.update(tab.id, updateObj)
+        done = desktopTabs.update(tab.id, updateObj)
     }
     return done.then(() => undefined)
 }
@@ -3530,7 +3584,9 @@ export async function mute(...muteArgs: string[]): Promise<void> {
  */
 //#background
 export async function winopen(...args: string[]) {
-    const createData = {} as Parameters<typeof browser.windows.create>[0]
+    if (await isAndroid()) return compat.unsupportedApi("no windows on android")
+    const desktop = await requireDesktopBg()
+    const createData = {} as browser.windows._CreateCreateData
     let firefoxArgs = "--new-window"
     let done = false
     let containerName: string | undefined
@@ -3561,7 +3617,7 @@ export async function winopen(...args: string[]) {
     const address = args.join(" ")
 
     if (containerName !== undefined) {
-        if (createData.incognito || (await browser.windows.getCurrent()).incognito) {
+        if (createData.incognito || (await desktop.windows.getCurrent()).incognito) {
             throw new Error("Can't open a container in a private browsing window.")
         }
         if (containerName !== "firefox-default" && containerName.toLowerCase() !== "none") {
@@ -3575,7 +3631,7 @@ export async function winopen(...args: string[]) {
 
     createData.url = "about:blank"
 
-    return browser.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
+    return desktop.windows.create(createData).then(win => openInTab(win.tabs[0], { loadReplace: true }, address.split(" ")))
 }
 
 /**
@@ -3587,10 +3643,11 @@ export async function winopen(...args: string[]) {
  */
 //#background
 export async function winclose(...ids: string[]) {
+    const desktop = await requireDesktopBg()
     if (ids.length === 0) {
-        ids.push(`${(await browser.windows.getCurrent()).id}`)
+        ids.push(`${(await desktop.windows.getCurrent()).id}`)
     }
-    return Promise.all(ids.map(id => browser.windows.remove(parseInt(id, 10))))
+    return Promise.all(ids.map(id => desktop.windows.remove(parseInt(id, 10))))
 }
 
 /**
@@ -3602,8 +3659,9 @@ export async function winclose(...ids: string[]) {
  */
 //#background
 export async function wintitle(...title: string[]) {
-    const id = (await browser.windows.getCurrent()).id
-    return browser.windows.update(id, { titlePreface: title.join(" ") + " " })
+    const desktop = await requireDesktopBg()
+    const id = (await desktop.windows.getCurrent()).id
+    return desktop.windows.update(id, { titlePreface: title.join(" ") + " " })
 }
 
 /** Close all windows */
@@ -3611,8 +3669,10 @@ export async function wintitle(...title: string[]) {
 // We might have to do it ourselves.
 //#background
 export async function qall() {
-    const windows = await browser.windows.getAll()
-    return Promise.all(windows.map(window => browser.windows.remove(window.id)))
+    const windows = await compat.windows.getAll()
+    if (windows.length === 0) return []
+    const desktop = await requireDesktopBg()
+    return Promise.all(windows.map(window => desktop.windows.remove(window.id)))
 }
 
 // }}}
@@ -3627,7 +3687,7 @@ export async function qall() {
 //#background
 export async function sidebaropen(...urllike: string[]) {
     const url = await queryAndURLwrangler(urllike)
-    if (typeof url === "string") return browser.sidebarAction.setPanel({ panel: url })
+    if (typeof url === "string") return (await requireFirefoxDesktopBg()).sidebarAction.setPanel({ panel: url })
     throw new Error("Unsupported URL for sidebar. If it was a search term try `:set searchengine google` first")
 }
 
@@ -3659,7 +3719,9 @@ export async function sidebartoggle() {
 //#background
 export async function containerclose(...name: string[]) {
     const containerId = await Container.getId(name.join(" "))
-    return browser.tabs.query({ cookieStoreId: containerId }).then(tabs => browser.tabs.remove(tabs.map(tab => tab.id)))
+    return (await requireFirefoxDesktopBg()).tabs
+        .query({ cookieStoreId: containerId })
+        .then(tabs => browser.tabs.remove(tabs.map(tab => tab.id)))
 }
 /** Creates a new container. Note that container names must be unique and that the checks are case-insensitive. Pass `--or-update` before the name to update a matching container instead.
 
@@ -3708,7 +3770,7 @@ export async function containerupdate(name: string, uname: string, ucolor: strin
     logger.debug("containerupdate parameters: " + name + ", " + uname + ", " + ucolor + ", " + uicon)
     const containerId = await Container.fuzzyMatch(name)
     const containerObj = Container.fromString(uname, ucolor, uicon)
-    Container.update(containerId, containerObj)
+    await Container.update(containerId, containerObj)
 }
 
 /** Shows a list of the current containers in Firefox's native JSON viewer in the current tab.
@@ -3720,7 +3782,7 @@ export async function containerupdate(name: string, uname: string, ucolor: strin
 export async function viewcontainers() {
     // # and white space don't agree with FF's JSON viewer.
     // Probably other symbols too.
-    const containers = await browserBg.contextualIdentities.query({}) // Can't access src/lib/containers.ts from a content script.
+    const containers = await (await requireFirefoxBg()).contextualIdentities.query({}) // Can't access src/lib/containers.ts from a content script.
     jsonview(JSON.stringify(containers))
 }
 
@@ -3806,16 +3868,19 @@ export async function tgroupcreate(name: string) {
         await setWindowTgroup(name)
         const initialUrl = await config.get("tabgroupnewtaburls")[name]
         await tabopen(initialUrl)
-        promises.push(tgroupTabs(name, true).then(tabs => browserBg.tabs.hide(tabs.map(tab => tab.id))))
+        const firefoxDesktop = await requireFirefoxDesktopBg()
+        promises.push(tgroupTabs(name, true).then(tabs => firefoxDesktop.tabs.hide(tabs.map(tab => tab.id))))
     } else {
         promises.push(
-            browser.tabs.query({ currentWindow: true, pinned: false }).then(tabs => {
-                setTabTgroup(
+            browser.tabs.query({ currentWindow: true }).then(tabs => {
+                tabs = tabs.filter(tab => !tab.pinned)
+                const updated = setTabTgroup(
                     name,
                     tabs.map(({ id }) => id),
                 )
                 // trigger status line update
                 setContentStateGroup(name)
+                return updated
             }),
         )
         promises.push(setWindowTgroup(name))
@@ -3969,19 +4034,20 @@ export async function tgroupmove(name: string) {
     await setTabTgroup(name)
     setContentStateGroup(name)
     const currentTabId = await activeTabId()
+    const firefoxDesktop = await requireFirefoxDesktopBg()
 
     // switch to other group if this is the last tab in the current group
     if (tabCount == 1) {
         return Promise.all([
             tgroupClearOldInfo(currentGroup, name),
-            tgroupTabs(name).then(tabs => {
-                browserBg.tabs.show(tabs.map(tab => tab.id))
-            }),
+            tgroupTabs(name).then(tabs =>
+                firefoxDesktop.tabs.show(tabs.map(tab => tab.id)),
+            ),
         ]).then(() => name)
     } else {
         const lastTabId = await tgroupLastTabId(currentGroup)
         await tabSetActive(lastTabId)
-        return browser.tabs.hide(currentTabId).then(() => currentGroup)
+        return firefoxDesktop.tabs.hide(currentTabId).then(() => currentGroup)
     }
 }
 
@@ -4417,13 +4483,14 @@ export async function clipboard(excmd: "open" | "yank" | "yankshort" | "yankcano
 */
 //#background
 export async function yankimage(url: string): Promise<void> {
+    const clipboard = (await requireFirefoxDesktopBg()).clipboard
     const absoluteUrl = UrlUtil.getAbsoluteURL(url, document.baseURI)
     const image = await window.fetch(absoluteUrl)
     const blob = await image.blob()
     // Blob.type returns a MIME type like "image/jpeg; charset=UTF-8", but the Clipboard API needs a type like "jpeg"
     const imageType = blob.type.split("/")[1].split(";")[0]
     try {
-        browser.clipboard.setImageData(await blob.arrayBuffer(), imageType as browser.clipboard._SetImageDataImageType)
+        await clipboard.setImageData(await blob.arrayBuffer(), imageType as browser.clipboard._SetImageDataImageType)
     } catch (err) {
         if (err instanceof Error && err.message.includes("imageType")) {
             throw new Error(`Image type ${blob.type} is not supported`)
@@ -4512,7 +4579,7 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
         if (results.size) {
             if (interactive && results.size > 1) return fillcmdline_notrail(anyWindow ? "taball" : "tab", id)
             const firstTab = results.values().next().value
-            await browser.windows.update(firstTab.windowId, { focused: true })
+            await (await requireDesktopBg()).windows.update(firstTab.windowId, { focused: true })
             return browser.tabs.update(firstTab.id, { active: true })
         }
         throw new Error("No tab found matching: " + id)
@@ -4520,7 +4587,7 @@ export async function tab_helper(interactive: boolean, anyWindow: boolean, ...ke
 
     const [winid, tabindex_number] = await parseWinTabIndex(id)
     const tabid = (await browser.tabs.query({ windowId: winid, index: tabindex_number }))[0].id
-    await browser.windows.update(winid, { focused: true })
+    await (await requireDesktopBg()).windows.update(winid, { focused: true })
     return browser.tabs.update(tabid, { active: true })
 }
 
@@ -4666,7 +4733,7 @@ export async function bind(...args: string[]) {
             fillcmdline_notrail("# Warning: bind `" + key_sub + "` exists and will shadow `" + args_obj.key + "`. Try running `:unbind --mode=" + args_obj.mode + " " + key_sub + "`")
         }
         if (args_obj.mode == "browser") {
-            const commands = await browser.commands.getAll()
+            const commands = await compat.commands.getAll()
 
             // Check for an existing command with this bind
             let command = commands.filter(c => mozMapToMinimalKey(c.shortcut).toMapstr() == args_obj.key)[0]
@@ -4675,7 +4742,7 @@ export async function bind(...args: string[]) {
             command = command === undefined ? (command = commands.filter(c => c.shortcut === "")[0]) : command
             if (command === undefined) throw new Error("You have reached the maximum number of browser binds. `:unbind` one you don't want from `:viewconfig browsermaps`.")
 
-            await browser.commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
+            await (await requireFirefoxDesktopBg()).commands.update({ name: command.name, shortcut: minimalKeyToMozMap(mapstrToKeyseq(args_obj.key)[0]) })
             await commandsHelper.updateListener()
         }
         p = config.set(args_obj.configName, args_obj.key, args_obj.excmd)
@@ -5186,9 +5253,12 @@ export async function unbind(...args: string[]) {
         return bindings[inherits] ? { ...getBindings(bindings[inherits]), ...bindings } : bindings
     }
     if (maps.includes("browsermaps")) {
-        const commands = (await browser.commands.getAll()).filter(command => command.shortcut && matches(mozMapToMinimalKey(command.shortcut).toMapstr()))
-        for (const command of commands) await browser.commands.update({ name: command.name, shortcut: "" })
-        if (commands.length) await commandsHelper.updateListener()
+        const commands = (await compat.commands.getAll()).filter(command => command.shortcut && matches(mozMapToMinimalKey(command.shortcut).toMapstr()))
+        if (commands.length) {
+            const firefoxDesktop = await requireFirefoxDesktopBg()
+            for (const command of commands) await firefoxDesktop.commands.update({ name: command.name, shortcut: "" })
+            await commandsHelper.updateListener()
+        }
     }
     for (const map of maps) {
         const unbound = { ...config.USERCONFIG[map] }
@@ -5801,10 +5871,10 @@ export async function hint(...args: string[]): Promise<any> {
                               hintTabOpen(elem.href, false).catch(() => DOM.simulateClick(elem, DOM.TabTarget.NewBackgroundTab))
                               break
                           case OpenMode.Window:
-                              openInNewWindow({ url: new URL(elem.href, window.location.href).href })
+                               openInNewWindow({ url: new URL(elem.href, window.location.href).href }).catch(() => undefined)
                               break
                           case OpenMode.WindowPrivate:
-                              openInNewWindow({ url: elem.href, incognito: true })
+                               openInNewWindow({ url: elem.href, incognito: true }).catch(() => undefined)
                               break
                       }
                   } else {
@@ -6142,7 +6212,6 @@ export async function perfhistogram(...filters: string[]) {
 
 // }}}
 
-// unsupported on android
 /**
  * Add or remove a bookmark.
  *
@@ -6159,6 +6228,10 @@ export async function perfhistogram(...filters: string[]) {
  */
 //#background
 export async function bmark(url?: string, ...titlearr: string[]) {
+    if (await isAndroid()) {
+        return compat.unsupportedApi("Bookmarks are not supported on Android.")
+    }
+    const desktop = await requireDesktopBg()
     const auto_url = url == undefined || url == (await activeTab()).url
     url =
         url === undefined
@@ -6172,8 +6245,10 @@ export async function bmark(url?: string, ...titlearr: string[]) {
               })()
     let title = titlearr.join(" ")
     // if titlearr is given and we have duplicates, we probably want to give an error here.
-    const dupbmarks = await browser.bookmarks.search({ url })
-    dupbmarks.forEach(bookmark => browser.bookmarks.remove(bookmark.id))
+    const dupbmarks = await compat.bookmarks.search({ url })
+    await Promise.all(
+        dupbmarks.map(bookmark => desktop.bookmarks.remove(bookmark.id)),
+    )
     if (dupbmarks.length !== 0) return
     const path = title.substring(0, title.lastIndexOf("/") + 1)
     // if title is blank, get it from the current page.
@@ -6185,7 +6260,7 @@ export async function bmark(url?: string, ...titlearr: string[]) {
     }
 
     if (path != "") {
-        const tree = (await browser.bookmarks.getTree())[0] // Why would getTree return a tree? Obviously it returns an array of unit length.
+        const tree = (await compat.bookmarks.getTree())[0] // Why would getTree return a tree? Obviously it returns an array of unit length.
         // I hate recursion.
         const treeClimber = (tree: browser.bookmarks.BookmarkTreeNode, treestr) => {
             if (tree.type !== "folder") return {}
@@ -6209,11 +6284,11 @@ export async function bmark(url?: string, ...titlearr: string[]) {
         }
 
         if (pathobj !== undefined) {
-            return browser.bookmarks.create({ url, title, parentId: pathobj.id })
+            return desktop.bookmarks.create({ url, title, parentId: pathobj.id })
         } // otherwise, give the user an error, probably with [v.path for v in validpaths]
     }
 
-    return browser.bookmarks.create({ url, title })
+    return desktop.bookmarks.create({ url, title })
 }
 
 //#background
@@ -6232,9 +6307,7 @@ const jsRcCache = new Map<string, string>()
  * @hidden
  */
 async function js_helper(str: string[]) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let JS_ARG = null
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let JS_ARGS = []
     let jsContent: string = null
 
@@ -6249,7 +6322,6 @@ async function js_helper(str: string[]) {
         if (flag == "-p") {
             // arg of -p comes from the end of str[]
             // and we don't know if the user will use it or not
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             JS_ARG = str.pop()
             str.shift()
             continue
@@ -6284,7 +6356,6 @@ async function js_helper(str: string[]) {
     if (separator !== null) {
         const pos = strJoin.indexOf(separator)
         // user may or may not use JS_ARGS
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         JS_ARGS = strJoin.slice(pos + 1).split(" ")
         jsContent = strJoin.slice(0, pos)
     } else {
@@ -6308,6 +6379,8 @@ async function js_helper(str: string[]) {
         jsContent = source
     }
 
+    void JS_ARG
+    void JS_ARGS
     return eval(jsContent)
 }
 
@@ -6647,15 +6720,16 @@ import { Readability } from "@mozilla/readability"
  */
 //#content_helper
 export async function readerurl(article: any = undefined) {
+    const tab = await ownTab()
     if (!article) {
         document.querySelectorAll(".TridactylStatusIndicator").forEach(ind => ind.parentNode.removeChild(ind))
         article = new Readability(document.cloneNode(true) as any as Document).parse()
         article["link"] = window.location.href
-        article["favicon"] = (await ownTab()).favIconUrl
+        article["favicon"] = tab.favIconUrl
     }
     let hash = ""
     const article_encoded = btoa(encodeURIComponent(JSON.stringify(article)))
-    if (!(await browserBg.windows.getCurrent()).incognito) {
+    if (!tab.incognito) {
         const article_uuid = uuidv4()
         await set("reader_articles." + article_uuid, article_encoded)
         hash = article_uuid
