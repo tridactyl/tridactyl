@@ -272,11 +272,13 @@ function parseFlagTag(tag) {
         ]
         break
     }
-    const m = /^(-\S+)[ \t]+([^\n]+)\n*([\s\S]*)$/.exec(text.trim())
+    const m = /^(-\S+)(?:[ \t]+\{(\w+)\})?[ \t]+([^\n]+)\n*([\s\S]*)$/.exec(
+        text.trim(),
+    )
     if (!m) return undefined
-    const [, flag, short, rest] = m
+    const [, flag, group, short, rest] = m
     const elaboration = rest.trim()
-    return [flag, short, elaboration, trailing]
+    return [flag, group, short, elaboration, trailing]
 }
 
 function renderFlagList(context, parsed) {
@@ -284,7 +286,7 @@ function renderFlagList(context, parsed) {
     return h(
         "ul",
         { class: "tsd-tag-flag tsd-parameter-list" },
-        parsed.map(([flag, short, elaboration]) =>
+        parsed.map(([flag, , short, elaboration]) =>
             h(
                 "li",
                 null,
@@ -321,8 +323,8 @@ class TridactylTheme extends DefaultTheme {
                     tag.skipRendering = true
                     const parsed = parseFlagTag(tag)
                     if (!parsed) continue
-                    const [flag, short, elaboration, trailing] = parsed
-                    flagRun.push([flag, short, elaboration])
+                    const [flag, group, short, elaboration, trailing] = parsed
+                    flagRun.push([flag, group, short, elaboration])
                     if (trailing.length === 0) continue
                     flushFlags()
                     const headingCount = page.pageHeadings.length
