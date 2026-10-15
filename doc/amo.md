@@ -11,7 +11,7 @@ Replace Firefox's control mechanism with one modelled on VIM. We were heavily in
 -   Go back in time? `H`.
 -   Notice that this tab is rubbish and you want to close it? `d`.
 -   Regret that decision? `u` restores it.
--   Want to write something in Vim? `Ctrl-i` in a text box opens it in Vim, if you have `:native` working.
+-   Want to write something in Vim? `Ctrl-i` in a text box opens it in Vim, if you have `:native` working. (`:unbind --mode=insert <C-i>` to turn it off.)
 -   Temporarily disable all that magic because you can't stand it? `Shift-Insert` or `Ctrl-Alt-Escape`.
 -   But how do you use your browser now? `Shift-Insert` or `Ctrl-Alt-Escape` again and we're back on.
 

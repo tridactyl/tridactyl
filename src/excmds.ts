@@ -350,6 +350,8 @@ import { getEditor } from "editor-adapter"
  *
  * You're probably better off using the default insert mode bind of `<C-i>` (Ctrl-i) to access this.
  *
+ * To disable the default binding: `:unbind --mode=insert <C-i>`.
+ *
  * This function returns a tuple containing the path to the file that was opened by the editor and its content. This enables creating commands such as the following one, which deletes the temporary file created by the editor:
  * ```
  * alias editor_rm composite editor | jsb -p tri.native.run(`rm -f '${JS_ARG[0]}'`)
