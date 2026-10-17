@@ -2562,15 +2562,15 @@ define-properties@^1.2.0:
     has-property-descriptors "^1.0.0"
     object-keys "^1.1.1"
 
-defuddle@^0.19.3:
-  version "0.19.3"
-  resolved "https://registry.yarnpkg.com/defuddle/-/defuddle-0.19.3.tgz#ca7c71b1eaeab8a47ff702bb6ed18b19a3fdd05b"
-  integrity sha512-5ZbOQ/B+iiRRqSQWwmCx/zEuqZOA/5q7gxyE2/4O2Bxq7nUC0PgKw9EdyxqWbFF1nrrrYemSeR25jg4TmA2fsA==
+defuddle@^0.19.5:
+  version "0.19.5"
+  resolved "https://registry.yarnpkg.com/defuddle/-/defuddle-0.19.5.tgz#214e59375c522483c5f3b5cdc135a54287d1b77e"
+  integrity sha512-WpgFv5TWA8s8bWRXMb+tosdEbdeZwgrKYw+BQiuTQfQc4XdCm69Yq/76Lzgvr0ALC1VxZcMWwjNGGgIstcxUtw==
   dependencies:
     commander "^12.1.0"
+    mathml-to-latex "^1.8.0"
   optionalDependencies:
     linkedom "^0.18.12"
-    mathml-to-latex "^1.8.0"
     temml "^0.13.3"
     turndown "^7.2.0"
 
