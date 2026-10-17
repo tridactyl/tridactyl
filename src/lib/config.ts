@@ -1525,11 +1525,6 @@ export class default_config {
         overlay: "none",
         overlayoutline: "none",
     }
-
-    /**
-     * Internal temporary storage for :reader, mapping UUIDs to base64 encoded html strings of articles
-     */
-    reader_articles: { [id: string]: string } = {}
 }
 
 const platform_defaults = {
