@@ -16,13 +16,8 @@ async function updatePage() {
     const isuuid = isuuidv4(hash)
     let encoded = hash
     if (isuuid) {
-        encoded = await config.getAsync("reader_articles", hash)
-        if (encoded != undefined) {
-            config.unset("reader_articles", hash)
-            sessionStorage.setItem(hash, encoded)
-        } else {
-            encoded = sessionStorage.getItem(hash)
-        }
+        const { readerCache = {} } = await browser.storage.local.get("readerCache")
+        encoded = readerCache[hash]
     }
     const article =
         encoded == undefined

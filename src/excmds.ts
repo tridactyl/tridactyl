@@ -6642,6 +6642,23 @@ export async function extoptions(...optionNameArgs: string[]) {
 //#content_helper
 import { Readability } from "@mozilla/readability"
 
+//#background_helper
+let readerCacheWrite = Promise.resolve()
+
+/** @hidden */
+//#background
+export function readerstore(id: string, article: string) {
+    const write = readerCacheWrite.then(async () => {
+        const { readerCache = {} } = await browser.storage.local.get("readerCache")
+        readerCache[id] = article
+        for (const key of Object.keys(readerCache).slice(0, -100))
+            delete readerCache[key]
+        await browser.storage.local.set({ readerCache })
+    })
+    readerCacheWrite = write.catch(() => undefined)
+    return write
+}
+
 /**
  * @hidden
  */
@@ -6657,7 +6674,7 @@ export async function readerurl(article: any = undefined) {
     const article_encoded = btoa(encodeURIComponent(JSON.stringify(article)))
     if (!(await browserBg.windows.getCurrent()).incognito) {
         const article_uuid = uuidv4()
-        await set("reader_articles." + article_uuid, article_encoded)
+        await readerstore(article_uuid, article_encoded)
         hash = article_uuid
     } else {
         hash = article_encoded
@@ -6669,6 +6686,8 @@ export async function readerurl(article: any = undefined) {
  * Open the current page as an article in reader view for easier reading. Flags `--tab` and `--window` open the article in new tabs and windows respectively.
  *
  * Article content is sanitised and displayed in a sandboxed frame where scripts are disabled. Remote images and media may make cross-site authenticated requests, which could technically be exploitable to submit GET requests as a logged-in user, but I think the likelihood of anyone doing this and relying on you putting their website into reader mode is vanishingly small.
+ *
+ * Up to 100 articles remain in local storage to allow restoration after a browser restart. Due to Firefox restrictions, they cannot be cleared through the Firefox 'clear history' menu. See [[sanitise]] for how to clear our local storage (alongside config, etc).
  *
  * Use `:reader --old` to use Firefox's built-in reader mode, which Tridactyl can't run on.
  *
