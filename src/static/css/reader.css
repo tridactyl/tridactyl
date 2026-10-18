@@ -369,7 +369,6 @@ aside {
 
 article,
 fieldset {
-    border: 1px solid var(--border);
     padding: 1rem;
     border-radius: var(--standard-border-radius);
     margin-bottom: 1rem;
@@ -580,6 +579,7 @@ figure {
     margin: 0;
     display: block;
     overflow-x: auto;
+    text-align: center;
 }
 
 figcaption {
@@ -590,11 +590,10 @@ figcaption {
 }
 
 blockquote {
-    margin: 2rem 0 2rem 2rem;
-    padding: 0.4rem 0.8rem;
-    border-left: 0.35rem solid var(--accent);
+    margin: 1rem 0 0rem 0rem;
+    padding: 0.4rem 0 0.6rem 0.4rem;
+    border-left: 0.12rem solid var(--accent);
     color: var(--text-light);
-    font-style: italic;
 }
 
 cite {
