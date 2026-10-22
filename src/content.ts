@@ -22,6 +22,7 @@ logger.debug("Tridactyl content script loaded, boss!")
 import {
     contentState,
     addContentStateChangedListener,
+    ContentStateChangedCallback,
 } from "@src/content/state_content"
 
 import { CmdlineCmds } from "@src/content/commandline_cmds"
@@ -88,7 +89,7 @@ addContentStateChangedListener((property, _mode, oldValue, newValue) => {
                 await excmds.loadaucmds("ModeEnter", newValue)
             }
         })
-        .catch(error => void logger.error(error))
+        .catch((error): void => void logger.error(error))
 })
 messaging.addListener(
     "excmd_content",
@@ -324,7 +325,7 @@ if (
 }
 
 // Really bad status indicator
-let statusIndicator
+let statusIndicator: HTMLSpanElement
 function mountStatusIndicator() {
     if (statusIndicator.parentNode === document.documentElement) return
     if (config.get("modeindicator") === "true")
@@ -392,11 +393,11 @@ function addStatusIndicator() {
     }
 
     // This listener makes the modeindicator disappear when the mouse goes over it
-    statusIndicator.addEventListener("mouseenter", ev => {
-        const target = ev.target
+    statusIndicator.addEventListener("mouseenter", () => {
+        const target = statusIndicator
         const rect = target.getBoundingClientRect()
         target.classList.add("TridactylInvisible")
-        const onMouseOut = ev => {
+        const onMouseOut = (ev: MouseEvent) => {
             // If the mouse event happened out of the mode indicator boundaries
             if (
                 ev.clientX < rect.x ||
@@ -417,7 +418,7 @@ function addStatusIndicator() {
         mountStatusIndicator()
     })
 
-    async function updateStatusIndicator(property, oldMode, _oldValue, newValue) {
+    const updateStatusIndicator: ContentStateChangedCallback = async (property, oldMode, _oldValue, newValue) => {
         let mode = newValue
         let suffix = ""
         let result = ""
@@ -508,8 +509,8 @@ let leaveGithubAlone = false // don't wait for the config before adding the list
 config.getAsync("leavegithubalone").then(v => {
     leaveGithubAlone = v === "true"
 });
-function protectSlash(e) {
-    if (!e.isTrusted || leaveGithubAlone ) return
+function protectSlash(e: Event) {
+    if (!keyseq.isTrustedKeyboardEvent(e) || leaveGithubAlone ) return
     const protectedKeys = (config.get("blacklistkeys") || []).concat(
         Object.keys(config.get("browsermaps") || {}),
     )
