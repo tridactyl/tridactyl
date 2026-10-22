@@ -31,7 +31,7 @@ export class HelpCompletionSource extends AproposCompletionSource {
     public options: HelpCompletionOption[]
 
     constructor(_parent) {
-        super(_parent, ["help"], "HelpCompletionSource", "Help")
+        super(_parent, ["help"], "HelpCompletionSource", "Help", "Help")
     }
 
     protected createOption(name: string, doc: string, flag: string) {

@@ -20,7 +20,7 @@ export class ExtensionsCompletionSource extends Completions.CompletionSourceFuse
     public options: ExtensionsCompletionOption[]
 
     constructor(private _parent) {
-        super(["extoptions"], "ExtensionsCompletionSource", "Extension options")
+        super(["extoptions"], "ExtensionsCompletionSource", "Extension options", { configKey: "Extensions" })
 
         this._parent.appendChild(this.node)
     }
@@ -56,7 +56,7 @@ export class ExtensionsCompletionSource extends Completions.CompletionSourceFuse
     }
 
     updateChain() {
-        this.options.forEach(option => (option.state = "normal"))
+        this.setStateFromScore(this.options.map(option => ({ option, score: 0 })))
 
         return this.updateDisplay()
     }

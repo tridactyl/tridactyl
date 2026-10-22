@@ -34,8 +34,9 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
         prefixes = ["apropos"],
         className = "AproposCompletionSource",
         title = "Apropos",
+        configKey: "Apropos" | "Help" = "Apropos",
     ) {
-        super(prefixes, className, title)
+        super(prefixes, className, title, { configKey })
 
         this._parent.appendChild(this.node)
     }
@@ -170,7 +171,7 @@ export class AproposCompletionSource extends Completions.CompletionSourceFuse {
 
     updateChain() {
         // Options are pre-trimmed to the right length.
-        this.options.forEach(option => (option.state = "normal"))
+        this.setStateFromScore(this.options.map(option => ({ option, score: 0 })))
 
         // Call concrete class
         return this.updateDisplay()

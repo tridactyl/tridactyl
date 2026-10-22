@@ -312,7 +312,10 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         For now just displays all scored elements (see threshold in fuse) and
         focus the best match.
     */
-    setStateFromScore(scoredOpts: ScoredOption[], autoselect = false) {
+    setStateFromScore(
+        scoredOpts: ScoredOption[],
+        autoselect = this.configKey && config.get("completions", this.configKey, "autoselect") === "true",
+    ) {
         const matches = new Set(scoredOpts.map(res => res.option))
 
         const hidden_options = []
