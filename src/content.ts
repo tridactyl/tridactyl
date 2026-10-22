@@ -400,7 +400,7 @@ function addStatusIndicator() {
             // If the mouse event happened out of the mode indicator boundaries
             if (
                 ev.clientX < rect.x ||
-                ev.clientX > rect.x + rect.with ||
+                ev.clientX > rect.x + rect.width ||
                 ev.clientY < rect.y ||
                 ev.clientY > rect.y + rect.height
             ) {
