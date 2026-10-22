@@ -11,7 +11,7 @@ interface Number {
 
 // Record that we've added convenience objects to window.
 interface Window {
-    tri: any
+    tri: Record<string, unknown>
 }
 
 interface HTMLElement {

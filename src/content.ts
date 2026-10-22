@@ -261,7 +261,8 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
     }
     tryPreventAutoFocus()
 })
-window["tri"] = Object.assign(Object.create(null), {
+window["tri"] = {
+    __proto__: null,
     browserBg: webext.browserBg,
     bg: backgroundProxy.backgroundProxy,
     commandline_content,
@@ -284,10 +285,8 @@ window["tri"] = Object.assign(Object.create(null), {
     scrolling,
     visual,
     webext,
-    l: value =>
-        typeof value?.then === "function"
-            ? value.then(console.log).catch(console.error)
-            : console.log(value),
+    l: (value: unknown) =>
+        Promise.resolve(value).then(console.log).catch(console.error),
     native,
     styling,
     contentLocation: window.location,
@@ -295,7 +294,7 @@ window["tri"] = Object.assign(Object.create(null), {
     R,
     updates,
     urlutils,
-})
+}
 
 logger.info("Loaded commandline content?", commandline_content)
 
