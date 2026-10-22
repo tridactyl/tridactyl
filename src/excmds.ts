@@ -6114,7 +6114,7 @@ export function buildFilterConfigs(filters: string[]): Perf.StatsFilterConfig[] 
 //#background
 export async function perfdump(...filters: string[]) {
     const filterconfigs = buildFilterConfigs(filters)
-    const entries = window.tri.statsLogger.getEntries(...filterconfigs)
+    const entries = Perf.statsLogger.getEntries(...filterconfigs)
     console.log(filterconfigs)
     return open("data:application/json;charset=UTF-8," + JSON.stringify(entries))
 }
@@ -6131,7 +6131,7 @@ export async function perfdump(...filters: string[]) {
 export async function perfhistogram(...filters: string[]) {
     const filterconfigs = buildFilterConfigs(filters)
     filterconfigs.push({ kind: "eventType", eventType: "measure" })
-    const entries = window.tri.statsLogger.getEntries(...filterconfigs)
+    const entries = Perf.statsLogger.getEntries(...filterconfigs)
     if (entries.length === 0) {
         return fillcmdline_tmp(3000, "perfhistogram: No samples found.")
     }

@@ -6,7 +6,7 @@ import * as proxy_background from "@src/lib/browser_proxy_background"
 import * as controller from "@src/lib/controller"
 import { omniscient_controller } from "@src/lib/omniscient_controller"
 import * as perf from "@src/perf"
-import { listenForCounters } from "@src/perf"
+import { listenForCounters, statsLogger } from "@src/perf"
 import * as messaging from "@src/lib/messaging"
 import { messageTabChanges } from "@src/background/tab_changes"
 import * as excmds_background from "@src/.excmds_background.generated"
@@ -248,8 +248,6 @@ browser.tabs.onRemoved.addListener(aucon.tabRemovedListener)
 
 // {{{ PERFORMANCE LOGGING
 
-// An object to collect all of our statistics in one place.
-const statsLogger: perf.StatsLogger = new perf.StatsLogger()
 const messages = {
     browser_action_background: {
         getState: browser_action.getState,
