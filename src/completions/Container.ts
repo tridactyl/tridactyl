@@ -19,7 +19,7 @@ export class ContainerCompletionSource extends Completions.CompletionSourceFuse 
     public options: ContainerCompletionOption[]
 
     constructor(private _parent) {
-        super(["recontain", "containerclose", "containerdelete", "containerupdate"], "ContainerCompletionSource", "Containers")
+        super(["recontain", "containerclose", "containerdelete", "containerupdate"], "ContainerCompletionSource", "Containers", { configKey: "Container" })
         this._parent.appendChild(this.node)
     }
 

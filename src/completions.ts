@@ -41,18 +41,28 @@ export abstract class CompletionOption {
     abstract state: OptionState
 }
 
+interface CompletionSourceOptions {
+    trailingSpace?: boolean
+    configKey?: keyof config.default_config["completions"]
+}
+
 export abstract class CompletionSource {
     options: CompletionOption[]
     node: HTMLElement
     public completion: string
     public args: string
     public trailingSpace: boolean
+    protected configKey: CompletionSourceOptions["configKey"]
+
+    get insertCompletion() {
+        return !this.configKey || config.get("completions", this.configKey, "insertcompletion") !== "false"
+    }
     protected prefixes: string[] = []
     protected lastFocused: CompletionOption
     private _state: OptionState
     private _prevState: OptionState
 
-    constructor(prefixes, options = { trailingSpace: true }) {
+    constructor(prefixes, options: CompletionSourceOptions = {}) {
         const commands = aliases.getCmdAliasMapping()
 
         // Now, for each prefix given as argument, add it to the completionsource's prefix list and also add any alias it has
@@ -66,7 +76,8 @@ export abstract class CompletionSource {
 
         // Not sure this is necessary but every completion source has it
         this.prefixes = this.prefixes.map(p => p + " ")
-        this.trailingSpace = options.trailingSpace
+        this.trailingSpace = options.trailingSpace ?? true
+        this.configKey = options.configKey
     }
 
     protected canonicalisePrefix(prefix: string) {
@@ -194,7 +205,7 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         prefixes,
         className: string,
         title?: string | HTMLElement,
-        options = { trailingSpace: true },
+        options: CompletionSourceOptions = {},
     ) {
         super(prefixes, options)
         this.node = html`<div class="${className} hidden"></div>`
@@ -301,7 +312,10 @@ export abstract class CompletionSourceFuse extends CompletionSource {
         For now just displays all scored elements (see threshold in fuse) and
         focus the best match.
     */
-    setStateFromScore(scoredOpts: ScoredOption[], autoselect = false) {
+    setStateFromScore(
+        scoredOpts: ScoredOption[],
+        autoselect = this.configKey && config.get("completions", this.configKey, "autoselect") === "true",
+    ) {
         const matches = new Set(scoredOpts.map(res => res.option))
 
         const hidden_options = []

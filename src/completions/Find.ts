@@ -1,14 +1,17 @@
 import * as Completions from "../completions"
 import * as Messaging from "@src/lib/messaging"
+import * as config from "@src/lib/config"
 import { ownTabId } from "@src/lib/webext"
 
 class FindCompletionOption
     extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys
+    public initiallySelected: boolean
 
     constructor(index: number, match, args: string) {
         super()
+        this.initiallySelected = match.selected
         this.value = [`--jump-to ${index}`, args].filter(Boolean).join(" ")
         this.fuseKeys = [match.text, match.precontext, match.postcontext, match.breadcrumbs]
         this.html = html`<tr class="FindCompletionOption option">
@@ -41,6 +44,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
                 <td class="content">Context</td>
                 <td class="position">Position</td>
             </tr></table>`,
+            { configKey: "Find" },
         )
     }
 
@@ -58,18 +62,10 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         const optionArgs = this.findArgs.split(/(?:^|\s)--(?:\s|$)/, 1)[0]
         if (/(^|\s)(--jump-to|-:)=?$/.test(optionArgs)) return this.cancel()
         const hasJump = /(^|\s)(--jump-to(?:=|\s)|-:(?:\s|$))/.test(optionArgs)
-        const regex = /(^|\s)(-r|--regex)(?=\s|$)/.test(optionArgs)
-        const delay = regex
-            ? new Promise<void>(resolve => window.setTimeout(resolve, 250))
-            : Promise.resolve()
-        this.pending = delay
-            .then(() => {
-                if (request !== this.request) return
-                return this.send(
-                    { session: this.session, completions: !hasJump },
-                    ...this.findArgs.split(/\s+/),
-                )
-            })
+        this.pending = this.send(
+            { session: this.session, completions: !hasJump },
+            ...this.findArgs.split(/\s+/),
+        )
             .then(matches => {
                 if (request !== this.request) return
                 this.options = hasJump
@@ -99,6 +95,9 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
     setStateFromScore() {
         this.options.forEach(option => (option.state = "normal"))
         this.deselect()
+        const selected = this.options.find(option => option.initiallySelected)
+        if (selected && config.get("completions", "Find", "autoselect") === "true")
+            this.select(selected)
     }
 
     scoredOptions() {

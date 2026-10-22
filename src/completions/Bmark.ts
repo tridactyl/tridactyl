@@ -36,7 +36,7 @@ export class BmarkCompletionSource extends Completions.CompletionSourceFuse {
     private shouldSetStateFromScore = true
 
     constructor(private _parent) {
-        super(["bmarks"], "BmarkCompletionSource", "Bookmarks")
+        super(["bmarks"], "BmarkCompletionSource", "Bookmarks", { configKey: "Bmark" })
 
         this._parent.appendChild(this.node)
         this.sortScoredOptions = true

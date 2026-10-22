@@ -523,6 +523,7 @@ async function findCompletionMatches(generation) {
         const percent = Math.round((top / Math.max(1, root.scrollHeight)) * 100)
         matches.push({
             index,
+            selected: index === selected,
             text: range.toString(),
             precontext: (preTruncated ? "..." : "") + precontext,
             postcontext: postcontext + (postTruncated ? "..." : ""),

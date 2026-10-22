@@ -94,7 +94,7 @@ export class TabAllCompletionSource extends TabCompletionSource {
     private shouldSetStateFromScore = true
 
     constructor(private _parent) {
-        super(["taball", "tabgrab"], "TabAllCompletionSource", "All Tabs")
+        super(["taball", "tabgrab"], "TabAllCompletionSource", "All Tabs", { configKey: "TabAll" })
 
         this.updateOptions()
         this._parent.appendChild(this.node)

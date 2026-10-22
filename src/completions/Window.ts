@@ -39,6 +39,7 @@ export class WindowCompletionSource extends Completions.CompletionSourceFuse {
             ["tabpush", "winclose", "winmerge"],
             "WindowCompletionSource",
             "Windows",
+            { configKey: "Window" },
         )
 
         this.updateOptions()

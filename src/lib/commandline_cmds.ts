@@ -115,7 +115,8 @@ export function getCommandlineFns(cmdline_state: {
 
         /** Inserts the selected completion, or its argument/keybinding character. */
         insert_character_or_completion: (character?: string) => {
-            if (cmdline_state.getActiveCompletionSource()?.completion)
+            const source = cmdline_state.getActiveCompletionSource()
+            if (source?.completion && source.insertCompletion)
                 return cmdline_state.fns.insert_space_or_completion()
             if (character !== undefined) {
                 expandAbbreviation(cmdline_state.clInput)

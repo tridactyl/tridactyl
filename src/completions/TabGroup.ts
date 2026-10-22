@@ -74,6 +74,7 @@ export class TabGroupCompletionSource extends Completions.CompletionSourceFuse {
             ["tgroupswitch", "tgroupmove", "tgroupclose"],
             "TabGroupCompletionSource",
             "Tab Groups",
+            { configKey: "TabGroup" },
         )
 
         this.updateOptions()

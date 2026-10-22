@@ -22,7 +22,7 @@ export class GotoCompletionSource extends Completions.CompletionSourceFuse {
     private shouldSetStateFromScore = true
 
     constructor(private _parent) {
-        super(["goto"], "GotoCompletionSource", "Headings")
+        super(["goto"], "GotoCompletionSource", "Headings", { configKey: "Goto" })
 
         this.updateOptions()
         this.shouldSetStateFromScore =
