@@ -3,7 +3,6 @@ import browserProxy from "@src/lib/browser_proxy"
 import * as config from "@src/lib/config"
 import * as UrlUtil from "@src/lib/url_util"
 import { sleep } from "@src/lib/patience"
-import * as R from "ramda"
 
 export async function getSortedTabs(
     forceSort?: "mru" | "default",
@@ -231,14 +230,15 @@ export async function openInNewTab(
     waitForDOM = false,
 ) {
     // Ensure sensible defaults are used
-    kwargs = R.mergeLeft(kwargs, {
+    kwargs = {
         active: true,
         related: false,
         cookieStoreId: undefined,
         bypassFocusHack: false,
         discarded: false,
         pinned: false,
-    })
+        ...kwargs,
+    }
 
     const thisTab = await activeTab()
     const delayedUrl = kwargs.beforeNavigate && !kwargs.discarded && url

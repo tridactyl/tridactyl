@@ -250,7 +250,8 @@ let HISTORY_SEARCH_STRING: string
 /** @hidden
  * Command line keybindings
  **/
-const keyParser = keys => genericParser.parser("exmaps", keys, false)
+const keyParser = (keys: MinimalKey[]) =>
+    genericParser.parser("exmaps", keys, false)
 /** @hidden **/
 let history_called = false
 /** @hidden **/
@@ -312,10 +313,10 @@ commandline_state.clInput.addEventListener(
 
                 session.queue[session.queue.length - 1].then(() => {
                     session.queue.push(
-                        // Abuse async to wrap non-promises in a promise
-                        // eslint-disable-next-line @typescript-eslint/require-await
-                        (async () => session === commandSession && command(commandArgument))()
-                            .catch(error => void logger.error(error))
+                        (async () => {
+                            if (session === commandSession) await command(commandArgument)
+                        })()
+                            .catch((error): void => void logger.error(error))
                             .finally(() => session.pending--),
                     )
                     if (session === commandSession)
@@ -342,17 +343,17 @@ commandline_state.clInput.addEventListener(
     true,
 )
 
-let refreshQueue: Promise<unknown> = Promise.resolve()
-export function refresh_completions(exstr) {
+let refreshQueue: Promise<void | void[]> = Promise.resolve()
+export function refresh_completions(exstr: string) {
     const session = commandSession
     const result = refreshQueue.then(() =>
         session === commandSession ? refreshCompletions(exstr) : undefined,
     )
-    refreshQueue = result.catch(() => undefined)
+    refreshQueue = result.catch((): void => undefined)
     return result
 }
 
-function refreshCompletions(exstr) {
+function refreshCompletions(exstr: string) {
     if (!commandline_state.activeCompletions) enableCompletions()
     // We can't use the regular logging mechanism because the user is using the command line.
     return Promise.all(
@@ -372,7 +373,7 @@ function refreshCompletions(exstr) {
 /** @hidden **/
 let onInputPromise: Promise<void | void[]> = Promise.resolve()
 const COMPLETION_THROTTLE_MS = 50
-let completionTimer
+let completionTimer: ReturnType<typeof setTimeout>
 let lastCompletionStarted = -Infinity
 /** @hidden **/
 commandline_state.clInput.addEventListener("input", () => {
@@ -442,7 +443,7 @@ export function clear(evlistener = false) {
 commandline_state.clear = clear
 
 /** @hidden **/
-async function history(n) {
+async function history(n: number) {
     history_called = true
 
     if (!prev_cmd_called_history) {
@@ -512,7 +513,7 @@ export function getContent() {
 }
 
 /** @hidden **/
-export function editor_function(fn_name: keyof typeof tri_editor, ...args) {
+export function editor_function(fn_name: keyof typeof tri_editor, ...args: string[]) {
     let result = Promise.resolve([])
     if (tri_editor[fn_name]) {
         tri_editor[fn_name](commandline_state.clInput, ...args)

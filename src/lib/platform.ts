@@ -11,7 +11,5 @@ export function getPlatformOs(): browser.runtime.PlatformOs {
         mac: "Mac",
         linux: "Linux",
     }
-    return R.keys(
-        R.filter(x => platform.includes(x), mapping),
-    )[0] as keyof typeof mapping
+    return R.keys(R.filter(x => platform.includes(x), mapping))[0]
 }

@@ -282,6 +282,8 @@ export class StatsLogger {
     }
 }
 
+export const statsLogger = new StatsLogger()
+
 /**
  * Pretty-prints a pile of performance samples of type measure (others
  * won't work because they have duration zero or undefined) as a

@@ -259,7 +259,7 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
         }
     }
     let rsscmd = config.get("rsscmd")
-    if (rsscmd.match("%[uty]")) {
+    if (/%[uty]/.exec(rsscmd)) {
         rsscmd = rsscmd
             .replace("%u", url)
             .replace("%t", title.join(" "))
@@ -511,7 +511,7 @@ export async function loadtheme(themename: string) {
     const path = rcPath.split(separator).slice(0, -1).join(separator) + separator + "themes" + separator + themename + ".css"
     const file = await Native.read(path)
     if (file.code !== 0) {
-        if (Object.keys(await config.get("customthemes")).includes(themename)) return
+        if (Object.keys(await config.getAsync("customthemes")).includes(themename)) return
         throw new Error("Couldn't read theme " + path)
     }
     return set("customthemes." + themename, file.content)
@@ -808,7 +808,7 @@ export async function native() {
 export async function nativeinstall() {
     const tag = IS_BETA ? "master" : TRI_VERSION
     let done
-    const installstr = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
+    const installstr = (await config.getAsync("nativeinstallcmd")).replace("%TAG", tag)
     await yank(installstr)
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
         done = fillcmdline("# Installation command copied to clipboard. Please paste and run it in cmd.exe (other shells won't work) to install the native messenger. If that fails, try opening cmd.exe as Administrator and running the command again.")
@@ -949,7 +949,7 @@ export async function updatenative(interactive = true) {
     }
 
     const tag = IS_BETA ? "master" : TRI_VERSION
-    const update_command = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
+    const update_command = (await config.getAsync("nativeinstallcmd")).replace("%TAG", tag)
     const native_version = await Native.getNativeMessengerVersion()
 
     if (semverCompare(native_version, "0.2.0") < 0) {
@@ -974,7 +974,7 @@ export async function updatenative(interactive = true) {
 //#background
 export async function restart() {
     const profiledir = await Native.getProfileDir()
-    const browsercmd = await config.get("browser")
+    const browsercmd = await config.getAsync("browser")
 
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
         const reply = await Native.winFirefoxRestart(profiledir, browsercmd)
@@ -2190,7 +2190,7 @@ export function urlparent(count = 1) {
         option[key] = config.get(configKey) === "true"
     }
     const regexpString = config.get("urlparentignorepathregexp")
-    const regexpScan = regexpString.match(/^\/(.+)\/([a-z]*?)$/)
+    const regexpScan = /^\/(.+)\/([a-z]*?)$/.exec(regexpString)
     if (regexpString && regexpScan) {
         option["ignorePathRegExp"] = new RegExp(regexpScan[1], regexpScan[2])
     }
@@ -5948,7 +5948,7 @@ export async function getGotoSelectors(): Promise<Array<{ level: number; y: numb
     let level = 1
     for (const selector of config.get("gotoselector").split(",")) {
         result.push(
-            ...(Array.from(document.querySelectorAll(selector)) as HTMLElement[])
+            ...Array.from(document.querySelectorAll<HTMLElement>(selector))
                 .filter(e => e.innerText)
                 .map(e => ({ level, y: e.getClientRects()[0]?.y, title: e.innerText, selector: DOM.getSelector(e) }))
                 .filter(e => e.y !== undefined),
@@ -6114,7 +6114,7 @@ export function buildFilterConfigs(filters: string[]): Perf.StatsFilterConfig[] 
 //#background
 export async function perfdump(...filters: string[]) {
     const filterconfigs = buildFilterConfigs(filters)
-    const entries = window.tri.statsLogger.getEntries(...filterconfigs)
+    const entries = Perf.statsLogger.getEntries(...filterconfigs)
     console.log(filterconfigs)
     return open("data:application/json;charset=UTF-8," + JSON.stringify(entries))
 }
@@ -6131,7 +6131,7 @@ export async function perfdump(...filters: string[]) {
 export async function perfhistogram(...filters: string[]) {
     const filterconfigs = buildFilterConfigs(filters)
     filterconfigs.push({ kind: "eventType", eventType: "measure" })
-    const entries = window.tri.statsLogger.getEntries(...filterconfigs)
+    const entries = Perf.statsLogger.getEntries(...filterconfigs)
     if (entries.length === 0) {
         return fillcmdline_tmp(3000, "perfhistogram: No samples found.")
     }

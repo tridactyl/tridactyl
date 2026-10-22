@@ -25,18 +25,13 @@ class ContentState {
     cmdline_filter = ""
 }
 
-export type ContentStateProperty =
-    | "mode"
-    | "cmdHistory"
-    | "prevInputs"
-    | "suffix"
-    | "group"
+export type ContentStateProperty = keyof ContentState
 
 export type ContentStateChangedCallback = (
     property: ContentStateProperty,
-    oldMode: any,
-    oldValue: any,
-    newValue: any,
+    oldMode: string,
+    oldValue: string,
+    newValue: string,
 ) => void
 
 const onChangedListeners: ContentStateChangedCallback[] = []

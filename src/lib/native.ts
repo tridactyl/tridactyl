@@ -314,8 +314,8 @@ export async function editor(
         ? await getBestEditor()
         : config.get("editorcmd")
     )
-        .replace(/%l/, line)
-        .replace(/%c/, col)
+        .replace(/%l/, String(line))
+        .replace(/%c/, String(col))
     let exec
     if (editorcmd.indexOf("%f") !== -1) {
         exec = await run(editorcmd.replace(/%f/, file))
@@ -462,7 +462,7 @@ export async function clipboard(
     action: "set" | "get",
     str: string,
 ): Promise<string> {
-    let clipcmd = await config.get("externalclipboardcmd")
+    let clipcmd = await config.getAsync("externalclipboardcmd")
     if (clipcmd === "auto") clipcmd = await firstinpath(["xsel", "xclip"])
 
     if (clipcmd === undefined) {
@@ -520,7 +520,7 @@ export async function ff_cmdline(): Promise<string[]> {
     let output: MessageResp
     if ((await browserBg.runtime.getPlatformInfo()).os === "win") {
         if (!(await nativegate("0.3.3", false))) {
-            const browser_name = await config.get("browser")
+            const browser_name = await config.getAsync("browser")
             output = await run(
                 `powershell -NoProfile -Command "\
 $processes = Get-CimInstance -Property ProcessId,ParentProcessId,Name,CommandLine -ClassName Win32_Process;\

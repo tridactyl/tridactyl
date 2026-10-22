@@ -161,7 +161,7 @@ export class default_config {
      * exmaps contains all of the bindings for the command line.
      * You can of course bind regular ex commands but also [editor functions](/static/docs/modules/_src_lib_editor_.html) and [commandline-specific functions](/static/docs/modules/_src_commandline_frame_.html).
      */
-    exmaps = {
+    exmaps: Record<string, string> = {
         "<Enter>": "ex.accept_line",
         "<C-Enter>": "ex.execute_ex_on_completion",
         "<C-j>": "ex.accept_line",
@@ -199,7 +199,7 @@ export class default_config {
      *
      * They consist of key sequences mapped to ex commands.
      */
-    ignoremaps = {
+    ignoremaps: Record<string, string> = {
         "<S-Insert>": "mode normal",
         "<AC-Escape>": "mode normal",
         "<AC-`>": "mode normal",
@@ -214,7 +214,7 @@ export class default_config {
      *
      * They consist of key sequences mapped to ex commands.
      */
-    imaps = {
+    imaps: Record<string, string> = {
         "<Escape>": "composite unfocus | mode normal",
         "<C-[>": "composite unfocus | mode normal",
         "<C-i>": "editor",
@@ -231,7 +231,7 @@ export class default_config {
      *
      * They consist of key sequences mapped to ex commands.
      */
-    inputmaps = {
+    inputmaps: Record<string, string> = {
         "<Tab>": "focusinput -n",
         "<S-Tab>": "focusinput -N",
         /**
@@ -258,7 +258,7 @@ export class default_config {
      *
      * They consist of key sequences mapped to ex commands.
      */
-    nmaps = {
+    nmaps: Record<string, string> = {
         "<A-p>": "pin",
         "<A-m>": "mute toggle",
         "<F1>": "help",
@@ -430,7 +430,7 @@ export class default_config {
         "`": "gobble 1 markjump",
     }
 
-    vmaps = {
+    vmaps: Record<string, string> = {
         "<Escape>":
             "composite js tri.dom.getSelection().empty(); mode normal; hidecmdline",
         "<C-[>":
@@ -461,7 +461,7 @@ export class default_config {
         "🕷🕷INHERITS🕷🕷": "nmaps",
     }
 
-    hintmaps = {
+    hintmaps: Record<string, string> = {
         "<Backspace>": "hint.popKey",
         "<Escape>": "hint.reset",
         "<C-[>": "hint.reset",
@@ -479,7 +479,7 @@ export class default_config {
      * Browser-wide binds accessible in all modes and on pages where Tridactyl "cannot run".
      * <!-- Note to developers: binds here need to also be listed in manifest.json -->
      */
-    browsermaps = {
+    browsermaps: Record<string, string> = {
         "<C-,>": "escapehatch",
         "<C-6>": "tab #",
         // "<CS-6>": "tab #", // banned by e2e tests
@@ -702,7 +702,7 @@ export class default_config {
      *
      * You can make a new one with `command alias ex-command`.
      */
-    exaliases = {
+    exaliases: Record<string, string> = {
         alias: "command",
         au: "autocmd",
         aucon: "autocontain",
@@ -1564,24 +1564,24 @@ export class default_config {
     }
 }
 
-const platform_defaults = {
+const platform_defaults: Partial<Record<browser.runtime.PlatformOs, DeepPartial<default_config>>> = {
     win: {
         browsermaps: {
             "<C-6>": null,
             "<A-6>": "buffer #",
-        } as unknown, // typescript doesn't like me adding new binds like this
+        },
         nmaps: {
             "<C-6>": "buffer #",
-        } as unknown,
+        },
         imaps: {
             "<C-6>": "buffer #",
-        } as unknown,
+        },
         inputmaps: {
             "<C-6>": "buffer #",
-        } as unknown,
+        },
         ignoremaps: {
             "<C-6>": "buffer #",
-        } as unknown,
+        },
 
         nativeinstallcmd: `powershell -ExecutionPolicy Bypass -NoProfile -Command "\
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12;\
@@ -1600,9 +1600,9 @@ Remove-Item '%TEMP%/tridactyl_installnative.ps1'"`,
             ";c": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool click 3")}',
             ";:": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y)}',
             ";X": 'hint -F e => { const pos = tri.dom.getAbsoluteCentre(e); tri.excmds.exclaim_quiet("xdotool mousemove --sync " + window.devicePixelRatio * pos.x + " " + window.devicePixelRatio * pos.y + "; xdotool keydown ctrl+shift; xdotool click 1; xdotool keyup ctrl+shift")}',
-        } as unknown,
+        },
     },
-} as Record<browser.runtime.PlatformOs, default_config>
+}
 
 /**
  * Key codes for printable keys for [[keyboardlayoutforce]], lower and upper register.
@@ -2064,7 +2064,7 @@ export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
 export const DEFAULTS = mergeDeepCull(
     o(new default_config()),
     platform_defaults[platform.getPlatformOs()],
-)
+) as default_config
 
 /** Given an object and a target, extract the target if it exists, else return undefined
 
@@ -2179,6 +2179,8 @@ export function getURL(url: string, target: string[]) {
     defaults, if one exists, else undefined.
     @hidden
  */
+export function get<K extends keyof default_config>(key: K): default_config[K]
+export function get(target_typed?: keyof default_config, ...target: string[]): any
 export function get(target_typed?: keyof default_config, ...target: string[]) {
     if (target_typed === undefined) {
         target = []
@@ -2232,6 +2234,8 @@ export async function getAsyncDynamic(...target: string[]) {
     This is useful if you are a content script and you've just been loaded.
     @hidden
  */
+export function getAsync<K extends keyof default_config>(key: K): Promise<default_config[K]>
+export function getAsync(target_typed?: keyof default_config, ...target: string[]): Promise<any>
 export async function getAsync(
     target_typed?: keyof default_config,
     ...target: string[]
