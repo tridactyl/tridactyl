@@ -1,0 +1,258 @@
+/* ============================================================== *
+ * Palette (Light)                                                *
+ * ============================================================== */
+
+:root {
+    /* Font. */
+    --arc-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+        system-ui, "Helvetica Neue", Arial, sans-serif;
+
+    --arc-card: #f4f4f6; /* frosted popup background */
+    --arc-row: #f4f4f6; /* resting row background (same as card) */
+    --arc-fg: #1d1d1f; /* primary text */
+    --arc-muted: #86868b;
+    --arc-header: #a1a1a6;
+    --arc-shadow: 0 18px 60px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12);
+
+    --arc-accent: #5e5ce6;
+    --arc-accent-fg: #ffffff;
+
+    --tridactyl-font-family-sans: var(--arc-font);
+    --tridactyl-bg: var(--arc-card);
+    --tridactyl-fg: var(--arc-fg);
+
+    --tridactyl-cmdl-bg: var(--arc-card);
+    --tridactyl-cmdl-fg: var(--arc-fg);
+    --tridactyl-cmdl-font-family: var(--arc-font);
+    --tridactyl-cmdl-font-size: 14px;
+    --tridactyl-cmdl-line-height: 1.5;
+
+    --tridactyl-cmplt-bg: var(--arc-card);
+    --tridactyl-cmplt-fg: var(--arc-fg);
+    --tridactyl-cmplt-font-family: var(--arc-font);
+    --tridactyl-cmplt-font-size: 13px;
+    --tridactyl-cmplt-option-height: 2.6em;
+    --tridactyl-cmplt-border-top: none;
+
+    --tridactyl-header-first-bg: var(--arc-card);
+    --tridactyl-header-second-bg: var(--arc-card);
+    --tridactyl-header-third-bg: var(--arc-card);
+    --tridactyl-header-font-size: 11px;
+    --tridactyl-header-font-weight: 600;
+    --tridactyl-header-border-bottom: none;
+
+    --tridactyl-url-fg: var(--arc-muted);
+    --tridactyl-url-bg: transparent;
+    --tridactyl-url-text-decoration: none;
+
+    --tridactyl-of-bg: var(--arc-accent);
+    --tridactyl-of-fg: var(--arc-accent-fg);
+
+    /* --- Hints + find  --- */
+
+    --arc-accent-rgb: 94, 92, 230;
+
+    --tridactyl-hintspan-font-family: var(--arc-font);
+    --tridactyl-hintspan-font-size: 11px;
+    --tridactyl-hintspan-font-weight: 600;
+    --tridactyl-hintspan-fg: var(--arc-accent-fg);
+    --tridactyl-hintspan-bg: var(--arc-accent);
+    --tridactyl-hintspan-border-width: 1px;
+    --tridactyl-hintspan-border-color: var(--arc-accent);
+    --tridactyl-hintspan-pressed-fg: rgba(255, 255, 255, 0.5);
+    --tridactyl-hintspan-active-fg: var(--arc-accent);
+    --tridactyl-hintspan-active-bg: var(--arc-accent-fg);
+    --tridactyl-hintspan-active-border-color: var(--arc-accent);
+    --tridactyl-hintspan-js-background: #8e8ca8;
+
+    --tridactyl-hint-fg: inherit;
+    --tridactyl-hint-active-fg: inherit;
+    --tridactyl-hint-bg: rgba(var(--arc-accent-rgb), 0.1);
+    --tridactyl-hint-outline: 1px solid rgba(var(--arc-accent-rgb), 0.45);
+    --tridactyl-hint-active-bg: rgba(var(--arc-accent-rgb), 0.25);
+    --tridactyl-hint-active-outline: 2px solid var(--arc-accent);
+
+    --tridactyl-search-highlight-color: #dcdbff;
+    --tridactyl-search-highlight-text-color: #1d1d1f;
+    --tridactyl-search-highlight-active-color: #a8a6ff;
+}
+
+/* ============================================================== *
+ * Palette (Dark)                                                 *
+ * ============================================================== */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --arc-card: #2b2b2f;
+        --arc-row: #2b2b2f;
+        --arc-fg: #f5f5f7;
+        --arc-muted: #98989d;
+        --arc-header: #8e8e93;
+        --arc-shadow: 0 18px 60px rgba(0, 0, 0, 0.55),
+            0 2px 8px rgba(0, 0, 0, 0.4);
+        --arc-accent: #6b68f0;
+        --arc-accent-rgb: 107, 104, 240;
+    }
+}
+
+/* ============================================================== *
+ * The Popup                                                      *
+ * ============================================================== */
+
+:root #cmdline_iframe { position: fixed !important; bottom: unset !important;
+    top: 30% !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: min(720px, 92vw) !important;
+    max-width: 92vw !important;
+    border-radius: 14px !important;
+    box-shadow: var(--arc-shadow) !important;
+    overflow: hidden !important;
+    opacity: 1 !important;
+}
+
+/* ============================================================== *
+ * Opening animation                                              *
+ *                                                                *
+ * Tune the feel below: speed, scale, how far it slides in.       *
+ * Disabled for users who prefer reduced motion.                  *
+ * ============================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+    :root #cmdline_iframe {
+        transition: transform 190ms cubic-bezier(0.4, 0, 1, 1),
+            opacity 190ms cubic-bezier(0.4, 0, 1, 1) !important;
+    }
+
+    :root #cmdline_iframe.hidden {
+        transition: transform 160ms cubic-bezier(0.4, 0, 1, 1),
+            opacity 160ms cubic-bezier(0.4, 0, 1, 1),
+            height 160ms cubic-bezier(0.4, 0, 1, 1) !important;
+        transform: translateX(-50%) translateY(8px) scale(0.90) !important;
+        opacity: 0 !important;
+    }
+}
+
+/* ============================================================== *
+ * Command-line document (inside the iframe)                      *
+ * ============================================================== */
+
+.TridactylCommandline body {
+    flex-direction: column-reverse;
+    background: var(--arc-card);
+}
+
+.TridactylCommandline #command-line-holder {
+    display: flex;
+    align-items: center;
+    background: var(--arc-card);
+    padding: 20px 16px 14px 18px;
+    border: none;
+}
+
+.TridactylCommandline #tridactyl-input {
+    flex: 1 1 auto;
+    width: auto;
+    background: var(--arc-card);
+    color: var(--arc-fg);
+    font-family: var(--arc-font);
+    font-size: 16px;
+    line-height: 1.4;
+    border: none;
+    padding: 0;
+}
+
+.TridactylCommandline #tridactyl-input::placeholder {
+    color: var(--arc-muted);
+}
+
+/* Swap the ":" prompt for a search icon. */
+.TridactylCommandline #tridactyl-colon::before {
+    content: "⌕";
+    color: var(--arc-muted);
+    font-size: 20px;
+    font-weight: 400;
+    padding-right: 8px;
+    line-height: 1;
+}
+
+/* ============================================================== *
+ * Completions                                                    *
+ * ============================================================== */
+
+.TridactylCommandline #completions {
+    background: var(--arc-card);
+    border-top: none;
+    padding: 4px 8px 8px;
+}
+
+/* Cap how many options are visible at once.
+ * Change the `12` to taste. */
+.TridactylCommandline #completions > div {
+    max-height: calc(12 * var(--option-height)) !important;
+    min-height: 0 !important;
+}
+
+/* Thin separator between the search field and the results */
+.TridactylCommandline #completions:not(:empty) {
+    border-top: 1px solid rgba(128, 128, 128, 0.18);
+}
+
+.TridactylCommandline #completions div.sectionHeader {
+    color: var(--arc-header);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 10px 16px 4px;
+    background: var(--arc-card);
+}
+
+.TridactylCommandline #completions .option td {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 8px;
+    vertical-align: middle;
+}
+
+.TridactylCommandline #completions .ExcmdCompletionOption td.excmd,
+.TridactylCommandline #completions .HelpCompletionOption td.name,
+.TridactylCommandline #completions .SettingsCompletionSource td.title,
+.TridactylCommandline #completions .TabGroupCompletionOption td.title {
+    padding-left: calc(3.2em + 8px);
+}
+
+.TridactylCommandline #completions .focused,
+.TridactylCommandline #completions .focused .url,
+.TridactylCommandline #completions .focused td {
+    background: var(--arc-accent) !important;
+    color: var(--arc-accent-fg) !important;
+    text-decoration: none !important;
+}
+
+.TridactylCommandline #completions .focused td:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.TridactylCommandline #completions .focused td:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+/* ============================================================== *
+ * Hint labels                                                    *
+ * ============================================================== */
+
+:root span.TridactylHint {
+    border-radius: 5px !important;
+    padding: 1px 5px !important;
+    line-height: 1.3 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ============================================================== *
+ * Remove the mode indicator                                      *
+ * ============================================================== */
+
+.TridactylStatusIndicator {
+    display: none !important;
+}
