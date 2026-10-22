@@ -2064,7 +2064,7 @@ export const mergeDeepCull = R.pipe(mergeDeep, removeNull)
 export const DEFAULTS = mergeDeepCull(
     o(new default_config()),
     platform_defaults[platform.getPlatformOs()],
-)
+) as default_config
 
 /** Given an object and a target, extract the target if it exists, else return undefined
 
