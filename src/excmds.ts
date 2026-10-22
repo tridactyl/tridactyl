@@ -259,7 +259,7 @@ export async function rssexec(url: string, type?: string, ...title: string[]) {
         }
     }
     let rsscmd = config.get("rsscmd")
-    if (rsscmd.match("%[uty]")) {
+    if (/%[uty]/.exec(rsscmd)) {
         rsscmd = rsscmd
             .replace("%u", url)
             .replace("%t", title.join(" "))
@@ -2190,7 +2190,7 @@ export function urlparent(count = 1) {
         option[key] = config.get(configKey) === "true"
     }
     const regexpString = config.get("urlparentignorepathregexp")
-    const regexpScan = regexpString.match(/^\/(.+)\/([a-z]*?)$/)
+    const regexpScan = /^\/(.+)\/([a-z]*?)$/.exec(regexpString)
     if (regexpString && regexpScan) {
         option["ignorePathRegExp"] = new RegExp(regexpScan[1], regexpScan[2])
     }
@@ -5948,7 +5948,7 @@ export async function getGotoSelectors(): Promise<Array<{ level: number; y: numb
     let level = 1
     for (const selector of config.get("gotoselector").split(",")) {
         result.push(
-            ...(Array.from(document.querySelectorAll(selector)) as HTMLElement[])
+            ...Array.from(document.querySelectorAll<HTMLElement>(selector))
                 .filter(e => e.innerText)
                 .map(e => ({ level, y: e.getClientRects()[0]?.y, title: e.innerText, selector: DOM.getSelector(e) }))
                 .filter(e => e.y !== undefined),

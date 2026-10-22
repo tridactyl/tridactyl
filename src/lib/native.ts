@@ -314,8 +314,8 @@ export async function editor(
         ? await getBestEditor()
         : config.get("editorcmd")
     )
-        .replace(/%l/, line)
-        .replace(/%c/, col)
+        .replace(/%l/, String(line))
+        .replace(/%c/, String(col))
     let exec
     if (editorcmd.indexOf("%f") !== -1) {
         exec = await run(editorcmd.replace(/%f/, file))
