@@ -244,7 +244,7 @@ You can bind your own shortcuts in normal mode with the `:bind` command. For exa
     -   midnight (authored by @karizma)
     -   vimium
     -   tokyonight
-    -   arc (authored by @c-furber)
+    -   arc (authored by @C-Furber)
 
     Tridactyl can also load themes from disk or URL. You could use this for example to load one of the themes originally authored by @bezmi ([tridactyl/base16-tridactyl](https://github.com/tridactyl/base16-tridactyl)). See `:help colors` for more information.
 
