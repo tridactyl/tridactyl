@@ -41,7 +41,7 @@ export abstract class CompletionOption {
     abstract state: OptionState
 }
 
-type CompletionSourceOptions = {
+interface CompletionSourceOptions {
     trailingSpace?: boolean
     configKey?: keyof config.default_config["completions"]
 }
