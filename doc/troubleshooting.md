@@ -18,6 +18,8 @@ Selecting **Never remember history** in the History section of Firefox's Privacy
 
 If you have `permissions.default.shortcuts` set to `2` in `about:config`, keys like `<Esc>` may stop working in Tridactyl (for example, `<Esc>` no longer exits hint mode). It must remain set to the default: `0`. [#5504](https://github.com/tridactyl/tridactyl/issues/5504)
 
+If `:native` doesn't work for you, try setting `widget.use-xdg-desktop-portal.native-messaging` to 0 or 2 in `about:config` [#5552](https://github.com/tridactyl/tridactyl/issues/5552) - `1` forces Firefox to use a portal to launch native binaries, which may or may not be installed.
+
 # Keyboard layout issues
 
 Tridactyl's completion-aware `<Space>` binding can interfere with dead-key composition in the command line. Run `:unbind --mode=ex <Space>` to let Firefox handle Space normally, then `:bind --mode=ex <S-Space> ex.insert_character_or_completion` to move completion to Shift-Space. [#5061](https://github.com/tridactyl/tridactyl/issues/5061)
