@@ -40,7 +40,7 @@ export class ThemeCompletionSource extends Completions.CompletionSourceFuse {
         this.lastExstr = exstr
 
         const themes = staticThemes.concat(
-            Object.keys(await config.get("customthemes")),
+            Object.keys(await config.getAsync("customthemes")),
         )
         const [prefix, query] = this.splitOnPrefix(exstr)
 

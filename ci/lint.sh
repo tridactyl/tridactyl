@@ -10,6 +10,7 @@ if [ "$incompatible_sed" ]; then
 	printf "\nWarning: avoid non-portable sed flag -i without backup extension, use -i.bak\n"
 	printf "%s\n\n" "$incompatible_sed"
 fi
+yarn run build || exit 1 # generate sources that need linting
 yarn run lint || exit 1
 "$(yarn bin)/eslint" --rulesdir custom-eslint-rules --ext .ts . || exit 1
 
