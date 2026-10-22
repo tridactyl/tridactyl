@@ -1,7 +1,9 @@
 import { promises as fs } from "fs"
+import { createServer } from "http"
+import { AddressInfo } from "net"
 import * as os from "os"
 import * as path from "path"
-import { By } from "selenium-webdriver"
+import { By, Key } from "selenium-webdriver"
 import { Driver } from "selenium-webdriver/firefox"
 import * as Until from "selenium-webdriver/lib/until"
 import {
@@ -112,6 +114,57 @@ describe("webdriver", () => {
     function testbutskipplatforms(...platforms: string[]) {
         return platforms.includes(os.platform()) ? test.skip : test
     }
+
+    test("page-injected keyboard events leave bindings idle while real keys execute them", async () => {
+        const server = createServer((_request, response) => {
+            response.setHeader("Content-Type", "text/html")
+            response.end(
+                '<!doctype html><div id="target" tabindex="0">Keyboard target</div>',
+            )
+        })
+        await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve))
+        try {
+            await driver.executeScript(`
+                return (async () => {
+                    await tri.config.set("noiframe", "false");
+                    await tri.config.set("nmaps", "<F8>",
+                        "js document.documentElement.dataset.keyCount = String(Number(document.documentElement.dataset.keyCount || 0) + 1)");
+                })();
+            `)
+            await driver.get(
+                `http://127.0.0.1:${(server.address() as AddressInfo).port}/`,
+            )
+            await iframeLoaded(driver)
+            await driver.findElement(By.id("target")).click()
+            const count = () =>
+                driver.executeScript<number>(
+                    "return Number(document.documentElement.dataset.keyCount || 0)",
+                )
+            await driver.actions().sendKeys(Key.F8).perform()
+            await driver.wait(async () => (await count()) === 1, 5000)
+
+            expect(
+                await driver.executeScript(`
+                return ["keydown", "keypress", "keyup"].map(type => {
+                    const event = new KeyboardEvent(type, {
+                        key: "F8", code: "F8", bubbles: true, composed: true, cancelable: true,
+                    });
+                    document.getElementById("target").dispatchEvent(event);
+                    return { trusted: event.isTrusted, cancelled: event.defaultPrevented };
+                });
+            `),
+            ).toEqual(Array(3).fill({ trusted: false, cancelled: false }))
+            await driver.sleep(500)
+            expect(await count()).toBe(1)
+
+            await driver.actions().sendKeys(Key.F8).perform()
+            await driver.wait(async () => (await count()) === 2, 5000)
+        } finally {
+            await new Promise<void>((resolve, reject) =>
+                server.close(error => (error ? reject(error) : resolve())),
+            )
+        }
+    })
 
     test("`:rssexec` works", async () => {
         try {

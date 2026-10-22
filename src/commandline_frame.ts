@@ -64,7 +64,7 @@ import * as R from "ramda"
 import {
     MinimalKey,
     minimalKeyFromKeyboardEvent,
-    isTrustedKeyboardEvent,
+    guarded,
 } from "@src/lib/keyseq"
 import { TabGroupCompletionSource } from "@src/completions/TabGroup"
 import { ProfileCompletionSource } from "@src/completions/Profile"
@@ -263,8 +263,7 @@ const nativeInsertFallbacks = new Map<object, () => boolean>()
 /** @hidden **/
 commandline_state.clInput.addEventListener(
     "keydown",
-    function (keyevent: Event) {
-        if (!isTrustedKeyboardEvent(keyevent)) return
+    guarded(keyevent => {
         logger.debug(
             "commandline_frame clInput keydown event listener",
             keyevent,
@@ -339,7 +338,7 @@ commandline_state.clInput.addEventListener(
         } else {
             commandline_state.keyEvents = response.keys
         }
-    },
+    }),
     true,
 )
 

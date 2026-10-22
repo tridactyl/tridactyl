@@ -2,6 +2,7 @@
 
 import * as config from "@src/lib/config"
 import { modeMaps } from "@src/lib/binding"
+import { guarded } from "@src/lib/keyseq"
 
 /** Create the element that should contain keybinding information */
 function initTridactylSettingElem(
@@ -160,7 +161,7 @@ function addSettingInputs() {
                 input.value = value
                 input.id = "TridactylSettingInput_" + input.name
                 input.className = inputClassName
-                input.addEventListener("keyup", onKeyUp)
+                input.addEventListener("keyup", guarded(onKeyUp))
 
                 const div = document.createElement("div")
                 div.appendChild(document.createTextNode("Current value:"))

@@ -35,6 +35,7 @@ module.exports = {
         "sonarjs"
     ],
     "rules": {
+        "guarded-keyboard-listeners": "error",
         "unsupported-apis-chrome": [
             "warn",
             { "minimumVersion": browserTargets.chrome.minimumVersion }

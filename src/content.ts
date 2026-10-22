@@ -245,10 +245,13 @@ config.getAsync("preventautofocusjackhammer").then(allowautofocus => {
             elem.removeEventListener("blur", focusElem)
             elem.removeEventListener("focusout", focusElem)
             clearInterval(interval)
-            window.removeEventListener("keydown", stopResettingFocus)
+            window.removeEventListener(
+                "keydown",
+                keyseq.guarded(stopResettingFocus),
+            )
             window.removeEventListener("mousedown", stopResettingFocus)
         }
-        window.addEventListener("keydown", stopResettingFocus)
+        window.addEventListener("keydown", keyseq.guarded(stopResettingFocus))
         window.addEventListener("mousedown", stopResettingFocus)
     }
     const tryPreventAutoFocus = () => {
