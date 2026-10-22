@@ -62,18 +62,10 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
         const optionArgs = this.findArgs.split(/(?:^|\s)--(?:\s|$)/, 1)[0]
         if (/(^|\s)(--jump-to|-:)=?$/.test(optionArgs)) return this.cancel()
         const hasJump = /(^|\s)(--jump-to(?:=|\s)|-:(?:\s|$))/.test(optionArgs)
-        const regex = /(^|\s)(-r|--regex)(?=\s|$)/.test(optionArgs)
-        const delay = regex
-            ? new Promise<void>(resolve => window.setTimeout(resolve, 250))
-            : Promise.resolve()
-        this.pending = delay
-            .then(() => {
-                if (request !== this.request) return
-                return this.send(
-                    { session: this.session, completions: !hasJump },
-                    ...this.findArgs.split(/\s+/),
-                )
-            })
+        this.pending = this.send(
+            { session: this.session, completions: !hasJump },
+            ...this.findArgs.split(/\s+/),
+        )
             .then(matches => {
                 if (request !== this.request) return
                 this.options = hasJump

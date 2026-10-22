@@ -371,7 +371,7 @@ function refreshCompletions(exstr) {
 
 /** @hidden **/
 let onInputPromise: Promise<void | void[]> = Promise.resolve()
-const COMPLETION_THROTTLE_MS = 100
+const COMPLETION_THROTTLE_MS = 50
 let completionTimer
 let lastCompletionStarted = -Infinity
 /** @hidden **/
