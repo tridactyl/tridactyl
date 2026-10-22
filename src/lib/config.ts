@@ -1332,6 +1332,9 @@ export class default_config {
      * General completions options - NB: options are set according to our internal completion source name - see - `src/completions/[name].ts` in the Tridactyl source.
      */
     completions = {
+        Find: {
+            autoselect: "true",
+        },
         Goto: {
             autoselect: "true",
         },

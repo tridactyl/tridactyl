@@ -1,14 +1,17 @@
 import * as Completions from "../completions"
 import * as Messaging from "@src/lib/messaging"
+import * as config from "@src/lib/config"
 import { ownTabId } from "@src/lib/webext"
 
 class FindCompletionOption
     extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys
+    public initiallySelected: boolean
 
     constructor(index: number, match, args: string) {
         super()
+        this.initiallySelected = match.selected
         this.value = [`--jump-to ${index}`, args].filter(Boolean).join(" ")
         this.fuseKeys = [match.text, match.precontext, match.postcontext, match.breadcrumbs]
         this.html = html`<tr class="FindCompletionOption option">
@@ -99,6 +102,9 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
     setStateFromScore() {
         this.options.forEach(option => (option.state = "normal"))
         this.deselect()
+        const selected = this.options.find(option => option.initiallySelected)
+        if (selected && config.get("completions", "Find", "autoselect") === "true")
+            this.select(selected)
     }
 
     scoredOptions() {
