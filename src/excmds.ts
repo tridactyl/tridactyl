@@ -511,7 +511,7 @@ export async function loadtheme(themename: string) {
     const path = rcPath.split(separator).slice(0, -1).join(separator) + separator + "themes" + separator + themename + ".css"
     const file = await Native.read(path)
     if (file.code !== 0) {
-        if (Object.keys(await config.get("customthemes")).includes(themename)) return
+        if (Object.keys(await config.getAsync("customthemes")).includes(themename)) return
         throw new Error("Couldn't read theme " + path)
     }
     return set("customthemes." + themename, file.content)
@@ -808,7 +808,7 @@ export async function native() {
 export async function nativeinstall() {
     const tag = IS_BETA ? "master" : TRI_VERSION
     let done
-    const installstr = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
+    const installstr = (await config.getAsync("nativeinstallcmd")).replace("%TAG", tag)
     await yank(installstr)
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
         done = fillcmdline("# Installation command copied to clipboard. Please paste and run it in cmd.exe (other shells won't work) to install the native messenger. If that fails, try opening cmd.exe as Administrator and running the command again.")
@@ -949,7 +949,7 @@ export async function updatenative(interactive = true) {
     }
 
     const tag = IS_BETA ? "master" : TRI_VERSION
-    const update_command = (await config.get("nativeinstallcmd")).replace("%TAG", tag)
+    const update_command = (await config.getAsync("nativeinstallcmd")).replace("%TAG", tag)
     const native_version = await Native.getNativeMessengerVersion()
 
     if (semverCompare(native_version, "0.2.0") < 0) {
@@ -974,7 +974,7 @@ export async function updatenative(interactive = true) {
 //#background
 export async function restart() {
     const profiledir = await Native.getProfileDir()
-    const browsercmd = await config.get("browser")
+    const browsercmd = await config.getAsync("browser")
 
     if ((await browser.runtime.getPlatformInfo()).os === "win") {
         const reply = await Native.winFirefoxRestart(profiledir, browsercmd)
