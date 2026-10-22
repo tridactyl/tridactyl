@@ -120,7 +120,7 @@
     --tridactyl-highlight-box-bg: rgba(0, 0, 0, 0.07);
     --tridactyl-highlight-box-fg: var(--tridactyl-fg);
 
-    --tridactyl-private-window-icon-url: url("chrome://browser/skin/privatebrowsing/private-browsing.svg");
+    --tridactyl-private-window-icon-url: url("chrome://global/skin/icons/indicator-private-browsing.svg");
 
     --tridactyl-container-fingerprint-url: url("resource://usercontext-content/fingerprint.svg");
     --tridactyl-container-briefcase-url: url("resource://usercontext-content/briefcase.svg");

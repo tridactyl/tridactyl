@@ -75,7 +75,6 @@
     --tridactyl-font-family: "JetBrains Mono", "SF Mono", monospace;
     --tridactyl-bg: var(--tritheme-darkblue4);
     --tridactyl-fg: var(--tritheme-lightblue);
-    --tridactyl-private-window-icon-url: url("chrome://global/skin/icons/indicator-private-browsing.svg");
 
     /* Mode indicator */
     --tridactyl-status-fg: white;
