@@ -105,6 +105,7 @@ export class BufferCompletionSource extends TabCompletionSource {
             ],
             "BufferCompletionSource",
             "Tabs",
+            { configKey: "Tab" },
         )
         this.sortScoredOptions = true
         this.updateOptions()

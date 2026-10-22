@@ -44,6 +44,7 @@ export class FindCompletionSource extends Completions.CompletionSourceFuse {
                 <td class="content">Context</td>
                 <td class="position">Position</td>
             </tr></table>`,
+            { configKey: "Find" },
         )
     }
 

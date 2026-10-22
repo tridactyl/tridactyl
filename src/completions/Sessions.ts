@@ -70,7 +70,7 @@ export class SessionsCompletionSource extends Completions.CompletionSourceFuse {
     private shouldSetStateFromScore = true
 
     constructor(private _parent) {
-        super(["undo"], "SessionCompletionSource", "sessions")
+        super(["undo"], "SessionCompletionSource", "sessions", { configKey: "Sessions" })
 
         this.updateOptions()
         this.shouldSetStateFromScore =

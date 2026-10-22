@@ -1333,12 +1333,16 @@ export class default_config {
      */
     completions = {
         Find: {
+            /** Allow ex.insert_character_or_completion to insert the selected completion. */
+            insertcompletion: "false",
             autoselect: "true",
         },
         Goto: {
+            insertcompletion: "false",
             autoselect: "true",
         },
         Tab: {
+            insertcompletion: "false",
             /**
              * Whether to automatically select the closest matching completion
              */
@@ -1354,21 +1358,27 @@ export class default_config {
             statusstylepretty: "false",
         },
         TabAll: {
+            insertcompletion: "false",
             autoselect: "true",
         },
         TabGroup: {
+            insertcompletion: "false",
             autoselect: "true",
         },
         Rss: {
+            insertcompletion: "true",
             autoselect: "true",
         },
         Bmark: {
+            insertcompletion: "false",
             autoselect: "true",
         },
         History: {
+            insertcompletion: "true",
             autoselect: "false",
         },
         Sessions: {
+            insertcompletion: "false",
             autoselect: "true",
         },
     }

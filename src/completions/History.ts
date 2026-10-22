@@ -49,6 +49,7 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
             ["open", "tabopen", "winopen"],
             "HistoryCompletionSource",
             HistoryCompletionSource.DEFAULT_SECTION_HEADER,
+            { configKey: "History" },
         )
 
         this._parent.appendChild(this.node)

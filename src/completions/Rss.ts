@@ -28,7 +28,7 @@ export class RssCompletionSource extends Completions.CompletionSourceFuse {
     private shouldSetStateFromScore = true
 
     constructor(private _parent) {
-        super(["rssexec"], "RssCompletionSource", "Feeds")
+        super(["rssexec"], "RssCompletionSource", "Feeds", { configKey: "Rss" })
 
         this.updateOptions()
         this.shouldSetStateFromScore =
