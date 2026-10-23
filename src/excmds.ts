@@ -903,6 +903,13 @@ export async function mktridactylrc(...args: string[]) {
  */
 //#background
 export async function source(...args: string[]) {
+    const file = await source_helper(...args)
+    if (file) await fillcmdline_tmp(3000, `# RC sourced from ${file}`)
+}
+
+/** @hidden */
+//#background_helper
+async function source_helper(...args: string[]) {
     if (args[0] === "--url") {
         let url = args[1]
         if (!url || url === "%") url = window.location.href
@@ -914,21 +921,21 @@ export async function source(...args: string[]) {
         const text = await getclip()
         await rc.runRc(text)
     } else {
-        const file = args.join(" ") || undefined
         if (!(await Native.nativegate("0.1.3", false))) throw new Error("`:source` requires the native messenger for local files. Run `:nativeinstall` or use `:source --clipboard`.")
-        if (!(await rc.source(file))) {
-            logger.error("Could not find RC file")
-        }
+        const file = args.join(" ") || "auto"
+        const path = file === "auto" ? await Native.getrcpath() : file
+        if (await rc.source(path)) return path
+        throw new Error("Could not find RC file")
     }
 }
 
 /**
- * Same as [[source]] but suppresses all errors
+ * Same as [[source]] but suppresses all errors and notifications
  */
 //#background
 export async function source_quiet(...args: string[]) {
     try {
-        await source(...args)
+        await source_helper(...args)
     } catch (e) {
         logger.info("Automatic loading of RC file failed.")
     }

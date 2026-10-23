@@ -7,7 +7,9 @@ export async function source(filename = "auto") {
     if (filename === "auto") {
         rctext = await Native.getrc()
     } else {
-        rctext = (await Native.read(filename)).content
+        const response = await Native.read(filename)
+        if (response.code !== 0) return false
+        rctext = response.content
     }
     if (rctext === undefined) return false
     await runRc(rctext)
