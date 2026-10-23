@@ -47,6 +47,9 @@
 
     --tridactyl-of-bg: var(--arc-accent);
     --tridactyl-of-fg: var(--arc-accent-fg);
+    --tridactyl-status-border: 1px solid rgba(128, 128, 128, 0.22);
+
+    --arc-mode-fg: var(--arc-accent);
 
     /* --- Hints + find  --- */
 
@@ -92,6 +95,7 @@
             0 2px 8px rgba(0, 0, 0, 0.4);
         --arc-accent: #6b68f0;
         --arc-accent-rgb: 107, 104, 240;
+        --arc-mode-fg: #8d8ace;
     }
 }
 
@@ -222,8 +226,8 @@
 
 .TridactylCommandline #completions .focused,
 .TridactylCommandline #completions .focused .url,
-.TridactylCommandline #completions .focused td {
-    background: var(--arc-accent) !important;
+.TridactylCommandline #completions .focused td:not(.container) {
+    background-color: var(--arc-accent) !important;
     color: var(--arc-accent-fg) !important;
     text-decoration: none !important;
 }
@@ -249,10 +253,35 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
 }
 
+
 /* ============================================================== *
- * Remove the mode indicator                                      *
+ * Mode indicator                                                 *
  * ============================================================== */
 
-.TridactylStatusIndicator {
-    display: none !important;
+:root .TridactylStatusIndicator {
+    display: inline-flex !important;
+    align-items: center !important;
+    right: 14px !important;
+    bottom: 14px !important;
+    padding: 4px 10px !important;
+    font-family: var(--arc-font) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    background: var(--arc-card) !important;
+    color: var(--tridactyl-url-fg) !important;
+    border-radius: 9px !important;
+    box-shadow: var(--arc-shadow) !important;
+}
+
+:root .TridactylStatusIndicator > select,
+:root .TridactylStatusIndicator > select > option {
+    text-transform: uppercase !important;
+    letter-spacing: normal !important;
+    font: inherit !important;
+    cursor: default !important;
+}
+
+:root .TridactylStatusIndicator.TridactylPrivate {
+    background: var(--arc-card) !important;
+    border: 1.5px solid var(--arc-accent) !important;
 }
