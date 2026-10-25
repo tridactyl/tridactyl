@@ -4998,11 +4998,12 @@ export function getAutocmdEvents() {
  *       ```
 
  * - For webRequest events (AuthRequired, BeforeRedirect, BeforeRequest, BeforeSendHeaders, Completed, ErrorOccured, HeadersReceived, ResponseStarted and SendHeaders): the text of a javascript function that should accept a [details objects specific to the event](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#Events) and return a [blocking response](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/BlockingResponse). This JavaScript function will run in the background context.
- *     - Example for redirecting from new to old reddit:
+ *     - Example for changing request header:
  *
  *       ```text
- *       autocmd BeforeRequest https://www.reddit.com/r/* (details) => ({redirectUrl: details.url.replace(/^https:\/\/www\./, "https://old.")})
+ *       autocmd BeforeSendHeaders *://*.example.com/* e=>{for(const header of e.requestHeaders){if(header.name.toLowerCase()==="accept-language"){header.value="zh-CN,en-US;q=0.9,en;q=0.8"}}return{requestHeaders:e.requestHeaders}};
  *       ```
+ * __NB:__ the `url` parameter follows very different [rules](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns) for webRequests
 
  * For non-webRequest events, magic variables are available which are replaced with the relevant string at runtime:
 
