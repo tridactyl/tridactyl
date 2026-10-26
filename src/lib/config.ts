@@ -168,8 +168,8 @@ export class default_config {
         "<C-m>": "ex.accept_line",
         "<Escape>": "ex.hide_and_clear",
         "<C-[>": "ex.hide_and_clear",
-        "<ArrowUp>": "ex.prev_history_or_completion",
-        "<ArrowDown>": "ex.next_history_or_completion",
+        "<ArrowUp>": "ex.prev_history", // prev_history_or_completion is extremely annoying to use when autoselect is enabled
+        "<ArrowDown>": "ex.next_history",
         "<PageUp>": "ex.prev_completion 15",
         "<PageDown>": "ex.next_completion 15",
         "<S-Delete>": "ex.execute_ex_on_completion_args tabclose",
