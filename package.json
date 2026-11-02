@@ -33,7 +33,7 @@
   "devDependencies": {
     "@eslint-community/eslint-utils": "4.4.0",
     "@types/css": "0.0.38",
-    "@types/firefox-webext-browser": "^120.0.4",
+    "@types/firefox-webext-browser": "^143.0.0",
     "@types/jest": "29.5.12",
     "@types/nearley": "^2.11.5",
     "@types/ramda": "0.30.2",
