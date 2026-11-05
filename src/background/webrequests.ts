@@ -15,18 +15,19 @@ export const requestEvents = Object.keys(requestEventExpraInfoSpecMap)
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export const LISTENERS: Record<string, Record<string, Function>> = {}
 
-export const registerWebRequestAutocmd = async (
+export const registerWebRequestAutocmd = (
     requestEvent: string,
     pattern: string,
-    func: string,
+    func: string | string[],
 ) => {
     // I'm being lazy - strictly the functions map strings to void | blocking responses
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    const listener = eval(func) as Function
+    const listeners = [func].flat().map(source => (eval(source) as Function).bind(undefined))
+    const listener = details => listeners.reduce((response, listener) => listener(details) ?? response, undefined)
 
     if (!LISTENERS[requestEvent]) LISTENERS[requestEvent] = {}
 
-    await browser.webRequest["on" + requestEvent].addListener(
+    browser.webRequest["on" + requestEvent].addListener(
         listener,
         { urls: [pattern] },
         requestEventExpraInfoSpecMap[requestEvent],
@@ -37,15 +38,15 @@ export const registerWebRequestAutocmd = async (
 
     // Remove any previously registered autocmd for the same pattern
     if (oldListener) {
-        await browser.webRequest["on" + requestEvent].removeListener(
+        browser.webRequest["on" + requestEvent].removeListener(
             oldListener
         )
     }
 }
 
-export const unregisterWebRequestAutocmd = async (requestEvent, pattern) => {
+export const unregisterWebRequestAutocmd = (requestEvent, pattern) => {
     if (LISTENERS[requestEvent] && LISTENERS[requestEvent][pattern]) {
-        await browser.webRequest["on" + requestEvent].removeListener(
+        browser.webRequest["on" + requestEvent].removeListener(
             LISTENERS[requestEvent][pattern],
         )
     }
