@@ -50,7 +50,34 @@ export async function downloadUrl(url: string, saveAs: boolean) {
         urlToDownload = urlToSave.href
     }
 
-    const fileName = getDownloadFilenameForUrl(urlToSave)
+    let fileName = getDownloadFilenameForUrl(urlToSave)
+    if (urlToSave.protocol === "http:" || urlToSave.protocol === "https:") {
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 5000)
+        try {
+            const response = await fetch(urlToSave.href, {
+                method: "HEAD",
+                credentials: "omit",
+                signal: controller.signal,
+            })
+            const disposition =
+                response.ok && response.headers.get("content-disposition")
+            const match = /(?:^|;)\s*filename\s*=\s*"?([^";]+)"?/i.exec(
+                disposition || "",
+            )
+            const basename = match?.[1].trim().replace(
+                /^.*[\\/][. ]*|^[. ]+|[<>:"|?*\p{Cc}]|[. ]+$/gu,
+                "_",
+            )
+            if (basename)
+                fileName = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(
+                    basename,
+                )
+                    ? `_${basename}`
+                    : basename
+        } catch {}
+        clearTimeout(timeout)
+    }
 
     // Save location limitations:
     //  - download() can't save outside the downloads dir without popping
