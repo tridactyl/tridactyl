@@ -37,6 +37,19 @@ export function paramTypes(fnNode: Node | undefined): Node[] {
     return fnNode?.params || []
 }
 
+export interface FlagMeta {
+    short: string
+    description: string
+    /** Mutual-exclusion group, e.g. "action" for hint's "only one can be specified" flags. */
+    group?: string
+}
+
+export function getFlags(
+    fnNode: Node | undefined,
+): Record<string, FlagMeta> | undefined {
+    return fnNode?.flags
+}
+
 function intrinsicName(t) {
     switch (t.name) {
         case "string":
