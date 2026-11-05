@@ -1,0 +1,174 @@
+/* uses midnight theam as base script */
+
+:root {
+    --tridactyl-font-family: "Iosevka Term", sans-serif;
+    --tridactyl-bg: #1c1c1c;
+    --tridactyl-fg: #CFCFCF;
+
+    --tridactyl-status-font-size: 12px;
+    --tridactyl-status-font-family: "Fira Code", "San Francisco";
+    --tridactyl-status-font-bg: var(--tridactyl-cmdl-bg);
+    --tridactyl-status-border: 2px solid black;
+    --tridactyl-status-border-radius: 4px;
+
+    --tridactyl-header-font-size: 16px;
+
+    --tridactyl-of-fg: black;
+    --tridactyl-of-bg: #ffd662;
+
+    --tridactyl-hintspan-fg: white;
+    --tridactyl-hintspan-bg: #204e8a;
+
+    --tridactyl-hint-active-fg: #333;
+    --tridactyl-hint-active-bg: #006e51;
+    --tridactyl-hint-active-outline: 1px solid #000;
+
+    --tridactyl-hint-bg: rgba(13, 31, 54, 0.25);
+    --tridactyl-hint-outline: 1px solid var(--tridactyl-hintspan-bg);
+
+    --tridactyl-cmdl-font-size: 1.5rem;
+    --tridactyl-cmplt-option-height: 1.9em;
+
+    --tridactyl-border-radius: 4px;
+}
+
+:root.TridactylOwnNamespace {
+    scrollbar-width: thin;
+}
+
+:root.TridactylOwnNamespace a {
+    color: #af865f;
+}
+
+:root.TridactylOwnNamespace code {
+    background-color: #313131;
+    padding: 2px 5px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: "Iosevka Term";
+    color: #CABB90;
+}
+
+.hljs-keyword, .hljs-id, .hljs-built_in, .css .smalltalk .hljs-class, .hljs-winutils, .bash .hljs-variable, .tex .hljs-command, .hljs-request, .hljs-status, .nginx .hljs-title{
+    color: #7FA0C8;
+}
+.hljs-comment, .hljs-annotation, .hljs-template_comment, .diff .hljs-header, .hljs-chunk, .apache .hljs-cbracket{
+    color: #87BC5A;
+}
+.hljs-string, .hljs-title, .hljs-parent, .hljs-tag .hljs-value, .hljs-rules .hljs-value{
+    color: #AD505C;
+}
+
+.tsd-flag {
+	display: inline-block;
+	padding: 1px 5px;
+	border-radius: 4px;
+	color: #fff;
+	background-color: #6a5d3f;
+	text-indent: 0;
+	font-size: 14px;
+	font-weight: normal;
+}
+
+.tsd-sources {
+        font-size: 14px;
+        color: #797065;
+}
+:root #command-line-holder {
+    order: 1;
+}
+
+:root #command-line-holder,
+:root #tridactyl-input {
+    border-radius: var(--tridactyl-border-radius) !important;
+}
+
+:root #tridactyl-colon::before {
+    content: "";
+}
+
+:root #tridactyl-input {
+    width: 96%;
+    padding: 1rem;
+}
+
+:root #completions table {
+    font-weight: 200;
+    table-layout: fixed;
+    padding: 1rem;
+    padding-top: 0;
+}
+
+:root #completions > div {
+    max-height: calc(20 * var(--tridactyl-cmplt-option-height));
+    min-height: calc(10 * var(--tridactyl-cmplt-option-height));
+}
+
+:root #completions {
+    border: none !important;
+    font-family: var(--tridactyl-font-family);
+    order: 2;
+    margin-top: 10px;
+    border-radius: var(--tridactyl-border-radius);
+}
+
+:root #completions .HistoryCompletionSource table {
+    width: 100%;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+:root #completions .BufferCompletionSource table {
+    width: unset;
+    font-size: unset;
+    border-spacing: unset;
+    table-layout: unset;
+}
+
+:root #completions table tr .title {
+    width: 50%;
+}
+
+:root #completions tr .documentation {
+    white-space: nowrap;
+    overflow: auto;
+    text-overflow: ellipsis;
+}
+
+:root #completions .sectionHeader {
+	background: transparent;
+	padding: 0.1rem 1rem 0.2rem !important;
+}
+:root #cmdline_iframe {
+    position: fixed !important;
+    bottom: unset;
+    top: 25% !important;
+    left: 10% !important;
+    z-index: 2147483647 !important;
+    width: 80% !important;
+    filter: drop-shadow(0px 0px 20px #000000) !important;
+    color-scheme: only light; /* Prevent Firefox from adding a white background on dark-mode sites */
+}
+.ExcmdCompletionOption td.excmd {
+	width: 18%;
+	font-size: 15px;
+}
+:root #tridactyl-input {
+	width: 94%;
+	padding: 0.5rem;
+	font-size: 19px;
+}
+:root #completions tr .documentation {
+	white-space: nowrap;
+	overflow: auto;
+	text-overflow: ellipsis;
+	color: #c4bbb1;
+}
+:root .TridactylStatusIndicator {
+    position: fixed !important;
+    bottom: 10px !important;
+    right: 10px !important;
+    font-weight: 200 !important;
+    padding: 2px !important;
+    
+}
