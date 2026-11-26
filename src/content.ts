@@ -293,6 +293,7 @@ window["tri"] = {
     native,
     styling,
     contentLocation: window.location,
+    contentMode: contentState.mode,
     perf,
     R,
     updates,
