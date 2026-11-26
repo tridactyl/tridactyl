@@ -2084,7 +2084,12 @@ export function getDeepProperty(obj, target: string[]) {
     } else {
         if (obj === undefined || obj === null) return obj
         if (obj["🕷🕷INHERITS🕷🕷"] !== undefined) {
-            return mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj)
+            // Key matching uses iteration order when distinct bindings match the same event.
+            return Object.assign(
+                o({}),
+                obj,
+                mergeDeep(get(obj["🕷🕷INHERITS🕷🕷"]), obj),
+            )
         } else {
             return obj
         }
