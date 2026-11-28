@@ -77,6 +77,38 @@ test("getURL in keymap and config in mock mode", () => {
     })
 })
 
+test("getURL merges all matching subconfigs", () => {
+    const { USERCONFIG } = tri.config
+    const subconfigs = USERCONFIG.subconfigs
+    const u = "github\\.com/"
+    USERCONFIG.subconfigs = {}
+    try {
+        tri.config.setURL(u, "nmaps", "a", "fillcmdline first")
+        tri.config.setURL(
+            u + "[^/]+/[^/]+/issues/",
+            "nmaps",
+            "b",
+            "fillcmdline second",
+        )
+        tri.config.setURL(
+            u + "tridactyl/tridactyl/issues/",
+            "nmaps",
+            "c",
+            "fillcmdline third",
+        )
+        expect(
+            getURL("https://github.com/tridactyl/tridactyl/issues/", ["nmaps"]),
+        ).toEqual({
+            a: "fillcmdline first",
+            b: "fillcmdline second",
+            c: "fillcmdline third",
+        })
+    } finally {
+        if (subconfigs === undefined) delete USERCONFIG.subconfigs
+        else USERCONFIG.subconfigs = subconfigs
+    }
+})
+
 test("merge deep should keep null", () => {
     const a = {}
     const b = { n: null }

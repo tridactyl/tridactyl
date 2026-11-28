@@ -52,6 +52,9 @@ export function o(object) {
 }
 
 /** @hidden */
+const isObject = (x: any) => typeof x === "object" && x !== null
+
+/** @hidden */
 // "Import" is a reserved word so this will have to do
 function schlepp(settings) {
     Object.assign(USERCONFIG, settings)
@@ -2160,7 +2163,7 @@ export function getURL(url: string, target: string[]) {
                         conf.subconfigs[curKey],
                         target,
                     )
-                    if (acc instanceof Object && curVal instanceof Object)
+                    if (isObject(acc) && isObject(curVal))
                         return mergeDeep(acc, curVal)
                     return curVal
                 }, undefined as any)
